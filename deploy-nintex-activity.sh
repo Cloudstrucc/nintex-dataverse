@@ -33,7 +33,8 @@
 # }
 #############################################################################
 
-set -e
+# Don't use set -e as it causes silent exits on non-critical errors
+# We handle errors explicitly in each section
 
 # Color codes for output
 RED='\033[0;31m'
@@ -241,7 +242,18 @@ api_call() {
             sleep 5
         else
             print_error "API call failed with HTTP $http_code"
+            print_error "Endpoint: ${method} ${API_URL}/${endpoint}"
+            echo "Response body:"
             echo "$body" | jq '.' 2>/dev/null || echo "$body"
+            
+            # Parse and show error details
+            if echo "$body" | jq -e '.error' > /dev/null 2>&1; then
+                error_code=$(echo "$body" | jq -r '.error.code')
+                error_message=$(echo "$body" | jq -r '.error.message')
+                print_error "Error Code: $error_code"
+                print_error "Error Message: $error_message"
+            fi
+            
             return 1
         fi
     done
@@ -258,21 +270,55 @@ if [[ "$DEPLOYMENT_MODE" == "all" ]] || [[ "$DEPLOYMENT_MODE" == "schema" ]]; th
 
 print_info "Starting schema creation..."
 
-# Step 1: Create Activity Entity
-print_step "Creating Digital Signature Activity Entity"
+# Step 1: Check if Digital Signature Table exists
+print_step "Checking for Existing Digital Signature Table"
 
-entity_payload=$(cat <<EOF
+print_info "Checking if table ${PUBLISHER_PREFIX}_digitalsignature exists..."
+check_result=$(curl -s -w "\n%{http_code}" -X GET "${API_URL}/EntityDefinitions(LogicalName='${PUBLISHER_PREFIX}_digitalsignature')?\$select=LogicalName,DisplayName,MetadataId" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "OData-MaxVersion: 4.0" \
+    -H "OData-Version: 4.0" \
+    -H "Accept: application/json")
+
+check_http_code=$(echo "$check_result" | tail -n 1)
+check_body=$(echo "$check_result" | sed '$d')
+
+if [[ "$check_http_code" == "200" ]]; then
+    print_success "Table already exists! Skipping table creation."
+    ENTITY_EXISTS=true
+    entity_metadata_id=$(echo "$check_body" | jq -r '.MetadataId')
+    print_info "Entity MetadataId: $entity_metadata_id"
+elif [[ "$check_http_code" == "404" ]]; then
+    print_info "Table does not exist. Attempting to create..."
+    ENTITY_EXISTS=false
+    
+    # Step 1a: Create Digital Signature Table
+    print_step "Creating Digital Signature Table"
+    
+    print_warning "Note: Automated table creation via Web API can be unreliable."
+    print_info "If this fails, please create the table manually:"
+    echo ""
+    echo "  1. Go to https://make.powerapps.com"
+    echo "  2. Tables → + New table → Add columns and data"
+    echo "  3. Name: Digital Signature"
+    echo "  4. Primary column: Name"
+    echo "  5. Save"
+    echo "  6. Then re-run: ./deploy-nintex-activity.sh config.json schema"
+    echo ""
+    print_info "Attempting automated creation in 3 seconds..."
+    sleep 3
+    
+    entity_payload=$(cat <<EOF
 {
   "@odata.type": "Microsoft.Dynamics.CRM.EntityMetadata",
-  "IsActivity": true,
-  "LogicalName": "${PUBLISHER_PREFIX}_digitalsignatureactivity",
-  "SchemaName": "${PUBLISHER_PREFIX}_DigitalSignatureActivity",
+  "LogicalName": "${PUBLISHER_PREFIX}_digitalsignature",
+  "SchemaName": "${PUBLISHER_PREFIX}_DigitalSignature",
   "DisplayName": {
     "@odata.type": "Microsoft.Dynamics.CRM.Label",
     "LocalizedLabels": [
       {
         "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-        "Label": "Digital Signature Activity",
+        "Label": "Digital Signature",
         "LanguageCode": 1033
       }
     ]
@@ -282,7 +328,7 @@ entity_payload=$(cat <<EOF
     "LocalizedLabels": [
       {
         "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-        "Label": "Digital Signature Activities",
+        "Label": "Digital Signatures",
         "LanguageCode": 1033
       }
     ]
@@ -292,7 +338,7 @@ entity_payload=$(cat <<EOF
     "LocalizedLabels": [
       {
         "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-        "Label": "Activity for managing digital signature requests via Nintex AssureSign API",
+        "Label": "Table for managing digital signature requests via Nintex AssureSign API",
         "LanguageCode": 1033
       }
     ]
@@ -301,24 +347,90 @@ entity_payload=$(cat <<EOF
   "IsCustomizable": {
     "Value": true
   },
-  "HasActivities": false,
+  "HasActivities": true,
   "HasNotes": true,
-  "CanCreateAttributes": {
-    "Value": true
-  }
+  "HasAttributes": true,
+  "Attributes": [
+    {
+      "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+      "AttributeType": "String",
+      "AttributeTypeName": {
+        "Value": "StringType"
+      },
+      "SchemaName": "${PUBLISHER_PREFIX}_Name",
+      "IsPrimaryName": true,
+      "RequiredLevel": {
+        "Value": "None"
+      },
+      "MaxLength": 200,
+      "FormatName": {
+        "Value": "Text"
+      },
+      "DisplayName": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "Name",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "Description": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "Name of the signature request",
+            "LanguageCode": 1033
+          }
+        ]
+      }
+    }
+  ]
 }
 EOF
 )
 
-print_info "Creating activity entity: ${PUBLISHER_PREFIX}_digitalsignatureactivity"
-if result=$(api_call POST "EntityDefinitions" "$entity_payload"); then
-    print_success "Activity entity created successfully!"
+    print_info "Creating table: ${PUBLISHER_PREFIX}_digitalsignature"
+    
+    create_result=$(curl -s -w "\n%{http_code}" -X POST "${API_URL}/EntityDefinitions" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -H "OData-MaxVersion: 4.0" \
+        -H "OData-Version: 4.0" \
+        -H "Accept: application/json" \
+        -d "$entity_payload")
+    
+    create_http_code=$(echo "$create_result" | tail -n 1)
+    create_body=$(echo "$create_result" | sed '$d')
+    
+    if [[ "$create_http_code" == "201" ]] || [[ "$create_http_code" == "204" ]] || [[ "$create_http_code" == "200" ]]; then
+        print_success "Table created successfully!"
+        ENTITY_EXISTS=true
+    else
+        print_error "Failed to create table - HTTP $create_http_code"
+        echo ""
+        print_error "Error details:"
+        echo "$create_body" | jq '.' 2>/dev/null || echo "$create_body"
+        echo ""
+        print_warning "NEXT STEPS:"
+        echo "1. Create the table manually at https://make.powerapps.com"
+        echo "2. Tables → + New table → Add columns and data"
+        echo "3. Name: Digital Signature"
+        echo "4. Primary column: Name"  
+        echo "5. Save"
+        echo "6. Re-run: ./deploy-nintex-activity.sh config.json schema"
+        echo ""
+        exit 1
+    fi
 else
-    print_error "Failed to create activity entity"
+    print_error "Unexpected response checking for table: HTTP $check_http_code"
+    echo "$check_body" | jq '.' 2>/dev/null || echo "$check_body"
     exit 1
 fi
 
-print_info "Waiting 10 seconds for entity creation to complete..."
+print_info "Waiting 10 seconds for table provisioning to complete..."
 sleep 10
 
 # Function to create attribute
@@ -330,7 +442,7 @@ create_attribute() {
     
     print_info "Creating attribute: $display_name..."
     
-    if result=$(api_call POST "EntityDefinitions(LogicalName='${PUBLISHER_PREFIX}_digitalsignatureactivity')/Attributes" "$payload"); then
+    if result=$(api_call POST "EntityDefinitions(LogicalName='${PUBLISHER_PREFIX}_digitalsignature')/Attributes" "$payload"); then
         print_success "✓ Created: $display_name"
         sleep 2  # Delay between attribute creation
         return 0
@@ -778,95 +890,136 @@ get_entity_id() {
     return 1
 }
 
-# Step 4: Create Security Role
+# Step 4: Create or Find Security Role
 print_step "Creating Security Role: $ROLE_NAME"
 
-# Create the role first
-role_payload=$(cat <<EOF
-{
-  "name": "$ROLE_NAME",
-  "businessunitid@odata.bind": "/businessunits(BUSINESS_UNIT_ID)"
-}
-EOF
-)
+# Get root business unit ID first (needed for role creation if it doesn't exist)
+print_info "Getting business units..."
 
-# Get root business unit ID
-print_info "Getting root business unit..."
-bu_result=$(api_call GET "businessunits?\$filter=parentbusinessunitid eq null&\$select=businessunitid" "")
-if [[ $? -ne 0 ]]; then
-    print_error "Failed to get root business unit"
+bu_result=$(curl -s -w "\n%{http_code}" -X GET "${API_URL}/businessunits?\$select=businessunitid,parentbusinessunitid,name" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "OData-MaxVersion: 4.0" \
+    -H "OData-Version: 4.0" \
+    -H "Accept: application/json")
+
+bu_http_code=$(echo "$bu_result" | tail -n 1)
+bu_body=$(echo "$bu_result" | sed '$d')
+
+if [[ "$bu_http_code" != "200" ]]; then
+    print_error "Failed to get business units - HTTP $bu_http_code"
+    echo "$bu_body" | jq '.' 2>/dev/null || echo "$bu_body"
     exit 1
 fi
 
-BUSINESS_UNIT_ID=$(echo "$bu_result" | jq -r '.value[0].businessunitid')
+# Find the root business unit (one without a parent)
+BUSINESS_UNIT_ID=$(echo "$bu_body" | jq -r '.value[] | select(.parentbusinessunitid == null or ._parentbusinessunitid_value == null) | .businessunitid' | head -n 1)
+
 if [[ -z "$BUSINESS_UNIT_ID" || "$BUSINESS_UNIT_ID" == "null" ]]; then
-    print_error "Could not determine root business unit ID"
+    print_error "Could not find root business unit"
     exit 1
 fi
 
-print_info "Business Unit ID: $BUSINESS_UNIT_ID"
+print_success "Root Business Unit ID: $BUSINESS_UNIT_ID"
 
-# Create role with correct business unit
-role_payload=$(cat <<EOF
+# Now check if role already exists
+print_info "Checking if role already exists..."
+
+# Get all roles (simpler query, no filtering)
+check_result=$(curl -s -w "\n%{http_code}" -X GET "${API_URL}/roles?\$select=roleid,name" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "OData-MaxVersion: 4.0" \
+    -H "Accept: application/json")
+
+check_http_code=$(echo "$check_result" | tail -n 1)
+check_body=$(echo "$check_result" | sed '$d')
+
+if [[ "$check_http_code" != "200" ]]; then
+    print_error "Failed to retrieve roles - HTTP $check_http_code"
+    echo "$check_body" | jq '.' 2>/dev/null || echo "$check_body"
+    exit 1
+fi
+
+# Filter for our role in bash using jq
+ROLE_ID=$(echo "$check_body" | jq -r --arg name "$ROLE_NAME" '.value[] | select(.name == $name) | .roleid' | head -n 1)
+
+if [[ -n "$ROLE_ID" && "$ROLE_ID" != "null" ]]; then
+    print_warning "Security role already exists with ID: $ROLE_ID"
+    print_info "Will update privileges on existing role..."
+else
+    # Role doesn't exist, create it
+    print_info "Role not found. Creating new security role..."
+    
+    # Create role with correct business unit
+    role_payload=$(cat <<EOF
 {
   "name": "$ROLE_NAME",
   "businessunitid@odata.bind": "/businessunits($BUSINESS_UNIT_ID)"
 }
 EOF
 )
-
-print_info "Creating security role..."
-if role_response=$(api_call POST "roles" "$role_payload"); then
-    ROLE_ID=$(echo "$role_response" | jq -r '.roleid')
-    print_success "Security role created! ID: $ROLE_ID"
-else
-    print_error "Failed to create security role"
-    # Check if role already exists
-    print_info "Checking if role already exists..."
-    existing_role=$(api_call GET "roles?\$filter=name eq '$ROLE_NAME'&\$select=roleid" "")
-    ROLE_ID=$(echo "$existing_role" | jq -r '.value[0].roleid')
     
-    if [[ -n "$ROLE_ID" && "$ROLE_ID" != "null" ]]; then
-        print_warning "Role already exists with ID: $ROLE_ID"
-        print_info "Will update privileges on existing role..."
+    role_result=$(curl -s -w "\n%{http_code}" -X POST "${API_URL}/roles" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -H "OData-MaxVersion: 4.0" \
+        -H "OData-Version: 4.0" \
+        -H "Accept: application/json" \
+        -H "Prefer: return=representation" \
+        -d "$role_payload")
+    
+    role_http_code=$(echo "$role_result" | tail -n 1)
+    role_body=$(echo "$role_result" | sed '$d')
+    
+    if [[ "$role_http_code" == "201" ]] || [[ "$role_http_code" == "204" ]] || [[ "$role_http_code" == "200" ]]; then
+        # Try to get role ID from response
+        ROLE_ID=$(echo "$role_body" | jq -r '.roleid // empty')
+        
+        if [[ -z "$ROLE_ID" || "$ROLE_ID" == "null" ]]; then
+            # Query for it if not in response
+            print_info "Retrieving created role ID..."
+            sleep 2
+            
+            query_result=$(curl -s "${API_URL}/roles?\$select=roleid,name" \
+                -H "Authorization: Bearer $TOKEN" \
+                -H "Accept: application/json")
+            
+            ROLE_ID=$(echo "$query_result" | jq -r --arg name "$ROLE_NAME" '.value[] | select(.name == $name) | .roleid' | head -n 1)
+        fi
+        
+        if [[ -n "$ROLE_ID" && "$ROLE_ID" != "null" ]]; then
+            print_success "Security role created! ID: $ROLE_ID"
+        else
+            print_error "Role created but couldn't retrieve ID"
+            exit 1
+        fi
     else
-        print_error "Could not create or find security role"
+        print_error "Failed to create security role - HTTP $role_http_code"
+        echo "$role_body" | jq '.' 2>/dev/null || echo "$role_body"
         exit 1
     fi
 fi
 
+print_success "Using Security Role ID: $ROLE_ID"
+
 # Step 5: Assign Privileges to Security Role
 print_step "Configuring Security Role Privileges"
 
-# Define entities and their required privileges
-# Privilege Depth: Basic (0), Local (1), Deep (2), Global (3)
-declare -A ENTITIES=(
-    # Digital Signature Activity - Full CRUD + Append/AppendTo
-    ["${PUBLISHER_PREFIX}_digitalsignatureactivity"]="Create:3,Read:3,Write:3,Delete:3,Append:3,AppendTo:3,Assign:3,Share:3"
-    
-    # Related standard entities - Read access for lookups and relationships
-    ["account"]="Read:3"
-    ["contact"]="Read:3"
-    ["incident"]="Read:3"  # Case entity
-    ["opportunity"]="Read:3"
-    ["activitypointer"]="Read:3"  # Base activity entity
-    ["email"]="Read:1"  # Basic email read for notifications
-    ["systemuser"]="Read:3"  # Read users for owner lookups
-    ["team"]="Read:3"  # Read teams for owner lookups
-    ["businessunit"]="Read:3"  # Read business units
+# Define entities and their required privileges in a simple format
+# Format: entity_name|privilege1:depth1,privilege2:depth2,...
+ENTITY_PRIVILEGES=(
+    "${PUBLISHER_PREFIX}_digitalsignature|Create:3,Read:3,Write:3,Delete:3,Append:3,AppendTo:3,Assign:3,Share:3"
+    "account|Read:3"
+    "contact|Read:3"
+    "incident|Read:3"
+    "opportunity|Read:3"
+    "email|Read:1"
+    "systemuser|Read:3"
+    "team|Read:3"
+    "businessunit|Read:3"
 )
 
-# Privilege type GUIDs (these are standard in all Dataverse environments)
-declare -A PRIVILEGE_TYPES=(
-    ["Create"]="Create"
-    ["Read"]="Read"
-    ["Write"]="Write"
-    ["Delete"]="Delete"
-    ["Append"]="Append"
-    ["AppendTo"]="AppendTo"
-    ["Assign"]="Assign"
-    ["Share"]="Share"
-)
+# Privilege type names (for constructing privilege names)
+PRIVILEGE_TYPES=("Create" "Read" "Write" "Delete" "Append" "AppendTo" "Assign" "Share")
 
 # Function to add privilege to role
 add_privilege_to_role() {
@@ -895,12 +1048,20 @@ get_privilege_id() {
     local entity_name=$1
     local privilege_type=$2
     
-    # Query for the privilege
-    filter="Name eq '${privilege_type}${entity_name}'"
-    result=$(api_call GET "privileges?\$filter=$filter&\$select=privilegeid,name" "")
+    # Dataverse privilege names follow pattern: prv<Type><entityname>
+    # Example: prvCreatecs_digitalsignature, prvReadaccount
+    local privilege_name="prv${privilege_type}${entity_name}"
+    
+    # Get all privileges and filter locally (avoid $filter issues)
+    result=$(curl -s "${API_URL}/privileges?\$select=privilegeid,name" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "OData-MaxVersion: 4.0" \
+        -H "Accept: application/json")
     
     if [[ $? -eq 0 ]]; then
-        privilege_id=$(echo "$result" | jq -r '.value[0].privilegeid')
+        # Filter locally using jq
+        privilege_id=$(echo "$result" | jq -r --arg name "$privilege_name" '.value[] | select(.name == $name) | .privilegeid' | head -n 1)
+        
         if [[ -n "$privilege_id" && "$privilege_id" != "null" ]]; then
             echo "$privilege_id"
             return 0
@@ -911,14 +1072,20 @@ get_privilege_id() {
 }
 
 # Process each entity and assign privileges
-for entity in "${!ENTITIES[@]}"; do
+for entity_config in "${ENTITY_PRIVILEGES[@]}"; do
+    # Split entity name and privileges
+    entity=$(echo "$entity_config" | cut -d'|' -f1)
+    privileges=$(echo "$entity_config" | cut -d'|' -f2)
+    
     print_info "Configuring privileges for: $entity"
     
-    # Parse privilege requirements
-    IFS=',' read -ra PRIVS <<< "${ENTITIES[$entity]}"
+    # Parse privilege requirements (comma-separated list)
+    IFS=',' read -ra PRIVS <<< "$privileges"
     
     for priv in "${PRIVS[@]}"; do
-        IFS=':' read -r priv_type priv_depth <<< "$priv"
+        # Split privilege type and depth
+        priv_type=$(echo "$priv" | cut -d':' -f1)
+        priv_depth=$(echo "$priv" | cut -d':' -f2)
         
         print_info "  Adding $priv_type privilege (depth: $priv_depth)..."
         
@@ -948,11 +1115,18 @@ MISC_PRIVILEGES=(
     "prvReadQuery"  # Execute queries
 )
 
+# Get all privileges once
+print_info "Retrieving privilege list..."
+all_privs=$(curl -s "${API_URL}/privileges?\$select=privilegeid,name" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "OData-MaxVersion: 4.0" \
+    -H "Accept: application/json")
+
 for priv_name in "${MISC_PRIVILEGES[@]}"; do
     print_info "Adding privilege: $priv_name..."
     
-    result=$(api_call GET "privileges?\$filter=Name eq '$priv_name'&\$select=privilegeid" "")
-    privilege_id=$(echo "$result" | jq -r '.value[0].privilegeid')
+    # Filter locally
+    privilege_id=$(echo "$all_privs" | jq -r --arg name "$priv_name" '.value[] | select(.name == $name) | .privilegeid' | head -n 1)
     
     if [[ -n "$privilege_id" && "$privilege_id" != "null" ]]; then
         if add_privilege_to_role "$ROLE_ID" "$privilege_id" "3"; then
@@ -960,6 +1134,8 @@ for priv_name in "${MISC_PRIVILEGES[@]}"; do
         else
             print_warning "  ⚠ Could not add $priv_name (may already exist)"
         fi
+    else
+        print_warning "  ⚠ Privilege not found: $priv_name"
     fi
 done
 
@@ -970,212 +1146,13 @@ print_info "Role Name: $ROLE_NAME"
 fi  # End of security role creation section
 
 #############################################################################
-# STATUS REASON CONFIGURATION SECTION
-#############################################################################
-
-configure_status_reasons() {
-    local entity_logical_name="${PUBLISHER_PREFIX}_digitalsignatureactivity"
-    
-    print_step "Configuring Status Reason Values"
-    print_info "Adding custom status reason options for digital signature workflow..."
-    
-    # Get the StatusCode attribute metadata ID
-    print_info "Retrieving StatusCode attribute metadata..."
-    result=$(api_call GET "EntityDefinitions(LogicalName='$entity_logical_name')/Attributes(LogicalName='statuscode')?\$select=MetadataId" "")
-    
-    if [[ $? -ne 0 ]]; then
-        print_error "Failed to retrieve StatusCode attribute"
-        return 1
-    fi
-    
-    STATUS_ATTR_ID=$(echo "$result" | jq -r '.MetadataId')
-    
-    if [[ -z "$STATUS_ATTR_ID" || "$STATUS_ATTR_ID" == "null" ]]; then
-        print_error "Could not get StatusCode attribute ID"
-        return 1
-    fi
-    
-    print_info "StatusCode Attribute ID: $STATUS_ATTR_ID"
-    
-    # Define status reasons to add
-    # Format: State,Value,Label
-    declare -a STATUS_REASONS=(
-        "0,1,Draft"
-        "0,2,Pending Signature"
-        "0,3,Failed to Send"
-        "1,4,Signed"
-        "2,5,Declined"
-        "2,6,Expired"
-    )
-    
-    # Function to add status reason option
-    add_status_reason() {
-        local state=$1
-        local value=$2
-        local label=$3
-        
-        print_info "Adding: $label (State: $state, Value: $value)"
-        
-        # Insert new option
-        insert_payload=$(cat <<EOF
-{
-  "AttributeLogicalName": "statuscode",
-  "EntityLogicalName": "$entity_logical_name",
-  "Value": $value,
-  "Label": {
-    "@odata.type": "Microsoft.Dynamics.CRM.Label",
-    "LocalizedLabels": [
-      {
-        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-        "Label": "$label",
-        "LanguageCode": 1033
-      }
-    ]
-  },
-  "State": $state
-}
-EOF
-)
-        
-        # Use InsertOptionValue action
-        if result=$(api_call POST "InsertOptionValue" "$insert_payload"); then
-            print_success "  ✓ Added: $label"
-            return 0
-        else
-            print_warning "  ⚠ Could not add $label (may already exist)"
-            return 1
-        fi
-    }
-    
-    # Add each status reason
-    for status_reason in "${STATUS_REASONS[@]}"; do
-        IFS=',' read -r state value label <<< "$status_reason"
-        add_status_reason "$state" "$value" "$label"
-        sleep 1  # Delay between additions
-    done
-    
-    print_success "Status Reason configuration complete!"
-    
-    # Publish changes
-    print_info "Publishing status reason changes..."
-    publish_payload='{"ParameterXml": "<importexportxml></importexportxml>"}'
-    
-    if result=$(api_call POST "PublishAllXml" "$publish_payload"); then
-        print_success "Status reasons published successfully!"
-    else
-        print_warning "Failed to publish status reasons (they may still be applied)"
-    fi
-    
-    return 0
-}
-
-#############################################################################
-# ENABLE ACTIVITIES ON ENTITIES SECTION
-#############################################################################
-
-enable_activities_on_entities() {
-    print_step "Enabling Activities on Target Entities"
-    print_info "Configuring Account, Contact, and Case entities for activities..."
-    
-    # Entities to enable activities on
-    declare -a TARGET_ENTITIES=(
-        "account"
-        "contact"
-        "incident"  # This is the logical name for Case
-    )
-    
-    # Function to enable activities on an entity
-    enable_activities() {
-        local entity_name=$1
-        local display_name=$2
-        
-        print_info "Enabling activities on: $display_name ($entity_name)"
-        
-        # Get current entity metadata
-        result=$(api_call GET "EntityDefinitions(LogicalName='$entity_name')?\$select=IsActivityParty,HasActivities,MetadataId" "")
-        
-        if [[ $? -ne 0 ]]; then
-            print_error "Failed to retrieve entity metadata for: $entity_name"
-            return 1
-        fi
-        
-        current_has_activities=$(echo "$result" | jq -r '.HasActivities')
-        entity_id=$(echo "$result" | jq -r '.MetadataId')
-        
-        if [[ "$current_has_activities" == "true" ]]; then
-            print_success "  ✓ Activities already enabled on $display_name"
-            return 0
-        fi
-        
-        # Update entity to enable activities
-        update_payload=$(cat <<EOF
-{
-  "HasActivities": true,
-  "IsActivityParty": true
-}
-EOF
-)
-        
-        if result=$(api_call PATCH "EntityDefinitions($entity_id)" "$update_payload"); then
-            print_success "  ✓ Enabled activities on $display_name"
-            return 0
-        else
-            print_error "  ✗ Failed to enable activities on $display_name"
-            return 1
-        fi
-    }
-    
-    # Enable activities on each entity
-    for entity in "${TARGET_ENTITIES[@]}"; do
-        case $entity in
-            account)
-                enable_activities "$entity" "Account"
-                ;;
-            contact)
-                enable_activities "$entity" "Contact"
-                ;;
-            incident)
-                enable_activities "$entity" "Case"
-                ;;
-        esac
-        sleep 1
-    done
-    
-    # Publish changes
-    print_info "Publishing entity changes..."
-    publish_payload='{"ParameterXml": "<importexportxml></importexportxml>"}'
-    
-    if result=$(api_call POST "PublishAllXml" "$publish_payload"); then
-        print_success "Entity configurations published successfully!"
-    else
-        print_warning "Failed to publish entity changes"
-    fi
-    
-    print_success "Activity enablement complete!"
-    return 0
-}
-
-#############################################################################
 # POST-DEPLOYMENT CONFIGURATION SECTION
 #############################################################################
 
 if [[ "$DEPLOYMENT_MODE" == "all" ]] || [[ "$DEPLOYMENT_MODE" == "configure" ]]; then
 
-print_info "Starting post-deployment configuration..."
-
-# Configure status reasons
-if ! configure_status_reasons; then
-    print_warning "Status reason configuration had issues (not critical)"
-fi
-
-echo ""
-
-# Enable activities on entities
-if ! enable_activities_on_entities; then
-    print_warning "Activity enablement had issues (not critical)"
-fi
-
-print_success "Post-deployment configuration complete!"
+print_info "Post-deployment configuration..."
+print_info "Regular table created - no additional configuration needed for non-activity tables"
 
 fi  # End of post-deployment configuration
 
@@ -1188,22 +1165,21 @@ print_step "Deployment Complete!"
 echo ""
 
 if [[ "$DEPLOYMENT_MODE" == "all" ]] || [[ "$DEPLOYMENT_MODE" == "schema" ]]; then
-    print_success "Digital Signature Activity created successfully!"
+    print_success "Digital Signature Table created successfully!"
     echo ""
-    print_info "Entity Details:"
-    echo "  • Logical Name: ${PUBLISHER_PREFIX}_digitalsignatureactivity"
-    echo "  • Display Name: Digital Signature Activity"
-    echo "  • Type: Activity (Timeline-enabled)"
+    print_info "Table Details:"
+    echo "  • Logical Name: ${PUBLISHER_PREFIX}_digitalsignature"
+    echo "  • Display Name: Digital Signature"
+    echo "  • Type: Regular Table (UserOwned)"
     echo "  • Custom Attributes: 10"
+    echo "  • Activities Enabled: Yes"
     echo ""
 fi
 
 if [[ "$DEPLOYMENT_MODE" == "all" ]] || [[ "$DEPLOYMENT_MODE" == "configure" ]]; then
-    print_success "Post-Deployment Configuration Applied!"
+    print_success "Post-Deployment Configuration Complete!"
     echo ""
-    print_info "Configuration Details:"
-    echo "  • Status Reasons: Configured (Draft, Pending, Signed, Declined, Expired, Failed)"
-    echo "  • Activities Enabled: Account, Contact, Case"
+    print_info "Note: Regular tables don't require Status Reason configuration like activities"
     echo ""
 fi
 
@@ -1229,22 +1205,14 @@ fi
 print_warning "Remaining Manual Steps:"
 
 if [[ "$DEPLOYMENT_MODE" != "all" ]] && [[ "$DEPLOYMENT_MODE" != "configure" ]]; then
-    echo "  1. Configure Status Reason values (run with 'configure' mode or manually):"
-    echo "     • State Open (0): Draft (1), Pending Signature (2), Failed to Send (3)"
-    echo "     • State Completed (1): Signed (4)"
-    echo "     • State Cancelled (2): Declined (5), Expired (6)"
-    echo ""
-    echo "  2. Enable activities on target entities (run with 'configure' mode or manually):"
-    echo "     • Account, Contact, Case"
-    echo ""
-    STEP_NUM=3
+    STEP_NUM=1
 else
     STEP_NUM=1
 fi
 
 echo "  $STEP_NUM. Create forms:"
-echo "     • Quick Create form (for Timeline)"
-echo "     • Main form (for full details)"
+echo "     • Main form with all fields"
+echo "     • Quick create form"
 echo ""
 STEP_NUM=$((STEP_NUM + 1))
 
@@ -1258,15 +1226,14 @@ if [[ "$DEPLOYMENT_MODE" == "security" ]]; then
     STEP_NUM=$((STEP_NUM + 1))
 fi
 
-echo "  $STEP_NUM. Test timeline integration:"
-echo "     • Open an Account record"
-echo "     • Navigate to Timeline"
-echo "     • Create a new Digital Signature Activity"
-echo "     • Verify it saves and appears correctly"
+echo "  $STEP_NUM. Test table functionality:"
+echo "     • Create a new Digital Signature record"
+echo "     • Verify all fields are accessible"
+echo "     • Test API access with the security role"
 echo ""
 
-print_success "Access your new activity at:"
-echo "  https://${CRM_INSTANCE}.crm3.dynamics.com/main.aspx?pagetype=entitylist&etn=${PUBLISHER_PREFIX}_digitalsignatureactivity"
+print_success "Access your new table at:"
+echo "  https://${CRM_INSTANCE}.crm3.dynamics.com/main.aspx?pagetype=entitylist&etn=${PUBLISHER_PREFIX}_digitalsignature"
 echo ""
 
 if [[ "$DEPLOYMENT_MODE" == "all" ]]; then
