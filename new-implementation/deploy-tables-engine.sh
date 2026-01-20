@@ -96,17 +96,32 @@ create_table() {
     local primary_desc=$(echo "$primary_attr" | jq -r '.description')
     local primary_max=$(echo "$primary_attr" | jq -r '.maxLength')
     
+    # Capitalize first letter for SchemaName
+    # Convert "envelope" to "Envelope"
+    local first_char=$(echo "$logical_name" | cut -c1 | tr '[:lower:]' '[:upper:]')
+    local rest_chars=$(echo "$logical_name" | cut -c2-)
+    local capitalized="${first_char}${rest_chars}"
+    local schema_name="${PUBLISHER_PREFIX}_${capitalized}"
+    
+    # Get display names
+    local display_name=$(echo "$table_json" | jq -r '.displayName')
+    local display_plural=$(echo "$table_json" | jq -r '.displayNamePlural')
+    local description=$(echo "$table_json" | jq -r '.description')
+    
+    print_info "  LogicalName: $full_name"
+    print_info "  SchemaName: $schema_name"
+    
     # Build entity payload
     local entity_payload=$(cat <<EOF
 {
   "@odata.type": "Microsoft.Dynamics.CRM.EntityMetadata",
   "LogicalName": "$full_name",
-  "SchemaName": "${PUBLISHER_PREFIX}_$(echo $logical_name | sed 's/.*/\u&/')$(echo $logical_name | sed 's/^.//')",
+  "SchemaName": "$schema_name",
   "DisplayName": {
     "@odata.type": "Microsoft.Dynamics.CRM.Label",
     "LocalizedLabels": [{
       "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-      "Label": "$(echo "$table_json" | jq -r '.displayName')",
+      "Label": "${display_name}",
       "LanguageCode": 1033
     }]
   },
@@ -114,7 +129,7 @@ create_table() {
     "@odata.type": "Microsoft.Dynamics.CRM.Label",
     "LocalizedLabels": [{
       "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-      "Label": "$(echo "$table_json" | jq -r '.displayNamePlural')",
+      "Label": "${display_plural}",
       "LanguageCode": 1033
     }]
   },
@@ -122,7 +137,7 @@ create_table() {
     "@odata.type": "Microsoft.Dynamics.CRM.Label",
     "LocalizedLabels": [{
       "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
-      "Label": "$(echo "$table_json" | jq -r '.description')",
+      "Label": "${description}",
       "LanguageCode": 1033
     }]
   },
