@@ -27,7 +27,7 @@
 #   "crmInstance": "yourorg",
 #   "clientSecret": "your-client-secret",
 #   "publisherPrefix": "cs",
-#   "publisherName": "CloudStrucc Inc",
+#   "publisherName": "Cloudstrucc Inc",
 #   "roleName": "Nintex Digital Signature API User",
 #   "roleDescription": "API user for Nintex digital signature operations"
 # }
@@ -97,7 +97,7 @@ if [[ -z "$CONFIG_FILE" ]]; then
   "crmInstance": "yourorg",
   "clientSecret": "your-client-secret",
   "publisherPrefix": "cs",
-  "publisherName": "CloudStrucc Inc",
+  "publisherName": "Cloudstrucc Inc",
   "roleName": "Nintex Digital Signature API User",
   "roleDescription": "API user for Nintex digital signature operations"
 }
@@ -142,7 +142,7 @@ TENANT_ID=$(echo "$JSON_CONFIG" | jq -r '.tenantId')
 CRM_INSTANCE=$(echo "$JSON_CONFIG" | jq -r '.crmInstance')
 CLIENT_SECRET=$(echo "$JSON_CONFIG" | jq -r '.clientSecret')
 PUBLISHER_PREFIX=$(echo "$JSON_CONFIG" | jq -r '.publisherPrefix // "cs"')
-PUBLISHER_NAME=$(echo "$JSON_CONFIG" | jq -r '.publisherName // "CloudStrucc Inc"')
+PUBLISHER_NAME=$(echo "$JSON_CONFIG" | jq -r '.publisherName // "Cloudstrucc Inc"')
 ROLE_NAME=$(echo "$JSON_CONFIG" | jq -r '.roleName // "Nintex Digital Signature API User"')
 ROLE_DESCRIPTION=$(echo "$JSON_CONFIG" | jq -r '.roleDescription // "API user role for Nintex digital signature operations with minimal privileges"')
 

@@ -25,6 +25,7 @@ chmod +x deploy-nintex-all.sh
 ```
 
 That's it! This will:
+
 - ✅ Create all 8 tables with complete schemas
 - ✅ Create security role with proper privileges
 - ✅ Publish customizations
@@ -33,17 +34,20 @@ That's it! This will:
 ## 📦 Files Included
 
 ### Core Scripts
+
 - `deploy-nintex-all.sh` - **Master orchestration script** (run this)
 - `deploy-tables-engine.sh` - Table creation engine
 - `create-security-roles.sh` - Security role setup
 - `nintex-tables-schema.json` - Table definitions
 
-### Helper Scripts  
+### Helper Scripts
+
 - `assign-role-to-user.sh` - Assign role to app user
 - `diagnose-access.sh` - Debug permissions
 - `list-all-users.sh` - Find application users
 
 ### Configuration
+
 - `config.json` - Your deployment settings
 - `nintex-config-sample.json` - Example configuration
 
@@ -58,7 +62,7 @@ Update `config.json`:
   "crmInstance": "yourorg",
   "clientSecret": "your-secret",
   "publisherPrefix": "cs",
-  "publisherName": "CloudStrucc Inc",
+  "publisherName": "Cloudstrucc Inc",
   "roleName": "Nintex API User",
   "roleDescription": "API access for Nintex middleware",
   "appUserName": "Your App User Name"
@@ -68,19 +72,25 @@ Update `config.json`:
 ## 🎯 Deployment Modes
 
 ### Full Deployment (Default)
+
 Creates tables AND security roles:
+
 ```bash
 ./deploy-nintex-all.sh config.json full
 ```
 
 ### Tables Only
+
 Just create/update tables:
+
 ```bash
 ./deploy-nintex-all.sh config.json tables-only
 ```
 
 ### Security Only
+
 Just create security roles (tables must exist):
+
 ```bash
 ./deploy-nintex-all.sh config.json security-only
 ```
@@ -88,9 +98,11 @@ Just create security roles (tables must exist):
 ## 📊 Table Schema
 
 ### Envelope Table
+
 Main container for signature requests.
 
 **Key Fields:**
+
 - `cs_name` - Envelope name
 - `cs_envelopeid` - Nintex envelope ID
 - `cs_status` - Current status
@@ -102,9 +114,11 @@ Main container for signature requests.
 - `cs_callbackurl` - Webhook URL
 
 ### Document Table
+
 Individual documents within envelopes.
 
 **Key Fields:**
+
 - `cs_name` - Document name
 - `cs_documentid` - Nintex document ID
 - `cs_envelopeid` - Parent envelope
@@ -114,9 +128,11 @@ Individual documents within envelopes.
 - `cs_pagecount` - Number of pages
 
 ### Signer Table
+
 Recipients who sign documents.
 
 **Key Fields:**
+
 - `cs_name` - Signer name
 - `cs_signerid` - Nintex signer ID
 - `cs_email` - Email address
@@ -127,9 +143,11 @@ Recipients who sign documents.
 - `cs_authenticationtype` - Auth method
 
 ### Field Table
+
 Signature fields, text fields, checkboxes (JotBlocks).
 
 **Key Fields:**
+
 - `cs_name` - Field name
 - `cs_fieldtype` - Type (signature, initial, text, date, checkbox)
 - `cs_documentid` - Parent document
@@ -140,9 +158,11 @@ Signature fields, text fields, checkboxes (JotBlocks).
 - `cs_value` - Field value
 
 ### Template Table
+
 Reusable envelope templates.
 
 **Key Fields:**
+
 - `cs_name` - Template name
 - `cs_templateid` - Nintex template ID
 - `cs_description` - Description
@@ -151,9 +171,11 @@ Reusable envelope templates.
 - `cs_ispublic` - Shared/private
 
 ### Auth Token Table
+
 API authentication token management.
 
 **Key Fields:**
+
 - `cs_name` - Token name
 - `cs_token` - Bearer token value
 - `cs_apiusername` - API username
@@ -163,9 +185,11 @@ API authentication token management.
 - `cs_isactive` - Valid status
 
 ### Webhook Table
+
 Event notifications from Nintex.
 
 **Key Fields:**
+
 - `cs_name` - Webhook name
 - `cs_webhookid` - Webhook ID
 - `cs_envelopeid` - Related envelope
@@ -176,9 +200,11 @@ Event notifications from Nintex.
 - `cs_errorlog` - Processing errors
 
 ### API Request Table
+
 Log of API calls to Nintex.
 
 **Key Fields:**
+
 - `cs_name` - Request description
 - `cs_requestid` - Request ID
 - `cs_endpoint` - API endpoint
@@ -200,6 +226,7 @@ After deployment, assign the role to your app user:
 ```
 
 Or if user name not in config:
+
 ```bash
 ./assign-role-to-user.sh config.json "App User Name"
 ```
@@ -207,6 +234,7 @@ Or if user name not in config:
 ### Role Privileges
 
 The created role has:
+
 - ✅ Full CRUD on all 8 Nintex tables (Global depth)
 - ✅ Read access to SystemUser and BusinessUnit
 - ❌ No access to other entities (least privilege)
@@ -234,11 +262,13 @@ Navigate to: **Tables** → Find your `cs_*` tables
 ## 🔄 Update Existing Deployment
 
 The scripts handle **upsert** automatically:
+
 - If table exists → Adds missing attributes
 - If table doesn't exist → Creates it
 - If attribute exists → Skips it
 
 Safe to run multiple times:
+
 ```bash
 ./deploy-nintex-all.sh config.json full
 ```
@@ -298,6 +328,7 @@ Edit `nintex-tables-schema.json`:
 ```
 
 Then redeploy:
+
 ```bash
 ./deploy-nintex-all.sh config.json tables-only
 ```
@@ -315,27 +346,37 @@ Then redeploy:
 ## 🐛 Troubleshooting
 
 ### "Could not find app user"
+
 Run diagnostics:
+
 ```bash
 ./list-all-users.sh config.json
 ```
+
 Copy exact name to config.json
 
 ### "Privilege not found"
+
 Tables need to be published first:
+
 ```bash
 ./publish-table.sh config.json
 ```
+
 Wait 30 seconds, then retry security setup.
 
 ### "HTTP 401 Unauthorized"
+
 Check your credentials in config.json:
+
 - `clientId`
 - `clientSecret`
 - `tenantId`
 
 ### "Cannot read systemusers"
+
 Your app user needs System Administrator temporarily:
+
 1. Go to Power Platform Admin Center
 2. Environments → Your env → Settings
 3. Users + permissions → Application users
@@ -353,14 +394,11 @@ Your app user needs System Administrator temporarily:
 ## 🤝 Support
 
 For issues or questions:
+
 1. Run diagnostics: `./diagnose-access.sh config.json`
 2. Check the logs in terminal output
 3. Verify config.json settings
 
 ## 📄 License
 
-This is a deployment tool for CloudStrucc Inc's Nintex integration project.
-
----
-
-**Made with ❤️ for Leonardo Company Canada**
+This is a deployment tool for Cloudstrucc Inc's Nintex integration project.

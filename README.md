@@ -65,7 +65,7 @@ nano config.json  # or use your preferred editor
   "crmInstance": "yourorg",
   "clientSecret": "your~client~secret~here",
   "publisherPrefix": "cs",
-  "publisherName": "CloudStrucc Inc",
+  "publisherName": "Cloudstrucc Inc",
   "roleName": "Nintex Digital Signature API User",
   "roleDescription": "API user for Nintex digital signature operations"
 }
@@ -79,8 +79,8 @@ nano config.json  # or use your preferred editor
 | `tenantId` | Azure AD Tenant ID | From Azure Portal |
 | `crmInstance` | Dataverse org name | `yourorg` (from yourorg.crm3.dynamics.com) |
 | `clientSecret` | App client secret | From Azure Portal |
-| `publisherPrefix` | Custom table prefix | `cs` (CloudStrucc) |
-| `publisherName` | Publisher display name | `CloudStrucc Inc` |
+| `publisherPrefix` | Custom table prefix | `cs` (Cloudstrucc) |
+| `publisherName` | Publisher display name | `Cloudstrucc Inc` |
 | `roleName` | Security role name | Customize as needed |
 | `roleDescription` | Role description | Customize as needed |
 
@@ -314,7 +314,7 @@ curl -X POST "https://yourorg.crm3.dynamics.com/api/data/v9.2/cs_digitalsignatur
   -H "Content-Type: application/json" \
   -d '{
     "subject": "API Test Activity",
-    "cs_recipientemail": "test@cloudstrucc.com",
+    "cs_recipientemail": "test@Cloudstrucc.com",
     "cs_recipientname": "Test User",
     "statuscode": 1
   }' | jq
@@ -508,12 +508,12 @@ After successful deployment:
 ---
 
 **Script Version:** 3.0.0  
-**Publisher:** CloudStrucc Inc  
+**Publisher:** Cloudstrucc Inc  
 **Last Updated:** January 2026  
 **Tested On:** macOS Sonoma 14.x (M4 Pro, M3, M2, M1, Intel)
 
 **New in v3.0:**
 - ✅ Automatic Status Reason configuration
 - ✅ Automatic Activity enablement
-- ✅ CloudStrucc branding
+- ✅ Cloudstrucc branding
 - ✅ Configure mode for post-deployment

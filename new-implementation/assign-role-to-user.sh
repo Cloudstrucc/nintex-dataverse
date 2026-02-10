@@ -11,7 +11,7 @@ if [[ -z "$CONFIG_FILE" ]]; then
     echo ""
     echo "Example:"
     echo "  $0 config.json"
-    echo "  $0 config.json 'CloudStrucc API'"
+    echo "  $0 config.json 'Cloudstrucc API'"
     echo "  $0 config.json myapp@yourdomain.onmicrosoft.com"
     echo ""
     echo "To find your app user:"
@@ -41,12 +41,12 @@ if [[ -z "$APP_USER_EMAIL" ]]; then
         echo ""
         echo "Example config.json:"
         echo '{'
-        echo '  "appUserName": "CloudStrucc API",'
+        echo '  "appUserName": "Cloudstrucc API",'
         echo '  ...'
         echo '}'
         echo ""
         echo "Or run with parameter:"
-        echo "  $0 config.json 'CloudStrucc API'"
+        echo "  $0 config.json 'Cloudstrucc API'"
         exit 1
     fi
     
