@@ -5,8 +5,8 @@
     "description": "Custom connector for Nintex AssureSign API v3.7 - enables envelope submission, status tracking, and document management in Power Automate and Power Apps",
     "version": "1.0.0",
     "contact": {
-      "name": "Leonardo Company Canada",
-      "email": "support@leonardo.com"
+      "name": "Elections Canada",
+      "email": "support@elections.ca.com"
     }
   },
   "host": "api.assuresign.net",

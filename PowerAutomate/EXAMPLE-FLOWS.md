@@ -356,7 +356,7 @@ When envelope is sent, retrieves signing links and sends custom branded email to
               </a>
             </p>
             <p>If you have any questions, please contact us.</p>
-            <p>Thank you,<br>Leonardo Company Canada</p>
+            <p>Thank you,<br>Elections Canada</p>
           </div>
         </body>
         </html>

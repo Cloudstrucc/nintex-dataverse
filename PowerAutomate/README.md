@@ -6,13 +6,13 @@ This package provides a **complete no-code/low-code solution** for integrating D
 
 ### Files in This Package
 
-| File | Description |
-|------|-------------|
-| **NintexAssureSign-CustomConnector.swagger.json** | OpenAPI definition for Custom Connector |
-| **CUSTOM-CONNECTOR-GUIDE.md** | Complete deployment guide with step-by-step instructions |
-| **EXAMPLE-FLOWS.md** | 4 ready-to-use flow templates with detailed steps |
-| **SOLUTION-COMPARISON.md** | Comparison between C# Plugin and Power Automate approaches |
-| **README.md** | This file |
+| File                                                    | Description                                                |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| **NintexAssureSign-CustomConnector.swagger.json** | OpenAPI definition for Custom Connector                    |
+| **CUSTOM-CONNECTOR-GUIDE.md**                     | Complete deployment guide with step-by-step instructions   |
+| **EXAMPLE-FLOWS.md**                              | 4 ready-to-use flow templates with detailed steps          |
+| **SOLUTION-COMPARISON.md**                        | Comparison between C# Plugin and Power Automate approaches |
+| **README.md**                                     | This file                                                  |
 
 ## 🚀 Quick Start (15 Minutes)
 
@@ -41,6 +41,7 @@ This package provides a **complete no-code/low-code solution** for integrating D
 ### 3. Build First Flow (8 minutes)
 
 Use the templates in `EXAMPLE-FLOWS.md`:
+
 - **Flow 1**: Submit envelope when Dataverse record created
 - **Flow 2**: Scheduled status synchronization
 - **Flow 3**: Cancel envelope automation
@@ -50,20 +51,21 @@ Use the templates in `EXAMPLE-FLOWS.md`:
 
 ### 8 Ready-to-Use Actions
 
-| Action | What It Does |
-|--------|--------------|
-| 🔐 **Authenticate** | Get API token |
-| 📤 **Submit Envelope** | Send documents for signature |
-| 📊 **Get Envelope** | Retrieve envelope details |
-| ⚡ **Get Status** | Check current status |
-| ❌ **Cancel Envelope** | Stop processing |
-| 🔗 **Get Signing Links** | Get signer URLs |
-| 📋 **List Templates** | View all templates |
-| 📄 **Get Template** | Get template details |
+| Action                        | What It Does                 |
+| ----------------------------- | ---------------------------- |
+| 🔐**Authenticate**      | Get API token                |
+| 📤**Submit Envelope**   | Send documents for signature |
+| 📊**Get Envelope**      | Retrieve envelope details    |
+| ⚡**Get Status**        | Check current status         |
+| ❌**Cancel Envelope**   | Stop processing              |
+| 🔗**Get Signing Links** | Get signer URLs              |
+| 📋**List Templates**    | View all templates           |
+| 📄**Get Template**      | Get template details         |
 
 ### 4 Complete Flow Templates
 
 All flows include:
+
 - ✅ Error handling
 - ✅ Logging to Dataverse
 - ✅ Email notifications
@@ -85,16 +87,17 @@ Before you start, ensure you have:
 
 ### Perfect For:
 
-✅ **Citizen Developers** - No coding required  
-✅ **Flexible Workflows** - Change logic without redeployment  
-✅ **Multi-System Integration** - Connect to 500+ services  
-✅ **Approval Processes** - Built-in approval actions  
-✅ **Custom Notifications** - Branded emails with your logo  
-✅ **Document Routing** - Auto-save to SharePoint  
+✅ **Citizen Developers** - No coding required
+✅ **Flexible Workflows** - Change logic without redeployment
+✅ **Multi-System Integration** - Connect to 500+ services
+✅ **Approval Processes** - Built-in approval actions
+✅ **Custom Notifications** - Branded emails with your logo
+✅ **Document Routing** - Auto-save to SharePoint
 
 ### Example Workflows:
 
 1. **Contract Submission**
+
    ```
    Sales rep creates opportunity
    → Manager approves
@@ -103,8 +106,8 @@ Before you start, ensure you have:
    → Flow updates CRM
    → Team notified in Teams
    ```
-
 2. **Employee Onboarding**
+
    ```
    HR creates employee record
    → Flow sends offer letter
@@ -113,8 +116,8 @@ Before you start, ensure you have:
    → Creates IT ticket
    → Sends welcome email
    ```
-
 3. **Vendor Agreements**
+
    ```
    Procurement submits NDA
    → Legal reviews
@@ -156,18 +159,19 @@ Value: your-email@company.com
 ### Complete Guides
 
 - **[CUSTOM-CONNECTOR-GUIDE.md](CUSTOM-CONNECTOR-GUIDE.md)**
+
   - Detailed deployment steps
   - Troubleshooting section
   - Security best practices
   - Performance optimization
-
 - **[EXAMPLE-FLOWS.md](EXAMPLE-FLOWS.md)**
+
   - 4 complete flow templates
   - Step-by-step instructions
   - Copy-paste ready YAML
   - Error handling included
-
 - **[SOLUTION-COMPARISON.md](SOLUTION-COMPARISON.md)**
+
   - C# Plugin vs Power Automate
   - When to use each
   - Cost comparison
@@ -178,6 +182,7 @@ Value: your-email@company.com
 ### 1. Token Management
 
 Create a reusable "Get Nintex Token" child flow:
+
 ```
 Input: None
 Output: Token (String)
@@ -190,6 +195,7 @@ Steps:
 ```
 
 Use in other flows:
+
 ```
 Run child flow: Get Nintex Token
 Store: varNintexToken
@@ -198,6 +204,7 @@ Store: varNintexToken
 ### 2. Error Handling
 
 Add to all HTTP actions:
+
 ```
 Configure run after: [Action]
   Run after: has failed
@@ -217,6 +224,7 @@ Steps:
 ### 4. Testing
 
 Test in this order:
+
 1. Test connector with Postman first
 2. Create "Test" flow with hardcoded values
 3. Add Dataverse triggers
@@ -228,6 +236,7 @@ Test in this order:
 ### Issue: "Unauthorized" Error
 
 **Solution:**
+
 ```
 1. Verify API credentials in environment variables
 2. Check token format: Bearer {token}
@@ -238,6 +247,7 @@ Test in this order:
 ### Issue: "Bad Request" Error
 
 **Solution:**
+
 ```
 1. Check required fields are provided
 2. Verify JSON structure
@@ -248,6 +258,7 @@ Test in this order:
 ### Issue: Flow Times Out
 
 **Solution:**
+
 ```
 1. Split into multiple flows
 2. Use asynchronous patterns
@@ -270,6 +281,7 @@ Test in this order:
 ### Set Up Alerts
 
 Create monitoring flow:
+
 ```
 Trigger: When a flow fails
 ↓
@@ -284,11 +296,11 @@ Log to SharePoint
 
 ### Best Practices
 
-✅ **Use Key Vault** for credentials  
-✅ **Limit connector sharing** to specific users  
-✅ **Enable DLP policies** in environment  
-✅ **Audit flow runs** regularly  
-✅ **Rotate API keys** quarterly  
+✅ **Use Key Vault** for credentials
+✅ **Limit connector sharing** to specific users
+✅ **Enable DLP policies** in environment
+✅ **Audit flow runs** regularly
+✅ **Rotate API keys** quarterly
 
 ### Compliance
 
@@ -309,13 +321,12 @@ Log to SharePoint
 
 - Microsoft Learn: Power Automate fundamentals
 - Nintex University: AssureSign courses
-- Leonardo internal training (contact IT)
 
 ## 📞 Support
 
 ### Internal Support
 
-- **IT Help Desk**: servicedesk@leonardo.com
+- **Platform Engineering Help Desk**:
 - **Power Platform Admin**: Fred Pearson
 - **Nintex Admin**: [Your Nintex Admin]
 
@@ -337,6 +348,7 @@ Log to SharePoint
 ## 📝 Version History
 
 **v1.0.0** (2026-01-20)
+
 - Initial release
 - 8 connector actions
 - 4 example flows
@@ -344,9 +356,4 @@ Log to SharePoint
 
 ---
 
-**Ready to build no-code workflows? Start with CUSTOM-CONNECTOR-GUIDE.md!**
-
----
-
-**Built for Leonardo Company Canada**  
-**Developed by CloudStrucc Inc.**
+**Ready to build no-code workflows? Start with CUSTOM-CONNECTOR-GUIDE.md**

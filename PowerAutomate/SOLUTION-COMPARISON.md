@@ -9,18 +9,18 @@ You now have **TWO complete solutions** for integrating Dataverse with Nintex As
 
 ## Solution Comparison
 
-| Feature | C# Plugin | Power Automate |
-|---------|-----------|----------------|
-| **Skill Level Required** | C# developer | Citizen developer |
-| **Deployment** | Plugin Registration Tool | Power Automate portal |
-| **Execution** | Automatic on CRUD | Flow-triggered |
-| **Performance** | Synchronous (fast) | Asynchronous (slower) |
-| **Customization** | Code changes required | Drag-and-drop changes |
-| **Error Handling** | Try-catch in code | Configure run after |
-| **Logging** | Plugin Trace Log | Flow run history |
-| **Cost** | Dataverse license only | Power Automate license |
-| **Testing** | Unit tests + integration | Test flow runs |
-| **Maintenance** | Recompile & redeploy | Edit flow live |
+| Feature                        | C# Plugin                | Power Automate         |
+| ------------------------------ | ------------------------ | ---------------------- |
+| **Skill Level Required** | C# developer             | Citizen developer      |
+| **Deployment**           | Plugin Registration Tool | Power Automate portal  |
+| **Execution**            | Automatic on CRUD        | Flow-triggered         |
+| **Performance**          | Synchronous (fast)       | Asynchronous (slower)  |
+| **Customization**        | Code changes required    | Drag-and-drop changes  |
+| **Error Handling**       | Try-catch in code        | Configure run after    |
+| **Logging**              | Plugin Trace Log         | Flow run history       |
+| **Cost**                 | Dataverse license only   | Power Automate license |
+| **Testing**              | Unit tests + integration | Test flow runs         |
+| **Maintenance**          | Recompile & redeploy     | Edit flow live         |
 
 ## When to Use Each
 
@@ -34,6 +34,7 @@ You now have **TWO complete solutions** for integrating Dataverse with Nintex As
 - **Consistent behavior** - Same logic for all users/scenarios
 
 **Best For:**
+
 - High-volume transactional systems
 - Real-time synchronization
 - Complex data mapping
@@ -49,6 +50,7 @@ You now have **TWO complete solutions** for integrating Dataverse with Nintex As
 - **Integration rich** - Connect to 500+ services easily
 
 **Best For:**
+
 - Ad-hoc processes
 - Business user empowerment
 - Rapid prototyping
@@ -90,6 +92,7 @@ Use **BOTH** together for maximum benefit:
 ### Hybrid Architecture
 
 **Plugin Handles:**
+
 - ✅ Envelope submission (Create)
 - ✅ Envelope cancellation (Update/Delete)
 - ✅ Data validation
@@ -97,6 +100,7 @@ Use **BOTH** together for maximum benefit:
 - ✅ Core business logic
 
 **Power Automate Handles:**
+
 - ✅ Status synchronization (scheduled)
 - ✅ Email notifications
 - ✅ Document routing to SharePoint
@@ -114,12 +118,14 @@ Use **BOTH** together for maximum benefit:
 **Recommended:** **C# Plugin Only**
 
 **Why:**
+
 - Performance requirements demand sync execution
 - Consistent logic for all submissions
 - No human intervention needed
 - Power Automate license cost would be high
 
 **Implementation:**
+
 ```
 API → Dataverse → Plugin → Nintex
 ```
@@ -133,12 +139,14 @@ API → Dataverse → Plugin → Nintex
 **Recommended:** **Power Automate Only**
 
 **Why:**
+
 - Approval workflow needed
 - Human decision points
 - Integration with Teams/Outlook
 - Business logic changes frequently
 
 **Implementation:**
+
 ```
 Power App → Dataverse → Flow (Approval) → Nintex → Teams Notification
 ```
@@ -152,12 +160,14 @@ Power App → Dataverse → Flow (Approval) → Nintex → Teams Notification
 **Recommended:** **Hybrid (Plugin + Power Automate)**
 
 **Why:**
+
 - Plugin handles submission (performance)
 - Power Automate handles notifications
 - Need email customization
 - Document routing to SharePoint
 
 **Implementation:**
+
 ```
 Power Pages → Dataverse → Plugin → Nintex
                         ↓
@@ -173,12 +183,14 @@ Power Pages → Dataverse → Plugin → Nintex
 **Recommended:** **Power Automate Only**
 
 **Why:**
+
 - Multiple system integration
 - Complex workflow with conditions
 - Visual process documentation
 - Business users maintain
 
 **Implementation:**
+
 ```
 Dataverse → Flow → Nintex
                 ↓
@@ -198,12 +210,14 @@ Dataverse → Flow → Nintex
 ### Phase 1: Start with Power Automate
 
 **Week 1-2:**
+
 1. Import Custom Connector
 2. Create basic flows
 3. Test with sample data
 4. Train users
 
 **Benefits:**
+
 - Quick time to value
 - Learn business requirements
 - Iterate on logic
@@ -212,6 +226,7 @@ Dataverse → Flow → Nintex
 ### Phase 2: Identify Performance Bottlenecks
 
 **Week 3-4:**
+
 1. Monitor flow performance
 2. Identify slow operations
 3. Document complex logic
@@ -220,6 +235,7 @@ Dataverse → Flow → Nintex
 ### Phase 3: Move Critical Paths to Plugin
 
 **Week 5-6:**
+
 1. Build C# plugin for high-volume operations
 2. Keep Power Automate for notifications/integrations
 3. Deploy in stages
@@ -233,29 +249,29 @@ Dataverse → Flow → Nintex
 
 ### C# Plugin Costs
 
-| Item | Cost |
-|------|------|
-| Development | 40-80 hours @ developer rate |
-| Dataverse license | Included in existing |
-| Maintenance | 5-10 hours/month |
+| Item                       | Cost                           |
+| -------------------------- | ------------------------------ |
+| Development                | 40-80 hours @ developer rate   |
+| Dataverse license          | Included in existing           |
+| Maintenance                | 5-10 hours/month               |
 | **Total First Year** | **Dev cost + ~$0/month** |
 
 ### Power Automate Costs
 
-| Item | Cost |
-|------|------|
-| Development | 10-20 hours @ analyst rate |
-| Power Automate Premium | $40/user/month or $500/capacity/month |
-| Maintenance | 2-5 hours/month |
-| **Total First Year** | **Dev cost + $480-$6000/year** |
+| Item                       | Cost                                  |
+| -------------------------- | ------------------------------------- |
+| Development                | 10-20 hours @ analyst rate            |
+| Power Automate Premium     | $40/user/month or $500/capacity/month |
+| Maintenance                | 2-5 hours/month                       |
+| **Total First Year** | **Dev cost + $480-$6000/year**  |
 
 ### Hybrid Costs
 
-| Item | Cost |
-|------|------|
-| Development | 50-100 hours |
-| Power Automate | Capacity-based ($500/month) |
-| Maintenance | 10-15 hours/month |
+| Item                       | Cost                             |
+| -------------------------- | -------------------------------- |
+| Development                | 50-100 hours                     |
+| Power Automate             | Capacity-based ($500/month)      |
+| Maintenance                | 10-15 hours/month                |
 | **Total First Year** | **Dev cost + ~$6000/year** |
 
 **Note:** Power Automate may already be included in your M365 licenses (check E3/E5)
@@ -267,6 +283,7 @@ Dataverse → Flow → Nintex
 ### Data Transformation
 
 **C# Plugin:**
+
 ```csharp
 // Complex object mapping
 var payload = new {
@@ -279,6 +296,7 @@ var payload = new {
 ```
 
 **Power Automate:**
+
 ```javascript
 // Visual Select action
 Select from: @outputs('Get_Signers')
@@ -292,6 +310,7 @@ Map: {
 ### Error Handling
 
 **C# Plugin:**
+
 ```csharp
 try {
     var response = await client.SubmitEnvelopeAsync(payload);
@@ -304,6 +323,7 @@ catch (Exception ex) {
 ```
 
 **Power Automate:**
+
 ```yaml
 Configure run after: Submit Envelope
   If: has failed
@@ -315,12 +335,12 @@ Configure run after: Submit Envelope
 
 ### Performance
 
-| Operation | C# Plugin | Power Automate |
-|-----------|-----------|----------------|
-| Simple submission | ~500ms | ~3-5 seconds |
-| With related entities | ~1 second | ~10-15 seconds |
-| Bulk (100 records) | ~30 seconds | ~10 minutes |
-| Status check | ~200ms | ~2-3 seconds |
+| Operation             | C# Plugin   | Power Automate |
+| --------------------- | ----------- | -------------- |
+| Simple submission     | ~500ms      | ~3-5 seconds   |
+| With related entities | ~1 second   | ~10-15 seconds |
+| Bulk (100 records)    | ~30 seconds | ~10 minutes    |
+| Status check          | ~200ms      | ~2-3 seconds   |
 
 ---
 
@@ -328,40 +348,41 @@ Configure run after: Submit Envelope
 
 Use this to decide which approach:
 
-| Question | C# Plugin | Power Automate | Hybrid |
-|----------|-----------|----------------|--------|
-| Do you have C# developers? | ✅ | ❌ | ✅ |
-| Need sub-second response? | ✅ | ❌ | ✅ |
-| Logic changes frequently? | ❌ | ✅ | ⚠️ |
-| Need approvals/human steps? | ❌ | ✅ | ✅ |
-| High volume (>100/hour)? | ✅ | ❌ | ✅ |
-| Multiple system integration? | ⚠️ | ✅ | ✅ |
-| Visual process required? | ❌ | ✅ | ✅ |
-| Citizen developer maintenance? | ❌ | ✅ | ⚠️ |
-| Budget for PA licenses? | ✅ | ⚠️ | ⚠️ |
-| Need extensive logging? | ✅ | ✅ | ✅ |
+| Question                       | C# Plugin | Power Automate | Hybrid |
+| ------------------------------ | --------- | -------------- | ------ |
+| Do you have C# developers?     | ✅        | ❌             | ✅     |
+| Need sub-second response?      | ✅        | ❌             | ✅     |
+| Logic changes frequently?      | ❌        | ✅             | ⚠️   |
+| Need approvals/human steps?    | ❌        | ✅             | ✅     |
+| High volume (>100/hour)?       | ✅        | ❌             | ✅     |
+| Multiple system integration?   | ⚠️      | ✅             | ✅     |
+| Visual process required?       | ❌        | ✅             | ✅     |
+| Citizen developer maintenance? | ❌        | ✅             | ⚠️   |
+| Budget for PA licenses?        | ✅        | ⚠️           | ⚠️   |
+| Need extensive logging?        | ✅        | ✅             | ✅     |
 
 **Key:**
+
 - ✅ Good fit
 - ⚠️ Possible with workarounds
 - ❌ Not recommended
 
 ---
 
-## Recommended Approach for Leonardo
-
-Based on your requirements:
+## Recommended Approach
 
 ### ✅ **Hybrid Approach**
 
 **Rationale:**
+
 1. **C# Plugin for Core Operations**
+
    - Envelope submission (high volume expected)
    - Real-time validation
    - Consistent business rules
-   - Leonardo has development resources
-
+   - elections.ca has development resources
 2. **Power Automate for Extended Workflows**
+
    - Status synchronization (scheduled)
    - Document routing to SharePoint
    - Email notifications
@@ -372,17 +393,20 @@ Based on your requirements:
 ### Implementation Plan
 
 **Phase 1 (Immediate):**
+
 - Deploy C# Plugin for envelope CRUD
 - Enable automatic Nintex submission
 - Implement error handling and logging
 
 **Phase 2 (Month 2):**
+
 - Import Custom Connector
 - Create status sync flow
 - Build notification templates
 - Test end-to-end
 
 **Phase 3 (Month 3):**
+
 - Add document routing flows
 - Implement approval workflows
 - Create admin dashboards
@@ -392,10 +416,10 @@ Based on your requirements:
 
 ## Summary
 
-✅ **You have BOTH solutions ready to deploy**  
-✅ **C# Plugin**: High-performance, automatic integration  
-✅ **Power Automate**: Flexible, no-code workflows  
-✅ **Hybrid**: Best of both worlds  
+✅ **You have BOTH solutions ready to deploy**
+✅ **C# Plugin**: High-performance, automatic integration
+✅ **Power Automate**: Flexible, no-code workflows
+✅ **Hybrid**: Best of both worlds
 
 **Recommendation:** Start with C# Plugin for core operations, add Power Automate flows for extended functionality as needed.
 
