@@ -2,8 +2,8 @@
   "swagger": "2.0",
   "info": {
     "title": "ESign Elections Canada",
-    "description": "Managed digital signature service powered by Nintex AssureSign. Submit envelopes, track status, and manage digital signatures without directly managing Nintex API integration. This connector interfaces with Leonardo Company's signature broker service.",
-    "version": "1.0.0",
+    "description": "Managed digital signature service powered by Nintex AssureSign. Create envelopes, manage signers and documents, then send when ready. This connector interfaces with Leonardo Company's signature broker service.",
+    "version": "2.0.0",
     "contact": {
       "name": "Leonardo Company Canada - Digital Signature Services",
       "email": "esign-support@leonardo.com"
@@ -39,9 +39,9 @@
   "paths": {
     "/cs_envelopes": {
       "post": {
-        "summary": "Submit envelope for signature",
-        "description": "Submit a new envelope for digital signature. This will create an envelope in the broker service, and upon approval (if required), will submit to Nintex AssureSign automatically.",
-        "operationId": "SubmitEnvelope",
+        "summary": "Create envelope (draft)",
+        "description": "Create a new envelope in draft status. Envelope will NOT be sent until you call 'Send envelope' action. Use this to build your envelope with signers and documents before sending.",
+        "operationId": "CreateEnvelope",
         "parameters": [
           {
             "name": "body",
@@ -97,6 +97,24 @@
                   "description": "Does this envelope require approval before sending? (default: false)",
                   "x-ms-summary": "Requires Approval",
                   "default": false
+                },
+                "cs_signinginsequence": {
+                  "type": "boolean",
+                  "description": "TRUE = signers must sign in order (sequential). FALSE = all signers can sign at once (parallel). Default: true",
+                  "x-ms-summary": "Signing in Sequence",
+                  "default": true
+                },
+                "cs_hidesignerinfo": {
+                  "type": "boolean",
+                  "description": "TRUE = signers cannot see other signers' names/emails. FALSE = all signers visible to each other. Default: false",
+                  "x-ms-summary": "Hide Other Signers",
+                  "default": false
+                },
+                "cs_allowdecline": {
+                  "type": "boolean",
+                  "description": "Allow signers to decline signing? (default: true)",
+                  "x-ms-summary": "Allow Decline",
+                  "default": true
                 }
               },
               "required": [
@@ -109,7 +127,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Envelope created successfully",
+            "description": "Envelope created successfully in DRAFT status",
             "schema": {
               "type": "object",
               "properties": {
@@ -123,11 +141,15 @@
                 },
                 "cs_status": {
                   "type": "string",
-                  "description": "Current status (Pending Approval, Submitted, InProcess, Completed, Cancelled)"
+                  "description": "Status will be 'Draft' - not sent yet"
                 },
-                "cs_nintexenvelopeid": {
-                  "type": "string",
-                  "description": "Nintex envelope ID (populated after submission)"
+                "cs_signinginsequence": {
+                  "type": "boolean",
+                  "description": "Signing order setting"
+                },
+                "cs_hidesignerinfo": {
+                  "type": "boolean",
+                  "description": "Signer privacy setting"
                 }
               }
             }
@@ -143,7 +165,7 @@
             "name": "$filter",
             "in": "query",
             "type": "string",
-            "description": "OData filter expression (e.g., cs_status eq 'Completed')",
+            "description": "OData filter expression (e.g., cs_status eq 'Draft' or cs_status eq 'Completed')",
             "x-ms-summary": "Filter",
             "required": false
           },
@@ -186,7 +208,7 @@
                       },
                       "cs_status": {
                         "type": "string",
-                        "description": "Current status"
+                        "description": "Current status (Draft, Pending Approval, Submitted, InProcess, Completed, Cancelled)"
                       },
                       "cs_sentdate": {
                         "type": "string",
@@ -238,7 +260,7 @@
                 },
                 "cs_nintexenvelopeid": {
                   "type": "string",
-                  "description": "Nintex envelope ID"
+                  "description": "Nintex envelope ID (populated after sending)"
                 },
                 "cs_sentdate": {
                   "type": "string",
@@ -249,6 +271,14 @@
                   "type": "string",
                   "format": "date-time",
                   "description": "Date completed"
+                },
+                "cs_signinginsequence": {
+                  "type": "boolean",
+                  "description": "Sequential vs parallel signing"
+                },
+                "cs_hidesignerinfo": {
+                  "type": "boolean",
+                  "description": "Signer privacy setting"
                 }
               }
             }
@@ -257,7 +287,7 @@
       },
       "patch": {
         "summary": "Update envelope",
-        "description": "Update envelope properties (e.g., cancel envelope by setting cs_iscancelled to true)",
+        "description": "Update envelope properties. Note: Can only update draft envelopes or cancel sent envelopes.",
         "operationId": "UpdateEnvelope",
         "parameters": [
           {
@@ -276,6 +306,31 @@
             "schema": {
               "type": "object",
               "properties": {
+                "cs_subject": {
+                  "type": "string",
+                  "description": "Update email subject (draft only)",
+                  "x-ms-summary": "Subject"
+                },
+                "cs_message": {
+                  "type": "string",
+                  "description": "Update email message (draft only)",
+                  "x-ms-summary": "Message"
+                },
+                "cs_daystoexpire": {
+                  "type": "integer",
+                  "description": "Update days to expire (draft only)",
+                  "x-ms-summary": "Days to Expire"
+                },
+                "cs_signinginsequence": {
+                  "type": "boolean",
+                  "description": "Update signing order (draft only)",
+                  "x-ms-summary": "Signing in Sequence"
+                },
+                "cs_hidesignerinfo": {
+                  "type": "boolean",
+                  "description": "Update signer visibility (draft only)",
+                  "x-ms-summary": "Hide Other Signers"
+                },
                 "cs_iscancelled": {
                   "type": "boolean",
                   "description": "Set to true to cancel the envelope",
@@ -298,7 +353,7 @@
       },
       "delete": {
         "summary": "Delete envelope",
-        "description": "Delete an envelope (will cancel in Nintex if active)",
+        "description": "Delete an envelope. If envelope has been sent, it will be cancelled first, then deleted.",
         "operationId": "DeleteEnvelope",
         "parameters": [
           {
@@ -318,10 +373,66 @@
         }
       }
     },
+    "/cs_envelopes({envelopeId})/Microsoft.Dynamics.CRM.cs_SendEnvelope": {
+      "post": {
+        "summary": "Send envelope",
+        "description": "Send the envelope to signers. Envelope must be in Draft status with at least one signer and one document. If approval is required, this will route for approval first.",
+        "operationId": "SendEnvelope",
+        "parameters": [
+          {
+            "name": "envelopeId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Envelope ID (GUID) to send",
+            "x-ms-summary": "Envelope ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Envelope sent successfully (or routed for approval)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Status": {
+                  "type": "string",
+                  "description": "New status: 'Pending Approval' if approval required, 'Submitted' if sent immediately"
+                },
+                "Message": {
+                  "type": "string",
+                  "description": "Success message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - envelope not ready to send",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Error details (e.g., 'No signers added', 'No documents attached')"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/cs_signers": {
       "post": {
         "summary": "Add signer to envelope",
-        "description": "Add a signer to an existing envelope. Must be done before envelope is submitted.",
+        "description": "Add a signer to an envelope. Envelope must be in Draft status.",
         "operationId": "AddSigner",
         "parameters": [
           {
@@ -343,7 +454,7 @@
                 },
                 "cs_signerorder": {
                   "type": "integer",
-                  "description": "Signing order (1, 2, 3...)",
+                  "description": "Signing order (1, 2, 3...). Only relevant if envelope has 'Signing in Sequence' = true",
                   "x-ms-summary": "Signing Order",
                   "default": 1
                 },
@@ -351,6 +462,12 @@
                   "type": "string",
                   "description": "Phone number (optional)",
                   "x-ms-summary": "Phone Number"
+                },
+                "cs_language": {
+                  "type": "string",
+                  "description": "Signer's preferred language code (e.g., 'en', 'fr'). Default: 'en'",
+                  "x-ms-summary": "Language",
+                  "default": "en"
                 },
                 "cs_envelopeid@odata.bind": {
                   "type": "string",
@@ -379,6 +496,10 @@
                 "cs_email": {
                   "type": "string",
                   "description": "Signer email"
+                },
+                "cs_signerorder": {
+                  "type": "integer",
+                  "description": "Signing order"
                 }
               }
             }
@@ -386,10 +507,79 @@
         }
       }
     },
+    "/cs_signers({signerId})": {
+      "patch": {
+        "summary": "Update signer",
+        "description": "Update signer details. Envelope must still be in Draft status.",
+        "operationId": "UpdateSigner",
+        "parameters": [
+          {
+            "name": "signerId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Signer ID (GUID)",
+            "x-ms-summary": "Signer ID",
+            "x-ms-url-encoding": "single"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cs_email": {
+                  "type": "string",
+                  "description": "Update email address",
+                  "x-ms-summary": "Email"
+                },
+                "cs_fullname": {
+                  "type": "string",
+                  "description": "Update full name",
+                  "x-ms-summary": "Full Name"
+                },
+                "cs_signerorder": {
+                  "type": "integer",
+                  "description": "Update signing order",
+                  "x-ms-summary": "Signing Order"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Signer updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove signer",
+        "description": "Remove a signer from envelope. Envelope must be in Draft status.",
+        "operationId": "RemoveSigner",
+        "parameters": [
+          {
+            "name": "signerId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Signer ID (GUID)",
+            "x-ms-summary": "Signer ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Signer removed successfully"
+          }
+        }
+      }
+    },
     "/cs_documents": {
       "post": {
         "summary": "Add document to envelope",
-        "description": "Add a document to an existing envelope. Document content must be base64 encoded.",
+        "description": "Add a document to an envelope. Document content must be base64 encoded. Envelope must be in Draft status.",
         "operationId": "AddDocument",
         "parameters": [
           {
@@ -449,6 +639,29 @@
         }
       }
     },
+    "/cs_documents({documentId})": {
+      "delete": {
+        "summary": "Remove document",
+        "description": "Remove a document from envelope. Envelope must be in Draft status.",
+        "operationId": "RemoveDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Document ID (GUID)",
+            "x-ms-summary": "Document ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Document removed successfully"
+          }
+        }
+      }
+    },
     "/cs_envelopes({envelopeId})/cs_envelope_signer": {
       "get": {
         "summary": "Get envelope signers",
@@ -488,13 +701,17 @@
                         "type": "string",
                         "description": "Full name"
                       },
+                      "cs_signerorder": {
+                        "type": "integer",
+                        "description": "Signing order"
+                      },
                       "cs_signerstatus": {
                         "type": "string",
                         "description": "Signer status"
                       },
                       "cs_signinglink": {
                         "type": "string",
-                        "description": "Signing URL"
+                        "description": "Signing URL (populated after sending)"
                       }
                     }
                   }
@@ -535,7 +752,7 @@
                       },
                       "cs_nintextemplateid": {
                         "type": "string",
-                        "description": "Nintex template ID (use this in envelope submission)"
+                        "description": "Nintex template ID (use this in envelope creation)"
                       }
                     }
                   }
