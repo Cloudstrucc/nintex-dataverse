@@ -2,14 +2,14 @@
   "swagger": "2.0",
   "info": {
     "title": "ESign Elections Canada",
-    "description": "Managed digital signature service powered by Nintex AssureSign. Create envelopes, manage signers and documents, then send when ready. This connector interfaces with Leonardo Company's signature broker service.",
+    "description": "Managed digital signature service powered by Nintex AssureSign. Create envelopes, manage signers and documents, then send when ready. This connector interfaces with Elections Canada's signature broker service.",
     "version": "2.0.0",
     "contact": {
-      "name": "Leonardo Company Canada - Digital Signature Services",
-      "email": "esign-support@leonardo.com"
+      "name": "Elections Canada - Digital Signature Services",
+      "email": "esign-support@elections.ca"
     }
   },
-  "host": "YOUR_BROKER_ENVIRONMENT.crm3.dynamics.com",
+  "host": "goc-wetv14.crm3.dynamics.com",
   "basePath": "/api/data/v9.2",
   "schemes": [
     "https"
@@ -27,7 +27,7 @@
       "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
       "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
       "scopes": {
-        "https://YOUR_BROKER_ENVIRONMENT.crm3.dynamics.com/.default": "Access broker service"
+        "https://goc-wetv14.crm3.dynamics.com/.default": "Access broker service"
       }
     }
   },
