@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide is for **Leonardo Company administrators** setting up and managing the ESign broker service.
+This guide is for **Elections Company administrators** setting up and managing the ESign broker service.
 
 ## Architecture Overview
 
@@ -171,10 +171,10 @@ Next steps:
 2. Follow the Client Integration Guide (attached)
 3. Test with sample flow
 
-Support: esign-support@leonardo.com
+Support: esign-support@Elections.com
 
 Best regards,
-Leonardo IT Team
+Elections IT Team
 ```
 
 #### 3. Configure Row-Level Security
@@ -445,12 +445,12 @@ When updating connector:
 ## Support Escalation
 
 ### Tier 1: Client Support
-- Email: esign-support@leonardo.com
+- Email: esign-support@Elections.com
 - Response: 4 business hours
 - Handles: Usage questions, connector import, flow examples
 
 ### Tier 2: Technical Support  
-- Email: esign-admin@leonardo.com
+- Email: esign-admin@Elections.com
 - Response: 2 business hours
 - Handles: API errors, authentication issues, data problems
 
@@ -594,7 +594,7 @@ Steps:
            cs_errormessage: @{outputs('HTTP_-_Submit_to_Nintex')?['error']}
       
       c. Send email - Alert Admin
-         To: esign-admin@leonardo.com
+         To: esign-admin@Elections.com
          Subject: Envelope Submission Failed
 ```
 

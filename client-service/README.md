@@ -41,7 +41,7 @@ A **middleware/broker service** that:
                    │ OAuth 2.0                      │
                    │ Service Principal              │
 ┌──────────────────▼────────────────────────────────▼─┐
-│  YOUR BROKER ENVIRONMENT (Leonardo Dataverse)      │
+│  YOUR BROKER ENVIRONMENT (Elections Dataverse)      │
 │                                                      │
 │  ┌────────────────────────────────────────────────┐ │
 │  │ Nintex Tables (cs_envelope, cs_signer, etc.)  │ │
@@ -233,12 +233,12 @@ Create Power BI dashboard with:
 ## 🆘 Support Structure
 
 ### Tier 1: Client Support
-**Email:** esign-support@leonardo.com  
+**Email:** esign-support@Elections.com  
 **Handles:** Connector import, flow examples, usage questions  
 **SLA:** 4 business hours
 
 ### Tier 2: Technical Support
-**Email:** esign-admin@leonardo.com  
+**Email:** esign-admin@Elections.com  
 **Handles:** API errors, authentication, data issues  
 **SLA:** 2 business hours
 
@@ -360,7 +360,7 @@ When updating the connector:
 
 ### As Client Agency
 
-1. **Request:** Service principal from Leonardo
+1. **Request:** Service principal from Elections
 2. **Import:** Custom connector
 3. **Read:** CLIENT-INTEGRATION-GUIDE.md
 4. **Build:** Your first flow
@@ -370,15 +370,15 @@ When updating the connector:
 ## 📞 Contact
 
 **For Broker Service Inquiries:**  
-Email: esign-admin@leonardo.com  
+Email: esign-admin@Elections.com  
 Phone: 1-800-XXX-XXXX
 
 **For Technical Support:**  
-Email: esign-support@leonardo.com  
-Portal: support.leonardo-esign.com
+Email: esign-support@Elections.com  
+Portal: support.Elections-esign.com
 
 **For Sales:**  
-Email: esign-sales@leonardo.com
+Email: esign-sales@Elections.com
 
 ---
 
@@ -386,7 +386,7 @@ Email: esign-sales@leonardo.com
 
 ### Why Build a Broker Service?
 
-**For Leonardo:**
+**For Elections:**
 - 💰 Recurring revenue from multiple agencies
 - 🎯 Centralized Nintex license management
 - 📈 Scalable multi-tenant architecture
@@ -408,7 +408,7 @@ Email: esign-sales@leonardo.com
 
 **Ready to launch your broker service? Start with BROKER-ADMIN-GUIDE.md!**
 
-**Built by Leonardo Company Canada**  
+**Built by Elections Canada**  
 **Powered by Nintex AssureSign**  
 **Secured by Microsoft Dataverse**  
 **Designed for Scale**

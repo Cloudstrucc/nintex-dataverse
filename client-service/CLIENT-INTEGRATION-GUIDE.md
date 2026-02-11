@@ -2,11 +2,12 @@
 
 ## Overview
 
-**ESign Elections Canada** is a managed digital signature service provided by Leonardo Company Canada. This service acts as a **broker** between your Dataverse environment and Nintex AssureSign, handling all the complexity of digital signature workflows including approval processes, audit logging, and API integration.
+**ESign Elections Canada** is a managed digital signature service provided by Elections Canada. This service acts as a **broker** between your Dataverse environment and Nintex AssureSign, handling all the complexity of digital signature workflows including approval processes, audit logging, and API integration.
 
 ### What This Means for You
 
 Instead of:
+
 - ❌ Managing Nintex API credentials
 - ❌ Building complex integration flows
 - ❌ Handling token refresh and error retry logic
@@ -14,6 +15,7 @@ Instead of:
 - ❌ Managing audit trails
 
 You simply:
+
 - ✅ Use our custom connector in your Power Automate flows
 - ✅ Submit envelopes with a simple action
 - ✅ Automatic approval routing (if configured)
@@ -38,7 +40,7 @@ You simply:
                      │ HTTPS/OAuth 2.0                 │
                      │                                  │
 ┌────────────────────▼──────────────────────────────────▼──┐
-│      LEONARDO BROKER SERVICE (Dataverse)                 │
+│      Elections BROKER SERVICE (Dataverse)                 │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐ │
 │  │  Nintex Signature Tables                          │ │
@@ -72,21 +74,21 @@ You simply:
 
 ### For Your Agency
 
-✅ **No Nintex Expertise Required** - We handle all API integration  
-✅ **Simplified Integration** - 3 simple actions vs 20+ API calls  
-✅ **Built-in Approval Workflows** - Optional approval routing  
-✅ **Automatic Status Sync** - Real-time updates from Nintex  
-✅ **Comprehensive Audit Trail** - All actions logged  
-✅ **Centralized Template Management** - Shared template library  
-✅ **Cost Effective** - Shared Nintex licensing  
-✅ **Support Included** - Leonardo provides technical support  
+✅ **No Nintex Expertise Required** - We handle all API integration
+✅ **Simplified Integration** - 3 simple actions vs 20+ API calls
+✅ **Built-in Approval Workflows** - Optional approval routing
+✅ **Automatic Status Sync** - Real-time updates from Nintex
+✅ **Comprehensive Audit Trail** - All actions logged
+✅ **Centralized Template Management** - Shared template library
+✅ **Cost Effective** - Shared Nintex licensing
+✅ **Support Included** - Elections provides technical support
 
 ### For Your Users
 
-✅ **Faster Time to Signature** - Streamlined submission process  
-✅ **Consistent Experience** - Same workflow across agencies  
-✅ **Mobile Friendly** - Sign from any device  
-✅ **Secure & Compliant** - Protected B certified  
+✅ **Faster Time to Signature** - Streamlined submission process
+✅ **Consistent Experience** - Same workflow across agencies
+✅ **Mobile Friendly** - Sign from any device
+✅ **Secure & Compliant** - Protected B certified
 
 ## Prerequisites
 
@@ -94,7 +96,7 @@ Before you begin, ensure you have:
 
 1. **Dataverse Environment** (any plan with custom connectors)
 2. **Power Automate License** (included in most M365 licenses)
-3. **Service Principal Access** provided by Leonardo:
+3. **Service Principal Access** provided by Elections:
    - Application (Client) ID
    - Client Secret
    - Broker Environment URL
@@ -104,18 +106,20 @@ Before you begin, ensure you have:
 
 ### Step 1: Obtain Service Principal Credentials
 
-Contact Leonardo Company Canada IT to request access:
+Contact Elections Canada IT to request access:
 
-**Email:** esign-support@leonardo.com  
+**Email:** esign-support@Elections.com
 **Subject:** ESign Service Principal Request - [Your Agency Name]
 
 **Include:**
+
 - Your agency name
 - Dataverse environment URL
 - Primary contact name and email
 - Expected monthly envelope volume
 
 You will receive:
+
 ```json
 {
   "TenantId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -134,39 +138,40 @@ You will receive:
 #### Using Power Automate Portal
 
 1. **Navigate to Power Automate**
+
    ```
    https://make.powerautomate.com
    ```
-
 2. **Select Your Environment**
+
    - Top right → Environment selector
    - Choose your agency's environment
-
 3. **Import Custom Connector**
+
    - Left menu → Data → Custom connectors
    - **New custom connector** → **Import an OpenAPI file**
-
 4. **Upload Connector Definition**
+
    - Connector name: **ESign Elections Canada**
    - Upload file: `ESignElectionsCanada-CustomConnector.swagger.json`
    - Click **Continue**
-
 5. **Review General Settings**
+
    - Host: `lce-broker.crm3.dynamics.com` (or your provided URL)
    - Base URL: `/api/data/v9.2`
    - Click **Security** →
-
 6. **Configure OAuth 2.0**
+
    - Authentication type: **OAuth 2.0**
    - Identity Provider: **Azure Active Directory**
    - Client ID: [Paste your Client ID]
    - Client Secret: [Paste your Client Secret]
    - Resource URL: `https://lce-broker.crm3.dynamics.com`
    - Click **Definition** →
-
 7. **Review Actions**
-   
+
    You should see these actions:
+
    - ✅ Submit envelope for signature
    - ✅ List envelopes
    - ✅ Get envelope details
@@ -178,8 +183,8 @@ You will receive:
    - ✅ List available templates
 
    Click **Create connector**
-
 8. **Success!**
+
    - Connector is now available in your environment
    - Anyone with appropriate permissions can use it
 
@@ -188,14 +193,15 @@ You will receive:
 ### Step 3: Create a Connection
 
 1. **Go to Connections**
+
    - Power Automate → Data → Connections
    - Click **New connection**
-
 2. **Find ESign Connector**
+
    - Search: "ESign Elections Canada"
    - Click the custom connector
-
 3. **Authenticate**
+
    - Sign in with your credentials
    - Grant consent to access broker service
    - Connection created!
@@ -209,15 +215,16 @@ Let's create a simple flow to test the connector:
 #### Create "Submit Test Envelope" Flow
 
 1. **New Instant Cloud Flow**
+
    - Name: "Submit Test Envelope"
    - Trigger: "Manually trigger a flow"
-
 2. **Add Inputs**
+
    - Subject (Text): "Document subject"
    - SignerEmail (Email): "Signer email address"
    - SignerName (Text): "Signer full name"
-
 3. **Add Action: Submit envelope for signature**
+
    - Connection: ESign Elections Canada
    - Fill in fields:
      - Envelope Name: `Test Envelope - @{utcNow()}`
@@ -228,15 +235,15 @@ Let's create a simple flow to test the connector:
      - Days to Expire: `30`
      - Reminder Frequency: `3`
      - Requires Approval: `false`
-
 4. **Add Action: Add signer to envelope**
+
    - Connection: ESign Elections Canada
    - Email: `@{triggerBody()?['email_1']}`
    - Full Name: `@{triggerBody()?['text_1']}`
    - Signing Order: `1`
    - Envelope: `/cs_envelopes(@{outputs('Submit_envelope_for_signature')?['body/cs_envelopeid']})`
-
 5. **Save and Test**
+
    - Click **Test** → **Manually**
    - Enter test data
    - Click **Run flow**
@@ -462,6 +469,7 @@ If Rejected:
 **Use:** Create a new envelope in broker service
 
 **Parameters:**
+
 - `cs_name` (required): Envelope name/title
 - `cs_subject` (required): Email subject for signers
 - `cs_message`: Email message body
@@ -473,11 +481,13 @@ If Rejected:
 - `cs_requiresapproval`: Trigger approval workflow (default: false)
 
 **Returns:**
+
 - `cs_envelopeid`: Envelope GUID (use for related records)
 - `cs_status`: Current status
 - `cs_nintexenvelopeid`: Nintex ID (populated after submission)
 
 **Example:**
+
 ```javascript
 Submit envelope for signature
   Envelope Name: "Contract - Acme Corp"
@@ -495,6 +505,7 @@ Submit envelope for signature
 **Use:** Add a person who needs to sign
 
 **Parameters:**
+
 - `cs_email` (required): Signer email
 - `cs_fullname` (required): Signer full name
 - `cs_signerorder` (required): Order (1, 2, 3...)
@@ -502,9 +513,11 @@ Submit envelope for signature
 - `cs_envelopeid@odata.bind` (required): `/cs_envelopes(guid)`
 
 **Returns:**
+
 - `cs_signerid`: Signer record GUID
 
 **Example:**
+
 ```javascript
 Add signer to envelope
   Email: "customer@company.com"
@@ -520,15 +533,18 @@ Add signer to envelope
 **Use:** Attach PDF/document to envelope
 
 **Parameters:**
+
 - `cs_filename` (required): Filename (e.g., "contract.pdf")
 - `cs_filecontent` (required): Base64 encoded content
 - `cs_documentorder` (required): Order (1, 2, 3...)
 - `cs_envelopeid@odata.bind` (required): `/cs_envelopes(guid)`
 
 **Returns:**
+
 - `cs_documentid`: Document record GUID
 
 **Example:**
+
 ```javascript
 // First, get file and convert to base64
 Get file content (SharePoint)
@@ -551,12 +567,15 @@ Add document to envelope
 **Use:** Retrieve current status and details
 
 **Parameters:**
+
 - `envelopeId` (required): Envelope GUID
 
 **Returns:**
+
 - Complete envelope details including status, dates, Nintex ID
 
 **Example:**
+
 ```javascript
 Get envelope details
   Envelope ID: @{triggerOutputs()?['body/cs_envelopeid']}
@@ -569,14 +588,17 @@ Get envelope details
 **Use:** Query envelopes with filters
 
 **Parameters:**
+
 - `$filter`: OData filter (e.g., `cs_status eq 'Completed'`)
 - `$select`: Columns to return
 - `$top`: Number of records (max 5000)
 
 **Returns:**
+
 - Array of envelope records
 
 **Example:**
+
 ```javascript
 List envelopes
   Filter: "cs_requestoremail eq '@{user()?['email']}' and cs_status eq 'InProcess'"
@@ -590,11 +612,13 @@ List envelopes
 **Use:** Modify envelope (e.g., cancel)
 
 **Parameters:**
+
 - `envelopeId` (required): Envelope GUID
 - `cs_iscancelled`: Set true to cancel
 - `cs_notes`: Additional notes
 
 **Example:**
+
 ```javascript
 Update envelope
   Envelope ID: @{triggerOutputs()?['body/cs_envelopeid']}
@@ -608,12 +632,15 @@ Update envelope
 **Use:** Retrieve all signers and their status
 
 **Parameters:**
+
 - `envelopeId` (required): Envelope GUID
 
 **Returns:**
+
 - Array of signers with signing links and status
 
 **Example:**
+
 ```javascript
 Get envelope signers
   Envelope ID: @{variables('varEnvelopeId')}
@@ -634,9 +661,11 @@ Apply to each
 **Use:** Get Nintex templates you can use
 
 **Returns:**
+
 - Array of templates with IDs and descriptions
 
 **Example:**
+
 ```javascript
 List available templates
 
@@ -652,16 +681,16 @@ DisplayName: cs_name
 
 Envelopes progress through these statuses:
 
-| Status | Description | What It Means |
-|--------|-------------|---------------|
-| **Pending Approval** | Waiting for approval | Submitted with requires_approval = true |
-| **Approved** | Approved, queued for Nintex | Broker service will submit to Nintex |
-| **Submitted** | Sent to Nintex | Being processed by Nintex |
-| **InProcess** | Sent to signers | Signers have signing links |
-| **Completed** | All signed | Envelope is complete |
-| **Cancelled** | Cancelled | Stopped by user or broker |
-| **Rejected** | Approval rejected | Director rejected submission |
-| **Failed** | Submission error | Technical error occurred |
+| Status                     | Description                 | What It Means                           |
+| -------------------------- | --------------------------- | --------------------------------------- |
+| **Pending Approval** | Waiting for approval        | Submitted with requires_approval = true |
+| **Approved**         | Approved, queued for Nintex | Broker service will submit to Nintex    |
+| **Submitted**        | Sent to Nintex              | Being processed by Nintex               |
+| **InProcess**        | Sent to signers             | Signers have signing links              |
+| **Completed**        | All signed                  | Envelope is complete                    |
+| **Cancelled**        | Cancelled                   | Stopped by user or broker               |
+| **Rejected**         | Approval rejected           | Director rejected submission            |
+| **Failed**           | Submission error            | Technical error occurred                |
 
 ---
 
@@ -703,6 +732,7 @@ Broker service will support webhooks to push status updates to your environment.
 Power Automate provides multiple ways to get base64 content:
 
 #### From SharePoint:
+
 ```javascript
 Get file content
   Site: Your site
@@ -713,6 +743,7 @@ Compose
 ```
 
 #### From OneDrive:
+
 ```javascript
 Get file content
   File: File identifier
@@ -722,6 +753,7 @@ Compose
 ```
 
 #### From Email Attachment:
+
 ```javascript
 When a new email arrives (with attachment)
 
@@ -740,11 +772,11 @@ Apply to each (Attachments)
 
 ### Data Protection
 
-✅ **In Transit:** All data encrypted with TLS 1.2+  
-✅ **At Rest:** Dataverse encryption  
-✅ **Authentication:** OAuth 2.0 with service principal  
-✅ **Authorization:** Row-level security in broker  
-✅ **Audit:** Complete audit trail maintained  
+✅ **In Transit:** All data encrypted with TLS 1.2+
+✅ **At Rest:** Dataverse encryption
+✅ **Authentication:** OAuth 2.0 with service principal
+✅ **Authorization:** Row-level security in broker
+✅ **Audit:** Complete audit trail maintained
 
 ### Compliance Certifications
 
@@ -768,10 +800,11 @@ Apply to each (Attachments)
 **Cause:** Service principal credentials invalid or expired
 
 **Solution:**
+
 1. Verify Client ID and Secret are correct
 2. Check connection is active (Data → Connections)
 3. Delete and recreate connection
-4. Contact Leonardo if issue persists
+4. Contact Elections if issue persists
 
 ---
 
@@ -780,6 +813,7 @@ Apply to each (Attachments)
 **Cause:** Pending approval or missing required data
 
 **Solution:**
+
 1. Check envelope status: `Get envelope details`
 2. If "Pending Approval": Wait for director approval
 3. If "Failed": Check error message in `cs_errormessage`
@@ -792,6 +826,7 @@ Apply to each (Attachments)
 **Cause:** Email in spam or envelope not yet submitted
 
 **Solution:**
+
 1. Check envelope status is "InProcess" (not "Pending Approval")
 2. Get signing link: `Get envelope signers`
 3. Send link directly via your own email
@@ -804,6 +839,7 @@ Apply to each (Attachments)
 **Cause:** Base64 encoding issue or file too large
 
 **Solution:**
+
 1. Verify file is properly base64 encoded
 2. Check file size (max 10MB per document)
 3. Test with small sample PDF first
@@ -815,11 +851,12 @@ Apply to each (Attachments)
 
 ### For Technical Issues
 
-**Email:** esign-support@leonardo.com  
-**Phone:** 1-800-XXX-XXXX  
+**Email:** esign-support@Elections.com
+**Phone:** 1-800-XXX-XXXX
 **Hours:** Monday-Friday, 8 AM - 6 PM ET
 
 **Include in Support Request:**
+
 - Your agency name
 - Environment URL
 - Envelope ID (if applicable)
@@ -828,11 +865,12 @@ Apply to each (Attachments)
 
 ### For Service Principal Access
 
-**Email:** esign-admin@leonardo.com
+**Email:** esign-admin@Elections.com
 
 ### For Training
 
 Training sessions available:
+
 - Monthly webinars (register online)
 - Custom training for your team
 - Video tutorials (YouTube channel)
@@ -843,13 +881,13 @@ Training sessions available:
 
 ### Included Services
 
-✅ Custom connector access  
-✅ Unlimited envelope submissions  
-✅ Status synchronization  
-✅ Audit logging  
-✅ Template library access  
-✅ Technical support  
-✅ Monthly usage reports  
+✅ Custom connector access
+✅ Unlimited envelope submissions
+✅ Status synchronization
+✅ Audit logging
+✅ Template library access
+✅ Technical support
+✅ Monthly usage reports
 
 ### Pricing Model
 
@@ -858,6 +896,7 @@ Training sessions available:
 - **Bulk Discount:** >1000 envelopes/month (contact for pricing)
 
 **Example:**
+
 - 200 envelopes/month = $500 + (200 × $2.50) = $1,000/month
 
 ---
@@ -867,25 +906,26 @@ Training sessions available:
 ### ✅ Do's
 
 1. **Test in Sandbox First**
+
    - Create test flows before production
    - Use test email addresses
    - Verify all scenarios
-
 2. **Use Environment Variables**
+
    - Store service principal credentials
    - Never hardcode in flows
-
 3. **Implement Error Handling**
+
    - Add "Configure run after" for failures
    - Log errors to SharePoint or Dataverse
    - Notify admins of issues
-
 4. **Monitor Usage**
+
    - Track monthly envelope count
    - Review failed submissions
    - Optimize flows based on metrics
-
 5. **Secure Credentials**
+
    - Store in Azure Key Vault
    - Rotate secrets quarterly
    - Limit access to connections
@@ -893,18 +933,19 @@ Training sessions available:
 ### ❌ Don'ts
 
 1. **Don't Share Credentials**
+
    - Each agency gets unique service principal
    - Don't share Client Secret
-
 2. **Don't Skip Testing**
+
    - Always test with small batches first
    - Verify status updates work
-
 3. **Don't Hardcode Emails**
+
    - Use dynamic expressions
    - Pull from Dataverse/SharePoint
-
 4. **Don't Ignore Errors**
+
    - Check flow run history regularly
    - Address failures promptly
 
@@ -993,23 +1034,23 @@ Steps:
     Subject: Contract Submitted for Signature
     Body:
       Your contract with @{outputs('Get_contract_details')?['VendorName']} has been submitted.
-      
+    
       Envelope ID: @{variables('varEnvelopeId')}
       Status: @{if(variables('varRequiresApproval'), 'Awaiting director approval', 'Sent to signers')}
-      
+    
       You will receive updates as the contract progresses.
 
 12. Error Handling (Configure run after: Any action has failed)
-    
+  
     Compose - Error Details
       Error: @{outputs('Submit_envelope_for_signature')?['error']}
       Details: @{body('Submit_envelope_for_signature')}
-    
+  
     Send email to admin
       To: esign-admin@agency.gov
       Subject: Contract Submission Failed
       Body: @{outputs('Compose_-_Error_Details')}
-    
+  
     Update contract record
       Status: Failed
       Error Message: @{outputs('Compose_-_Error_Details')}
@@ -1019,35 +1060,35 @@ Steps:
 
 ## FAQ
 
-**Q: Can I use this in Power Apps?**  
+**Q: Can I use this in Power Apps?**
 A: Yes! Add the connector as a data source and call actions from buttons.
 
-**Q: How long do envelopes take to process?**  
+**Q: How long do envelopes take to process?**
 A: Immediate if no approval required. With approval, depends on director response time.
 
-**Q: Can I customize email templates?**  
+**Q: Can I customize email templates?**
 A: Not yet. Template customization coming in Q2 2026.
 
-**Q: What file formats are supported?**  
+**Q: What file formats are supported?**
 A: PDF recommended. Word/Excel converted to PDF automatically.
 
-**Q: Can I get signing links without sending email?**  
+**Q: Can I get signing links without sending email?**
 A: Yes! Use "Get envelope signers" to retrieve links and send via your own method.
 
-**Q: Is there a test environment?**  
-A: Yes, Leonardo provides sandbox environment for testing.
+**Q: Is there a test environment?**
+A: Yes, Elections provides sandbox environment for testing.
 
-**Q: Can I integrate with my CRM?**  
+**Q: Can I integrate with my CRM?**
 A: Absolutely! Use standard Power Automate connectors alongside ESign connector.
 
-**Q: What happens if Leonardo service goes down?**  
-A: SLA guarantees 99.9% uptime. Status page: status.leonardo-esign.com
+**Q: What happens if Elections service goes down?**
+A: SLA guarantees 99.9% uptime. Status page: status.Elections-esign.com
 
 ---
 
 ## Next Steps
 
-1. ✅ **Request service principal** from Leonardo
+1. ✅ **Request service principal** from Elections
 2. ✅ **Import custom connector** to your environment
 3. ✅ **Create test flow** with sample envelope
 4. ✅ **Build production flows** for your scenarios
@@ -1056,8 +1097,8 @@ A: SLA guarantees 99.9% uptime. Status page: status.leonardo-esign.com
 
 ---
 
-**Ready to get started? Contact us at esign-support@leonardo.com**
+**Ready to get started? Contact us at esign-support@Elections.com**
 
-**Built by Leonardo Company Canada**  
-**Powered by Nintex AssureSign**  
+**Built by Elections Canada**
+**Powered by Nintex AssureSign**
 **Secured by Microsoft Dataverse**
