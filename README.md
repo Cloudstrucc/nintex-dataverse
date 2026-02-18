@@ -849,7 +849,7 @@ graph TB
 
 **Base URL Format:**
 
-```
+```html
 https://{environment}.{region}.dynamics.com/api/data/v{version}/
 ```
 
@@ -1153,7 +1153,7 @@ graph TB
 | **Repudiation** | Deny sending envelope | Complete audit trail in cs_apirequest | Low |
 | **Information Disclosure** | Access other app/service data | RLS, CLS, encryption | Low |
 | **Denial of Service** | Flood API with requests | API throttling, DLP policies | Medium |
-| **Elevation of Privilege** | Gain admin access | Least privilege, MFA, PIM | Low |
+| **Elevation of Privilege (TBD)** | Gain admin access | Least privilege, MFA, PIM | Low |
 
 ### 6.3 Data Classification
 
@@ -1424,7 +1424,7 @@ Recurrence: Daily at 2:00 AM
 **RTO:** 4 hours  
 **RPO:** 24 hours
 
-### 8.3 Legal Hold Process
+### 8.3 Legal Hold Process (TBD)
 
 ```mermaid
 flowchart TD
@@ -1499,7 +1499,7 @@ flowchart TD
 
 ```mermaid
 gantt
-    title Client Onboarding Timeline
+    title Client Onboarding Timeline (typical timeline example/template)
     dateFormat  YYYY-MM-DD
     
     section Intake
@@ -1541,7 +1541,7 @@ gantt
 
 | Field | Value |
 |-------|-------|
-| app/service Name | [FILL] |
+| App/service Name | [FILL] |
 | Primary Contact | [FILL] |
 | Email | [FILL] |
 | Phone | [FILL] |
@@ -1594,7 +1594,7 @@ az ad app permission admin-consent --id $app
 
 #### Phase 4: Testing (Day 7-14)
 
-**Test Plan:**
+**Test Plan (baseline):**
 
 | Test Case | Description | Expected Result | Status |
 |-----------|-------------|-----------------|--------|
@@ -1629,21 +1629,21 @@ az ad app permission admin-consent --id $app
 ```mermaid
 graph TB
     subgraph "Development"
-        A[dev-broker<br/>canadacentral]
+        A[dev-broker dataverse <br/>environment in dev env group<br/>canadacentral]
         B[dev-nintex<br/>sandbox account]
     end
     
     subgraph "QA"
-        C[qa-broker<br/>canadacentral]
+        C[qa-broker dataverse <br/>environment in tst env group<br/>canadacentral]
         D[qa-nintex<br/>sandbox account]
     end
     
     subgraph "Production"
-        E[prod-broker<br/>canadacentral]
+        E[prod-broker dataverse <br/>environment in Prod env group<br/>canadacentral]
         F[prod-nintex<br/>production account]
     end
     
-    subgraph "Disaster Recovery"
+    subgraph "Extended Dataverse Backup Env"
         G[dr-broker<br/>canadaeast]
     end
     
