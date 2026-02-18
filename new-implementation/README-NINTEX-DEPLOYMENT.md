@@ -393,6 +393,7 @@ Your app user needs System Administrator temporarily:
 
 ## 🤝 Support
 
+
 For issues or questions:
 
 1. Run diagnostics: `./diagnose-access.sh config.json`

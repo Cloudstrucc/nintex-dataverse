@@ -72,7 +72,7 @@ You simply:
 
 ## Benefits of Using the Broker Service
 
-### For Your Agency
+### For Your Project
 
 ✅ **No Nintex Expertise Required** - We handle all API integration
 ✅ **Simplified Integration** - 3 simple actions vs 20+ API calls
@@ -88,19 +88,20 @@ You simply:
 ✅ **Faster Time to Signature** - Streamlined submission process
 ✅ **Consistent Experience** - Same workflow across agencies
 ✅ **Mobile Friendly** - Sign from any device
-✅ **Secure & Compliant** - Protected B certified
+✅ **Secure & Compliant**certified
 
 ## Prerequisites
 
 Before you begin, ensure you have:
 
-1. **Dataverse Environment** (any plan with custom connectors)
+1. **Dataverse Environment**
 2. **Power Automate License** (included in most M365 licenses)
-3. **Service Principal Access** provided by Elections:
+3. **Service Principal Access** provided by Elections' Platfrom Engineering Team:
+
    - Application (Client) ID
    - Client Secret
+   - Tenant ID
    - Broker Environment URL
-4. **Environment Maker** or **System Customizer** role in your environment
 
 ## Deployment Steps
 
@@ -109,7 +110,7 @@ Before you begin, ensure you have:
 Contact Elections Canada IT to request access:
 
 **Email:** esign-support@Elections.com
-**Subject:** ESign Service Principal Request - [Your Agency Name]
+**Subject:** ESign Service Principal Request
 
 **Include:**
 
