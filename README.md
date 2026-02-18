@@ -1,11 +1,11 @@
-# ESign Elections Canada - Solution Architecture Document
+# ESign Elections Canada - Solution Architecture & Design Document
 
 ## Part 1: Executive Summary & Architecture Overview
 
-Version: 1.0
-Last Updated: February 2026
-Document Owner: Platform Engineering Team
-Author: Frederick Pearson
+* Version: 1.0
+* Last Updated: February 2026
+* Document Owner: Platform Engineering Team
+* Author: Frederick Pearson
 
 ---
 
@@ -18,14 +18,17 @@ Author: Frederick Pearson
 3. Access Control & Identity Management
 
 **Part 2: Data & Integration Architecture**
+
 4. Data Architecture
 5. Integration Architecture
 
 **Part 3: Security & Monitoring**
+
 6. Security Architecture
 7. Monitoring, Logging & Audit
 
 **Part 4: Operations & Compliance**
+
 8. Data Retention & Disposition
 9. Client Onboarding Process
 10. Environment Strategy
@@ -35,10 +38,10 @@ Author: Frederick Pearson
 
 **Part 5: Annexes**
 
-- Annex A: Environment Configuration
-- Annex B: Security Controls Mapping (ITSG-33)
-- Annex C: API Specifications
-- Annex D: Troubleshooting Guide
+14. Annex A: Environment Configuration
+15. Annex B: Security Controls Mapping (ITSG-33)
+16. Annex C: API Specifications
+17. Annex D: Troubleshooting Guide
 
 ---
 
@@ -52,17 +55,17 @@ This document describes the solution architecture for the **ESign Elections Cana
 
 The architecture encompasses:
 
-- **Broker Service Layer**: Microsoft Power Platform (Dataverse) broker (API gateway/middleware)
-- **Client Integration Layer**: Custom connectors and OData endpoints for client consumption
-- **External Integration**: Nintex AssureSign API integration
-- **Security & Compliance**: Protected B controls, ITSG-33 alignment, audit logging
-- **Operations**: Monitoring, logging, backup, disaster recovery
+* **Broker Service Layer**: Microsoft Power Platform (Dataverse) broker (API gateway/middleware)
+* **Client Integration Layer**: Custom connectors and OData endpoints for client consumption
+* **External Integration**: Nintex AssureSign API integration
+* **Security & Compliance**: Protected B controls, ITSG-33 alignment, audit logging
+* **Operations**: Monitoring, logging, backup, disaster recovery
 
 ### 1.3 Key Architectural Principles
 
 | Principle                  | Description                                        | Implementation                                    |
 | -------------------------- | -------------------------------------------------- | ------------------------------------------------- |
-| **Multi-Tenancy**    | Logical isolation between client app/services      | Row-level security (RLS) in Dataverse             |
+| **Support for mulitple business units**    | Logical isolation between client app/services      | Row-level security (RLS) in Dataverse & business units/security roles for API access governance             |
 | **API-First**        | OData/REST endpoints as primary integration method | Dataverse Web API + Custom Connectors             |
 | **Zero Trust**       | Never trust, always verify                         | OAuth 2.0, service principals, conditional access |
 | **Defense in Depth** | Layered security controls                          | Network, identity, application, data encryption   |
@@ -141,10 +144,10 @@ The solution implements a **broker architectural pattern** where:
 
 **Purpose:**
 
-- Centralized Nintex license management
-- Consistent security controls
-- Simplified client integration
-- Centralized audit and compliance
+* Centralized Nintex license management
+* Consistent security controls
+* Simplified client integration
+* Centralized audit and compliance
 
 ```mermaid
 sequenceDiagram
@@ -248,27 +251,27 @@ graph TB
 
 1. **OData Protocol**: Industry-standard REST API
 
-   - Queryable via $filter, $select, $expand
-   - Standardized authentication (OAuth 2.0)
-   - Native pagination, batch operations
+   * Queryable via $filter, $select, $expand
+   * Standardized authentication (OAuth 2.0)
+   * Native pagination, batch operations
 2. **Web API Capabilities**:
 
-   - RESTful CRUD operations
-   - Custom Actions (e.g., cs_SendEnvelope)
-   - Webhooks for real-time integration
-   - SDK support (C#, JavaScript, Python)
+   * RESTful CRUD operations
+   * Custom Actions (e.g., cs_SendEnvelope)
+   * Webhooks for real-time integration
+   * SDK support (C#, JavaScript, Python)
 3. **Built-in Security**:
 
-   - Row-level security (RLS)
-   - Column-level security (CLS)
-   - Audit logging
-   - Data encryption at rest and in transit
+   * Row-level security (RLS)
+   * Column-level security (CLS)
+   * Audit logging
+   * Data encryption at rest and in transit
 4. **Power Platform Integration**:
 
-   - Native Power Automate triggers
-   - Power Apps data source
-   - Custom connectors
-   - AI Builder capabilities
+   * Native Power Automate triggers
+   * Power Apps data source
+   * Custom connectors
+   * AI Builder capabilities
 
 **OData Endpoint Example:**
 
@@ -445,9 +448,9 @@ graph TB
 
 **Notes:**
 
-- Organization-level privileges required due to Dataverse API behavior
-- RLS enforced via `ownerid` field filtering
-- Client cannot query or modify records owned by other clients
+* Organization-level privileges required due to Dataverse API behavior
+* RLS enforced via `ownerid` field filtering
+* Client cannot query or modify records owned by other clients
 
 #### Broker Administrator Role
 
@@ -657,9 +660,9 @@ erDiagram
 
 **Storage Calculation:**
 
-- Base64 encoding increases size by ~33%
-- 10MB PDF = ~13.3MB base64
-- Dataverse capacity: 1GB per environment base + usage-based
+* Base64 encoding increases size by ~33%
+* 10MB PDF = ~13.3MB base64
+* Dataverse capacity: 1GB per environment base + usage-based
 
 ##### cs_apirequest
 
@@ -1309,29 +1312,29 @@ AuditLog
 
 **Widgets:**
 
-- API Success Rate (gauge)
-- Average Latency (line chart)
-- Envelopes by Status (pie chart)
-- Active Clients (number)
-- Daily Envelope Volume (bar chart)
+* API Success Rate (gauge)
+* Average Latency (line chart)
+* Envelopes by Status (pie chart)
+* Active Clients (number)
+* Daily Envelope Volume (bar chart)
 
 #### Dashboard 2: Security Monitoring
 
 **Widgets:**
 
-- Failed Authentication Attempts (table)
-- Unusual IP Addresses (map)
-- New Service Principals (list)
-- Privileged Access Events (timeline)
+* Failed Authentication Attempts (table)
+* Unusual IP Addresses (map)
+* New Service Principals (list)
+* Privileged Access Events (timeline)
 
 #### Dashboard 3: Client Usage
 
 **Widgets:**
 
-- Top 10 Clients by Volume (bar chart)
-- Completion Rate by Client (table)
-- Processing Time Trends (line chart)
-- Failed Envelopes by Client (table)
+* Top 10 Clients by Volume (bar chart)
+* Completion Rate by Client (table)
+* Processing Time Trends (line chart)
+* Failed Envelopes by Client (table)
 
 ### 7.6 Log Retention
 
@@ -1928,24 +1931,24 @@ flowchart TD
 
 1. **Hour 0-1: Assessment**
 
-   - Check Azure status
-   - Verify broker environment
-   - Test API endpoint
+   * Check Azure status
+   * Verify broker environment
+   * Test API endpoint
 2. **Hour 1-2: Activation**
 
-   - Restore backup to DR environment
-   - Monitor restore progress
+   * Restore backup to DR environment
+   * Monitor restore progress
 3. **Hour 2-3: Configuration**
 
-   - Import Power Automate solutions from Git
-   - Reconfigure managed identity access to Key Vault
-   - Update DLP policies to include DR environment
-   - Test Nintex integration
+   * Import Power Automate solutions from Git
+   * Reconfigure managed identity access to Key Vault
+   * Update DLP policies to include DR environment
+   * Test Nintex integration
 4. **Hour 3-4: Validation & Communication**
 
-   - Submit 3 test envelopes
-   - Verify status sync working
-   - Send email to all clients with new URL
+   * Submit 3 test envelopes
+   * Verify status sync working
+   * Send email to all clients with new URL
 
 #### Scenario 2: Security Breach
 
@@ -2407,10 +2410,10 @@ EntraIDLogs
 
 **Severity Definitions:**
 
-- **P1:** Complete service outage, security breach
-- **P2:** Significant degradation affecting multiple clients
-- **P3:** Single client impacted, workaround available
-- **P4:** Minor issue, enhancement request
+* **P1:** Complete service outage, security breach
+* **P2:** Significant degradation affecting multiple clients
+* **P3:** Single client impacted, workaround available
+* **P4:** Minor issue, enhancement request
 
 ---
 
