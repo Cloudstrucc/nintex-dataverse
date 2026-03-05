@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssureSign Flow Template</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00c2ff;
+    --accent2: #7c3aed;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0d1117;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #00c2ff22, #7c3aed22);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 4px;
+    transition: border-color 0.2s;
+  }
+
+  .step:hover { border-color: var(--accent); }
+
+  .step-connector {
+    width: 2px;
+    height: 28px;
+    background: linear-gradient(to bottom, var(--border), var(--accent));
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .step-connector::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--accent);
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .icon-trigger { background: #1e3a5f; border: 1px solid #2563eb; }
+  .icon-http { background: #1a3a2a; border: 1px solid var(--success); }
+  .icon-var { background: #2d1b69; border: 1px solid var(--accent2); }
+  .icon-connector { background: #1a2e3a; border: 1px solid var(--accent); }
+  .icon-condition { background: #3a2a10; border: 1px solid var(--warning); }
+
+  .step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .step-subtitle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .step-number {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .field-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .field {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-top: 2px;
+  }
+
+  .field-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  .field-value.green { color: var(--success); }
+  .field-value.purple { color: #a78bfa; }
+  .field-value.yellow { color: var(--warning); }
+  .field-value.white { color: var(--text); }
+
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin-top: 12px;
+  }
+
+  .code-block .key { color: #7dd3fc; }
+  .code-block .val { color: #86efac; }
+  .code-block .str { color: #fca5a5; }
+  .code-block .num { color: #fdba74; }
+  .code-block .punct { color: var(--muted); }
+
+  .note {
+    background: #1a2e1a;
+    border: 1px solid #166534;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: #86efac;
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .note.warning {
+    background: #2a1f0a;
+    border-color: #92400e;
+    color: var(--warning);
+  }
+
+  .note.info {
+    background: #0f1f35;
+    border-color: #1e40af;
+    color: #93c5fd;
+  }
+
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .tag-http { background: #064e3b; color: #6ee7b7; }
+  .tag-var { background: #2e1065; color: #c4b5fd; }
+  .tag-action { background: #0c2a4a; color: #7dd3fc; }
+  .tag-condition { background: #451a03; color: #fcd34d; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0;
+  }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+    margin-top: 12px;
+  }
+
+  .summary-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .summary-table td:first-child { color: var(--accent); }
+
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="badge">Power Automate</div>
+    <h1>AssureSign Flow Template</h1>
+    <p>Fully automated · Dynamic token per run · No custom connector required</p>
+  </div>
+
+  <div class="flow">
+
+    <!-- STEP 1: TRIGGER -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-trigger">⚡</div>
+        <div>
+          <div class="step-title">Trigger</div>
+          <div class="step-subtitle">Manually trigger a flow (or replace with your actual trigger)</div>
+        </div>
+        <div class="step-number">1</div>
+      </div>
+      <div class="note info">💡 Replace this with your real trigger — e.g. "When a Dataverse row is created", "When a form is submitted", etc.</div>
+    </div>
+
+    <div class="step-connector"></div>
+
+    <!-- STEP 2: HTTP AUTH -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-http">🌐</div>
+        <div>
+          <div class="step-title">HTTP — Authenticate to AssureSign</div>
+          <div class="step-subtitle"><span class="tag tag-http">HTTP</span> Gets a fresh bearer token on every run</div>
+        </div>
+        <div class="step-number">2</div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <div class="field-label">Method</div>
+          <div class="field-value green">POST</div>
+        </div>
+        <div class="field">
+          <div class="field-label">URI</div>
+          <div class="field-value">https://account.assuresign.net/api/v3.7/authentication/apiUser</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Headers</div>
+          <div class="field-value white">Content-Type: application/json<br>Accept: application/json</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Authentication</div>
+          <div class="field-value yellow">None</div>
+        </div>
+      </div>
+      <div class="code-block">
+<span class="punct">{</span>
+  <span class="key">"request"</span><span class="punct">: {</span>
+    <span class="key">"apiUsername"</span><span class="punct">: </span><span class="str">"elections-broker-service_apdFUAke"</span><span class="punct">,</span>
+    <span class="key">"key"</span><span class="punct">: </span><span class="str">"&lt;your-api-key&gt;"</span><span class="punct">,</span>
+    <span class="key">"contextUsername"</span><span class="punct">: </span><span class="str">"fred.pearson@leonardocompany.ca"</span><span class="punct">,</span>
+    <span class="key">"sessionLengthInMinutes"</span><span class="punct">: </span><span class="num">1440</span>
+  <span class="punct">}</span>
+<span class="punct">}</span>
+      </div>
+      <div class="note">✅ Returns: <code>body('HTTP_Authenticate')?['result']?['token']</code></div>
+    </div>
+
+    <div class="step-connector"></div>
+
+    <!-- STEP 3: INITIALIZE VARIABLE -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-var">{x}</div>
+        <div>
+          <div class="step-title">Initialize Variable — AssureSignToken</div>
+          <div class="step-subtitle"><span class="tag tag-var">Variable</span> Stores bearer token for reuse across all actions</div>
+        </div>
+        <div class="step-number">3</div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <div class="field-label">Name</div>
+          <div class="field-value green">AssureSignToken</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Type</div>
+          <div class="field-value white">String</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Value (Expression)</div>
+          <div class="field-value purple">concat('bearer ', body('HTTP_Authenticate')?['result']?['token'])</div>
+        </div>
+      </div>
+      <div class="note info">💡 Click the Value field → switch to <strong>Expression</strong> tab → paste the concat() expression above → click OK</div>
+    </div>
+
+    <div class="step-connector"></div>
+
+    <!-- STEP 4: LIST TEMPLATES -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-http">🌐</div>
+        <div>
+          <div class="step-title">HTTP — List Templates</div>
+          <div class="step-subtitle"><span class="tag tag-http">HTTP</span> Optional — use to look up Template IDs</div>
+        </div>
+        <div class="step-number">4</div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <div class="field-label">Method</div>
+          <div class="field-value green">GET</div>
+        </div>
+        <div class="field">
+          <div class="field-label">URI</div>
+          <div class="field-value">https://ca1.assuresign.net/api/documentnow/v3.7/templates</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Headers</div>
+          <div class="field-value white">Authorization: <span class="field-value purple">@{variables('AssureSignToken')}</span><br>Accept: application/json</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Authentication</div>
+          <div class="field-value yellow">None</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-connector"></div>
+
+    <!-- STEP 5: SUBMIT ENVELOPE -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-http">🌐</div>
+        <div>
+          <div class="step-title">HTTP — Submit Envelope</div>
+          <div class="step-subtitle"><span class="tag tag-http">HTTP</span> Send document for signature</div>
+        </div>
+        <div class="step-number">5</div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <div class="field-label">Method</div>
+          <div class="field-value green">POST</div>
+        </div>
+        <div class="field">
+          <div class="field-label">URI</div>
+          <div class="field-value">https://ca1.assuresign.net/api/documentnow/v3.7/submit</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Headers</div>
+          <div class="field-value white">Authorization: <span class="field-value purple">@{variables('AssureSignToken')}</span><br>Content-Type: application/json<br>Accept: application/json</div>
+        </div>
+      </div>
+      <div class="code-block">
+<span class="punct">{</span>
+  <span class="key">"request"</span><span class="punct">: {</span>
+    <span class="key">"templateID"</span><span class="punct">: </span><span class="str">"&lt;your-template-id&gt;"</span><span class="punct">,</span>
+    <span class="key">"recipients"</span><span class="punct">: [{</span>
+      <span class="key">"name"</span><span class="punct">: </span><span class="str">"@{triggerBody()?['signerName']}"</span><span class="punct">,</span>
+      <span class="key">"email"</span><span class="punct">: </span><span class="str">"@{triggerBody()?['signerEmail']}"</span>
+    <span class="punct">}]</span>
+  <span class="punct">}</span>
+<span class="punct">}</span>
+      </div>
+      <div class="note">✅ Returns: <code>body('HTTP_Submit')?['result']?['envelopeID']</code></div>
+    </div>
+
+    <div class="step-connector"></div>
+
+    <!-- STEP 6: GET STATUS -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-http">🌐</div>
+        <div>
+          <div class="step-title">HTTP — Get Envelope Status</div>
+          <div class="step-subtitle"><span class="tag tag-http">HTTP</span> Check if signed/pending/cancelled</div>
+        </div>
+        <div class="step-number">6</div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <div class="field-label">Method</div>
+          <div class="field-value green">GET</div>
+        </div>
+        <div class="field">
+          <div class="field-label">URI</div>
+          <div class="field-value">https://ca1.assuresign.net/api/documentnow/v3.7/envelopes/<span class="purple">@{body('HTTP_Submit')?['result']?['envelopeID']}</span>/status</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Headers</div>
+          <div class="field-value white">Authorization: <span class="field-value purple">@{variables('AssureSignToken')}</span><br>Accept: application/json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-connector"></div>
+
+    <!-- STEP 7: GET SIGNING LINKS -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-icon icon-http">🌐</div>
+        <div>
+          <div class="step-title">HTTP — Get Signing Links</div>
+          <div class="step-subtitle"><span class="tag tag-http">HTTP</span> Retrieve signer URLs to email or embed</div>
+        </div>
+        <div class="step-number">7</div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <div class="field-label">Method</div>
+          <div class="field-value green">GET</div>
+        </div>
+        <div class="field">
+          <div class="field-label">URI</div>
+          <div class="field-value">https://ca1.assuresign.net/api/documentnow/v3.7/envelopes/<span class="purple">@{body('HTTP_Submit')?['result']?['envelopeID']}</span>/signingLinks</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Headers</div>
+          <div class="field-value white">Authorization: <span class="field-value purple">@{variables('AssureSignToken')}</span><br>Accept: application/json</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="step" style="margin-top: 32px;">
+    <div class="section-label">Expression Reference</div>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Value You Need</th>
+          <th>Expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Bearer Token</td>
+          <td>concat('bearer ', body('HTTP_Authenticate')?['result']?['token'])</td>
+        </tr>
+        <tr>
+          <td>Envelope ID</td>
+          <td>body('HTTP_Submit')?['result']?['envelopeID']</td>
+        </tr>
+        <tr>
+          <td>Envelope Status</td>
+          <td>body('HTTP_GetStatus')?['result']?['status']</td>
+        </tr>
+        <tr>
+          <td>First Signing Link</td>
+          <td>body('HTTP_GetSigningLinks')?['result']?[0]?['signingLink']</td>
+        </tr>
+        <tr>
+          <td>Template ID (first)</td>
+          <td>body('HTTP_ListTemplates')?['result']?['templates']?[0]?['templateID']</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note warning" style="margin-top: 12px;">⚠️ Rename each HTTP action descriptively (e.g. "HTTP_Authenticate", "HTTP_Submit") so the expressions above reference them correctly.</div>
+  </div>
+
+  <div class="footer">
+    CloudStrucc Inc. · Elections Canada ESign Broker · AssureSign API v3.7 · ca1.assuresign.net
+  </div>
+
+</div>
+</body>
+</html>
