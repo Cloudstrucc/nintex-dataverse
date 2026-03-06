@@ -1,0 +1,103 @@
+swagger: '2.0'
+info:
+  title: Nintex Authenticate
+  description: >-
+    Authenticates to Nintex AssureSign and returns a bearer token.
+    Only the API Key field is visible — all other credentials are pre-configured.
+    After running, use the bearerToken output directly in the
+    Nintex AssureSign connection or in flow variables.
+  version: 1.0.0
+  contact:
+    name: Elections Canada
+    email: support@elections.ca
+host: account.assuresign.net
+basePath: /api/v3.7
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /authentication/apiUser:
+    post:
+      summary: Authenticate
+      description: >-
+        Returns a JWT bearer token for Nintex AssureSign API calls.
+        Pre-configured fields are hidden. Only the API Key is required.
+        Output: use body('Authenticate')?['result']?['bearerToken']
+        for the pre-formatted bearer token (includes 'bearer ' prefix).
+      operationId: Authenticate
+      x-ms-visibility: important
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - request
+            properties:
+              request:
+                type: object
+                required:
+                  - apiUsername
+                  - key
+                  - contextUsername
+                properties:
+                  apiUsername:
+                    type: string
+                    description: AssureSign API username (pre-configured)
+                    x-ms-summary: API Username
+                    default: elections-broker-service_apdFUAke
+                    x-ms-visibility: internal
+                  key:
+                    type: string
+                    description: Your Nintex AssureSign API key
+                    x-ms-summary: API Key
+                    x-ms-visibility: important
+                  contextUsername:
+                    type: string
+                    description: Context user email (pre-configured)
+                    x-ms-summary: Context Email
+                    default: fred.pearson@leonardocompany.ca
+                    x-ms-visibility: internal
+                  sessionLengthInMinutes:
+                    type: integer
+                    description: Token validity in minutes (pre-configured to 24 hours)
+                    x-ms-summary: Session Length
+                    default: 1440
+                    x-ms-visibility: internal
+      responses:
+        '200':
+          description: Authentication successful
+          schema:
+            type: object
+            properties:
+              messages:
+                type: array
+                items:
+                  type: string
+              result:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Raw JWT token
+                    x-ms-summary: Raw Token
+                    x-ms-visibility: advanced
+                  bearerToken:
+                    type: string
+                    description: >-
+                      Pre-formatted bearer token ready for use in Authorization headers.
+                      Value = 'bearer ' + token. Use this output directly.
+                    x-ms-summary: Bearer Token
+                    x-ms-visibility: important
+        '401':
+          description: Invalid credentials
+        '403':
+          description: Forbidden - check API key
+definitions: {}
+parameters: {}
+responses: {}
+tags: []
