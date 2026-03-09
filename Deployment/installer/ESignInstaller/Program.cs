@@ -4,8 +4,10 @@ using System.Runtime.InteropServices;
 
 const string REPO_BASE = "https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment";
 const string SCHEMA_ZIP = "nintex_1_0_0_1_managed.zip";
-const string BROKER_ZIP = "ESignatureBroker_1_0_0_33_managed.zip";
+const string CONFIG_ZIP = "ESignatureConfig_1_0_0_0_managed.zip";
+const string BROKER_ZIP = "ESignatureBroker_1_0_0_34_managed.zip";
 const string SCHEMA_SOLUTION = "nintex";
+const string CONFIG_SOLUTION = "ESignatureConfig";
 const string BROKER_SOLUTION = "ESignatureBroker";
 
 var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -113,36 +115,29 @@ var tempDir = Path.Combine(Path.GetTempPath(), "esign-installer-" + Guid.NewGuid
 Directory.CreateDirectory(tempDir);
 
 var schemaPath = Path.Combine(tempDir, SCHEMA_ZIP);
+var configPath = Path.Combine(tempDir, CONFIG_ZIP);
 var brokerPath = Path.Combine(tempDir, BROKER_ZIP);
 
-var localDir = AppContext.BaseDirectory;
-var localSchema = Path.Combine(localDir, SCHEMA_ZIP);
-var localBroker = Path.Combine(localDir, BROKER_ZIP);
+string[] allZips = [SCHEMA_ZIP, CONFIG_ZIP, BROKER_ZIP];
+string[] allPaths = [schemaPath, configPath, brokerPath];
 
-var cwdSchema = Path.Combine(Directory.GetCurrentDirectory(), SCHEMA_ZIP);
-var cwdBroker = Path.Combine(Directory.GetCurrentDirectory(), BROKER_ZIP);
-
-var parentDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".."));
-var parentSchema = Path.Combine(parentDir, SCHEMA_ZIP);
-var parentBroker = Path.Combine(parentDir, BROKER_ZIP);
-
-if (File.Exists(localSchema) && File.Exists(localBroker))
+// Try local directories first
+string? sourceDir = null;
+foreach (var dir in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory(),
+    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..")) })
 {
-    File.Copy(localSchema, schemaPath, true);
-    File.Copy(localBroker, brokerPath, true);
-    PrintSuccess("Using local solution files (from installer directory)");
+    if (allZips.All(z => File.Exists(Path.Combine(dir, z))))
+    {
+        sourceDir = dir;
+        break;
+    }
 }
-else if (File.Exists(cwdSchema) && File.Exists(cwdBroker))
+
+if (sourceDir != null)
 {
-    File.Copy(cwdSchema, schemaPath, true);
-    File.Copy(cwdBroker, brokerPath, true);
-    PrintSuccess("Using local solution files (from current directory)");
-}
-else if (File.Exists(parentSchema) && File.Exists(parentBroker))
-{
-    File.Copy(parentSchema, schemaPath, true);
-    File.Copy(parentBroker, brokerPath, true);
-    PrintSuccess("Using local solution files (from Deployment folder)");
+    for (int i = 0; i < allZips.Length; i++)
+        File.Copy(Path.Combine(sourceDir, allZips[i]), allPaths[i], true);
+    PrintSuccess($"Using local solution files (from {sourceDir})");
 }
 else
 {
@@ -154,10 +149,11 @@ else
 
     try
     {
-        await DownloadFile(http, $"{REPO_BASE}/{SCHEMA_ZIP}", schemaPath);
-        PrintSuccess($"Downloaded {SCHEMA_ZIP}");
-        await DownloadFile(http, $"{REPO_BASE}/{BROKER_ZIP}", brokerPath);
-        PrintSuccess($"Downloaded {BROKER_ZIP}");
+        for (int i = 0; i < allZips.Length; i++)
+        {
+            await DownloadFile(http, $"{REPO_BASE}/{allZips[i]}", allPaths[i]);
+            PrintSuccess($"Downloaded {allZips[i]}");
+        }
     }
     catch (Exception ex)
     {
@@ -169,7 +165,7 @@ else
 }
 
 // Step 6: Import schema
-PrintStep(5, "Importing Nintex Schema solution (1 of 2)");
+PrintStep(5, "Importing Nintex Schema solution (1 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This creates 16 tables, columns, and relationships...");
 Console.ResetColor();
@@ -187,7 +183,7 @@ if (schemaImport != 0)
     Console.WriteLine("  - Environment not provisioned with Dataverse");
     Console.ResetColor();
     Console.WriteLine();
-    Console.Write("  Continue with workflow import anyway? (y/N): ");
+    Console.Write("  Continue anyway? (y/N): ");
     var cont = Console.ReadLine()?.Trim().ToLower();
     if (cont != "y" && cont != "yes")
     {
@@ -200,8 +196,32 @@ else
     PrintSuccess($"Schema solution ({SCHEMA_SOLUTION} v1.0.0.1) imported successfully");
 }
 
-// Step 7: Import workflows
-PrintStep(6, "Importing E-Signature Broker flows (2 of 2)");
+// Step 7: Import config (environment variables)
+PrintStep(6, "Importing E-Signature Config (2 of 3)");
+Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("  This creates 5 environment variables for Nintex API credentials...");
+Console.ResetColor();
+Console.WriteLine();
+
+var configImport = RunCommandLive(pacPath!, $"solution import --path \"{configPath}\" --publish-changes --activate-plugins");
+if (configImport != 0)
+{
+    PrintError("Config solution import failed.");
+    Console.Write("  Continue anyway? (y/N): ");
+    var cont2 = Console.ReadLine()?.Trim().ToLower();
+    if (cont2 != "y" && cont2 != "yes")
+    {
+        Cleanup(tempDir);
+        Exit(1);
+    }
+}
+else
+{
+    PrintSuccess($"Config solution ({CONFIG_SOLUTION} v1.0.0.0) imported successfully");
+}
+
+// Step 8: Import workflows
+PrintStep(7, "Importing E-Signature Broker flows (3 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This deploys 10 Power Automate cloud flows...");
 Console.ResetColor();
@@ -212,15 +232,15 @@ if (brokerImport != 0)
 {
     PrintError("Workflow solution import failed.");
     Console.ForegroundColor = ConsoleColor.DarkGray;
-    Console.WriteLine("  Ensure the schema solution imported successfully first.");
+    Console.WriteLine("  Ensure schema and config solutions imported successfully first.");
     Console.ResetColor();
     Cleanup(tempDir);
     Exit(1);
 }
-PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.33) imported successfully");
+PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.34) imported successfully");
 
-// Step 8: Verify
-PrintStep(7, "Verifying installation");
+// Step 9: Verify
+PrintStep(8, "Verifying installation");
 var listResult = RunCommand(pacPath!, "solution list");
 if (listResult != null)
 {
@@ -250,18 +270,20 @@ Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine("  Next steps:");
 Console.ResetColor();
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  1. Configure the connection reference:");
+Console.WriteLine("  1. Set environment variable values:");
+Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("     Solutions > E-Signature Configuration > Environment Variables");
+Console.WriteLine("     Set values for: Nintex API Username, API Key, Context Username");
+Console.WriteLine("     (Auth URL and API Base URL have defaults — only change if needed)");
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("  2. Configure the connection reference:");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("     Solutions > E-Signature Broker > Connection References");
 Console.WriteLine("     Select 'Dataverse (Current Environment)' > Edit > Choose connection");
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  2. Activate all 10 cloud flows:");
+Console.WriteLine("  3. Activate all 10 cloud flows:");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("     Solutions > E-Signature Broker > Cloud flows > Turn on each flow");
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  3. Configure Nintex credentials:");
-Console.ForegroundColor = ConsoleColor.DarkGray;
-Console.WriteLine("     Create a record in the cs_assuresign table with your API URL, key, and account ID");
 Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine("  4. Test the integration:");
 Console.ForegroundColor = ConsoleColor.DarkGray;

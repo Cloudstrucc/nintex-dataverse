@@ -487,8 +487,12 @@
           <span class="value">v1.0.0.1</span>
         </div>
         <div class="version-badge">
+          <span class="label">Config</span>
+          <span class="value">v1.0.0.0</span>
+        </div>
+        <div class="version-badge">
           <span class="label">Workflows</span>
-          <span class="value">v1.0.0.33</span>
+          <span class="value">v1.0.0.34</span>
         </div>
         <div class="version-badge">
           <span class="label">Publisher</span>
@@ -540,6 +544,21 @@
 
         <div class="card">
           <div class="card-header">
+            <div class="card-icon config">&#128273;</div>
+            <h3>E-Signature Configuration</h3>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">5 Dataverse environment variables for Nintex API authentication — no credentials stored in custom tables.</p>
+          <div class="table-wrap">
+            <table>
+              <tr><td>Solution Name</td><td><code>ESignatureConfig</code></td></tr>
+              <tr><td>Version</td><td>1.0.0.0</td></tr>
+              <tr><td>Env Variables</td><td>5 (3 required, 2 with defaults)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
             <div class="card-icon workflow">&#9889;</div>
             <h3>E-Signature Broker Flows</h3>
           </div>
@@ -547,7 +566,7 @@
           <div class="table-wrap">
             <table>
               <tr><td>Solution Name</td><td><code>ESignatureBroker</code></td></tr>
-              <tr><td>Version</td><td>1.0.0.33</td></tr>
+              <tr><td>Version</td><td>1.0.0.34</td></tr>
               <tr><td>Cloud Flows</td><td>10 flows</td></tr>
               <tr><td>Connection Ref</td><td>Dataverse (Current Env)</td></tr>
             </table>
@@ -557,7 +576,7 @@
 
       <div class="alert alert-warning">
         <span class="alert-icon">&#9888;</span>
-        <div><strong>Import Order Matters.</strong> The schema solution (<code>nintex</code>) must be imported <em>before</em> the workflow solution (<code>ESignatureBroker</code>), as the flows reference tables and columns defined in the schema.</div>
+        <div><strong>Import Order Matters.</strong> Import in this order: <strong>1.</strong> Schema (<code>nintex</code>) &rarr; <strong>2.</strong> Config (<code>ESignatureConfig</code>) &rarr; <strong>3.</strong> Broker (<code>ESignatureBroker</code>). Flows depend on both tables and environment variables.</div>
       </div>
     </div>
 
@@ -723,10 +742,19 @@
           </div>
 
           <div class="step">
+            <h4>Import the Config Solution</h4>
+            <p>Creates 5 environment variables for Nintex API authentication credentials.</p>
+            <pre><code><span class="cmd-prefix">$ </span>pac solution import \
+    <span class="cmd-flag">--path</span> <span class="cmd-string">ESignatureConfig_1_0_0_0_managed.zip</span> \
+    <span class="cmd-flag">--publish-changes</span> \
+    <span class="cmd-flag">--activate-plugins</span></code></pre>
+          </div>
+
+          <div class="step">
             <h4>Import the Workflow Solution</h4>
             <p>Deploys the 10 Power Automate cloud flows and Dataverse connection reference.</p>
             <pre><code><span class="cmd-prefix">$ </span>pac solution import \
-    <span class="cmd-flag">--path</span> <span class="cmd-string">ESignatureBroker_1_0_0_33_managed.zip</span> \
+    <span class="cmd-flag">--path</span> <span class="cmd-string">ESignatureBroker_1_0_0_34_managed.zip</span> \
     <span class="cmd-flag">--publish-changes</span> \
     <span class="cmd-flag">--activate-plugins</span></code></pre>
           </div>
@@ -738,7 +766,8 @@
 
 <span class="cmd-comment"># Expected output:</span>
 <span class="cmd-comment"># nintex              1.0.0.1    Managed</span>
-<span class="cmd-comment"># ESignatureBroker    1.0.0.33   Managed</span></code></pre>
+<span class="cmd-comment"># ESignatureConfig    1.0.0.0    Managed</span>
+<span class="cmd-comment"># ESignatureBroker    1.0.0.34   Managed</span></code></pre>
           </div>
 
           <div class="step">
@@ -764,7 +793,7 @@
           </div>
           <div class="step">
             <h4>Import Workflow Solution</h4>
-            <p>After schema import completes, repeat with <code>ESignatureBroker_1_0_0_33_managed.zip</code>. When prompted, select or create a Dataverse connection for the connection reference.</p>
+            <p>After schema import completes, import <code>ESignatureConfig_1_0_0_0_managed.zip</code>, then <code>ESignatureBroker_1_0_0_34_managed.zip</code>. When prompted, select or create a Dataverse connection for the connection reference.</p>
           </div>
         </div>
       </div>
@@ -812,24 +841,30 @@
       <div class="card">
         <div class="card-header">
           <div class="card-icon danger">&#128273;</div>
-          <h3>3. Configure Nintex eSign Credentials</h3>
+          <h3>3. Set Nintex API Environment Variables</h3>
         </div>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Create a configuration record in the <code>cs_assuresign</code> table with your Nintex API credentials.</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Navigate to <strong>Solutions</strong> &rarr; <strong>E-Signature Configuration</strong> &rarr; <strong>Environment Variables</strong> and set the following values:</p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Column</th><th>Value</th><th>Description</th></tr></thead>
+            <thead><tr><th>Variable</th><th>Value</th><th>Required</th></tr></thead>
             <tbody>
-              <tr><td><code>cs_apiurl</code></td><td>Your Nintex eSign API URL</td><td>e.g., <code>https://api.assuresign.net/api</code></td></tr>
-              <tr><td><code>cs_apikey</code></td><td>Your API key</td><td>From Nintex admin portal</td></tr>
-              <tr><td><code>cs_accountid</code></td><td>Your account ID</td><td>GUID from Nintex account settings</td></tr>
-              <tr><td><code>cs_name</code></td><td>Configuration name</td><td>e.g., "Production Config"</td></tr>
+              <tr><td><strong>Nintex API Username</strong><br><code>cs_NintexApiUsername</code></td><td>Your Nintex API username</td><td><span class="status"><span class="status-dot required"></span> Required</span></td></tr>
+              <tr><td><strong>Nintex API Key</strong><br><code>cs_NintexApiKey</code></td><td>Your Nintex API key</td><td><span class="status"><span class="status-dot required"></span> Required</span></td></tr>
+              <tr><td><strong>Nintex Context Username</strong><br><code>cs_NintexContextUsername</code></td><td>Context username for API calls</td><td><span class="status"><span class="status-dot required"></span> Required</span></td></tr>
+              <tr><td><strong>Nintex Auth URL</strong><br><code>cs_NintexAuthUrl</code></td><td>Default: <code>https://account.assuresign.net/api/v3.7</code></td><td><span class="status"><span class="status-dot optional"></span> Has default</span></td></tr>
+              <tr><td><strong>Nintex API Base URL</strong><br><code>cs_NintexApiBaseUrl</code></td><td>Default: <code>https://ca1.assuresign.net/api/documentnow/v3.7</code></td><td><span class="status"><span class="status-dot optional"></span> Has default</span></td></tr>
             </tbody>
           </table>
         </div>
 
+        <div class="alert alert-info">
+          <span class="alert-icon">&#8505;</span>
+          <div><strong>How it works.</strong> Flows query <code>environmentvariabledefinitions</code> at runtime to read these values. No credentials are stored in custom tables. Each flow authenticates fresh using the Nintex <code>/authentication/apiUser</code> endpoint.</div>
+        </div>
+
         <div class="alert alert-warning">
           <span class="alert-icon">&#128274;</span>
-          <div><strong>Security Note.</strong> The API key provides full access to your Nintex eSign account. Restrict access to the <code>cs_assuresign</code> table using Dataverse security roles.</div>
+          <div><strong>Security Note.</strong> The API key provides full access to your Nintex eSign account. Restrict editing of environment variables using Dataverse security roles.</div>
         </div>
       </div>
 
@@ -1087,7 +1122,7 @@
   <!-- Footer -->
   <footer class="footer">
     <p>&copy; 2026 <a href="https://www.cloudstrucc.com" target="_blank" rel="noopener">CloudStrucc Inc.</a> — Microsoft Partner for Power Platform &amp; Dynamics 365</p>
-    <p style="margin-top: 0.5rem;">E-Signature Broker v1.0.0.33 | Schema v1.0.0.1 | Managed Deployment Package</p>
+    <p style="margin-top: 0.5rem;">E-Signature Broker v1.0.0.34 | Config v1.0.0.0 | Schema v1.0.0.1 | Managed Deployment Package</p>
   </footer>
 
   <script>

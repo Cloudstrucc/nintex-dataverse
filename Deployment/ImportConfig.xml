@@ -10,7 +10,10 @@
     <configsolutionfile solutionpackagefilename="nintex_1_0_0_1_managed.zip"
                         overwriteunmanagedcustomizations="true"
                         publishworkflowsandactivateplugins="true" />
-    <configsolutionfile solutionpackagefilename="ESignatureBroker_1_0_0_33_managed.zip"
+    <configsolutionfile solutionpackagefilename="ESignatureConfig_1_0_0_0_managed.zip"
+                        overwriteunmanagedcustomizations="true"
+                        publishworkflowsandactivateplugins="true" />
+    <configsolutionfile solutionpackagefilename="ESignatureBroker_1_0_0_34_managed.zip"
                         overwriteunmanagedcustomizations="true"
                         publishworkflowsandactivateplugins="true" />
   </solutions>
