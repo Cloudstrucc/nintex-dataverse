@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 const string REPO_BASE = "https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment";
 const string SCHEMA_SOLUTION = "nintex";
@@ -86,8 +88,76 @@ if (!isManaged)
     PrintWarning("Unmanaged solutions can be modified after import. Use managed for production.");
 }
 
-// Step 4: Environment URL
-PrintStep(3, "Target environment");
+// Step 4: Nintex API credentials
+PrintStep(3, "Nintex eSign API credentials");
+Console.WriteLine();
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("  These values configure the environment variables used by the");
+Console.WriteLine("  cloud flows to authenticate with the Nintex eSign API.");
+Console.ResetColor();
+Console.WriteLine();
+
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write("  Nintex API Username: ");
+Console.ResetColor();
+var apiUsername = Console.ReadLine()?.Trim() ?? "";
+if (string.IsNullOrEmpty(apiUsername))
+{
+    PrintError("API Username is required.");
+    Exit(1);
+}
+
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write("  Nintex API Key:      ");
+Console.ResetColor();
+var apiKey = Console.ReadLine()?.Trim() ?? "";
+if (string.IsNullOrEmpty(apiKey))
+{
+    PrintError("API Key is required.");
+    Exit(1);
+}
+
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write("  Context Username:    ");
+Console.ResetColor();
+var contextUsername = Console.ReadLine()?.Trim() ?? "";
+if (string.IsNullOrEmpty(contextUsername))
+{
+    PrintError("Context Username is required.");
+    Exit(1);
+}
+
+Console.WriteLine();
+Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("  The following have defaults — press Enter to keep them.");
+Console.ResetColor();
+Console.WriteLine();
+
+const string DEFAULT_AUTH_URL = "https://account.assuresign.net/api/v3.7";
+const string DEFAULT_API_BASE_URL = "https://ca1.assuresign.net/api/documentnow/v3.7";
+
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write($"  Auth URL [{DEFAULT_AUTH_URL}]: ");
+Console.ResetColor();
+var authUrl = Console.ReadLine()?.Trim();
+if (string.IsNullOrEmpty(authUrl)) authUrl = DEFAULT_AUTH_URL;
+
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write($"  API Base URL [{DEFAULT_API_BASE_URL}]: ");
+Console.ResetColor();
+var apiBaseUrl = Console.ReadLine()?.Trim();
+if (string.IsNullOrEmpty(apiBaseUrl)) apiBaseUrl = DEFAULT_API_BASE_URL;
+
+Console.WriteLine();
+PrintSuccess("Credentials captured");
+PrintSuccess($"API Username:    {apiUsername}");
+PrintSuccess($"API Key:         {new string('*', Math.Min(apiKey.Length, 8))}...");
+PrintSuccess($"Context User:    {contextUsername}");
+PrintSuccess($"Auth URL:        {authUrl}");
+PrintSuccess($"API Base URL:    {apiBaseUrl}");
+
+// Step 5: Environment URL
+PrintStep(4, "Target environment");
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.Cyan;
 Console.Write("  Enter your Dataverse environment URL");
@@ -107,8 +177,8 @@ if (!envUrl!.StartsWith("https://"))
     envUrl = "https://" + envUrl;
 }
 
-// Step 5: Auth
-PrintStep(4, "Authenticating to Dataverse");
+// Step 6: Auth
+PrintStep(5, "Authenticating to Dataverse");
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.Yellow;
 Console.WriteLine("  A browser window will open for authentication.");
@@ -139,8 +209,8 @@ else
     PrintSuccess("Authenticated successfully");
 }
 
-// Step 6: Download solutions
-PrintStep(5, $"Downloading {typeLabel.ToLower()} solution packages");
+// Step 7: Download solutions
+PrintStep(6, $"Downloading {typeLabel.ToLower()} solution packages");
 var tempDir = Path.Combine(Path.GetTempPath(), "esign-installer-" + Guid.NewGuid().ToString("N")[..8]);
 Directory.CreateDirectory(tempDir);
 
@@ -175,7 +245,7 @@ else
     Console.WriteLine("  Downloading from GitHub...");
     Console.ResetColor();
     using var http = new HttpClient();
-    http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("ESignInstaller", "1.0"));
+    http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("ESignInstaller", "2.0"));
 
     try
     {
@@ -194,8 +264,34 @@ else
     }
 }
 
-// Step 7: Import schema
-PrintStep(6, $"Importing Nintex Schema — {typeLabel} (1 of 3)");
+// Step 8: Inject environment variable values into config solution
+PrintStep(7, "Configuring environment variables");
+Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("  Injecting Nintex API credentials into config solution...");
+Console.ResetColor();
+
+var envVarValues = new Dictionary<string, string>
+{
+    ["cs_NintexApiUsername"] = apiUsername,
+    ["cs_NintexApiKey"] = apiKey,
+    ["cs_NintexContextUsername"] = contextUsername,
+    ["cs_NintexAuthUrl"] = authUrl,
+    ["cs_NintexApiBaseUrl"] = apiBaseUrl,
+};
+
+try
+{
+    InjectEnvVarDefaults(configPath, envVarValues);
+    PrintSuccess("Environment variable values configured in solution package");
+}
+catch (Exception ex)
+{
+    PrintError($"Failed to configure environment variables: {ex.Message}");
+    PrintWarning("Values can be set manually after import via Solutions > E-Signature Configuration");
+}
+
+// Step 9: Import schema
+PrintStep(8, $"Importing Nintex Schema — {typeLabel} (1 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This creates 16 tables, columns, and relationships...");
 Console.ResetColor();
@@ -226,10 +322,10 @@ else
     PrintSuccess($"Schema solution ({SCHEMA_SOLUTION} v1.0.0.1) imported successfully");
 }
 
-// Step 8: Import config (environment variables)
-PrintStep(7, $"Importing E-Signature Config — {typeLabel} (2 of 3)");
+// Step 10: Import config (environment variables)
+PrintStep(9, $"Importing E-Signature Config — {typeLabel} (2 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
-Console.WriteLine("  This creates 5 environment variables for Nintex API credentials...");
+Console.WriteLine("  This creates 5 environment variables with your Nintex API credentials...");
 Console.ResetColor();
 Console.WriteLine();
 
@@ -248,10 +344,11 @@ if (configImport != 0)
 else
 {
     PrintSuccess($"Config solution ({CONFIG_SOLUTION} v1.0.0.0) imported successfully");
+    PrintSuccess("Environment variables set with your Nintex API credentials");
 }
 
-// Step 9: Import workflows
-PrintStep(8, $"Importing E-Signature Broker — {typeLabel} (3 of 3)");
+// Step 11: Import workflows
+PrintStep(10, $"Importing E-Signature Broker — {typeLabel} (3 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This deploys 10 Power Automate cloud flows...");
 Console.ResetColor();
@@ -269,8 +366,8 @@ if (brokerImport != 0)
 }
 PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.34) imported successfully");
 
-// Step 10: Verify
-PrintStep(9, "Verifying installation");
+// Step 12: Verify
+PrintStep(11, "Verifying installation");
 var listResult = RunCommand(pacPath!, "solution list");
 if (listResult != null)
 {
@@ -301,27 +398,24 @@ Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine("  Next steps:");
 Console.ResetColor();
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  1. Set environment variable values:");
-Console.ForegroundColor = ConsoleColor.DarkGray;
-Console.WriteLine("     Solutions > E-Signature Configuration > Environment Variables");
-Console.WriteLine("     Set values for: Nintex API Username, API Key, Context Username");
-Console.WriteLine("     (Auth URL and API Base URL have defaults — only change if needed)");
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  2. Configure the connection reference:");
+Console.WriteLine("  1. Configure the connection reference:");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("     Solutions > E-Signature Broker > Connection References");
 Console.WriteLine("     Select 'Dataverse (Current Environment)' > Edit > Choose connection");
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  3. Activate all 10 cloud flows:");
+Console.WriteLine("  2. Activate all 10 cloud flows:");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("     Solutions > E-Signature Broker > Cloud flows > Turn on each flow");
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("  4. Test the integration:");
+Console.WriteLine("  3. Test the integration:");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("     Create a cs_envelope record and verify the Prepare Envelope flow triggers");
 Console.ResetColor();
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("  Environment variables were set during installation.");
+Console.WriteLine("  To change them later: Solutions > E-Signature Configuration > Environment Variables");
+Console.WriteLine();
 Console.WriteLine("  Full documentation: https://github.com/Cloudstrucc/nintex-dataverse/blob/main/Deployment/README.md");
 Console.ResetColor();
 Console.WriteLine();
@@ -331,6 +425,55 @@ Console.Write("  Press Enter to exit...");
 Console.ReadLine();
 
 // ─── Helper Methods ───
+
+static void InjectEnvVarDefaults(string zipPath, Dictionary<string, string> values)
+{
+    using var archive = ZipFile.Open(zipPath, ZipArchiveMode.Update);
+    foreach (var entry in archive.Entries.ToList())
+    {
+        // Match entries like environmentvariabledefinitions/cs_NintexApiKey/environmentvariabledefinition.xml
+        if (!entry.FullName.StartsWith("environmentvariabledefinitions/") ||
+            !entry.FullName.EndsWith("/environmentvariabledefinition.xml"))
+            continue;
+
+        // Extract schema name from path
+        var parts = entry.FullName.Split('/');
+        if (parts.Length < 3) continue;
+        var schemaName = parts[1];
+
+        if (!values.TryGetValue(schemaName, out var newValue) || string.IsNullOrEmpty(newValue))
+            continue;
+
+        // Read the XML content
+        string xml;
+        using (var reader = new StreamReader(entry.Open()))
+        {
+            xml = reader.ReadToEnd();
+        }
+
+        // Replace <defaultvalue>...</defaultvalue> with the user-provided value
+        // Handles both <defaultvalue></defaultvalue> and <defaultvalue>existing</defaultvalue>
+        xml = Regex.Replace(xml,
+            @"<defaultvalue>[^<]*</defaultvalue>",
+            $"<defaultvalue>{EscapeXml(newValue)}</defaultvalue>");
+
+        // Write back
+        entry.Delete();
+        var newEntry = archive.CreateEntry(entry.FullName);
+        using var writer = new StreamWriter(newEntry.Open());
+        writer.Write(xml);
+    }
+}
+
+static string EscapeXml(string value)
+{
+    return value
+        .Replace("&", "&amp;")
+        .Replace("<", "&lt;")
+        .Replace(">", "&gt;")
+        .Replace("\"", "&quot;")
+        .Replace("'", "&apos;");
+}
 
 static void PrintBanner()
 {
@@ -351,7 +494,7 @@ static void PrintBanner()
     Console.ForegroundColor = ConsoleColor.DarkGray;
     Console.WriteLine(@"    ║                                                              ║
     ║          E-Signature Broker — Dataverse Installer            ║
-    ║          v1.1.0  |  Nintex eSign Integration                 ║
+    ║          v2.0.0  |  Nintex eSign Integration                 ║
     ║                                                              ║");
     Console.ForegroundColor = ConsoleColor.DarkRed;
     Console.WriteLine(@"    ╚══════════════════════════════════════════════════════════════╝");
