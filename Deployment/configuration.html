@@ -579,16 +579,16 @@
           <div class="platform-icon">&#63743;</div>
           <div class="platform-name">macOS (Apple Silicon)</div>
           <div class="platform-arch">ARM64 (M1/M2/M3/M4)</div>
-          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-arm64" class="download-btn">Download</a>
-          <div class="download-size">~12 MB &middot; Self-contained</div>
+          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-arm64.pkg" class="download-btn">Download .pkg</a>
+          <div class="download-size">~6 MB &middot; Native installer</div>
         </div>
 
         <div class="download-card">
           <div class="platform-icon">&#63743;</div>
           <div class="platform-name">macOS (Intel)</div>
           <div class="platform-arch">x64</div>
-          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-x64" class="download-btn">Download</a>
-          <div class="download-size">~12 MB &middot; Self-contained</div>
+          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-x64.pkg" class="download-btn">Download .pkg</a>
+          <div class="download-size">~6 MB &middot; Native installer</div>
         </div>
 
         <div class="download-card">
@@ -611,12 +611,11 @@
 <span class="cmd-prefix">&gt; </span>.\esign-installer-win-x64.exe</code></pre>
 
         <h4>macOS</h4>
-        <pre><code><span class="cmd-comment"># Make executable and run:</span>
-<span class="cmd-prefix">$ </span>chmod +x esign-installer-macos-arm64
-<span class="cmd-prefix">$ </span>./esign-installer-macos-arm64
+        <pre><code><span class="cmd-comment"># Double-click the .pkg file to install, then run from Terminal:</span>
+<span class="cmd-prefix">$ </span>esign-installer
 
-<span class="cmd-comment"># If blocked by Gatekeeper:</span>
-<span class="cmd-prefix">$ </span>xattr -d com.apple.quarantine esign-installer-macos-arm64</code></pre>
+<span class="cmd-comment"># If blocked by Gatekeeper, go to System Settings &gt; Privacy &amp; Security</span>
+<span class="cmd-comment"># and click "Open Anyway" next to the blocked installer.</span></code></pre>
 
         <h4>Linux</h4>
         <pre><code><span class="cmd-prefix">$ </span>chmod +x esign-installer-linux-x64

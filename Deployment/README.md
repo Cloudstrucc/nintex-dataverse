@@ -9,11 +9,13 @@ Download the installer for your platform and run it — it handles authenticatio
 | Platform | Download | Size |
 |----------|----------|------|
 | Windows (x64) | [esign-installer-win-x64.exe](https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-win-x64.exe) | ~11 MB |
-| macOS (Apple Silicon) | [esign-installer-macos-arm64](https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-arm64) | ~12 MB |
-| macOS (Intel) | [esign-installer-macos-x64](https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-x64) | ~12 MB |
+| macOS (Apple Silicon) | [esign-installer-macos-arm64.pkg](https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-arm64.pkg) | ~6 MB |
+| macOS (Intel) | [esign-installer-macos-x64.pkg](https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-x64.pkg) | ~6 MB |
 | Linux (x64) | [esign-installer-linux-x64](https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-linux-x64) | ~13 MB |
 
-**macOS/Linux:** After downloading, make executable with `chmod +x esign-installer-*` then run `./esign-installer-*`
+**Windows:** Double-click the `.exe` or run from terminal.
+**macOS:** Double-click the `.pkg` to install, then run `esign-installer` from Terminal.
+**Linux:** After downloading, run `chmod +x esign-installer-linux-x64 && ./esign-installer-linux-x64`
 
 The installer will:
 1. Check for (and install if needed) the PAC CLI
