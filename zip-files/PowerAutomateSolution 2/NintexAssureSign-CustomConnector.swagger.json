@@ -1,0 +1,431 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Nintex AssureSign",
+    "description": "Custom connector for Nintex AssureSign API v3.7 - enables envelope submission, status tracking, and document management in Power Automate and Power Apps",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Leonardo Company Canada",
+      "email": "support@leonardo.com"
+    }
+  },
+  "host": "api.assuresign.net",
+  "basePath": "/v3.7",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "API Key": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "Bearer token obtained from authentication endpoint"
+    }
+  },
+  "security": [
+    {
+      "API Key": []
+    }
+  ],
+  "paths": {
+    "/authentication/apiUser": {
+      "post": {
+        "summary": "Authenticate to Nintex API",
+        "description": "Obtain bearer token for API authentication. Use this token in subsequent API calls.",
+        "operationId": "Authenticate",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "APIUsername": {
+                  "type": "string",
+                  "description": "Your Nintex API username",
+                  "x-ms-summary": "API Username"
+                },
+                "Key": {
+                  "type": "string",
+                  "description": "Your Nintex API key",
+                  "x-ms-summary": "API Key"
+                },
+                "ContextUsername": {
+                  "type": "string",
+                  "description": "Email address for context",
+                  "x-ms-summary": "Context Email"
+                }
+              },
+              "required": [
+                "APIUsername",
+                "Key",
+                "ContextUsername"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string",
+                  "description": "Bearer token for API calls"
+                },
+                "expires": {
+                  "type": "string",
+                  "description": "Token expiration date/time"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/submit": {
+      "post": {
+        "summary": "Submit new envelope",
+        "description": "Submit a new envelope for signature with documents, signers, and fields",
+        "operationId": "SubmitEnvelope",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "TemplateID": {
+                  "type": "string",
+                  "description": "Template ID to use (optional)",
+                  "x-ms-summary": "Template ID"
+                },
+                "Subject": {
+                  "type": "string",
+                  "description": "Email subject line",
+                  "x-ms-summary": "Subject"
+                },
+                "Message": {
+                  "type": "string",
+                  "description": "Email message body",
+                  "x-ms-summary": "Message"
+                },
+                "DaysToExpire": {
+                  "type": "integer",
+                  "description": "Days until envelope expires",
+                  "x-ms-summary": "Days to Expire",
+                  "default": 30
+                },
+                "ReminderFrequency": {
+                  "type": "integer",
+                  "description": "Days between reminders",
+                  "x-ms-summary": "Reminder Frequency",
+                  "default": 3
+                },
+                "Signers": {
+                  "type": "array",
+                  "description": "List of signers",
+                  "x-ms-summary": "Signers",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Email": {
+                        "type": "string",
+                        "description": "Signer email address"
+                      },
+                      "FullName": {
+                        "type": "string",
+                        "description": "Signer full name"
+                      },
+                      "SignerOrder": {
+                        "type": "integer",
+                        "description": "Signing order (1, 2, 3...)"
+                      }
+                    }
+                  }
+                },
+                "Documents": {
+                  "type": "array",
+                  "description": "Documents to sign",
+                  "x-ms-summary": "Documents",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "FileName": {
+                        "type": "string",
+                        "description": "Document file name"
+                      },
+                      "FileContent": {
+                        "type": "string",
+                        "description": "Base64 encoded document content"
+                      }
+                    }
+                  }
+                }
+              },
+              "required": [
+                "Subject",
+                "Signers"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Envelope submitted successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "EnvelopeID": {
+                  "type": "string",
+                  "description": "Unique envelope identifier"
+                },
+                "Status": {
+                  "type": "string",
+                  "description": "Current envelope status"
+                },
+                "SentDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Date envelope was sent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envelopes/{envelopeID}": {
+      "get": {
+        "summary": "Get envelope details",
+        "description": "Retrieve complete details for a specific envelope",
+        "operationId": "GetEnvelope",
+        "parameters": [
+          {
+            "name": "envelopeID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Envelope ID",
+            "x-ms-summary": "Envelope ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Envelope details retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "EnvelopeID": {
+                  "type": "string",
+                  "description": "Envelope ID"
+                },
+                "Status": {
+                  "type": "string",
+                  "description": "Current status"
+                },
+                "Subject": {
+                  "type": "string",
+                  "description": "Envelope subject"
+                },
+                "SentDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Sent date"
+                },
+                "CompletedDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Completion date"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envelopes/{envelopeID}/status": {
+      "get": {
+        "summary": "Get envelope status",
+        "description": "Get current status of an envelope",
+        "operationId": "GetEnvelopeStatus",
+        "parameters": [
+          {
+            "name": "envelopeID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Envelope ID",
+            "x-ms-summary": "Envelope ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Status": {
+                  "type": "string",
+                  "description": "Current envelope status",
+                  "x-ms-summary": "Status"
+                },
+                "CompletedDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Date completed (if applicable)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envelopes/{envelopeID}/cancel": {
+      "put": {
+        "summary": "Cancel envelope",
+        "description": "Cancel an active envelope",
+        "operationId": "CancelEnvelope",
+        "parameters": [
+          {
+            "name": "envelopeID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Envelope ID to cancel",
+            "x-ms-summary": "Envelope ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Envelope cancelled successfully"
+          }
+        }
+      }
+    },
+    "/envelopes/{envelopeID}/signingLinks": {
+      "get": {
+        "summary": "Get signing links",
+        "description": "Retrieve signing links for all signers in an envelope",
+        "operationId": "GetSigningLinks",
+        "parameters": [
+          {
+            "name": "envelopeID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Envelope ID",
+            "x-ms-summary": "Envelope ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signing links retrieved",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "SignerEmail": {
+                    "type": "string",
+                    "description": "Signer email address"
+                  },
+                  "SigningLink": {
+                    "type": "string",
+                    "description": "URL for signing"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates": {
+      "get": {
+        "summary": "List templates",
+        "description": "Get all available templates",
+        "operationId": "ListTemplates",
+        "responses": {
+          "200": {
+            "description": "Templates retrieved",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "TemplateID": {
+                    "type": "string",
+                    "description": "Template ID"
+                  },
+                  "Name": {
+                    "type": "string",
+                    "description": "Template name"
+                  },
+                  "Description": {
+                    "type": "string",
+                    "description": "Template description"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{templateID}": {
+      "get": {
+        "summary": "Get template details",
+        "description": "Retrieve details for a specific template",
+        "operationId": "GetTemplate",
+        "parameters": [
+          {
+            "name": "templateID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Template ID",
+            "x-ms-summary": "Template ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template details retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "TemplateID": {
+                  "type": "string"
+                },
+                "Name": {
+                  "type": "string"
+                },
+                "Description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {},
+  "parameters": {},
+  "responses": {},
+  "tags": []
+}
