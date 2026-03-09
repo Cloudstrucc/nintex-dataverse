@@ -3,9 +3,6 @@ using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 
 const string REPO_BASE = "https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment";
-const string SCHEMA_ZIP = "nintex_1_0_0_1_managed.zip";
-const string CONFIG_ZIP = "ESignatureConfig_1_0_0_0_managed.zip";
-const string BROKER_ZIP = "ESignatureBroker_1_0_0_34_managed.zip";
 const string SCHEMA_SOLUTION = "nintex";
 const string CONFIG_SOLUTION = "ESignatureConfig";
 const string BROKER_SOLUTION = "ESignatureBroker";
@@ -56,8 +53,41 @@ else
     PrintSuccess($"PAC CLI found at {pacPath}");
 }
 
-// Step 3: Environment URL
-PrintStep(2, "Target environment");
+// Step 3: Solution type
+PrintStep(2, "Solution type");
+Console.WriteLine();
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("  Select solution type to install:");
+Console.ResetColor();
+Console.WriteLine();
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write("    [1] ");
+Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("Managed   — Locked, for production / client environments");
+Console.ForegroundColor = ConsoleColor.White;
+Console.Write("    [2] ");
+Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.WriteLine("Unmanaged — Editable, for development / sandbox environments");
+Console.ResetColor();
+Console.WriteLine();
+Console.Write("  Enter choice (1 or 2): ");
+var typeChoice = Console.ReadLine()?.Trim();
+var isManaged = typeChoice != "2";
+var suffix = isManaged ? "managed" : "unmanaged";
+var typeLabel = isManaged ? "Managed" : "Unmanaged";
+
+var SCHEMA_ZIP = $"nintex_1_0_0_1_{suffix}.zip";
+var CONFIG_ZIP = $"ESignatureConfig_1_0_0_0_{suffix}.zip";
+var BROKER_ZIP = $"ESignatureBroker_1_0_0_34_{suffix}.zip";
+
+PrintSuccess($"{typeLabel} solutions selected");
+if (!isManaged)
+{
+    PrintWarning("Unmanaged solutions can be modified after import. Use managed for production.");
+}
+
+// Step 4: Environment URL
+PrintStep(3, "Target environment");
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.Cyan;
 Console.Write("  Enter your Dataverse environment URL");
@@ -77,8 +107,8 @@ if (!envUrl!.StartsWith("https://"))
     envUrl = "https://" + envUrl;
 }
 
-// Step 4: Auth
-PrintStep(3, "Authenticating to Dataverse");
+// Step 5: Auth
+PrintStep(4, "Authenticating to Dataverse");
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.Yellow;
 Console.WriteLine("  A browser window will open for authentication.");
@@ -109,8 +139,8 @@ else
     PrintSuccess("Authenticated successfully");
 }
 
-// Step 5: Download solutions
-PrintStep(4, "Downloading solution packages");
+// Step 6: Download solutions
+PrintStep(5, $"Downloading {typeLabel.ToLower()} solution packages");
 var tempDir = Path.Combine(Path.GetTempPath(), "esign-installer-" + Guid.NewGuid().ToString("N")[..8]);
 Directory.CreateDirectory(tempDir);
 
@@ -164,8 +194,8 @@ else
     }
 }
 
-// Step 6: Import schema
-PrintStep(5, "Importing Nintex Schema solution (1 of 3)");
+// Step 7: Import schema
+PrintStep(6, $"Importing Nintex Schema — {typeLabel} (1 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This creates 16 tables, columns, and relationships...");
 Console.ResetColor();
@@ -196,8 +226,8 @@ else
     PrintSuccess($"Schema solution ({SCHEMA_SOLUTION} v1.0.0.1) imported successfully");
 }
 
-// Step 7: Import config (environment variables)
-PrintStep(6, "Importing E-Signature Config (2 of 3)");
+// Step 8: Import config (environment variables)
+PrintStep(7, $"Importing E-Signature Config — {typeLabel} (2 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This creates 5 environment variables for Nintex API credentials...");
 Console.ResetColor();
@@ -220,8 +250,8 @@ else
     PrintSuccess($"Config solution ({CONFIG_SOLUTION} v1.0.0.0) imported successfully");
 }
 
-// Step 8: Import workflows
-PrintStep(7, "Importing E-Signature Broker flows (3 of 3)");
+// Step 9: Import workflows
+PrintStep(8, $"Importing E-Signature Broker — {typeLabel} (3 of 3)");
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("  This deploys 10 Power Automate cloud flows...");
 Console.ResetColor();
@@ -239,8 +269,8 @@ if (brokerImport != 0)
 }
 PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.34) imported successfully");
 
-// Step 9: Verify
-PrintStep(8, "Verifying installation");
+// Step 10: Verify
+PrintStep(9, "Verifying installation");
 var listResult = RunCommand(pacPath!, "solution list");
 if (listResult != null)
 {
@@ -248,6 +278,7 @@ if (listResult != null)
     foreach (var line in listResult.Split('\n'))
     {
         if (line.Contains(SCHEMA_SOLUTION, StringComparison.OrdinalIgnoreCase) ||
+            line.Contains(CONFIG_SOLUTION, StringComparison.OrdinalIgnoreCase) ||
             line.Contains(BROKER_SOLUTION, StringComparison.OrdinalIgnoreCase))
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -258,11 +289,11 @@ if (listResult != null)
     Console.ResetColor();
 }
 
-// Step 9: Post-install summary
+// Post-install summary
 Console.WriteLine();
 PrintDivider();
 Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("  INSTALLATION COMPLETE");
+Console.WriteLine($"  INSTALLATION COMPLETE ({typeLabel.ToUpper()})");
 Console.ResetColor();
 PrintDivider();
 Console.WriteLine();
@@ -320,7 +351,7 @@ static void PrintBanner()
     Console.ForegroundColor = ConsoleColor.DarkGray;
     Console.WriteLine(@"    ║                                                              ║
     ║          E-Signature Broker — Dataverse Installer            ║
-    ║          v1.0.0  |  Nintex eSign Integration                 ║
+    ║          v1.1.0  |  Nintex eSign Integration                 ║
     ║                                                              ║");
     Console.ForegroundColor = ConsoleColor.DarkRed;
     Console.WriteLine(@"    ╚══════════════════════════════════════════════════════════════╝");
