@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Signature Broker — Configuration Guide | CloudStrucc</title>
+  <style>
+    :root {
+      --navy-dark: #1a1a2e;
+      --navy-mid: #16213e;
+      --navy-light: #0f3460;
+      --accent: #e94560;
+      --accent-hover: #ff6b81;
+      --white: #ffffff;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0b0;
+      --border: rgba(255,255,255,0.08);
+      --card-bg: rgba(22,33,62,0.6);
+      --code-bg: rgba(0,0,0,0.3);
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --info: #3498db;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--navy-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--white);
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .header-badge {
+      background: var(--accent);
+      color: var(--white);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, var(--navy-mid) 0%, var(--navy-light) 100%);
+      padding: 4rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(233,69,96,0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 50%, rgba(15,52,96,0.3) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-2%, 2%); }
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.03em; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { font-size: 1.15rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+    .version-badges {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .version-badge {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .version-badge .label { color: var(--text-secondary); }
+    .version-badge .value { color: var(--white); font-weight: 600; }
+
+    /* Main content */
+    .main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    /* Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 0.25rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.25rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .nav-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+    .nav-tab.active { background: var(--accent); color: var(--white); }
+
+    /* Sections */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-desc {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .card-icon.schema { background: rgba(52,152,219,0.15); color: var(--info); }
+    .card-icon.workflow { background: rgba(46,204,113,0.15); color: var(--success); }
+    .card-icon.config { background: rgba(243,156,18,0.15); color: var(--warning); }
+    .card-icon.danger { background: rgba(233,69,96,0.15); color: var(--accent); }
+
+    .card h3 { font-size: 1.1rem; font-weight: 600; }
+    .card h4 { font-size: 0.95rem; font-weight: 600; margin: 1rem 0 0.5rem; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin: 1rem 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: rgba(0,0,0,0.2);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    code {
+      background: var(--code-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      color: var(--accent-hover);
+    }
+
+    /* Code blocks */
+    pre {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-primary);
+    }
+
+    .cmd-prefix { color: var(--accent); user-select: none; }
+    .cmd-comment { color: var(--gray-600); }
+    .cmd-flag { color: var(--info); }
+    .cmd-string { color: var(--success); }
+
+    /* Steps */
+    .steps { counter-reset: step; }
+
+    .step {
+      position: relative;
+      padding-left: 3.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2.25rem;
+      height: 2.25rem;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--white);
+    }
+
+    .step h4 { margin-top: 0.15rem; }
+    .step p { color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.9rem; }
+
+    /* Status indicators */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-dot.required { background: var(--accent); }
+    .status-dot.optional { background: var(--success); }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+
+    /* Flow cards */
+    .flow-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+
+    .flow-card:hover { border-color: rgba(233,69,96,0.3); }
+
+    .flow-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .flow-trigger { color: var(--text-secondary); font-size: 0.82rem; margin-bottom: 0.5rem; }
+    .flow-desc { color: var(--text-secondary); font-size: 0.85rem; }
+
+    /* Alert boxes */
+    .alert {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .alert-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .alert-warning { background: rgba(243,156,18,0.1); border: 1px solid rgba(243,156,18,0.2); }
+    .alert-info { background: rgba(52,152,219,0.1); border: 1px solid rgba(52,152,219,0.2); }
+    .alert-success { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.2); }
+
+    /* Download buttons */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .download-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .download-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .download-card .platform-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .download-card .platform-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .download-card .platform-arch {
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+
+    .download-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--white);
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .download-btn:hover { background: var(--accent-hover); }
+
+    .download-size {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { color: var(--accent-hover); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero { padding: 2.5rem 1.5rem; }
+      .hero h1 { font-size: 1.75rem; }
+      .main { padding: 1.5rem; }
+      .grid { grid-template-columns: 1fr; }
+      .nav-tabs { flex-wrap: nowrap; }
+      .nav-tab { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="https://www.cloudstrucc.com" class="logo" target="_blank" rel="noopener">
+        <div class="logo-icon">CS</div>
+        <div class="logo-text">Cloud<span>Strucc</span></div>
+      </a>
+      <div class="header-badge">Deployment Guide</div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>E-Signature <span>Broker</span></h1>
+      <p>Nintex eSign integration for Microsoft Dataverse — complete deployment and configuration guide</p>
+      <div class="version-badges">
+        <div class="version-badge">
+          <span class="label">Schema</span>
+          <span class="value">v1.0.0.1</span>
+        </div>
+        <div class="version-badge">
+          <span class="label">Workflows</span>
+          <span class="value">v1.0.0.33</span>
+        </div>
+        <div class="version-badge">
+          <span class="label">Publisher</span>
+          <span class="value">cs (CloudStrucc)</span>
+        </div>
+        <div class="version-badge">
+          <span class="label">Type</span>
+          <span class="value">Managed</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('overview')">Overview</button>
+      <button class="nav-tab" onclick="showSection('installer')">Quick Install</button>
+      <button class="nav-tab" onclick="showSection('deployment')">Manual Deploy</button>
+      <button class="nav-tab" onclick="showSection('configuration')">Configuration</button>
+      <button class="nav-tab" onclick="showSection('flows')">Cloud Flows</button>
+      <button class="nav-tab" onclick="showSection('schema')">Data Model</button>
+      <button class="nav-tab" onclick="showSection('troubleshooting')">Troubleshooting</button>
+    </nav>
+
+    <!-- Overview Section -->
+    <div id="overview" class="section active">
+      <h2 class="section-title">Package Overview</h2>
+      <p class="section-desc">This deployment package contains two managed Dataverse solutions that together provide a complete Nintex eSign integration.</p>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon schema">&#9783;</div>
+            <h3>Nintex Schema Solution</h3>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Defines the Dataverse data model with 16 custom tables, lookup relationships, and all required columns for the e-signature workflow.</p>
+          <div class="table-wrap">
+            <table>
+              <tr><td>Solution Name</td><td><code>nintex</code></td></tr>
+              <tr><td>Version</td><td>1.0.0.1</td></tr>
+              <tr><td>Tables</td><td>16 custom tables</td></tr>
+              <tr><td>Relationships</td><td>8 lookup relationships</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon workflow">&#9889;</div>
+            <h3>E-Signature Broker Flows</h3>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">10 Power Automate cloud flows that orchestrate the full envelope lifecycle — from creation through signing to document retrieval.</p>
+          <div class="table-wrap">
+            <table>
+              <tr><td>Solution Name</td><td><code>ESignatureBroker</code></td></tr>
+              <tr><td>Version</td><td>1.0.0.33</td></tr>
+              <tr><td>Cloud Flows</td><td>10 flows</td></tr>
+              <tr><td>Connection Ref</td><td>Dataverse (Current Env)</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-warning">
+        <span class="alert-icon">&#9888;</span>
+        <div><strong>Import Order Matters.</strong> The schema solution (<code>nintex</code>) must be imported <em>before</em> the workflow solution (<code>ESignatureBroker</code>), as the flows reference tables and columns defined in the schema.</div>
+      </div>
+    </div>
+
+    <!-- Installer Section -->
+    <div id="installer" class="section">
+      <h2 class="section-title">Quick Install</h2>
+      <p class="section-desc">Download and run the installer for your platform. It handles everything — PAC CLI setup, authentication, solution download, and import.</p>
+
+      <div class="download-grid">
+        <div class="download-card">
+          <div class="platform-icon">&#128187;</div>
+          <div class="platform-name">Windows</div>
+          <div class="platform-arch">x64 (Intel/AMD)</div>
+          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-win-x64.exe" class="download-btn">Download .exe</a>
+          <div class="download-size">~11 MB &middot; Self-contained</div>
+        </div>
+
+        <div class="download-card">
+          <div class="platform-icon">&#63743;</div>
+          <div class="platform-name">macOS (Apple Silicon)</div>
+          <div class="platform-arch">ARM64 (M1/M2/M3/M4)</div>
+          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-arm64" class="download-btn">Download</a>
+          <div class="download-size">~12 MB &middot; Self-contained</div>
+        </div>
+
+        <div class="download-card">
+          <div class="platform-icon">&#63743;</div>
+          <div class="platform-name">macOS (Intel)</div>
+          <div class="platform-arch">x64</div>
+          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-macos-x64" class="download-btn">Download</a>
+          <div class="download-size">~12 MB &middot; Self-contained</div>
+        </div>
+
+        <div class="download-card">
+          <div class="platform-icon">&#128039;</div>
+          <div class="platform-name">Linux</div>
+          <div class="platform-arch">x64 (Intel/AMD)</div>
+          <a href="https://github.com/Cloudstrucc/nintex-dataverse/raw/main/Deployment/downloads/esign-installer-linux-x64" class="download-btn">Download</a>
+          <div class="download-size">~13 MB &middot; Self-contained</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon workflow">&#9654;</div>
+          <h3>How to Run</h3>
+        </div>
+
+        <h4>Windows</h4>
+        <pre><code><span class="cmd-comment"># Double-click the .exe or run from terminal:</span>
+<span class="cmd-prefix">&gt; </span>.\esign-installer-win-x64.exe</code></pre>
+
+        <h4>macOS</h4>
+        <pre><code><span class="cmd-comment"># Make executable and run:</span>
+<span class="cmd-prefix">$ </span>chmod +x esign-installer-macos-arm64
+<span class="cmd-prefix">$ </span>./esign-installer-macos-arm64
+
+<span class="cmd-comment"># If blocked by Gatekeeper:</span>
+<span class="cmd-prefix">$ </span>xattr -d com.apple.quarantine esign-installer-macos-arm64</code></pre>
+
+        <h4>Linux</h4>
+        <pre><code><span class="cmd-prefix">$ </span>chmod +x esign-installer-linux-x64
+<span class="cmd-prefix">$ </span>./esign-installer-linux-x64</code></pre>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon config">&#128268;</div>
+          <h3>What the Installer Does</h3>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <h4>Checks Prerequisites</h4>
+            <p>Verifies .NET SDK is installed and installs PAC CLI if missing.</p>
+          </div>
+          <div class="step">
+            <h4>Authenticates</h4>
+            <p>Opens a browser window for you to sign in to your Dataverse environment.</p>
+          </div>
+          <div class="step">
+            <h4>Downloads Solutions</h4>
+            <p>Fetches the latest managed solution packages from GitHub (or uses local copies if available).</p>
+          </div>
+          <div class="step">
+            <h4>Imports Schema</h4>
+            <p>Imports the Nintex schema solution (16 tables, columns, relationships).</p>
+          </div>
+          <div class="step">
+            <h4>Imports Workflows</h4>
+            <p>Imports the E-Signature Broker solution (10 Power Automate cloud flows).</p>
+          </div>
+          <div class="step">
+            <h4>Verifies</h4>
+            <p>Lists installed solutions to confirm successful deployment.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">&#8505;</span>
+        <div>After the installer completes, you still need to <strong>configure the connection reference</strong> and <strong>activate the cloud flows</strong>. See the <strong>Configuration</strong> tab for details.</div>
+      </div>
+    </div>
+
+    <!-- Deployment Section -->
+    <div id="deployment" class="section">
+      <h2 class="section-title">Deployment Instructions</h2>
+      <p class="section-desc">Follow these steps to deploy the E-Signature Broker to a target Dataverse environment.</p>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon config">&#128268;</div>
+          <h3>Prerequisites</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Requirement</th><th>Details</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Dataverse Environment</td>
+                <td>Production or Sandbox with Dataverse database provisioned</td>
+                <td><span class="status"><span class="status-dot required"></span> Required</span></td>
+              </tr>
+              <tr>
+                <td>Security Role</td>
+                <td>System Administrator or System Customizer</td>
+                <td><span class="status"><span class="status-dot required"></span> Required</span></td>
+              </tr>
+              <tr>
+                <td>PAC CLI</td>
+                <td>v1.41+ — <code>dotnet tool install --global Microsoft.PowerApps.CLI.Tool</code></td>
+                <td><span class="status"><span class="status-dot optional"></span> Optional</span></td>
+              </tr>
+              <tr>
+                <td>Nintex eSign Account</td>
+                <td>API key, account ID, and API endpoint URL</td>
+                <td><span class="status"><span class="status-dot required"></span> Required</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon workflow">&#9654;</div>
+          <h3>Deployment Steps</h3>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <h4>Authenticate to Target Environment</h4>
+            <p>Connect the PAC CLI to your Dataverse environment.</p>
+            <pre><code><span class="cmd-prefix">$ </span>pac auth create <span class="cmd-flag">--environment</span> <span class="cmd-string">"https://your-org.crm3.dynamics.com"</span></code></pre>
+          </div>
+
+          <div class="step">
+            <h4>Import the Schema Solution</h4>
+            <p>This creates all 16 tables, columns, and relationships required by the flows.</p>
+            <pre><code><span class="cmd-prefix">$ </span>pac solution import \
+    <span class="cmd-flag">--path</span> <span class="cmd-string">nintex_1_0_0_1_managed.zip</span> \
+    <span class="cmd-flag">--publish-changes</span> \
+    <span class="cmd-flag">--activate-plugins</span></code></pre>
+          </div>
+
+          <div class="step">
+            <h4>Import the Workflow Solution</h4>
+            <p>Deploys the 10 Power Automate cloud flows and Dataverse connection reference.</p>
+            <pre><code><span class="cmd-prefix">$ </span>pac solution import \
+    <span class="cmd-flag">--path</span> <span class="cmd-string">ESignatureBroker_1_0_0_33_managed.zip</span> \
+    <span class="cmd-flag">--publish-changes</span> \
+    <span class="cmd-flag">--activate-plugins</span></code></pre>
+          </div>
+
+          <div class="step">
+            <h4>Verify Import</h4>
+            <p>Confirm both solutions appear in the environment.</p>
+            <pre><code><span class="cmd-prefix">$ </span>pac solution list
+
+<span class="cmd-comment"># Expected output:</span>
+<span class="cmd-comment"># nintex              1.0.0.1    Managed</span>
+<span class="cmd-comment"># ESignatureBroker    1.0.0.33   Managed</span></code></pre>
+          </div>
+
+          <div class="step">
+            <h4>Configure &amp; Activate</h4>
+            <p>See the <strong>Configuration</strong> tab for post-deployment setup steps.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon schema">&#128230;</div>
+          <h3>Alternative: Power Platform Admin Center</h3>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <h4>Navigate to Solutions</h4>
+            <p>Go to <strong>make.powerapps.com</strong> &rarr; select your environment &rarr; <strong>Solutions</strong></p>
+          </div>
+          <div class="step">
+            <h4>Import Schema Solution</h4>
+            <p>Click <strong>Import solution</strong> &rarr; upload <code>nintex_1_0_0_1_managed.zip</code> &rarr; <strong>Next</strong> &rarr; <strong>Import</strong></p>
+          </div>
+          <div class="step">
+            <h4>Import Workflow Solution</h4>
+            <p>After schema import completes, repeat with <code>ESignatureBroker_1_0_0_33_managed.zip</code>. When prompted, select or create a Dataverse connection for the connection reference.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration Section -->
+    <div id="configuration" class="section">
+      <h2 class="section-title">Post-Deployment Configuration</h2>
+      <p class="section-desc">After importing both solutions, complete these configuration steps.</p>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon config">&#128279;</div>
+          <h3>1. Map Connection Reference</h3>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">The <code>cs_sharecommondataserviceforapps</code> connection reference must be linked to a Dataverse connection in the target environment.</p>
+        <div class="steps">
+          <div class="step">
+            <h4>Open Connection References</h4>
+            <p>Solutions &rarr; E-Signature Broker &rarr; Connection References &rarr; <strong>Dataverse (Current Environment)</strong></p>
+          </div>
+          <div class="step">
+            <h4>Select Connection</h4>
+            <p>Click <strong>Edit</strong>, then choose an existing Dataverse connection or create a new one using the service account that should run the flows.</p>
+          </div>
+          <div class="step">
+            <h4>Save</h4>
+            <p>Save the connection reference. This unlocks all 10 flows for activation.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon workflow">&#9889;</div>
+          <h3>2. Activate Cloud Flows</h3>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">All flows import in a draft (off) state. Activate them after configuring the connection reference.</p>
+        <div class="alert alert-info">
+          <span class="alert-icon">&#8505;</span>
+          <div>Navigate to <strong>Solutions</strong> &rarr; <strong>E-Signature Broker</strong> &rarr; <strong>Cloud flows</strong>. Select each flow and click <strong>Turn on</strong>.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon danger">&#128273;</div>
+          <h3>3. Configure Nintex eSign Credentials</h3>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Create a configuration record in the <code>cs_assuresign</code> table with your Nintex API credentials.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Value</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>cs_apiurl</code></td><td>Your Nintex eSign API URL</td><td>e.g., <code>https://api.assuresign.net/api</code></td></tr>
+              <tr><td><code>cs_apikey</code></td><td>Your API key</td><td>From Nintex admin portal</td></tr>
+              <tr><td><code>cs_accountid</code></td><td>Your account ID</td><td>GUID from Nintex account settings</td></tr>
+              <tr><td><code>cs_name</code></td><td>Configuration name</td><td>e.g., "Production Config"</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-warning">
+          <span class="alert-icon">&#128274;</span>
+          <div><strong>Security Note.</strong> The API key provides full access to your Nintex eSign account. Restrict access to the <code>cs_assuresign</code> table using Dataverse security roles.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon schema">&#128296;</div>
+          <h3>4. Verify Integration</h3>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <h4>Create a Test Envelope</h4>
+            <p>Create a new record in the <code>cs_envelope</code> table with the required fields populated.</p>
+          </div>
+          <div class="step">
+            <h4>Check Flow Execution</h4>
+            <p>The <strong>ESign - Prepare Envelope</strong> flow should trigger automatically. Check flow run history for success.</p>
+          </div>
+          <div class="step">
+            <h4>Test Send</h4>
+            <p>Set <code>cs_issent</code> to <strong>Yes</strong> on the envelope record to trigger the send flow.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flows Section -->
+    <div id="flows" class="section">
+      <h2 class="section-title">Cloud Flows Reference</h2>
+      <p class="section-desc">All 10 Power Automate flows and their trigger conditions.</p>
+
+      <div class="grid">
+        <div class="flow-card">
+          <div class="flow-name">ESign - Prepare Envelope</div>
+          <div class="flow-trigger">Trigger: <code>cs_envelope</code> record created</div>
+          <div class="flow-desc">Initializes a new envelope in Nintex, creates associated records (documents, signers, fields), and sets the envelope ID.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Send Envelope</div>
+          <div class="flow-trigger">Trigger: <code>cs_issent</code> changed to Yes</div>
+          <div class="flow-desc">Submits the prepared envelope to Nintex for signing. Updates status and retrieves the Nintex envelope ID.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Status Sync</div>
+          <div class="flow-trigger">Trigger: <code>cs_requeststatus</code> changed to Yes</div>
+          <div class="flow-desc">Polls Nintex for the current envelope status and updates all related Dataverse records (signers, documents).</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Get Signing Links</div>
+          <div class="flow-trigger">Trigger: <code>cs_signer.cs_requestlink</code> changed to Yes</div>
+          <div class="flow-desc">Retrieves the unique signing URL for a specific signer from Nintex and stores it on the signer record.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Get Access Links</div>
+          <div class="flow-trigger">Trigger: <code>cs_accesslink</code> record created</div>
+          <div class="flow-desc">Fetches access link URLs for envelope viewing (non-signer access).</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Get Document Content</div>
+          <div class="flow-trigger">Trigger: <code>cs_document.cs_requestsignedcopy</code> changed to Yes</div>
+          <div class="flow-desc">Downloads the signed PDF document from Nintex and stores the content in Dataverse.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Get Envelope History</div>
+          <div class="flow-trigger">Trigger: <code>cs_envelope.cs_requesthistory</code> changed to Yes</div>
+          <div class="flow-desc">Retrieves the full audit history from Nintex and creates corresponding history records in Dataverse.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Cancel Envelope</div>
+          <div class="flow-trigger">Trigger: <code>cs_envelope.cs_iscancelled</code> changed to Yes</div>
+          <div class="flow-desc">Sends a cancellation request to Nintex and updates the envelope status in Dataverse.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Send Signer Reminder</div>
+          <div class="flow-trigger">Trigger: <code>cs_signer.cs_sendreminder</code> changed to Yes</div>
+          <div class="flow-desc">Sends a reminder notification to a signer who hasn't yet completed signing.</div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-name">ESign - Sync Templates</div>
+          <div class="flow-trigger">Trigger: <code>cs_assuresign.cs_synctemplates</code> changed to Yes</div>
+          <div class="flow-desc">Imports available signing templates from the Nintex account into the Dataverse template table.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema Section -->
+    <div id="schema" class="section">
+      <h2 class="section-title">Data Model</h2>
+      <p class="section-desc">Tables and relationships defined in the Nintex schema solution.</p>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon schema">&#9783;</div>
+          <h3>Custom Tables</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Table</th><th>Logical Name</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Envelope</td><td><code>cs_envelope</code></td><td>Core signing envelope — parent of most other records</td></tr>
+              <tr><td>Document</td><td><code>cs_document</code></td><td>Documents attached to an envelope for signing</td></tr>
+              <tr><td>Signer</td><td><code>cs_signer</code></td><td>Individuals who need to sign the envelope</td></tr>
+              <tr><td>Field</td><td><code>cs_field</code></td><td>Signature/form fields placed on documents</td></tr>
+              <tr><td>Sender Input</td><td><code>cs_senderinput</code></td><td>Pre-filled values provided by the sender</td></tr>
+              <tr><td>Access Link</td><td><code>cs_accesslink</code></td><td>Non-signer viewing links for envelopes</td></tr>
+              <tr><td>Envelope History</td><td><code>cs_envelopehistory</code></td><td>Audit trail events from Nintex</td></tr>
+              <tr><td>Email Notification</td><td><code>cs_emailnotification</code></td><td>Email notifications sent during signing</td></tr>
+              <tr><td>Webhook</td><td><code>cs_webhook</code></td><td>Webhook callback configurations</td></tr>
+              <tr><td>Template</td><td><code>cs_template</code></td><td>Nintex signing templates synced to Dataverse</td></tr>
+              <tr><td>Auth Token</td><td><code>cs_authtoken</code></td><td>API authentication tokens</td></tr>
+              <tr><td>Configuration</td><td><code>cs_assuresign</code></td><td>Nintex API connection settings</td></tr>
+              <tr><td>API Request</td><td><code>cs_apirequest</code></td><td>API request logging</td></tr>
+              <tr><td>Digital Signature</td><td><code>cs_digitalsignature</code></td><td>Completed signature records</td></tr>
+              <tr><td>Item</td><td><code>cs_item</code></td><td>Generic item records</td></tr>
+              <tr><td>User Account</td><td><code>cs_useraccount</code></td><td>Nintex user account mappings</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon workflow">&#128279;</div>
+          <h3>Lookup Relationships</h3>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">8 child tables have a <code>cs_envelopelookup</code> column that creates a many-to-one relationship with <code>cs_envelope</code>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Child Table</th><th>Lookup Column</th><th>Relationship Name</th></tr></thead>
+            <tbody>
+              <tr><td><code>cs_document</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_document</code></td></tr>
+              <tr><td><code>cs_signer</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_signer</code></td></tr>
+              <tr><td><code>cs_accesslink</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_accesslink</code></td></tr>
+              <tr><td><code>cs_envelopehistory</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_envelopehistory</code></td></tr>
+              <tr><td><code>cs_emailnotification</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_emailnotification</code></td></tr>
+              <tr><td><code>cs_field</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_field</code></td></tr>
+              <tr><td><code>cs_senderinput</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_senderinput</code></td></tr>
+              <tr><td><code>cs_webhook</code></td><td><code>cs_envelopelookup</code></td><td><code>cs_envelope_cs_envelopelookup_cs_webhook</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon config">&#128203;</div>
+          <h3>Added Columns (v1.0.0.1)</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Table</th><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>cs_authtoken</code></td><td><code>cs_isactive</code></td><td>Boolean</td><td>Whether the token is currently active</td></tr>
+              <tr><td><code>cs_envelope</code></td><td><code>cs_iscancelled</code></td><td>Boolean</td><td>Whether cancellation has been requested</td></tr>
+              <tr><td><code>cs_envelope</code></td><td><code>cs_requesthistory</code></td><td>Boolean</td><td>Flag to trigger history retrieval</td></tr>
+              <tr><td><code>cs_document</code></td><td><code>cs_requestsignedcopy</code></td><td>Boolean</td><td>Flag to trigger signed doc retrieval</td></tr>
+              <tr><td><code>cs_document</code></td><td><code>cs_envelopesignerid</code></td><td>String (200)</td><td>Nintex envelope signer identifier</td></tr>
+              <tr><td><code>cs_signer</code></td><td><code>cs_sendreminder</code></td><td>Boolean</td><td>Flag to trigger signer reminder</td></tr>
+              <tr><td><code>cs_template</code></td><td><code>cs_isactive</code></td><td>Boolean</td><td>Whether the template is active</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Troubleshooting Section -->
+    <div id="troubleshooting" class="section">
+      <h2 class="section-title">Troubleshooting</h2>
+      <p class="section-desc">Common issues and their resolutions.</p>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon danger">&#9888;</div>
+          <h3>Import Errors</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Error</th><th>Cause</th><th>Resolution</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>NullReferenceException (0x80040216)</code></td>
+                <td>Workflow XML format uses attributes instead of child elements</td>
+                <td>Use the provided managed solution zips — they have the correct format</td>
+              </tr>
+              <tr>
+                <td><code>WorkflowOperationParametersExtraParameter</code></td>
+                <td>Missing columns in schema (flow references a column that doesn't exist)</td>
+                <td>Ensure the schema solution (<code>nintex</code>) is imported first</td>
+              </tr>
+              <tr>
+                <td><code>Attribute is a String, but Lookup specified (0x80041A06)</code></td>
+                <td>Attempting to change an existing column type</td>
+                <td>This is resolved — flows use <code>cs_envelopelookup</code> (new column) instead of modifying <code>cs_envelopeid</code></td>
+              </tr>
+              <tr>
+                <td>Connection reference not found</td>
+                <td>Connection reference not yet mapped</td>
+                <td>Edit the connection reference and select a Dataverse connection</td>
+              </tr>
+              <tr>
+                <td>Flow won't turn on</td>
+                <td>Connection reference not configured</td>
+                <td>Configure the connection reference first, then activate flows</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon config">&#128269;</div>
+          <h3>Diagnostic Commands</h3>
+        </div>
+        <pre><code><span class="cmd-comment"># Check solution import status</span>
+<span class="cmd-prefix">$ </span>pac solution list
+
+<span class="cmd-comment"># Export import log for debugging</span>
+<span class="cmd-prefix">$ </span>pac solution import <span class="cmd-flag">--path</span> solution.zip <span class="cmd-flag">--import-as-holding</span>
+
+<span class="cmd-comment"># Check environment details</span>
+<span class="cmd-prefix">$ </span>pac env list
+
+<span class="cmd-comment"># View current auth profiles</span>
+<span class="cmd-prefix">$ </span>pac auth list</code></pre>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon schema">&#128218;</div>
+          <h3>Uninstalling</h3>
+        </div>
+        <div class="alert alert-warning">
+          <span class="alert-icon">&#9888;</span>
+          <div><strong>Managed solutions delete data.</strong> Removing a managed solution will delete all tables, columns, and data defined by that solution. Export any required data before uninstalling.</div>
+        </div>
+        <pre><code><span class="cmd-comment"># Remove workflow solution first (depends on schema)</span>
+<span class="cmd-prefix">$ </span>pac solution delete <span class="cmd-flag">--solution-name</span> <span class="cmd-string">ESignatureBroker</span>
+
+<span class="cmd-comment"># Then remove schema solution</span>
+<span class="cmd-prefix">$ </span>pac solution delete <span class="cmd-flag">--solution-name</span> <span class="cmd-string">nintex</span></code></pre>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 <a href="https://www.cloudstrucc.com" target="_blank" rel="noopener">CloudStrucc Inc.</a> — Microsoft Partner for Power Platform &amp; Dynamics 365</p>
+    <p style="margin-top: 0.5rem;">E-Signature Broker v1.0.0.33 | Schema v1.0.0.1 | Managed Deployment Package</p>
+  </footer>
+
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

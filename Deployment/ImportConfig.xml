@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configdatastorage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   installsampledata="false"
+                   waitforsampledatatoinstall="true"
+                   agentdesktopzipfile=""
+                   agentdesktopexename=""
+                   craboraboraaliasname="">
+  <solutions>
+    <configsolutionfile solutionpackagefilename="nintex_1_0_0_1_managed.zip"
+                        overwriteunmanagedcustomizations="true"
+                        publishworkflowsandactivateplugins="true" />
+    <configsolutionfile solutionpackagefilename="ESignatureBroker_1_0_0_33_managed.zip"
+                        overwriteunmanagedcustomizations="true"
+                        publishworkflowsandactivateplugins="true" />
+  </solutions>
+  <filesmapstoimport />
+  <filestoimport />
+</configdatastorage>

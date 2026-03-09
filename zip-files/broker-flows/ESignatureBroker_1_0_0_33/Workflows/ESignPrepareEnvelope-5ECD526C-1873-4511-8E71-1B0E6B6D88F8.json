@@ -1,0 +1,498 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_sharecommondataserviceforapps"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_envelope_status_set_to_Preparing": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "subscriptionRequest/message": 3,
+              "subscriptionRequest/entityname": "cs_envelopes",
+              "subscriptionRequest/filterexpression": "cs_status eq 'Preparing'"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_Envelope_Record": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerOutputs()?['body/cs_envelopeid']"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {}
+        },
+        "Initialize_BearerToken": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "BearerToken",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          },
+          "runAfter": {
+            "Get_Envelope_Record": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Initialize_UserContext": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "UserContext",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_BearerToken": [
+              "Succeeded"
+            ]
+          }
+        },
+        "List_Active_Token": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_authtokens",
+              "$filter": "cs_isactive eq true and cs_expiresat gt @{utcNow()}",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Initialize_UserContext": [
+              "Succeeded"
+            ]
+          }
+        },
+        "List_Nintex_Credentials": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_authtokens",
+              "$filter": "cs_name eq 'NintexConfig' and cs_isactive eq false",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "List_Active_Token": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Token_Cache_Check": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(outputs('List_Active_Token')?['body/value'])",
+                  0
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Set_BearerToken_From_Cache": {
+              "type": "SetVariable",
+              "inputs": {
+                "name": "BearerToken",
+                "value": "@{first(outputs('List_Active_Token')?['body/value'])?['cs_token']}"
+              },
+              "runAfter": {}
+            },
+            "Set_UserContext_From_Cache": {
+              "type": "SetVariable",
+              "inputs": {
+                "name": "UserContext",
+                "value": "@{first(outputs('List_Nintex_Credentials')?['body/value'])?['cs_contextusername']}"
+              },
+              "runAfter": {
+                "Set_BearerToken_From_Cache": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Set_UserContext_Variable": {
+                "type": "SetVariable",
+                "inputs": {
+                  "name": "UserContext",
+                  "value": "@{first(outputs('List_Nintex_Credentials')?['body/value'])?['cs_contextusername']}"
+                },
+                "runAfter": {}
+              },
+              "HTTP_Authenticate_Nintex": {
+                "type": "Http",
+                "inputs": {
+                  "method": "POST",
+                  "uri": "https://account.assuresign.net/api/v3.7/authentication/apiUser",
+                  "headers": {
+                    "Content-Type": "application/json"
+                  },
+                  "body": {
+                    "request": {
+                      "apiUsername": "@{first(outputs('List_Nintex_Credentials')?['body/value'])?['cs_apiusername']}",
+                      "apiKey": "@{first(outputs('List_Nintex_Credentials')?['body/value'])?['cs_apikey']}",
+                      "contextUsername": "@{first(outputs('List_Nintex_Credentials')?['body/value'])?['cs_contextusername']}"
+                    }
+                  }
+                },
+                "runAfter": {
+                  "Set_UserContext_Variable": [
+                    "Succeeded"
+                  ]
+                }
+              },
+              "Set_BearerToken_From_Auth": {
+                "type": "SetVariable",
+                "inputs": {
+                  "name": "BearerToken",
+                  "value": "@{concat('bearer ', body('HTTP_Authenticate_Nintex')?['result']?['token'])}"
+                },
+                "runAfter": {
+                  "HTTP_Authenticate_Nintex": [
+                    "Succeeded"
+                  ]
+                }
+              },
+              "Deactivate_Old_Tokens": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "ListRecords",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "cs_authtokens",
+                    "$filter": "cs_isactive eq true"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                },
+                "runAfter": {
+                  "Set_BearerToken_From_Auth": [
+                    "Succeeded"
+                  ]
+                }
+              },
+              "Apply_to_each_old_token": {
+                "type": "Foreach",
+                "foreach": "@outputs('Deactivate_Old_Tokens')?['body/value']",
+                "actions": {
+                  "Update_Token_Inactive": {
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_commondataserviceforapps",
+                        "operationId": "UpdateRecord",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                      },
+                      "parameters": {
+                        "entityName": "cs_authtokens",
+                        "recordId": "@{items('Apply_to_each_old_token')?['cs_authtokenid']}",
+                        "item/cs_isactive": false
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    },
+                    "runAfter": {}
+                  }
+                },
+                "runAfter": {
+                  "Deactivate_Old_Tokens": [
+                    "Succeeded"
+                  ]
+                }
+              },
+              "Create_Token_Record": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "CreateRecord",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "cs_authtokens",
+                    "item/cs_name": "NintexBearerToken",
+                    "item/cs_token": "@{variables('BearerToken')}",
+                    "item/cs_isactive": true,
+                    "item/cs_issuedat": "@{utcNow()}",
+                    "item/cs_expiresat": "@{addHours(utcNow(), 23)}"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                },
+                "runAfter": {
+                  "Apply_to_each_old_token": [
+                    "Succeeded"
+                  ]
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "List_Nintex_Credentials": [
+              "Succeeded"
+            ]
+          }
+        },
+        "List_Signers": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_signers",
+              "$filter": "_cs_envelopelookup_value eq @{triggerOutputs()?['body/cs_envelopeid']}",
+              "$orderby": "cs_signerorder asc"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Token_Cache_Check": [
+              "Succeeded"
+            ]
+          }
+        },
+        "List_Documents": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_documents",
+              "$filter": "_cs_envelopelookup_value eq @{triggerOutputs()?['body/cs_envelopeid']}",
+              "$orderby": "cs_documentorder asc"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "List_Signers": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Initialize_SignersArray": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SignersArray",
+                "type": "array",
+                "value": []
+              }
+            ]
+          },
+          "runAfter": {
+            "List_Documents": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Initialize_DocumentsArray": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "DocumentsArray",
+                "type": "array",
+                "value": []
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_SignersArray": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Build_Signers_Array": {
+          "type": "Foreach",
+          "foreach": "@outputs('List_Signers')?['body/value']",
+          "actions": {
+            "Append_Signer": {
+              "type": "AppendToArrayVariable",
+              "inputs": {
+                "name": "SignersArray",
+                "value": {
+                  "Email": "@{items('Build_Signers_Array')?['cs_email']}",
+                  "FullName": "@{items('Build_Signers_Array')?['cs_fullname']}",
+                  "SignerOrder": "@{items('Build_Signers_Array')?['cs_signerorder']}",
+                  "AuthenticationType": "@{if(empty(items('Build_Signers_Array')?['cs_authenticationtype']), 'None', items('Build_Signers_Array')?['cs_authenticationtype'])}",
+                  "Language": "@{if(empty(items('Build_Signers_Array')?['cs_language']), 'en-US', items('Build_Signers_Array')?['cs_language'])}"
+                }
+              },
+              "runAfter": {}
+            }
+          },
+          "runAfter": {
+            "Initialize_DocumentsArray": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Build_Documents_Array": {
+          "type": "Foreach",
+          "foreach": "@outputs('List_Documents')?['body/value']",
+          "actions": {
+            "Append_Document": {
+              "type": "AppendToArrayVariable",
+              "inputs": {
+                "name": "DocumentsArray",
+                "value": {
+                  "FileName": "@{items('Build_Documents_Array')?['cs_filename']}",
+                  "FileContent": "@{items('Build_Documents_Array')?['cs_filecontent']}",
+                  "DocumentOrder": "@{items('Build_Documents_Array')?['cs_documentorder']}"
+                }
+              },
+              "runAfter": {}
+            }
+          },
+          "runAfter": {
+            "Build_Signers_Array": [
+              "Succeeded"
+            ]
+          }
+        },
+        "HTTP_Prepare_Envelope": {
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "https://ca1.assuresign.net/api/documentnow/v3.7/submit/prepare",
+            "headers": {
+              "Authorization": "@{variables('BearerToken')}",
+              "X-AS-UserContext": "@{variables('UserContext')}",
+              "accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "TemplateID": "@{outputs('Get_Envelope_Record')?['body/cs_templateid']}",
+              "Subject": "@{outputs('Get_Envelope_Record')?['body/cs_subject']}",
+              "Message": "@{outputs('Get_Envelope_Record')?['body/cs_message']}",
+              "DaysToExpire": "@{outputs('Get_Envelope_Record')?['body/cs_daystoexpire']}",
+              "ReminderFrequency": "@{outputs('Get_Envelope_Record')?['body/cs_reminderfrequency']}",
+              "ProcessingMode": "@{if(empty(outputs('Get_Envelope_Record')?['body/cs_processingmode']), 'Sequential', outputs('Get_Envelope_Record')?['body/cs_processingmode'])}",
+              "Signers": "@{variables('SignersArray')}",
+              "Documents": "@{variables('DocumentsArray')}"
+            }
+          },
+          "runAfter": {
+            "Build_Documents_Array": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Update_Envelope_Draft": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "UpdateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
+              "item/cs_preparedenvelopeid": "@{body('HTTP_Prepare_Envelope')?['result']?['preparedEnvelopeID']}",
+              "item/cs_status": "Draft",
+              "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "HTTP_Prepare_Envelope": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Update_Envelope_Error": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "UpdateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
+              "item/cs_status": "Error",
+              "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "HTTP_Prepare_Envelope": [
+              "Failed",
+              "TimedOut"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}
