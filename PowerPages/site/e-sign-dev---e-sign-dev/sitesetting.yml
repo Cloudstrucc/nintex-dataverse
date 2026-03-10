@@ -59,6 +59,7 @@
     This value should be in the form of name/value pairs, with name and value separated by a colon, and pairs separated by a semicolon. For example: "Forums:adx_communityforum,adx_communityforumthread,adx_communityforumpost;Blogs:adx_blog,adx_blogpost,adx_blogpostcomment".'
   adx_name: search/filters
   adx_sitesettingid: 4585b0f8-6915-4cd5-90c4-7fa954493a26
+  adx_value: ''
 - adx_name: Authentication/OpenAuth/Facebook/AppId
   adx_sitesettingid: 4a7db46b-4f8b-4c83-8683-74b90e8a4c21
 - adx_name: Header/ShowAllProfileNavigationLinks
@@ -142,7 +143,7 @@
 - adx_description: 'Override query for site search, to apply additional weights and filters. @Query is the query text entered by a user. Lucene query syntax reference: http://lucene.apache.org/core/old_versioned_docs/versions/2_9_1/queryparsersyntax.html'
   adx_name: search/query
   adx_sitesettingid: b9537924-bf30-4072-9275-d9e5550590ff
-  adx_value: +(@Query) _title:(@Query) _logicalname:knowledgearticle~0.9^0.3 _logicalname:annotation~0.9^0.25 _logicalname:adx_webpage~0.9^0.2 -_logicalname:adx_webfile~0.9 adx_partialurl:(@Query) _logicalname:adx_blogpost~0.9^0.1 -_logicalname:adx_communityforumthread~0.9
+  adx_value: +(@Query) _title:(@Query) _logicalname:knowledgearticle~0.9^0.3 _logicalname:annotation~0.9^0.25 _logicalname:adx_webpage~0.9^0.2 -_logicalname:adx_webfile~0.9 adx_partialurl:(@Query)
 - adx_name: Authentication/OpenAuth/Twitter/ConsumerSecret
   adx_sitesettingid: bba9549e-f266-47f0-a071-d4dbf38e4c5a
 - adx_name: Authentication/Registration/EmailConfirmationEnabled
@@ -193,3 +194,6 @@
 - adx_name: Webapi/error/innererror
   adx_sitesettingid: 4e47a9aa-e7c1-4e24-91db-b60cdd3b4fb3
   adx_value: 'true'
+- adx_name: Forums/Enabled
+  adx_sitesettingid: 8a2b3c4d-5e6f-7a8b-9c0d-e1f2a3b4c5d6
+  adx_value: 'false'
