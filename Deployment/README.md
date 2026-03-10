@@ -29,7 +29,7 @@ The installer will:
 |------|-------------|---------|
 | `nintex_1_0_0_1_managed.zip` | Schema solution — 16 custom tables, columns, and entity relationships | 1.0.0.1 |
 | `ESignatureConfig_1_0_0_0_managed.zip` | Configuration solution — 5 environment variables for Nintex API auth | 1.0.0.0 |
-| `ESignatureBroker_1_0_0_34_managed.zip` | Workflow solution — 10 Power Automate cloud flows | 1.0.0.34 |
+| `ESignatureBroker_1_0_0_35_managed.zip` | Workflow solution — 10 Power Automate cloud flows | 1.0.0.35 |
 | `ImportConfig.xml` | Package configuration — ensures correct import order | — |
 | `configuration.html` | Setup guide and configuration reference | — |
 
@@ -101,7 +101,7 @@ pac solution import \
 
 # 4. Import workflow solution (cloud flows)
 pac solution import \
-  --path Deployment/ESignatureBroker_1_0_0_34_managed.zip \
+  --path Deployment/ESignatureBroker_1_0_0_35_managed.zip \
   --publish-changes \
   --activate-plugins
 
@@ -115,7 +115,7 @@ pac solution list
 2. Navigate to **Solutions** -> **Import solution**
 3. Upload `nintex_1_0_0_1_managed.zip` -> **Next** -> **Import**
 4. Upload `ESignatureConfig_1_0_0_0_managed.zip` -> **Next** -> **Import**
-5. Upload `ESignatureBroker_1_0_0_34_managed.zip` -> **Next** -> **Import**
+5. Upload `ESignatureBroker_1_0_0_35_managed.zip` -> **Next** -> **Import**
 
 ### Option C: Package Deployer (Automated)
 
@@ -124,7 +124,7 @@ pac package init --outputDirectory NintexESignPackage
 cd NintexESignPackage
 pac package add-solution --solutionZipPath ../Deployment/nintex_1_0_0_1_managed.zip
 pac package add-solution --solutionZipPath ../Deployment/ESignatureConfig_1_0_0_0_managed.zip
-pac package add-solution --solutionZipPath ../Deployment/ESignatureBroker_1_0_0_34_managed.zip
+pac package add-solution --solutionZipPath ../Deployment/ESignatureBroker_1_0_0_35_managed.zip
 dotnet build
 pac package deploy --package bin/Debug/NintexESignPackage.1.0.0.dll
 ```
@@ -232,7 +232,7 @@ pac solution export --name SolutionName --path ./exports --managed
 | Schema 1.0.0.0 | Initial | 16 custom tables |
 | Schema 1.0.0.1 | 2026-03 | Added boolean flags, lookup columns, entity relationships |
 | Config 1.0.0.0 | 2026-03 | 5 environment variables for Nintex API auth |
-| Broker 1.0.0.34 | 2026-03 | 10 cloud flows using environment variables (no table-based auth) |
+| Broker 1.0.0.35 | 2026-03 | 10 cloud flows using environment variables (no table-based auth) |
 
 ---
 

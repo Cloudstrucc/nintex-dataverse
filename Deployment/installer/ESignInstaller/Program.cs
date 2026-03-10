@@ -80,7 +80,7 @@ var typeLabel = isManaged ? "Managed" : "Unmanaged";
 
 var SCHEMA_ZIP = $"nintex_1_0_0_1_{suffix}.zip";
 var CONFIG_ZIP = $"ESignatureConfig_1_0_0_0_{suffix}.zip";
-var BROKER_ZIP = $"ESignatureBroker_1_0_0_34_{suffix}.zip";
+var BROKER_ZIP = $"ESignatureBroker_1_0_0_35_{suffix}.zip";
 
 PrintSuccess($"{typeLabel} solutions selected");
 if (!isManaged)
@@ -364,7 +364,7 @@ if (brokerImport != 0)
     Cleanup(tempDir);
     Exit(1);
 }
-PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.34) imported successfully");
+PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.35) imported successfully");
 
 // Step 12: Verify
 PrintStep(11, "Verifying installation");
