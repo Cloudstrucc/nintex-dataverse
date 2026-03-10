@@ -12,6 +12,31 @@ const string BROKER_SOLUTION = "ESignatureBroker";
 var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 int stepNum = 0;
 
+// Load .env file if present (check current dir, parent, grandparent, and app base dir)
+var envVars = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+foreach (var dir in new[] { Directory.GetCurrentDirectory(),
+    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..")),
+    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../..")),
+    AppContext.BaseDirectory })
+{
+    var envFile = Path.Combine(dir, ".env");
+    if (File.Exists(envFile))
+    {
+        foreach (var line in File.ReadAllLines(envFile))
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#')) continue;
+            var eqIdx = trimmed.IndexOf('=');
+            if (eqIdx <= 0) continue;
+            var key = trimmed[..eqIdx].Trim();
+            var val = trimmed[(eqIdx + 1)..].Trim();
+            if (!string.IsNullOrEmpty(val))
+                envVars.TryAdd(key, val);
+        }
+        break; // Use first .env found
+    }
+}
+
 PrintBanner();
 Console.WriteLine();
 
@@ -81,7 +106,7 @@ var typeLabel = isManaged ? "Managed" : "Unmanaged";
 
 var SCHEMA_ZIP = $"nintex_1_0_0_1_{suffix}.zip";
 var CONFIG_ZIP = $"ESignatureConfig_1_0_0_0_{suffix}.zip";
-var BROKER_ZIP = $"ESignatureBroker_1_0_0_35_{suffix}.zip";
+var BROKER_ZIP = $"ESignatureBroker_1_0_0_36_{suffix}.zip";
 
 PrintSuccess($"{typeLabel} solutions selected");
 if (!isManaged)
@@ -157,7 +182,7 @@ switch (selChoice)
         installConfig = cfgIn != "n" && cfgIn != "no";
 
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write($"    E-Signature Broker (v1.0.0.35) [Y/n]: ");
+        Console.Write($"    E-Signature Broker (v1.0.0.36) [Y/n]: ");
         Console.ResetColor();
         var brkIn = Console.ReadLine()?.Trim().ToLower();
         installBroker = brkIn != "n" && brkIn != "no";
@@ -197,9 +222,16 @@ if (installConfig && !installSchema)
 }
 
 // Step 5: Nintex API credentials (only if Config is selected)
+// Pre-populate from .env if available
+envVars.TryGetValue("NINTEX_API_USERNAME", out var envApiUsername);
+envVars.TryGetValue("NINTEX_API_KEY", out var envApiKey);
+envVars.TryGetValue("NINTEX_CONTEXT_USERNAME", out var envContextUsername);
+envVars.TryGetValue("NINTEX_AUTH_URL", out var envAuthUrl);
+envVars.TryGetValue("NINTEX_API_BASE_URL", out var envApiBaseUrl);
+
 string apiUsername = "", apiKey = "", contextUsername = "";
-string authUrl = "https://account.assuresign.net/api/v3.7";
-string apiBaseUrl = "https://ca1.assuresign.net/api/documentnow/v3.7";
+string authUrl = envAuthUrl ?? "https://account.assuresign.net/api/v3.7";
+string apiBaseUrl = envApiBaseUrl ?? "https://ca1.assuresign.net/api/documentnow/v3.7";
 
 if (installConfig)
 {
@@ -208,13 +240,22 @@ if (installConfig)
     Console.ForegroundColor = ConsoleColor.Cyan;
     Console.WriteLine("  These values configure the environment variables used by the");
     Console.WriteLine("  cloud flows to authenticate with the Nintex eSign API.");
+    if (envVars.Count > 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("  Values loaded from .env file — press Enter to keep them.");
+    }
     Console.ResetColor();
     Console.WriteLine();
 
     Console.ForegroundColor = ConsoleColor.White;
-    Console.Write("  Nintex API Username: ");
+    if (!string.IsNullOrEmpty(envApiUsername))
+        Console.Write($"  Nintex API Username [{envApiUsername}]: ");
+    else
+        Console.Write("  Nintex API Username: ");
     Console.ResetColor();
-    apiUsername = Console.ReadLine()?.Trim() ?? "";
+    var usernameInput = Console.ReadLine()?.Trim() ?? "";
+    apiUsername = string.IsNullOrEmpty(usernameInput) ? (envApiUsername ?? "") : usernameInput;
     if (string.IsNullOrEmpty(apiUsername))
     {
         PrintError("API Username is required.");
@@ -222,9 +263,13 @@ if (installConfig)
     }
 
     Console.ForegroundColor = ConsoleColor.White;
-    Console.Write("  Nintex API Key:      ");
+    if (!string.IsNullOrEmpty(envApiKey))
+        Console.Write($"  Nintex API Key      [{new string('*', Math.Min(envApiKey.Length, 8))}...]: ");
+    else
+        Console.Write("  Nintex API Key:      ");
     Console.ResetColor();
-    apiKey = Console.ReadLine()?.Trim() ?? "";
+    var keyInput = Console.ReadLine()?.Trim() ?? "";
+    apiKey = string.IsNullOrEmpty(keyInput) ? (envApiKey ?? "") : keyInput;
     if (string.IsNullOrEmpty(apiKey))
     {
         PrintError("API Key is required.");
@@ -232,9 +277,13 @@ if (installConfig)
     }
 
     Console.ForegroundColor = ConsoleColor.White;
-    Console.Write("  Context Username:    ");
+    if (!string.IsNullOrEmpty(envContextUsername))
+        Console.Write($"  Context Username    [{envContextUsername}]: ");
+    else
+        Console.Write("  Context Username:    ");
     Console.ResetColor();
-    contextUsername = Console.ReadLine()?.Trim() ?? "";
+    var ctxInput = Console.ReadLine()?.Trim() ?? "";
+    contextUsername = string.IsNullOrEmpty(ctxInput) ? (envContextUsername ?? "") : ctxInput;
     if (string.IsNullOrEmpty(contextUsername))
     {
         PrintError("Context Username is required.");
@@ -269,6 +318,8 @@ if (installConfig)
 }
 
 // Step 6: Environment URL
+envVars.TryGetValue("DATAVERSE_ENVIRONMENT_URL", out var envDataverseUrl);
+
 PrintStep(++stepNum, "Target environment");
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -276,9 +327,13 @@ Console.Write("  Enter your Dataverse environment URL");
 Console.ResetColor();
 Console.WriteLine();
 Console.ForegroundColor = ConsoleColor.DarkGray;
-Console.Write("  (e.g. https://your-org.crm3.dynamics.com): ");
+if (!string.IsNullOrEmpty(envDataverseUrl))
+    Console.Write($"  [{envDataverseUrl}]: ");
+else
+    Console.Write("  (e.g. https://your-org.crm3.dynamics.com): ");
 Console.ResetColor();
-var envUrl = Console.ReadLine()?.Trim();
+var envUrlInput = Console.ReadLine()?.Trim();
+var envUrl = string.IsNullOrEmpty(envUrlInput) ? (envDataverseUrl ?? "") : envUrlInput;
 if (string.IsNullOrEmpty(envUrl))
 {
     PrintError("Environment URL is required.");
@@ -501,7 +556,7 @@ if (installBroker)
         Cleanup(tempDir);
         Exit(1);
     }
-    PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.35) imported successfully");
+    PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.36) imported successfully");
     completedSolutions++;
     PrintOverallProgress(completedSolutions, totalSolutions);
 }
