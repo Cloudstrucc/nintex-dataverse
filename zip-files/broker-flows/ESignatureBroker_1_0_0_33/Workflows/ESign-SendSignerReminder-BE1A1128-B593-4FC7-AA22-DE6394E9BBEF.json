@@ -35,6 +35,7 @@
             },
             "parameters": {
               "subscriptionRequest/message": 3,
+              "subscriptionRequest/scope": 4,
               "subscriptionRequest/entityname": "cs_signer",
               "subscriptionRequest/filterexpression": "cs_sendreminder eq true"
             },
