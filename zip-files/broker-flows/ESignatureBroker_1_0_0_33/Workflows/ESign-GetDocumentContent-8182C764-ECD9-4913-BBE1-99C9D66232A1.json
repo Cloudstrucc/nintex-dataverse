@@ -35,7 +35,7 @@
             },
             "parameters": {
               "subscriptionRequest/message": 3,
-              "subscriptionRequest/entityname": "cs_documents",
+              "subscriptionRequest/entityname": "cs_document",
               "subscriptionRequest/filterexpression": "cs_requestsignedcopy eq true"
             },
             "authentication": "@parameters('$authentication')"
