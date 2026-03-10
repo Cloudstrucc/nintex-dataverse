@@ -1,0 +1,16 @@
+{
+  "name": "nintex-esign-word-addin",
+  "version": "1.0.0",
+  "description": "Nintex eSign field palette for Microsoft Word",
+  "scripts": {
+    "start": "npx office-addin-dev-certs install && npx http-server -S -C ~/.office-addin-dev-certs/localhost.crt -K ~/.office-addin-dev-certs/localhost.key -p 3000 -c-1",
+    "dev": "npx http-server -S -C ~/.office-addin-dev-certs/localhost.crt -K ~/.office-addin-dev-certs/localhost.key -p 3000 -c-1",
+    "certs": "npx office-addin-dev-certs install",
+    "sideload": "npx office-addin-dev-settings sideload manifest.xml"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "office-addin-dev-certs": "^1.13.2",
+    "office-addin-dev-settings": "^2.1.0"
+  }
+}

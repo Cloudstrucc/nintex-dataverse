@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nintex eSign Fields</title>
+  <link rel="stylesheet" href="taskpane.css"/>
+  <script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <span class="header-icon">&#9998;</span>
+        Nintex eSign
+      </div>
+      <div class="header-subtitle">Configure signers and place fields</div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <button class="tab active" data-tab="signers">Signers</button>
+      <button class="tab" data-tab="fields">Fields</button>
+      <button class="tab" data-tab="placed">Placed</button>
+    </div>
+
+    <!-- Signers Tab -->
+    <div id="tab-signers" class="tab-content active">
+      <div class="section-desc">
+        Add signers who will receive this document for signature.
+      </div>
+
+      <div id="signers-list"></div>
+
+      <button id="btn-add-signer" class="btn btn-secondary btn-full">
+        + Add Signer
+      </button>
+
+      <!-- Signer Form (hidden by default) -->
+      <div id="signer-form" class="card" style="display:none;">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="signer-name" placeholder="e.g. Jane Smith"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signer-email" placeholder="e.g. jane@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Signing Order</label>
+          <input type="number" id="signer-order" min="1" value="1"/>
+        </div>
+        <div class="form-row">
+          <button id="btn-save-signer" class="btn btn-primary">Save</button>
+          <button id="btn-cancel-signer" class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fields Tab -->
+    <div id="tab-fields" class="tab-content">
+      <div class="section-desc">
+        Select a signer, then click a field to insert it at the cursor position in your document.
+      </div>
+
+      <div class="form-group">
+        <label>Assign to Signer</label>
+        <select id="field-signer-select">
+          <option value="">-- Add a signer first --</option>
+        </select>
+      </div>
+
+      <div class="field-grid" id="field-palette">
+        <div class="field-card" data-field="signature">
+          <div class="field-icon">&#x270D;</div>
+          <div class="field-label">Signature</div>
+        </div>
+        <div class="field-card" data-field="initial">
+          <div class="field-icon">&#x2710;</div>
+          <div class="field-label">Initials</div>
+        </div>
+        <div class="field-card" data-field="dateSigned">
+          <div class="field-icon">&#x1F4C5;</div>
+          <div class="field-label">Date Signed</div>
+        </div>
+        <div class="field-card" data-field="fullName">
+          <div class="field-icon">&#x1F464;</div>
+          <div class="field-label">Full Name</div>
+        </div>
+        <div class="field-card" data-field="email">
+          <div class="field-icon">&#x2709;</div>
+          <div class="field-label">Email</div>
+        </div>
+        <div class="field-card" data-field="checkbox">
+          <div class="field-icon">&#x2611;</div>
+          <div class="field-label">Checkbox</div>
+        </div>
+        <div class="field-card" data-field="text">
+          <div class="field-icon">&#x1F4DD;</div>
+          <div class="field-label">Text Input</div>
+        </div>
+        <div class="field-card" data-field="company">
+          <div class="field-icon">&#x1F3E2;</div>
+          <div class="field-label">Company</div>
+        </div>
+        <div class="field-card" data-field="title">
+          <div class="field-icon">&#x1F4BC;</div>
+          <div class="field-label">Title</div>
+        </div>
+      </div>
+
+      <div id="insert-status" class="status-msg" style="display:none;"></div>
+    </div>
+
+    <!-- Placed Fields Tab -->
+    <div id="tab-placed" class="tab-content">
+      <div class="section-desc">
+        All fields placed in this document. Click to select in document.
+      </div>
+      <div id="placed-fields-list">
+        <div class="empty-state">No fields placed yet.</div>
+      </div>
+      <button id="btn-clear-all" class="btn btn-danger btn-full" style="display:none;">
+        Remove All Fields
+      </button>
+    </div>
+  </div>
+
+  <script src="taskpane.js"></script>
+</body>
+</html>
