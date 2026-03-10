@@ -36,7 +36,8 @@
             "parameters": {
               "subscriptionRequest/message": 3,
               "subscriptionRequest/entityname": "cs_envelopes",
-              "subscriptionRequest/filterexpression": "cs_status eq 'ReadyToSend'"
+              "subscriptionRequest/filterexpression": "cs_status eq 'ReadyToSend'",
+              "subscriptionRequest/filteringattributes": "cs_status"
             },
             "authentication": "@parameters('$authentication')"
           }
@@ -338,9 +339,7 @@
             "parameters": {
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
-              "item/cs_envelopeid": "@{variables('NintexEnvelopeID')}",
-              "item/cs_status": "InProcess",
-              "item/cs_sentdate": "@{utcNow()}"
+              "item/cs_status": "InProcess"
             },
             "authentication": "@parameters('$authentication')"
           },

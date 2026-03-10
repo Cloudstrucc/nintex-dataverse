@@ -36,7 +36,8 @@
             "parameters": {
               "subscriptionRequest/message": 3,
               "subscriptionRequest/entityname": "cs_envelopes",
-              "subscriptionRequest/filterexpression": "cs_status eq 'Preparing'"
+              "subscriptionRequest/filterexpression": "cs_status eq 'Preparing'",
+              "subscriptionRequest/filteringattributes": "cs_status"
             },
             "authentication": "@parameters('$authentication')"
           }
@@ -262,9 +263,7 @@
             "parameters": {
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
-              "item/cs_preparedenvelopeid": "@{body('HTTP_Prepare_Envelope')?['result']?['preparedEnvelopeID']}",
-              "item/cs_status": "Draft",
-              "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
+              "item/cs_status": "Draft"
             },
             "authentication": "@parameters('$authentication')"
           },
@@ -285,8 +284,7 @@
             "parameters": {
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
-              "item/cs_status": "Error",
-              "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
+              "item/cs_status": "Error"
             },
             "authentication": "@parameters('$authentication')"
           },

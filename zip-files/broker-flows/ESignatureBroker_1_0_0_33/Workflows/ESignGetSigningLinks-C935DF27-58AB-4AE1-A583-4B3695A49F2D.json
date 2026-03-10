@@ -36,7 +36,8 @@
             "parameters": {
               "subscriptionRequest/message": 3,
               "subscriptionRequest/entityname": "cs_envelopes",
-              "subscriptionRequest/filterexpression": "cs_status eq 'InProcess'"
+              "subscriptionRequest/filterexpression": "cs_status eq 'InProcess'",
+              "subscriptionRequest/filteringattributes": "cs_status"
             },
             "authentication": "@parameters('$authentication')"
           }

@@ -36,7 +36,8 @@
             "parameters": {
               "subscriptionRequest/message": 3,
               "subscriptionRequest/entityname": "cs_envelopes",
-              "subscriptionRequest/filterexpression": "cs_requesthistory eq true"
+              "subscriptionRequest/filterexpression": "cs_requesthistory eq true",
+              "subscriptionRequest/filteringattributes": "cs_requesthistory"
             },
             "authentication": "@parameters('$authentication')"
           }

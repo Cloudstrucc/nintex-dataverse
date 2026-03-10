@@ -36,7 +36,8 @@
             "parameters": {
               "subscriptionRequest/message": 3,
               "subscriptionRequest/entityname": "cs_signers",
-              "subscriptionRequest/filterexpression": "cs_sendreminder eq true"
+              "subscriptionRequest/filterexpression": "cs_sendreminder eq true",
+              "subscriptionRequest/filteringattributes": "cs_sendreminder"
             },
             "authentication": "@parameters('$authentication')"
           }

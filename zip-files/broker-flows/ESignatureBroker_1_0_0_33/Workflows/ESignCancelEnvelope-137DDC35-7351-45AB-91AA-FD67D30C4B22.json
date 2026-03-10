@@ -36,7 +36,8 @@
             "parameters": {
               "subscriptionRequest/message": 3,
               "subscriptionRequest/entityname": "cs_envelopes",
-              "subscriptionRequest/filterexpression": "cs_iscancelled eq true and cs_status ne 'Cancelled'"
+              "subscriptionRequest/filterexpression": "cs_iscancelled eq true and cs_status ne 'Cancelled'",
+              "subscriptionRequest/filteringattributes": "cs_iscancelled"
             },
             "authentication": "@parameters('$authentication')"
           }

@@ -37,7 +37,8 @@
               "subscriptionRequest/message": 3,
               "subscriptionRequest/scope": 4,
               "subscriptionRequest/entityname": "cs_envelope",
-              "subscriptionRequest/filterexpression": "cs_status eq 'Completed'"
+              "subscriptionRequest/filterexpression": "cs_status eq 'Completed'",
+              "subscriptionRequest/filteringattributes": "cs_status"
             },
             "authentication": "@parameters('$authentication')"
           }

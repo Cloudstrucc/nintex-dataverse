@@ -148,7 +148,7 @@
                     },
                     "parameters": {
                       "entityName": "cs_templates",
-                      "recordId": "@{first(outputs('Check_Template_Exists')?['body/value'])?['cs_templateid_local']}",
+                      "recordId": "@{first(outputs('Check_Template_Exists')?['body/value'])?['cs_templateid']}",
                       "item/cs_name": "@{items('Upsert_Each_Template')?['name']}",
                       "item/cs_description": "@{items('Upsert_Each_Template')?['description']}",
                       "item/cs_isactive": "@{items('Upsert_Each_Template')?['isActive']}"
