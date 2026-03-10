@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{{ page.title | default: 'Nintex eSign' }} - {{ website.name }}</title>
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YcnS/1WR6zNJGl6OEPLzO5kYWIQ3uY6gEKY" crossorigin="anonymous"/>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <!-- PDF.js for document viewing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        :root {
+            --gc-red: #AF3C43;
+            --gc-red-dark: #922B31;
+            --gc-white: #FFFFFF;
+            --gc-gray-light: #F8F8F8;
+            --gc-gray: #E1E4E7;
+            --gc-gray-dark: #333333;
+            --gc-blue: #26374A;
+            --gc-blue-light: #335075;
+            --gc-green: #1B6C2A;
+        }
+
+        body {
+            font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--gc-gray-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* GC Header */
+        .gc-header {
+            background: var(--gc-blue);
+            border-bottom: 3px solid var(--gc-red);
+        }
+        .gc-header .navbar-brand {
+            color: var(--gc-white);
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .gc-header .navbar-brand:hover { color: var(--gc-gray); }
+        .gc-header .nav-link { color: rgba(255,255,255,0.85); }
+        .gc-header .nav-link:hover { color: var(--gc-white); }
+        .gc-header .nav-link.active {
+            color: var(--gc-white);
+            border-bottom: 3px solid var(--gc-red);
+        }
+
+        .gc-flag-bar {
+            background: var(--gc-white);
+            border-bottom: 1px solid var(--gc-gray);
+            padding: 8px 0;
+        }
+        .gc-flag-bar .gc-sig {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gc-red);
+            font-weight: 700;
+            font-size: 1.15rem;
+            text-decoration: none;
+        }
+        .gc-flag-bar .gc-sig .maple-leaf {
+            font-size: 1.5rem;
+        }
+
+        /* Content */
+        .gc-main {
+            flex: 1;
+            padding: 2rem 0;
+            background: var(--gc-gray-light);
+        }
+
+        .gc-breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+        .gc-breadcrumb .breadcrumb-item a {
+            color: var(--gc-blue-light);
+        }
+
+        /* Cards */
+        .gc-card {
+            border: 1px solid var(--gc-gray);
+            border-radius: 4px;
+            background: var(--gc-white);
+            transition: box-shadow 0.15s;
+        }
+        .gc-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .gc-card .card-header {
+            background: var(--gc-blue);
+            color: var(--gc-white);
+            font-weight: 600;
+            border-radius: 4px 4px 0 0;
+        }
+
+        /* Buttons */
+        .btn-gc-primary {
+            background: var(--gc-blue);
+            color: var(--gc-white);
+            border: none;
+        }
+        .btn-gc-primary:hover {
+            background: var(--gc-blue-light);
+            color: var(--gc-white);
+        }
+        .btn-gc-danger {
+            background: var(--gc-red);
+            color: var(--gc-white);
+            border: none;
+        }
+        .btn-gc-danger:hover {
+            background: var(--gc-red-dark);
+            color: var(--gc-white);
+        }
+        .btn-gc-success {
+            background: var(--gc-green);
+            color: var(--gc-white);
+            border: none;
+        }
+        .btn-gc-success:hover {
+            background: #155722;
+            color: var(--gc-white);
+        }
+
+        /* Tables */
+        .table-gc thead {
+            background: var(--gc-blue);
+            color: var(--gc-white);
+        }
+        .table-gc thead th {
+            font-weight: 600;
+            border: none;
+        }
+
+        /* Status badges */
+        .badge-draft { background: #6c757d; }
+        .badge-ready { background: var(--gc-blue); }
+        .badge-sent { background: #0d6efd; }
+        .badge-signed { background: var(--gc-green); }
+        .badge-cancelled { background: var(--gc-red); }
+
+        /* Footer */
+        .gc-footer {
+            background: var(--gc-blue);
+            color: rgba(255,255,255,0.7);
+            padding: 2rem 0 1rem;
+            margin-top: auto;
+        }
+        .gc-footer a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+        }
+        .gc-footer a:hover { color: var(--gc-white); }
+        .gc-footer-bar {
+            background: var(--gc-gray-dark);
+            padding: 10px 0;
+            text-align: center;
+        }
+        .gc-footer-bar .gc-wordmark {
+            color: var(--gc-white);
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* PDF Viewer */
+        #pdf-viewer {
+            background: #525659;
+            border-radius: 4px;
+            min-height: 600px;
+            position: relative;
+        }
+        #pdf-viewer canvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        .pdf-toolbar {
+            background: var(--gc-blue);
+            color: var(--gc-white);
+            padding: 8px 16px;
+            border-radius: 4px 4px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .pdf-toolbar .btn { color: var(--gc-white); }
+    </style>
+
+    {{ page.header }}
+</head>
+<body>
+    <!-- GC Flag Bar -->
+    <div class="gc-flag-bar">
+        <div class="container">
+            <a href="/" class="gc-sig">
+                <span class="maple-leaf">&#127809;</span>
+                <span>Government of Canada / Gouvernement du Canada</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- GC Header / Navigation -->
+    <header class="gc-header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="bi bi-pen-fill me-2"></i>Nintex eSign Portal
+                </a>
+                <button class="navbar-toggler border-light" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#mainNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link {% if page.url == '/' %}active{% endif %}" href="/">
+                                <i class="bi bi-house-door me-1"></i>Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if page.url contains '/envelopes' %}active{% endif %}" href="/envelopes/">
+                                <i class="bi bi-envelope me-1"></i>Envelopes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if page.url contains '/templates' %}active{% endif %}" href="/templates/">
+                                <i class="bi bi-file-earmark-text me-1"></i>Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if page.url contains '/document-viewer' %}active{% endif %}" href="/document-viewer/">
+                                <i class="bi bi-eye me-1"></i>Document Viewer
+                            </a>
+                        </li>
+                        {% if user %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>{{ user.fullname }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/Account/Login/LogOff">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/SignIn">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="gc-main">
+        <div class="container">
+            {{ page.adx_copy }}
+        </div>
+    </main>
+
+    <!-- GC Footer -->
+    <footer class="gc-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-white">Nintex eSign Portal</h6>
+                    <p class="small">Secure electronic signature management for Government of Canada documents.</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-white">Quick Links</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="/envelopes/">Manage Envelopes</a></li>
+                        <li><a href="/templates/">Manage Templates</a></li>
+                        <li><a href="/document-viewer/">Document Viewer</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-white">Support</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="#">Help &amp; Documentation</a></li>
+                        <li><a href="#">Contact Administrator</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <div class="gc-footer-bar">
+        <span class="gc-wordmark">&#127809; Canada</span>
+    </div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+
+    {{ page.footer }}
+</body>
+</html>
