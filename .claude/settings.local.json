@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip:*)",
+      "Read(//private/tmp/**)",
+      "Bash(ls -la esign_config_temp/environmentvariabledefinitions/*/)",
+      "Bash(ls:*)"
+    ]
+  }
+}
