@@ -1,0 +1,58 @@
+<!-- Bootstrap Icons CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<!-- PDF.js for document viewing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- GC Custom Styles -->
+<style>
+:root {
+    --gc-red: #AF3C43;
+    --gc-red-dark: #922B31;
+    --gc-white: #FFFFFF;
+    --gc-gray-light: #F8F8F8;
+    --gc-gray: #E1E4E7;
+    --gc-gray-dark: #333333;
+    --gc-blue: #26374A;
+    --gc-blue-light: #335075;
+    --gc-green: #1B6C2A;
+}
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--gc-gray-dark); }
+.gc-flag-bar { background: var(--gc-white); border-bottom: 1px solid var(--gc-gray); padding: 8px 0; }
+.gc-flag-bar .gc-sig { display:flex; align-items:center; gap:10px; color:var(--gc-red); font-weight:700; font-size:1.15rem; text-decoration:none; }
+.gc-flag-bar .maple-leaf { font-size:1.5rem; }
+.navbar-gc { background: var(--gc-blue) !important; border-bottom: 3px solid var(--gc-red); }
+.navbar-gc .navbar-brand { color: var(--gc-white) !important; font-weight: 600; }
+.navbar-gc .nav-link { color: rgba(255,255,255,0.85) !important; }
+.navbar-gc .nav-link:hover, .navbar-gc .nav-link.active { color: var(--gc-white) !important; }
+.gc-card { border: 1px solid var(--gc-gray); border-radius: 4px; background: var(--gc-white); }
+.gc-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.gc-card .card-header { background: var(--gc-blue); color: var(--gc-white); font-weight: 600; }
+.btn-gc-primary { background: var(--gc-blue); color: var(--gc-white); border: none; }
+.btn-gc-primary:hover { background: var(--gc-blue-light); color: var(--gc-white); }
+.btn-gc-danger { background: var(--gc-red); color: var(--gc-white); border: none; }
+.btn-gc-danger:hover { background: var(--gc-red-dark); color: var(--gc-white); }
+.btn-gc-success { background: var(--gc-green); color: var(--gc-white); border: none; }
+.btn-gc-success:hover { background: #155722; color: var(--gc-white); }
+.table-gc thead { background: var(--gc-blue); color: var(--gc-white); }
+.table-gc thead th { font-weight: 600; border: none; }
+.badge-draft { background: #6c757d; }
+.badge-ready { background: var(--gc-blue); }
+.badge-sent { background: #0d6efd; }
+.badge-signed { background: var(--gc-green); }
+.badge-cancelled { background: var(--gc-red); }
+.gc-footer { background: var(--gc-blue); color: rgba(255,255,255,0.7); padding: 2rem 0; }
+.gc-footer a { color: rgba(255,255,255,0.85); text-decoration: none; }
+.gc-footer a:hover { color: var(--gc-white); }
+.gc-footer-bar { background: var(--gc-gray-dark); padding: 10px 0; text-align: center; }
+.gc-footer-bar .gc-wordmark { color: var(--gc-white); font-weight: 700; font-size: 1rem; }
+#pdf-viewer { background: #525659; border-radius: 0 0 4px 4px; min-height: 600px; }
+#pdf-viewer canvas { display: block; margin: 0 auto; max-width: 100%; }
+.pdf-toolbar { background: var(--gc-blue); color: white; padding: 8px 16px; border-radius: 4px 4px 0 0; display: flex; align-items: center; gap: 12px; }
+.pdf-toolbar .btn { color: white; }
+</style>
+
+<!-- Default studio template. Please do not modify -->
+<div id="mainContent" class="wrapper-body" role="main">
+    <div class="page-copy">
+      {% editable page 'adx_copy' type: 'html', liquid: true %}
+    </div>
+</div>

@@ -1,0 +1,274 @@
+{% extends "Layout" %}
+
+{% block main %}
+<nav class="gc-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Document Viewer</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- Document Info Sidebar -->
+    <div class="col-md-3">
+        <div class="gc-card card mb-3">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Document Info
+            </div>
+            <div class="card-body" id="doc-info">
+                <p class="text-muted small mb-0">Select or upload a document to view.</p>
+            </div>
+        </div>
+
+        <!-- Signers Panel -->
+        <div class="gc-card card mb-3">
+            <div class="card-header">
+                <i class="bi bi-people me-2"></i>Signers
+            </div>
+            <div class="card-body p-0" id="signers-panel">
+                <div class="p-3 text-muted small">No signers configured.</div>
+            </div>
+        </div>
+
+        <!-- Fields Panel -->
+        <div class="gc-card card mb-3">
+            <div class="card-header">
+                <i class="bi bi-tag me-2"></i>Placed Fields
+            </div>
+            <div class="card-body p-0" id="fields-panel">
+                <div class="p-3 text-muted small">No fields placed.</div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="gc-card card">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>Actions
+            </div>
+            <div class="card-body">
+                <button class="btn btn-gc-primary w-100 mb-2" onclick="sendEnvelope()" id="btn-send" disabled>
+                    <i class="bi bi-send me-1"></i>Send for Signing
+                </button>
+                <button class="btn btn-gc-success w-100 mb-2" onclick="downloadDoc()" id="btn-download" disabled>
+                    <i class="bi bi-download me-1"></i>Download Document
+                </button>
+                <button class="btn btn-outline-secondary w-100" onclick="uploadDocument()">
+                    <i class="bi bi-upload me-1"></i>Upload Document
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer -->
+    <div class="col-md-9">
+        <div class="gc-card card">
+            <!-- PDF Toolbar -->
+            <div class="pdf-toolbar">
+                <button class="btn btn-sm btn-outline-light" onclick="prevPage()" title="Previous Page">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span id="page-info">Page -- / --</span>
+                <button class="btn btn-sm btn-outline-light" onclick="nextPage()" title="Next Page">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                <div class="ms-auto d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-light" onclick="zoomOut()" title="Zoom Out">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <span id="zoom-level">100%</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="zoomIn()" title="Zoom In">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-light" onclick="fitPage()" title="Fit Page">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Canvas -->
+            <div id="pdf-viewer">
+                <div class="text-center py-5" id="pdf-placeholder">
+                    <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: rgba(255,255,255,0.3);"></i>
+                    <p class="text-white-50 mt-3">No document loaded.<br/>Upload a PDF or select an envelope/template to view.</p>
+                    <input type="file" id="fileUpload" accept=".pdf" class="d-none" onchange="handleFileUpload(this)"/>
+                    <button class="btn btn-outline-light" onclick="document.getElementById('fileUpload').click()">
+                        <i class="bi bi-upload me-1"></i>Upload PDF
+                    </button>
+                </div>
+                <canvas id="pdf-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var pdfDoc = null;
+var pageNum = 1;
+var pageCount = 0;
+var scale = 1.0;
+var canvas = document.getElementById('pdf-canvas');
+var ctx = canvas.getContext('2d');
+
+// Initialize PDF.js worker
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+function renderPage(num) {
+    if (!pdfDoc) return;
+    pdfDoc.getPage(num).then(function(page) {
+        var viewport = page.getViewport({ scale: scale });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        var renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
+        };
+        page.render(renderContext);
+        document.getElementById('page-info').textContent = 'Page ' + num + ' / ' + pageCount;
+        document.getElementById('zoom-level').textContent = Math.round(scale * 100) + '%';
+    });
+}
+
+function prevPage() {
+    if (pageNum <= 1) return;
+    pageNum--;
+    renderPage(pageNum);
+}
+
+function nextPage() {
+    if (pageNum >= pageCount) return;
+    pageNum++;
+    renderPage(pageNum);
+}
+
+function zoomIn() {
+    scale = Math.min(scale + 0.25, 3.0);
+    renderPage(pageNum);
+}
+
+function zoomOut() {
+    scale = Math.max(scale - 0.25, 0.5);
+    renderPage(pageNum);
+}
+
+function fitPage() {
+    if (!pdfDoc) return;
+    pdfDoc.getPage(pageNum).then(function(page) {
+        var containerWidth = document.getElementById('pdf-viewer').clientWidth - 40;
+        var unscaledViewport = page.getViewport({ scale: 1.0 });
+        scale = containerWidth / unscaledViewport.width;
+        renderPage(pageNum);
+    });
+}
+
+function loadPdf(data) {
+    var loadingTask;
+    if (typeof data === 'string') {
+        // URL
+        loadingTask = pdfjsLib.getDocument(data);
+    } else {
+        // ArrayBuffer
+        loadingTask = pdfjsLib.getDocument({ data: data });
+    }
+
+    loadingTask.promise.then(function(pdf) {
+        pdfDoc = pdf;
+        pageCount = pdf.numPages;
+        pageNum = 1;
+        document.getElementById('pdf-placeholder').style.display = 'none';
+        canvas.style.display = 'block';
+        document.getElementById('btn-download').disabled = false;
+        fitPage();
+    }).catch(function(err) {
+        alert('Error loading PDF: ' + err.message);
+    });
+}
+
+function handleFileUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+
+    // Update doc info
+    document.getElementById('doc-info').innerHTML =
+        '<p class="mb-1"><strong>' + file.name + '</strong></p>' +
+        '<p class="text-muted small mb-0">' + (file.size / 1024).toFixed(1) + ' KB</p>';
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        loadPdf(new Uint8Array(e.target.result));
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function uploadDocument() {
+    document.getElementById('fileUpload').click();
+}
+
+function sendEnvelope() {
+    alert('Send for Signing feature will be connected to Power Automate flow.');
+}
+
+function downloadDoc() {
+    alert('Download feature will be connected to Dataverse document storage.');
+}
+
+// Check URL params for envelope/template ID
+document.addEventListener('DOMContentLoaded', function() {
+    canvas.style.display = 'none';
+    var params = new URLSearchParams(window.location.search);
+    var envelopeId = params.get('id');
+    var templateId = params.get('template');
+
+    if (envelopeId) {
+        document.getElementById('doc-info').innerHTML =
+            '<p class="mb-1"><strong>Loading envelope...</strong></p>';
+        document.getElementById('btn-send').disabled = false;
+
+        // Load envelope document from Dataverse
+        shell.ajaxSafeGet({
+            url: '/_api/cs_envelopes(' + envelopeId + ')?$select=cs_name,cs_status',
+            success: function(data) {
+                document.getElementById('doc-info').innerHTML =
+                    '<p class="mb-1"><strong>' + (data.cs_name || 'Untitled') + '</strong></p>' +
+                    '<p class="text-muted small mb-0">Status: ' + (data.cs_status || 'Draft') + '</p>';
+            }
+        });
+
+        // Load signers
+        shell.ajaxSafeGet({
+            url: '/_api/cs_signers?$filter=_cs_envelopelookup_value eq ' + envelopeId + '&$select=cs_name,cs_email,cs_signingorder',
+            success: function(data) {
+                if (data && data.value && data.value.length > 0) {
+                    var html = '<ul class="list-group list-group-flush">';
+                    data.value.forEach(function(s, i) {
+                        var colors = ['#AF3C43', '#1565C0', '#2E7D32', '#E65100', '#6A1B9A', '#00838F'];
+                        html += '<li class="list-group-item py-2">' +
+                            '<span class="badge rounded-pill me-2" style="background:' + colors[i % 6] + ';">' + (s.cs_signingorder || (i+1)) + '</span>' +
+                            '<strong>' + (s.cs_name || 'Unknown') + '</strong>' +
+                            '<br/><small class="text-muted">' + (s.cs_email || '') + '</small></li>';
+                    });
+                    html += '</ul>';
+                    document.getElementById('signers-panel').innerHTML = html;
+                }
+            }
+        });
+    }
+
+    if (templateId) {
+        document.getElementById('doc-info').innerHTML =
+            '<p class="mb-1"><strong>Loading template...</strong></p>';
+
+        shell.ajaxSafeGet({
+            url: '/_api/cs_templates(' + templateId + ')?$select=cs_name,cs_description,cs_filename',
+            success: function(data) {
+                document.getElementById('doc-info').innerHTML =
+                    '<p class="mb-1"><strong>' + (data.cs_name || 'Untitled') + '</strong></p>' +
+                    '<p class="text-muted small mb-1">' + (data.cs_description || '') + '</p>' +
+                    '<p class="text-muted small mb-0">' + (data.cs_filename || '') + '</p>';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

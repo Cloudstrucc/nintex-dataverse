@@ -1,0 +1,36 @@
+<!-- GC Flag Bar -->
+<div class="gc-flag-bar">
+    <div class="container">
+        <a href="/" class="gc-sig">
+            <span class="maple-leaf">&#127809;</span>
+            <span>Government of Canada / Gouvernement du Canada</span>
+        </a>
+    </div>
+</div>
+<!-- GC Navigation -->
+<div class="navbar navbar-expand-lg navbar-gc" role="banner">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="bi bi-pen-fill me-2"></i>Nintex eSign Portal</a>
+        <button class="navbar-toggler border-light" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="nav navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/envelopes/"><i class="bi bi-envelope me-1"></i>Envelopes</a></li>
+                <li class="nav-item"><a class="nav-link" href="/templates/"><i class="bi bi-file-earmark-text me-1"></i>Templates</a></li>
+                <li class="nav-item"><a class="nav-link" href="/document-viewer/"><i class="bi bi-eye me-1"></i>Viewer</a></li>
+                {% if user %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i>{{ user.fullname }}</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ website.sign_out_url_substitution }}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ website.sign_in_url_substitution }}"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>

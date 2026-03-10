@@ -1,0 +1,189 @@
+{% extends "Layout" %}
+
+{% block main %}
+<nav class="gc-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Templates</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-text me-2"></i>Templates</h2>
+    <button class="btn btn-gc-primary" data-bs-toggle="modal" data-bs-target="#newTemplateModal">
+        <i class="bi bi-plus-circle me-1"></i>Create Template
+    </button>
+</div>
+
+<!-- Templates Grid -->
+<div class="row g-4" id="templates-grid">
+    <div class="col-12 text-center py-4">
+        <div class="spinner-border spinner-border-sm text-muted" role="status"></div>
+        <span class="text-muted ms-2">Loading templates...</span>
+    </div>
+</div>
+
+<!-- Create Template Modal -->
+<div class="modal fade" id="newTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--gc-blue); color: white;">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>Create New Template</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newTemplateForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Template Name</label>
+                        <input type="text" id="tplName" class="form-control" required placeholder="e.g. Standard NDA"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <textarea id="tplDescription" class="form-control" rows="2" placeholder="Brief description of this template..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Upload Document</label>
+                        <input type="file" id="tplDocument" class="form-control" accept=".docx,.doc,.pdf"/>
+                        <div class="form-text">Upload a Word document with Nintex eSign field tags (e.g. from the Word Field Palette add-in).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Document Preview</label>
+                        <div id="tplPreview" class="border rounded p-3 text-center text-muted" style="min-height: 200px; background: #f0f0f0;">
+                            <i class="bi bi-file-earmark-pdf" style="font-size: 3rem;"></i>
+                            <p class="mt-2 mb-0">Upload a document to see preview</p>
+                        </div>
+                    </div>
+
+                    <hr/>
+                    <h6><i class="bi bi-people me-1"></i>Signer Roles</h6>
+                    <p class="text-muted small">Define the signer roles for this template. When using the template, actual signer details will be provided.</p>
+                    <div id="tplSignersList" class="mb-3"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addTplSignerRow()">
+                        <i class="bi bi-plus me-1"></i>Add Signer Role
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gc-primary" onclick="createTemplate()">
+                    <i class="bi bi-check-circle me-1"></i>Create Template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var tplSignerCount = 0;
+
+function addTplSignerRow() {
+    tplSignerCount++;
+    var html = '<div class="row g-2 mb-2 tpl-signer-row" id="tpl-signer-' + tplSignerCount + '">' +
+        '<div class="col-md-5"><input type="text" class="form-control form-control-sm tpl-signer-label" placeholder="Role Label (e.g. Primary Signer)" required/></div>' +
+        '<div class="col-md-5"><input type="text" class="form-control form-control-sm tpl-signer-email" placeholder="Default Email (optional)"/></div>' +
+        '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.closest(\'.tpl-signer-row\').remove()"><i class="bi bi-trash"></i></button></div>' +
+        '</div>';
+    document.getElementById('tplSignersList').innerHTML += html;
+}
+
+function createTemplate() {
+    var name = document.getElementById('tplName').value;
+    if (!name) { alert('Please enter a template name.'); return; }
+
+    var template = {
+        cs_name: name,
+        cs_description: document.getElementById('tplDescription').value || ''
+    };
+
+    // Upload document as base64 if provided
+    var fileInput = document.getElementById('tplDocument');
+    if (fileInput.files.length > 0) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            template.cs_filecontent = e.target.result.split(',')[1]; // base64 without prefix
+            template.cs_filename = fileInput.files[0].name;
+            submitTemplate(template);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        submitTemplate(template);
+    }
+}
+
+function submitTemplate(template) {
+    shell.ajaxSafePost({
+        url: '/_api/cs_templates',
+        contentType: 'application/json',
+        data: JSON.stringify(template),
+        success: function(data) {
+            var modal = bootstrap.Modal.getInstance(document.getElementById('newTemplateModal'));
+            modal.hide();
+            loadTemplates();
+            alert('Template created successfully!');
+        },
+        error: function(xhr) {
+            alert('Error creating template: ' + (xhr.responseText || 'Unknown error'));
+        }
+    });
+}
+
+function loadTemplates() {
+    shell.ajaxSafeGet({
+        url: '/_api/cs_templates?$orderby=createdon desc&$select=cs_name,cs_description,cs_templateid,cs_filename,createdon',
+        success: function(data) {
+            var grid = document.getElementById('templates-grid');
+            if (!data || !data.value || data.value.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center py-5">' +
+                    '<i class="bi bi-file-earmark-text" style="font-size: 3rem; color: var(--gc-gray);"></i>' +
+                    '<p class="text-muted mt-2">No templates yet. Create your first template to get started.</p>' +
+                    '</div>';
+                return;
+            }
+            grid.innerHTML = '';
+            data.value.forEach(function(tpl) {
+                var card = '<div class="col-md-4">' +
+                    '<div class="gc-card card h-100">' +
+                    '<div class="card-body">' +
+                    '<h5 class="card-title"><i class="bi bi-file-earmark-text me-2" style="color: var(--gc-blue);"></i>' + (tpl.cs_name || 'Untitled') + '</h5>' +
+                    '<p class="card-text text-muted small">' + (tpl.cs_description || 'No description') + '</p>' +
+                    '<div class="d-flex justify-content-between align-items-center">' +
+                    '<small class="text-muted">' + new Date(tpl.createdon).toLocaleDateString() + '</small>' +
+                    '<div>' +
+                    '<a href="/document-viewer/?template=' + tpl.cs_templateid + '" class="btn btn-sm btn-gc-primary me-1" title="Preview"><i class="bi bi-eye"></i></a>' +
+                    '<button class="btn btn-sm btn-gc-success" title="Download" onclick="downloadTemplate(\'' + tpl.cs_templateid + '\')"><i class="bi bi-download"></i></button>' +
+                    '</div></div></div></div></div>';
+                grid.innerHTML += card;
+            });
+        },
+        error: function() {
+            document.getElementById('templates-grid').innerHTML =
+                '<div class="col-12 text-center text-danger py-4">Error loading templates.</div>';
+        }
+    });
+}
+
+function downloadTemplate(templateId) {
+    window.location.href = '/_api/cs_templates(' + templateId + ')/cs_filecontent/$value';
+}
+
+// Preview uploaded file
+document.getElementById('tplDocument').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var preview = document.getElementById('tplPreview');
+    if (file.type === 'application/pdf') {
+        var url = URL.createObjectURL(file);
+        preview.innerHTML = '<iframe src="' + url + '" style="width:100%;height:400px;border:none;"></iframe>';
+    } else {
+        preview.innerHTML = '<i class="bi bi-file-earmark-word" style="font-size: 3rem; color: var(--gc-blue);"></i>' +
+            '<p class="mt-2 mb-0"><strong>' + file.name + '</strong> (' + (file.size / 1024).toFixed(1) + ' KB)</p>' +
+            '<p class="text-muted small">Word documents will be converted to PDF for preview after upload.</p>';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    addTplSignerRow();
+    loadTemplates();
+});
+</script>
+{% endblock %}
