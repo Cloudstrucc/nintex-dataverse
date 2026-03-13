@@ -106,7 +106,7 @@ var typeLabel = isManaged ? "Managed" : "Unmanaged";
 
 var SCHEMA_ZIP = $"nintex_1_0_0_2_{suffix}.zip";
 var CONFIG_ZIP = $"ESignatureConfig_1_0_0_0_{suffix}.zip";
-var BROKER_ZIP = $"ESignatureBroker_1_0_0_41_{suffix}.zip";
+var BROKER_ZIP = $"ESignatureBroker_1_0_0_42_{suffix}.zip";
 
 PrintSuccess($"{typeLabel} solutions selected");
 if (!isManaged)
@@ -182,7 +182,7 @@ switch (selChoice)
         installConfig = cfgIn != "n" && cfgIn != "no";
 
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write($"    E-Signature Broker (v1.0.0.41) [Y/n]: ");
+        Console.Write($"    E-Signature Broker (v1.0.0.42) [Y/n]: ");
         Console.ResetColor();
         var brkIn = Console.ReadLine()?.Trim().ToLower();
         installBroker = brkIn != "n" && brkIn != "no";
@@ -556,7 +556,7 @@ if (installBroker)
         Cleanup(tempDir);
         Exit(1);
     }
-    PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.41) imported successfully");
+    PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.42) imported successfully");
     completedSolutions++;
     PrintOverallProgress(completedSolutions, totalSolutions);
 }
