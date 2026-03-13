@@ -146,7 +146,7 @@
                     },
                     "parameters": {
                       "entityName": "cs_envelopes",
-                      "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid_local']",
+                      "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
                       "item/statuscode": "@{if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Completed'),717640004,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Cancelled'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Expired'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Declined'),717640006,717640003))))}",
                       "item/cs_completeddate": "@{body('HTTP_Get_Envelope_Status')?['result']?['completedDate']}",
                       "item/cs_cancelleddate": "@{body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate']}"
@@ -196,7 +196,7 @@
                     },
                     "parameters": {
                       "entityName": "cs_signers",
-                      "$filter": "cs_email eq '@{items('Update_Each_Signer_Status')?['email']}' and _cs_envelopelookup_value eq @{items('Process_Each_Envelope')?['cs_envelopeid_local']}",
+                      "$filter": "cs_email eq '@{items('Update_Each_Signer_Status')?['email']}' and _cs_envelopelookup_value eq @{items('Process_Each_Envelope')?['cs_envelopeid']}",
                       "$top": 1
                     },
                     "authentication": "@parameters('$authentication')"

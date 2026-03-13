@@ -262,7 +262,7 @@
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
               "item/cs_preparedenvelopeid": "@{body('HTTP_Prepare_Envelope')?['result']?['preparedEnvelopeID']}",
-              "item/statuscode": 1,
+              "item/statuscode": 717640002,
               "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
             },
             "authentication": "@parameters('$authentication')"
