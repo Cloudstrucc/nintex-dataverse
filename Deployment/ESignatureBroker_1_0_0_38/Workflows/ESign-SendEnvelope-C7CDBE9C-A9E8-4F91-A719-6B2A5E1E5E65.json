@@ -337,9 +337,7 @@
             "parameters": {
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
-              "item/cs_envelopeid": "@{variables('NintexEnvelopeID')}",
-              "item/statuscode": 717640003,
-              "item/cs_sentdate": "@{utcNow()}"
+              "item/statuscode": 717640003
             },
             "authentication": "@parameters('$authentication')"
           },
