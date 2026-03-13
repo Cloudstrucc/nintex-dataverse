@@ -35,7 +35,7 @@
             },
             "parameters": {
               "subscriptionRequest/message": 3,
-              "subscriptionRequest/entityname": "Signers",
+              "subscriptionRequest/entityname": "cs_signer",
               "subscriptionRequest/scope": 4,
               "subscriptionRequest/filteringattributes": "cs_sendreminder",
               "subscriptionRequest/filterexpression": "cs_sendreminder eq true"
@@ -54,7 +54,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Signers",
+              "entityName": "cs_signers",
               "recordId": "@triggerOutputs()?['body/cs_signerid']"
             },
             "authentication": "@parameters('$authentication')"
@@ -70,7 +70,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Envelopes",
+              "entityName": "cs_envelopes",
               "recordId": "@outputs('Get_Signer_Record')?['body/_cs_envelopelookup_value']"
             },
             "authentication": "@parameters('$authentication')"
@@ -145,7 +145,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Signers",
+              "entityName": "cs_signers",
               "recordId": "@triggerOutputs()?['body/cs_signerid']",
               "item/cs_sendreminder": false
             },

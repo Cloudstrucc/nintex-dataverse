@@ -35,7 +35,7 @@
             },
             "parameters": {
               "subscriptionRequest/message": 3,
-              "subscriptionRequest/entityname": "Documents",
+              "subscriptionRequest/entityname": "cs_document",
               "subscriptionRequest/scope": 4,
               "subscriptionRequest/filteringattributes": "cs_requestsignedcopy",
               "subscriptionRequest/filterexpression": "cs_requestsignedcopy eq true"
@@ -54,7 +54,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Documents",
+              "entityName": "cs_documents",
               "recordId": "@triggerOutputs()?['body/cs_documentid']"
             },
             "authentication": "@parameters('$authentication')"
@@ -70,7 +70,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Envelopes",
+              "entityName": "cs_envelopes",
               "recordId": "@outputs('Get_Document_Record')?['body/_cs_envelopelookup_value']"
             },
             "authentication": "@parameters('$authentication')"
@@ -144,7 +144,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Documents",
+              "entityName": "cs_documents",
               "recordId": "@triggerOutputs()?['body/cs_documentid']",
               "item/cs_signedcontent": "@{body('HTTP_Get_Document_Content')?['result']?['fileContent']}",
               "item/cs_requestsignedcopy": false

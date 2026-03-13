@@ -35,7 +35,7 @@
             },
             "parameters": {
               "subscriptionRequest/message": 3,
-              "subscriptionRequest/entityname": "Envelopes",
+              "subscriptionRequest/entityname": "cs_envelope",
               "subscriptionRequest/scope": 4,
               "subscriptionRequest/filteringattributes": "cs_iscancelled",
               "subscriptionRequest/filterexpression": "cs_iscancelled eq true and statuscode ne 717640006"
@@ -54,7 +54,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Envelopes",
+              "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']"
             },
             "authentication": "@parameters('$authentication')"
@@ -124,7 +124,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Envelopes",
+              "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
               "item/statuscode": 717640006,
               "item/cs_cancelleddate": "@{utcNow()}"
@@ -146,7 +146,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "Envelopes",
+              "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
               "item/statuscode": 717640007
             },

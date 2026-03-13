@@ -136,7 +136,7 @@
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
                 },
                 "parameters": {
-                  "entityName": "Templates",
+                  "entityName": "cs_templates",
                   "$filter": "cs_templateid eq '@{items('Upsert_Each_Template')?['templateID']}'",
                   "$top": 1
                 },
@@ -158,7 +158,7 @@
                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
                     },
                     "parameters": {
-                      "entityName": "Templates",
+                      "entityName": "cs_templates",
                       "recordId": "@{first(outputs('Check_Template_Exists')?['body/value'])?['cs_templateid_local']}",
                       "item/cs_description": "@{items('Upsert_Each_Template')?['description']}",
                       "item/cs_name": "@{items('Upsert_Each_Template')?['name']}"
@@ -187,7 +187,7 @@
                         "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
                       },
                       "parameters": {
-                        "entityName": "Templates",
+                        "entityName": "cs_templates",
                         "item/cs_description": "@{items('Upsert_Each_Template')?['description']}",
                         "item/cs_templateid": "@{items('Upsert_Each_Template')?['templateID']}",
                         "item/cs_name": "@{items('Upsert_Each_Template')?['name']}"
