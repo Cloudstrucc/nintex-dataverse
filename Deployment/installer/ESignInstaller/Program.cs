@@ -104,9 +104,9 @@ var isManaged = typeChoice != "2";
 var suffix = isManaged ? "managed" : "unmanaged";
 var typeLabel = isManaged ? "Managed" : "Unmanaged";
 
-var SCHEMA_ZIP = $"nintex_1_0_0_1_{suffix}.zip";
+var SCHEMA_ZIP = $"nintex_1_0_0_2_{suffix}.zip";
 var CONFIG_ZIP = $"ESignatureConfig_1_0_0_0_{suffix}.zip";
-var BROKER_ZIP = $"ESignatureBroker_1_0_0_38_{suffix}.zip";
+var BROKER_ZIP = $"ESignatureBroker_1_0_0_39_{suffix}.zip";
 
 PrintSuccess($"{typeLabel} solutions selected");
 if (!isManaged)
@@ -170,7 +170,7 @@ switch (selChoice)
         Console.WriteLine();
 
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write($"    Nintex Schema (v1.0.0.1) [Y/n]: ");
+        Console.Write($"    Nintex Schema (v1.0.0.2) [Y/n]: ");
         Console.ResetColor();
         var schIn = Console.ReadLine()?.Trim().ToLower();
         installSchema = schIn != "n" && schIn != "no";
@@ -182,7 +182,7 @@ switch (selChoice)
         installConfig = cfgIn != "n" && cfgIn != "no";
 
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write($"    E-Signature Broker (v1.0.0.38) [Y/n]: ");
+        Console.Write($"    E-Signature Broker (v1.0.0.39) [Y/n]: ");
         Console.ResetColor();
         var brkIn = Console.ReadLine()?.Trim().ToLower();
         installBroker = brkIn != "n" && brkIn != "no";
@@ -503,7 +503,7 @@ if (installSchema)
     }
     else
     {
-        PrintSuccess($"Schema solution ({SCHEMA_SOLUTION} v1.0.0.1) imported successfully");
+        PrintSuccess($"Schema solution ({SCHEMA_SOLUTION} v1.0.0.2) imported successfully");
     }
     completedSolutions++;
     PrintOverallProgress(completedSolutions, totalSolutions);
@@ -556,7 +556,7 @@ if (installBroker)
         Cleanup(tempDir);
         Exit(1);
     }
-    PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.38) imported successfully");
+    PrintSuccess($"Workflow solution ({BROKER_SOLUTION} v1.0.0.39) imported successfully");
     completedSolutions++;
     PrintOverallProgress(completedSolutions, totalSolutions);
 }
