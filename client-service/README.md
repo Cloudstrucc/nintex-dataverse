@@ -17,8 +17,8 @@ Before installing this solution, you need:
 1. Go to **make.powerapps.com** > select your environment
 2. Navigate to **Solutions** > **Import solution**
 3. Upload either:
-   - `ESignatureClient_1_0_0_1_unmanaged.zip` — if you want to modify the sample flows
-   - `ESignatureClient_1_0_0_1_managed.zip` — for production use (locked, cannot be modified)
+   - `ESignatureClient_1_0_0_2_unmanaged.zip` — if you want to modify the sample flows
+   - `ESignatureClient_1_0_0_2_managed.zip` — for production use (locked, cannot be modified)
 4. Click **Next**
 
 ### Step 2: Configure the Connection Reference
@@ -42,13 +42,13 @@ After import, go to **Solutions** > **E-Signature Client** > **Cloud flows** and
 
 ## Included Sample Flows
 
-| Flow | Description | Inputs |
-|---|---|---|
+| Flow                                        | Description                                                                   | Inputs                                                   |
+| ------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **Sample - Create and Send Envelope** | Creates an envelope with one signer, then triggers the prepare/send lifecycle | Subject, Signer Name, Signer Email, Template ID, Message |
-| **Sample - Create Draft Envelope** | Creates an envelope in Draft status without sending | Subject, Template ID, Message, Days to Expire |
-| **Sample - Add Signer to Envelope** | Adds a signer to an existing draft envelope | Envelope ID, Signer Name, Signer Email, Signer Order |
-| **Sample - Check Envelope Status** | Retrieves envelope details, signers, and documents | Envelope ID |
-| **Sample - Cancel Envelope** | Cancels an in-process envelope | Envelope ID |
+| **Sample - Create Draft Envelope**    | Creates an envelope in Draft status without sending                           | Subject, Template ID, Message, Days to Expire            |
+| **Sample - Add Signer to Envelope**   | Adds a signer to an existing draft envelope                                   | Envelope ID, Signer Name, Signer Email, Signer Order     |
+| **Sample - Check Envelope Status**    | Retrieves envelope details, signers, and documents                            | Envelope ID                                              |
+| **Sample - Cancel Envelope**          | Cancels an in-process envelope                                                | Envelope ID                                              |
 
 ## How It Works
 
@@ -121,27 +121,27 @@ sequenceDiagram
 
 ### Statuscode Reference
 
-| Value | Status | Description |
-|---|---|---|
-| 1 | Draft | Envelope created, not yet submitted |
-| 717640001 | Preparing | Broker is preparing the envelope with Nintex |
-| 717640002 | Ready to Send | Prepared, broker will auto-send |
-| 717640003 | In Process | Sent to signers, awaiting signatures |
-| 717640004 | Completed | All signers have signed |
-| 717640005 | Error | An error occurred during processing |
-| 717640006 | Cancelled | Envelope was cancelled |
-| 717640007 | Cancel Error | Cancellation failed |
+| Value     | Status        | Description                                  |
+| --------- | ------------- | -------------------------------------------- |
+| 1         | Draft         | Envelope created, not yet submitted          |
+| 717640001 | Preparing     | Broker is preparing the envelope with Nintex |
+| 717640002 | Ready to Send | Prepared, broker will auto-send              |
+| 717640003 | In Process    | Sent to signers, awaiting signatures         |
+| 717640004 | Completed     | All signers have signed                      |
+| 717640005 | Error         | An error occurred during processing          |
+| 717640006 | Cancelled     | Envelope was cancelled                       |
+| 717640007 | Cancel Error  | Cancellation failed                          |
 
 ### Key Tables (in the Broker Environment)
 
-| Table | Logical Name | Purpose |
-|---|---|---|
-| Envelope | cs_envelopes | Main envelope record |
-| Signer | cs_signers | Signers attached to an envelope |
-| Document | cs_documents | Documents attached to an envelope |
-| Template | cs_templates | Available signing templates |
-| Access Link | cs_accesslinks | Signing/viewing URLs |
-| Envelope History | cs_envelopehistories | Audit trail of envelope events |
+| Table            | Logical Name         | Purpose                           |
+| ---------------- | -------------------- | --------------------------------- |
+| Envelope         | cs_envelopes         | Main envelope record              |
+| Signer           | cs_signers           | Signers attached to an envelope   |
+| Document         | cs_documents         | Documents attached to an envelope |
+| Template         | cs_templates         | Available signing templates       |
+| Access Link      | cs_accesslinks       | Signing/viewing URLs              |
+| Envelope History | cs_envelopehistories | Audit trail of envelope events    |
 
 ### Linking Signers/Documents to Envelopes
 
@@ -163,17 +163,20 @@ These sample flows are starting points. To build your own integration:
 ### Common Patterns
 
 **Send envelope with multiple signers:**
+
 1. Create envelope (Draft)
 2. Create signer 1 (order=1)
 3. Create signer 2 (order=2)
 4. Update envelope statuscode to 717640001 (Preparing)
 
 **Wait for completion:**
+
 1. Create a scheduled flow (e.g., every hour)
 2. List envelopes where `statuscode eq 717640003` (In Process)
 3. For each, check if status has changed to Completed/Error
 
 **Get signed documents:**
+
 1. Find documents for a completed envelope
 2. Set `cs_requestsignedcopy = true` on each document
 3. The broker will populate `cs_signedcontent` with the signed PDF (base64)
@@ -181,20 +184,25 @@ These sample flows are starting points. To build your own integration:
 ## Troubleshooting
 
 ### "Could not find table" error
+
 The connection is pointing to the wrong environment. Ensure the Dataverse connection targets the **broker environment URL**, not your local environment.
 
 ### "Insufficient privileges" error
+
 Your app user or Entra user doesn't have the **E-Signature Broker User** security role assigned in the broker environment. Contact your broker administrator.
 
 ### Envelope stuck in "Preparing" status
+
 The broker's Prepare Envelope flow may have failed. Contact your broker administrator to check the flow run history.
 
 ### Cannot turn on flows
+
 Ensure the connection reference is properly configured. Go to **Solutions** > **E-Signature Client** > **Connection References** > verify the connection is active.
 
 ## Support
 
 Contact your broker administrator for:
+
 - App user credentials
 - Security role assignment
 - Troubleshooting broker-side issues
@@ -202,7 +210,8 @@ Contact your broker administrator for:
 
 ## Version History
 
-| Version | Date | Changes |
-|---|---|---|
-| 1.0.0.0 | 2026-03-17 | Initial release with 5 sample flows |
+| Version | Date       | Changes                                                                                                   |
+| ------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.0.0.0 | 2026-03-17 | Initial release with 5 sample flows                                                                       |
 | 1.0.0.1 | 2026-03-17 | Switch all Dataverse actions to "from selected environment" variants targeting the broker environment URL |
+| 1.0.0.2 | 2026-03-17 | Fix signer lookup binding: pass item as JSON object for WithOrganization compatibility |

@@ -83,13 +83,15 @@
             "parameters": {
               "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_signers",
-              "item/cs_fullname": "@triggerBody()?['text_1']",
-              "item/cs_email": "@triggerBody()?['text_2']",
-              "item/cs_name": "@triggerBody()?['text_1']",
-              "item/cs_signerorder": "@triggerBody()?['number']",
-              "item/cs_language": "en-US",
-              "item/cs_authenticationtype": "None",
-              "item/cs_envelopelookup@odata.bind": "/cs_envelopes(@{triggerBody()?['text']})"
+              "item": {
+                "cs_fullname": "@triggerBody()?['text_1']",
+                "cs_email": "@triggerBody()?['text_2']",
+                "cs_name": "@triggerBody()?['text_1']",
+                "cs_signerorder": "@triggerBody()?['number']",
+                "cs_language": "en-US",
+                "cs_authenticationtype": "None",
+                "cs_envelopelookup@odata.bind": "/cs_envelopes(@{triggerBody()?['text']})"
+              }
             },
             "authentication": "@parameters('$authentication')"
           },
