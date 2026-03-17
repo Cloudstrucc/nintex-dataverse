@@ -84,10 +84,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "CreateRecord",
+              "operationId": "CreateRecordWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_envelopes",
               "item/cs_subject": "@triggerBody()?['text']",
               "item/cs_name": "@triggerBody()?['text']",
@@ -107,10 +108,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "CreateRecord",
+              "operationId": "CreateRecordWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_signers",
               "item/cs_fullname": "@triggerBody()?['text_1']",
               "item/cs_email": "@triggerBody()?['text_2']",
@@ -133,10 +135,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "UpdateRecord",
+              "operationId": "UpdateRecordWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_envelopes",
               "recordId": "@outputs('Create_Envelope')?['body/cs_envelopeid']",
               "item/statuscode": 717640001

@@ -53,10 +53,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "GetItem",
+              "operationId": "GetItemWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_envelopes",
               "recordId": "@triggerBody()?['text']"
             },
@@ -70,10 +71,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "ListRecords",
+              "operationId": "ListRecordsWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_signers",
               "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
               "$orderby": "cs_signerorder asc"
@@ -92,10 +94,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "ListRecords",
+              "operationId": "ListRecordsWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_documents",
               "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
               "$orderby": "cs_documentorder asc"

@@ -17,8 +17,8 @@ Before installing this solution, you need:
 1. Go to **make.powerapps.com** > select your environment
 2. Navigate to **Solutions** > **Import solution**
 3. Upload either:
-   - `ESignatureClient_1_0_0_0_unmanaged.zip` — if you want to modify the sample flows
-   - `ESignatureClient_1_0_0_0_managed.zip` — for production use (locked, cannot be modified)
+   - `ESignatureClient_1_0_0_1_unmanaged.zip` — if you want to modify the sample flows
+   - `ESignatureClient_1_0_0_1_managed.zip` — for production use (locked, cannot be modified)
 4. Click **Next**
 
 ### Step 2: Configure the Connection Reference
@@ -205,3 +205,4 @@ Contact your broker administrator for:
 | Version | Date | Changes |
 |---|---|---|
 | 1.0.0.0 | 2026-03-17 | Initial release with 5 sample flows |
+| 1.0.0.1 | 2026-03-17 | Switch all Dataverse actions to "from selected environment" variants targeting the broker environment URL |

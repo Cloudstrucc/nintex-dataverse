@@ -75,10 +75,11 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "CreateRecord",
+              "operationId": "CreateRecordWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_envelopes",
               "item/cs_subject": "@triggerBody()?['text']",
               "item/cs_name": "@triggerBody()?['text']",
