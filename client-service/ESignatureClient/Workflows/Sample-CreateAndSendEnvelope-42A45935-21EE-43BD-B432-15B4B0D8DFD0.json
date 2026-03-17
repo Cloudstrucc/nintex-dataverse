@@ -1,0 +1,158 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_esignbrokerconnection"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Envelope Subject",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Subject line for the envelope",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "Signer Full Name",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Full name of the signer",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "Signer Email",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Email address of the signer",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_3": {
+                  "title": "Template ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Nintex AssureSign template ID",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_4": {
+                  "title": "Message",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Message to include with the envelope",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "text_3"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Create_Envelope": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "CreateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_envelopes",
+              "item/cs_subject": "@triggerBody()?['text']",
+              "item/cs_name": "@triggerBody()?['text']",
+              "item/cs_templateid": "@triggerBody()?['text_3']",
+              "item/cs_message": "@triggerBody()?['text_4']",
+              "item/cs_daystoexpire": 30,
+              "item/cs_reminderfrequency": 3,
+              "item/cs_processingmode": "Sequential",
+              "item/statuscode": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {}
+        },
+        "Create_Signer": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "CreateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_signers",
+              "item/cs_fullname": "@triggerBody()?['text_1']",
+              "item/cs_email": "@triggerBody()?['text_2']",
+              "item/cs_signerorder": 1,
+              "item/cs_name": "@triggerBody()?['text_1']",
+              "item/cs_language": "en-US",
+              "item/cs_authenticationtype": "None",
+              "item/cs_envelopelookup@odata.bind": "/cs_envelopes(@{outputs('Create_Envelope')?['body/cs_envelopeid']})"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Create_Envelope": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Set_Envelope_To_Preparing": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "UpdateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_envelopes",
+              "recordId": "@outputs('Create_Envelope')?['body/cs_envelopeid']",
+              "item/statuscode": 717640001
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Create_Signer": [
+              "Succeeded"
+            ]
+          },
+          "description": "Setting statuscode to 717640001 (Preparing) triggers the broker's Prepare Envelope flow. After preparation, the broker sets the status to Ready to Send (717640002), which triggers the Send Envelope flow automatically."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

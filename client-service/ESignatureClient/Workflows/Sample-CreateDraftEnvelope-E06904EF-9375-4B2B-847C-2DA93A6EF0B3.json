@@ -1,0 +1,102 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_esignbrokerconnection"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Envelope Subject",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Subject line for the envelope",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "Template ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Nintex AssureSign template ID",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "Message",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Optional message to include",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "number": {
+                  "title": "Days to Expire",
+                  "type": "number",
+                  "x-ms-dynamically-added": true,
+                  "description": "Number of days before envelope expires (default: 30)",
+                  "x-ms-content-hint": "NUMBER"
+                }
+              },
+              "required": [
+                "text",
+                "text_1"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Create_Draft_Envelope": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "CreateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_envelopes",
+              "item/cs_subject": "@triggerBody()?['text']",
+              "item/cs_name": "@triggerBody()?['text']",
+              "item/cs_templateid": "@triggerBody()?['text_1']",
+              "item/cs_message": "@triggerBody()?['text_2']",
+              "item/cs_daystoexpire": "@if(equals(triggerBody()?['number'], null), 30, triggerBody()?['number'])",
+              "item/cs_reminderfrequency": 3,
+              "item/cs_processingmode": "Sequential",
+              "item/statuscode": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {},
+          "description": "Creates an envelope in Draft status (statuscode=1). Add signers and documents before setting status to Preparing."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

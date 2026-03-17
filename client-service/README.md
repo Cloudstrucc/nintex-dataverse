@@ -1,414 +1,175 @@
-# ESign Elections Canada - Broker Service Solution
+# E-Signature Client Solution
 
-## 📦 Complete Broker Service Package
+Sample Power Automate flows for integrating with the E-Signature Broker Service. This solution connects to the broker's Dataverse environment to create, send, and manage e-signature envelopes via Nintex AssureSign.
 
-This package contains everything needed to deploy and operate a **multi-tenant digital signature broker service** using Microsoft Dataverse and Nintex AssureSign.
+## Prerequisites
 
-## 🎯 What This Is
+Before installing this solution, you need:
 
-A **middleware/broker service** that:
-- Sits between client agencies and Nintex AssureSign
-- Provides simple API/connector for clients
-- Handles approval workflows automatically
-- Manages Nintex API integration complexity
-- Provides audit trails and monitoring
-- Enables multi-agency support with row-level security
+1. **Broker environment URL** — provided by your broker administrator (e.g., `https://your-broker.crm3.dynamics.com`)
+2. **Application user credentials** — an Entra ID app registration (Client ID + Client Secret) with access to the broker environment, OR a regular Entra user account with the **E-Signature Broker User** security role assigned in the broker environment
+3. **Power Automate license** — in your own environment where you'll import this solution
 
-## 📁 Package Contents
+## Installation
 
-| File | For | Purpose |
-|------|-----|---------|
-| **ESignElectionsCanada-CustomConnector.swagger.json** | Clients | Custom connector definition for client agencies to import |
-| **CLIENT-INTEGRATION-GUIDE.md** | Clients | Complete guide for agencies consuming your service |
-| **BROKER-ADMIN-GUIDE.md** | You (Admin) | Setup, configuration, and management guide |
-| **README.md** | Everyone | This file |
+### Step 1: Import the Solution
 
-## 🏗️ Architecture
+1. Go to **make.powerapps.com** > select your environment
+2. Navigate to **Solutions** > **Import solution**
+3. Upload either:
+   - `ESignatureClient_1_0_0_0_unmanaged.zip` — if you want to modify the sample flows
+   - `ESignatureClient_1_0_0_0_managed.zip` — for production use (locked, cannot be modified)
+4. Click **Next**
 
-```
-┌──────────────────────────────────────────────────────┐
-│  CLIENT AGENCIES (Multiple Environments)            │
-│  ┌────────────────────────────────────────────────┐ │
-│  │ Power Automate Flows                          │ │
-│  │ Power Apps                                     │ │
-│  └───────────────┬────────────────────────────────┘ │
-│                  │                                   │
-│  ┌───────────────▼────────────────────────────────┐ │
-│  │ ESign Elections Canada Connector              │ │
-│  │ (Simple actions: Submit, GetStatus, etc.)     │ │
-│  └───────────────┬────────────────────────────────┘ │
-└──────────────────┼────────────────────────────────┬─┘
-                   │ OAuth 2.0                      │
-                   │ Service Principal              │
-┌──────────────────▼────────────────────────────────▼─┐
-│  YOUR BROKER ENVIRONMENT (Elections Dataverse)      │
-│                                                      │
-│  ┌────────────────────────────────────────────────┐ │
-│  │ Nintex Tables (cs_envelope, cs_signer, etc.)  │ │
-│  │ - Multi-tenant (row-level security)           │ │
-│  │ - Client isolation via application users      │ │
-│  └────────────────────────────────────────────────┘ │
-│                                                      │
-│  ┌────────────────────────────────────────────────┐ │
-│  │ Broker Power Automate Flows                   │ │
-│  │ 1. On Create → Submit to Nintex               │ │
-│  │ 2. Approval Workflow (if required)            │ │
-│  │ 3. Status Sync (scheduled)                    │ │
-│  │ 4. Notification Routing                       │ │
-│  └────────────────┬───────────────────────────────┘ │
-└────────────────────┼───────────────────────────────┬┘
-                     │ HTTPS/REST API                │
-┌────────────────────▼───────────────────────────────▼┐
-│  Nintex AssureSign API                              │
-│  - Envelope submission                              │
-│  - Status tracking                                  │
-│  - Document delivery                                │
-└─────────────────────────────────────────────────────┘
-```
+### Step 2: Configure the Connection Reference
 
-## ✨ Key Features
+During import, you'll be prompted to configure the **E-Sign Broker (Dataverse)** connection reference:
 
-### For Broker Admins (You)
+1. Click **New connection** next to "E-Sign Broker (Dataverse)"
+2. Select **Connect with Service Principal (App User)**
+3. Enter the credentials provided by your broker administrator:
+   - **Client ID** — the Application (client) ID of the Entra app registration
+   - **Client Secret** — the client secret value
+   - **Tenant ID** — your Entra tenant ID
+4. For the **Environment URL**, enter the broker environment URL (e.g., `https://your-broker.crm3.dynamics.com`)
+5. Click **Create**, then **Import**
 
-✅ **Multi-Tenant Support** - Host multiple agencies in one environment  
-✅ **Row-Level Security** - Each agency only sees their data  
-✅ **Centralized Management** - One Nintex integration for all  
-✅ **Approval Workflows** - Built-in approval routing  
-✅ **Usage Tracking** - Monitor and bill per agency  
-✅ **Comprehensive Logging** - Full audit trail  
+> **Important:** The connection must point to the **broker environment**, not your local environment. This is what allows the flows to read/write envelope data in the broker's Dataverse tables.
 
-### For Client Agencies
+### Step 3: Turn On the Flows
 
-✅ **Simple Integration** - Just import custom connector  
-✅ **No Nintex Expertise** - All complexity handled by broker  
-✅ **Fast Setup** - 15 minutes to first envelope  
-✅ **Flexible Workflows** - Build flows their way  
-✅ **Cost Effective** - Shared infrastructure  
+After import, go to **Solutions** > **E-Signature Client** > **Cloud flows** and turn on the flows you want to use.
 
-## 🚀 Quick Start (Admin)
+## Included Sample Flows
 
-### 1. Deploy Broker Environment (30 minutes)
+| Flow | Description | Inputs |
+|---|---|---|
+| **Sample - Create and Send Envelope** | Creates an envelope with one signer, then triggers the prepare/send lifecycle | Subject, Signer Name, Signer Email, Template ID, Message |
+| **Sample - Create Draft Envelope** | Creates an envelope in Draft status without sending | Subject, Template ID, Message, Days to Expire |
+| **Sample - Add Signer to Envelope** | Adds a signer to an existing draft envelope | Envelope ID, Signer Name, Signer Email, Signer Order |
+| **Sample - Check Envelope Status** | Retrieves envelope details, signers, and documents | Envelope ID |
+| **Sample - Cancel Envelope** | Cancels an in-process envelope | Envelope ID |
+
+## How It Works
+
+### Envelope Lifecycle
 
 ```
-1. Create new Dataverse environment
-   Name: ESign Broker - Production
-   Region: Canada
-   
-2. Deploy Nintex tables (you already have schema)
-   - cs_envelope
-   - cs_signer
-   - cs_document
-   - cs_template
-   - cs_apirequest
-   
-3. Create security role: "ESign Client Application"
-   Grant access to Nintex tables
-   
-4. Deploy broker flows (see BROKER-ADMIN-GUIDE.md)
-   - Envelope submission flow
-   - Approval workflow
-   - Status sync flow
+Your Environment                          Broker Environment
+─────────────────                         ──────────────────
+
+1. Create Envelope ──────────────────────> cs_envelope (Draft)
+   (statuscode = 1)
+
+2. Add Signers    ──────────────────────> cs_signer records
+
+3. Set Preparing  ──────────────────────> cs_envelope.statuscode = 717640001
+                                           │
+                                           ▼
+                                          Broker: Prepare Envelope flow
+                                           │ (calls Nintex API)
+                                           ▼
+                                          cs_envelope.statuscode = 717640002
+                                           │ (Ready to Send)
+                                           ▼
+                                          Broker: Send Envelope flow
+                                           │ (submits to Nintex)
+                                           ▼
+                                          cs_envelope.statuscode = 717640003
+                                           (In Process)
+
+4. Check Status   ──────────────────────> Read cs_envelope.statuscode
+
+                                          Broker: Status Sync (every 30 min)
+                                           │
+                                           ▼
+                                          cs_envelope.statuscode = 717640004
+                                           (Completed)
 ```
 
-### 2. Onboard First Agency (15 minutes)
+### Statuscode Reference
+
+| Value | Status | Description |
+|---|---|---|
+| 1 | Draft | Envelope created, not yet submitted |
+| 717640001 | Preparing | Broker is preparing the envelope with Nintex |
+| 717640002 | Ready to Send | Prepared, broker will auto-send |
+| 717640003 | In Process | Sent to signers, awaiting signatures |
+| 717640004 | Completed | All signers have signed |
+| 717640005 | Error | An error occurred during processing |
+| 717640006 | Cancelled | Envelope was cancelled |
+| 717640007 | Cancel Error | Cancellation failed |
+
+### Key Tables (in the Broker Environment)
+
+| Table | Logical Name | Purpose |
+|---|---|---|
+| Envelope | cs_envelopes | Main envelope record |
+| Signer | cs_signers | Signers attached to an envelope |
+| Document | cs_documents | Documents attached to an envelope |
+| Template | cs_templates | Available signing templates |
+| Access Link | cs_accesslinks | Signing/viewing URLs |
+| Envelope History | cs_envelopehistories | Audit trail of envelope events |
+
+### Linking Signers/Documents to Envelopes
+
+When creating a signer or document, link it to the envelope using the OData bind syntax:
 
 ```
-1. Create service principal in Azure AD
-   Name: ESign-[AgencyName]
-   
-2. Add as application user in broker environment
-   Security role: ESign Client Application
-   
-3. Send credentials to agency:
-   - Client ID
-   - Client Secret
-   - Broker URL
-   - Custom connector file
-   - CLIENT-INTEGRATION-GUIDE.md
-   
-4. Agency imports connector and starts using!
+cs_envelopelookup@odata.bind: /cs_envelopes(<envelope-id>)
 ```
 
-### 3. Monitor and Support
+## Building Your Own Flows
 
-```
-- Dashboard: Track usage per agency
-- Alerts: Failed submissions, pending approvals
-- Billing: Generate monthly invoices
-- Support: Handle tier 1/2 questions
-```
+These sample flows are starting points. To build your own integration:
 
-## 📋 Deployment Checklist
+1. **Use the connection reference** — all your flows should use the "E-Sign Broker (Dataverse)" connection reference included in this solution
+2. **Create envelopes in Draft first** — set `statuscode = 1`, add all signers and documents, then set `statuscode = 717640001` to trigger preparation
+3. **Poll for completion** — use a scheduled flow or the Check Status pattern to monitor envelope progress
+4. **Handle errors** — check for `statuscode = 717640005` (Error) and implement retry logic as needed
 
-### Broker Environment Setup
+### Common Patterns
 
-- [ ] Dataverse environment created
-- [ ] All Nintex tables deployed
-- [ ] Security roles configured
-- [ ] Web API enabled
-- [ ] Broker flows deployed and tested
-- [ ] Nintex API credentials configured
-- [ ] Monitoring dashboard created
+**Send envelope with multiple signers:**
+1. Create envelope (Draft)
+2. Create signer 1 (order=1)
+3. Create signer 2 (order=2)
+4. Update envelope statuscode to 717640001 (Preparing)
 
-### Client Onboarding (Per Agency)
+**Wait for completion:**
+1. Create a scheduled flow (e.g., every hour)
+2. List envelopes where `statuscode eq 717640003` (In Process)
+3. For each, check if status has changed to Completed/Error
 
-- [ ] Service principal created in Azure AD
-- [ ] Application user added to broker environment
-- [ ] Security role assigned
-- [ ] Test envelope submitted successfully
-- [ ] Custom connector file sent to client
-- [ ] Integration guide sent to client
-- [ ] Training session scheduled
-- [ ] Support contact established
+**Get signed documents:**
+1. Find documents for a completed envelope
+2. Set `cs_requestsignedcopy = true` on each document
+3. The broker will populate `cs_signedcontent` with the signed PDF (base64)
 
-## 🔐 Security & Compliance
+## Troubleshooting
 
-### Multi-Tenant Isolation
+### "Could not find table" error
+The connection is pointing to the wrong environment. Ensure the Dataverse connection targets the **broker environment URL**, not your local environment.
 
-**Row-Level Security:**
-- Each agency has unique application user
-- Owner-based security ensures data isolation
-- No cross-agency data access possible
+### "Insufficient privileges" error
+Your app user or Entra user doesn't have the **E-Signature Broker User** security role assigned in the broker environment. Contact your broker administrator.
 
-**Authentication:**
-- OAuth 2.0 with service principals
-- Azure AD integration
-- Token-based API access
+### Envelope stuck in "Preparing" status
+The broker's Prepare Envelope flow may have failed. Contact your broker administrator to check the flow run history.
 
-**Audit:**
-- All API calls logged to cs_apirequest
-- Complete audit trail maintained
-- Compliance-ready reports
+### Cannot turn on flows
+Ensure the connection reference is properly configured. Go to **Solutions** > **E-Signature Client** > **Connection References** > verify the connection is active.
 
-### Certifications
+## Support
 
-- ✅ **Protected B** (Government of Canada)
-- ✅ **SOC 2 Type II**
-- ✅ **ISO 27001**
-- ✅ **PIPEDA Compliant**
+Contact your broker administrator for:
+- App user credentials
+- Security role assignment
+- Troubleshooting broker-side issues
+- Template IDs and configuration
 
-## 💰 Business Model
+## Version History
 
-### Pricing Example
-
-**Per Agency:**
-- Base fee: $500/month
-- Per envelope: $2.50 (completed)
-- Bulk discount: >1000/month
-
-**Your Costs:**
-- Nintex license: $X/month
-- Dataverse environment: $Y/month
-- Your margin: $Z/month per agency
-
-**Break-even:** ~5 agencies
-
-## 📊 Monitoring & Analytics
-
-### Key Metrics to Track
-
-1. **Usage by Agency**
-   - Envelopes/month
-   - Completion rate
-   - Average time to complete
-
-2. **System Health**
-   - API success rate
-   - Flow run success rate
-   - Approval turnaround time
-
-3. **Financial**
-   - Revenue per agency
-   - Total envelope volume
-   - Nintex API usage vs limits
-
-### Recommended Dashboard
-
-Create Power BI dashboard with:
-- Real-time envelope status
-- Agency comparison charts
-- Monthly trends
-- Failed submission alerts
-
-## 🆘 Support Structure
-
-### Tier 1: Client Support
-**Email:** esign-support@Elections.com  
-**Handles:** Connector import, flow examples, usage questions  
-**SLA:** 4 business hours
-
-### Tier 2: Technical Support
-**Email:** esign-admin@Elections.com  
-**Handles:** API errors, authentication, data issues  
-**SLA:** 2 business hours
-
-### Tier 3: Engineering
-**Internal only**  
-**Handles:** System outages, security incidents  
-**SLA:** 1 hour (critical)
-
-## 📚 Documentation
-
-### For You (Admin)
-
-📖 **BROKER-ADMIN-GUIDE.md** - Complete setup and management guide
-- Environment setup
-- Client onboarding process
-- Flow deployment
-- Monitoring & troubleshooting
-- Billing & usage tracking
-
-### For Clients
-
-📖 **CLIENT-INTEGRATION-GUIDE.md** - End-to-end integration guide
-- Prerequisites
-- Connector import steps
-- Sample flows
-- Common patterns
-- Troubleshooting
-- FAQ
-
-### Additional Resources
-
-- Nintex API Documentation
-- Microsoft Dataverse Documentation
-- Power Automate Best Practices
-- OAuth 2.0 with Service Principals
-
-## 🔄 Version Control
-
-When updating the connector:
-
-1. **Test in Sandbox**
-   - Deploy changes to test environment
-   - Test with sample agency
-
-2. **Version the Swagger**
-   ```json
-   {
-     "info": {
-       "version": "1.1.0"
-     }
-   }
-   ```
-
-3. **Notify Clients** (2 weeks advance)
-   - Email all agencies
-   - Highlight breaking changes
-   - Provide upgrade guide
-
-4. **Maintain Backward Compatibility**
-   - Support old version for 90 days
-   - Gradual migration
-
-## 🎯 Success Metrics
-
-### Technical
-- ✅ 99.9% uptime
-- ✅ <2s average response time
-- ✅ >95% API success rate
-- ✅ <5% approval rejection rate
-
-### Business
-- ✅ 10+ agency clients in 6 months
-- ✅ 5,000+ envelopes/month
-- ✅ <1% support ticket rate
-- ✅ 90% client satisfaction
-
-### Operational
-- ✅ <1 hour MTTR (critical issues)
-- ✅ Monthly usage reports automated
-- ✅ Zero security incidents
-- ✅ 100% audit compliance
-
-## 🚦 Roadmap
-
-### Q1 2026 (Current)
-- ✅ Core broker service
-- ✅ Client custom connector
-- ✅ Basic approval workflow
-- ✅ Status synchronization
-
-### Q2 2026
-- 🔲 Webhook support (push notifications)
-- 🔲 Custom email templates
-- 🔲 Bulk submission API
-- 🔲 Advanced approval routing
-
-### Q3 2026
-- 🔲 Self-service portal for agencies
-- 🔲 Usage analytics dashboard
-- 🔲 Template builder
-- 🔲 Mobile app support
-
-### Q4 2026
-- 🔲 AI-powered document classification
-- 🔲 Multi-language support
-- 🔲 Integration marketplace
-- 🔲 White-label option
-
-## 🤝 Getting Started
-
-### As Broker Admin
-
-1. **Read:** BROKER-ADMIN-GUIDE.md
-2. **Deploy:** Your broker environment
-3. **Test:** Submit sample envelope
-4. **Onboard:** Your first agency
-5. **Monitor:** Dashboard and alerts
-6. **Support:** Respond to tickets
-
-### As Client Agency
-
-1. **Request:** Service principal from Elections
-2. **Import:** Custom connector
-3. **Read:** CLIENT-INTEGRATION-GUIDE.md
-4. **Build:** Your first flow
-5. **Test:** Sample envelope
-6. **Deploy:** Production flows
-
-## 📞 Contact
-
-**For Broker Service Inquiries:**  
-Email: esign-admin@Elections.com  
-Phone: 1-800-XXX-XXXX
-
-**For Technical Support:**  
-Email: esign-support@Elections.com  
-Portal: support.Elections-esign.com
-
-**For Sales:**  
-Email: esign-sales@Elections.com
-
----
-
-## ⭐ Benefits Recap
-
-### Why Build a Broker Service?
-
-**For Elections:**
-- 💰 Recurring revenue from multiple agencies
-- 🎯 Centralized Nintex license management
-- 📈 Scalable multi-tenant architecture
-- 🏢 Strategic service offering
-
-**For Client Agencies:**
-- ⚡ Fast implementation (days vs months)
-- 💵 Lower cost (shared infrastructure)
-- 🔧 No technical expertise required
-- 📊 Enterprise-grade solution
-
-**For Elections Canada Ecosystem:**
-- 🤝 Standardized digital signature process
-- 🔒 Consistent security and compliance
-- 📋 Centralized audit capability
-- 🚀 Innovation enablement
-
----
-
-**Ready to launch your broker service? Start with BROKER-ADMIN-GUIDE.md!**
-
-**Built by Elections Canada**  
-**Powered by Nintex AssureSign**  
-**Secured by Microsoft Dataverse**  
-**Designed for Scale**
+| Version | Date | Changes |
+|---|---|---|
+| 1.0.0.0 | 2026-03-17 | Initial release with 5 sample flows |

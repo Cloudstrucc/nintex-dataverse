@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.2.26024.151" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26024.151" OrganizationSchemaType="Full" CRMServerServiceabilityVersion="9.2.26024.00151">
+  <SolutionManifest>
+    <UniqueName>ESignatureClient</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="E-Signature Client" languagecode="1033" />
+      <LocalizedName description="Client de signature electronique" languagecode="1036" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Sample Power Automate flows for integrating with the E-Signature Broker Service" languagecode="1033" />
+      <Description description="Exemples de flux Power Automate pour l'integration avec le service de courtage de signature electronique" languagecode="1036" />
+    </Descriptions>
+    <Version>1.0.0.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>cs</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="cs" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress></EMailAddress>
+      <SupportingWebsiteUrl></SupportingWebsiteUrl>
+      <CustomizationPrefix>cs</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>71764</CustomizationOptionValuePrefix>
+      <Addresses />
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="29" id="{42a45935-21ee-43bd-b432-15b4b0d8dfd0}" behavior="0" />
+      <RootComponent type="29" id="{e06904ef-9375-4b2b-847c-2da93a6ef0b3}" behavior="0" />
+      <RootComponent type="29" id="{ca34ac9e-1294-407b-963d-a30ab1c2153c}" behavior="0" />
+      <RootComponent type="29" id="{9b9d08bd-aff1-40f0-bda6-4a946ece7464}" behavior="0" />
+      <RootComponent type="29" id="{f6af47c2-5f12-4792-8be9-5aad1d2d0882}" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>

@@ -1,0 +1,103 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_esignbrokerconnection"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Envelope ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "The cs_envelopeid of the target envelope",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "Signer Full Name",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Full name of the signer",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "Signer Email",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Email address of the signer",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "number": {
+                  "title": "Signer Order",
+                  "type": "number",
+                  "x-ms-dynamically-added": true,
+                  "description": "Signing order (1, 2, 3...)",
+                  "x-ms-content-hint": "NUMBER"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "number"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Create_Signer": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "CreateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_signers",
+              "item/cs_fullname": "@triggerBody()?['text_1']",
+              "item/cs_email": "@triggerBody()?['text_2']",
+              "item/cs_name": "@triggerBody()?['text_1']",
+              "item/cs_signerorder": "@triggerBody()?['number']",
+              "item/cs_language": "en-US",
+              "item/cs_authenticationtype": "None",
+              "item/cs_envelopelookup@odata.bind": "/cs_envelopes(@{triggerBody()?['text']})"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {},
+          "description": "Creates a signer record linked to the specified envelope. Add all signers before setting the envelope status to Preparing."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
