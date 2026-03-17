@@ -54,37 +54,69 @@ After import, go to **Solutions** > **E-Signature Client** > **Cloud flows** and
 
 ### Envelope Lifecycle
 
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "Draft (1)" as Draft
+    state "Preparing (717640001)" as Preparing
+    state "Ready to Send (717640002)" as ReadyToSend
+    state "In Process (717640003)" as InProcess
+    state "Completed (717640004)" as Completed
+    state "Error (717640005)" as Error
+    state "Cancelled (717640006)" as Cancelled
+    state "Cancel Error (717640007)" as CancelError
+
+    [*] --> Draft : Client creates envelope,\n signers & documents
+
+    Draft --> Preparing : Client sets statuscode\n to 717640001
+
+    Preparing --> ReadyToSend : Broker: Prepare Envelope\n (calls Nintex API)
+    Preparing --> Error : Preparation failed
+
+    ReadyToSend --> InProcess : Broker: Send Envelope\n (submits to Nintex)
+    ReadyToSend --> Error : Send failed
+
+    InProcess --> Completed : Broker: Status Sync\n (all signers signed)
+    InProcess --> Cancelled : Client sets cs_iscancelled\n → Broker cancels via API
+    InProcess --> CancelError : Cancellation failed
+    InProcess --> Error : Processing error
+
+    Completed --> [*]
+    Cancelled --> [*]
+    Error --> Draft : Client retries
 ```
-Your Environment                          Broker Environment
-─────────────────                         ──────────────────
 
-1. Create Envelope ──────────────────────> cs_envelope (Draft)
-   (statuscode = 1)
+```mermaid
+sequenceDiagram
+    participant Client as Client Environment
+    participant Broker as Broker Dataverse
+    participant Flows as Broker Flows
+    participant Nintex as Nintex AssureSign API
 
-2. Add Signers    ──────────────────────> cs_signer records
+    Client->>Broker: Create cs_envelope (Draft)
+    Client->>Broker: Create cs_signer(s)
+    Client->>Broker: Create cs_document(s)
+    Client->>Broker: Update statuscode → 717640001 (Preparing)
 
-3. Set Preparing  ──────────────────────> cs_envelope.statuscode = 717640001
-                                           │
-                                           ▼
-                                          Broker: Prepare Envelope flow
-                                           │ (calls Nintex API)
-                                           ▼
-                                          cs_envelope.statuscode = 717640002
-                                           │ (Ready to Send)
-                                           ▼
-                                          Broker: Send Envelope flow
-                                           │ (submits to Nintex)
-                                           ▼
-                                          cs_envelope.statuscode = 717640003
-                                           (In Process)
+    Broker-->>Flows: Trigger: Prepare Envelope
+    Flows->>Nintex: POST /submit/prepare
+    Nintex-->>Flows: preparedEnvelopeID
+    Flows->>Broker: Update statuscode → 717640002 (Ready to Send)
 
-4. Check Status   ──────────────────────> Read cs_envelope.statuscode
+    Broker-->>Flows: Trigger: Send Envelope
+    Flows->>Nintex: POST /submit
+    Nintex-->>Flows: envelopeID
+    Flows->>Broker: Update statuscode → 717640003 (In Process)
 
-                                          Broker: Status Sync (every 30 min)
-                                           │
-                                           ▼
-                                          cs_envelope.statuscode = 717640004
-                                           (Completed)
+    loop Every 30 minutes
+        Flows->>Nintex: GET /envelopes/{id}/status
+        Nintex-->>Flows: status (Completed / InProcess)
+        Flows->>Broker: Update statuscode if changed
+    end
+
+    Client->>Broker: GET cs_envelope (check status)
+    Broker-->>Client: statuscode = 717640004 (Completed)
 ```
 
 ### Statuscode Reference
