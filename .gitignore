@@ -417,3 +417,10 @@ FodyWeavers.xsd
 *.msm
 *.msp
 *config.json
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code
+.claude/settings.local.json
