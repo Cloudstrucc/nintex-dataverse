@@ -90,7 +90,7 @@
                 "cs_signerorder": "@triggerBody()?['number']",
                 "cs_language": "en-US",
                 "cs_authenticationtype": "None",
-                "cs_envelopelookup@odata.bind": "/cs_envelopes(@{triggerBody()?['text']})"
+                "cs_EnvelopeLookup@odata.bind": "/cs_envelopes(@{triggerBody()?['text']})"
               }
             },
             "authentication": "@parameters('$authentication')"

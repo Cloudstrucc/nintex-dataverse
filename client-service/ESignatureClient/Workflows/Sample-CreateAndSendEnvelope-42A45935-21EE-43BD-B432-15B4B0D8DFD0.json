@@ -121,7 +121,7 @@
                 "cs_name": "@triggerBody()?['text_1']",
                 "cs_language": "en-US",
                 "cs_authenticationtype": "None",
-                "cs_envelopelookup@odata.bind": "/cs_envelopes(@{outputs('Create_Envelope')?['body/cs_envelopeid']})"
+                "cs_EnvelopeLookup@odata.bind": "/cs_envelopes(@{outputs('Create_Envelope')?['body/cs_envelopeid']})"
               }
             },
             "authentication": "@parameters('$authentication')"
