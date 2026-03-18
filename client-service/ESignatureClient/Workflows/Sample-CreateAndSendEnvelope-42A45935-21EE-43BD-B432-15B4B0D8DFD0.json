@@ -96,8 +96,7 @@
               "item/cs_message": "@triggerBody()?['text_4']",
               "item/cs_daystoexpire": 30,
               "item/cs_reminderfrequency": 3,
-              "item/cs_processingmode": "Sequential",
-              "item/statuscode": 1
+              "item/cs_processingmode": "Sequential"
             },
             "authentication": "@parameters('$authentication')"
           },

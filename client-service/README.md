@@ -17,8 +17,8 @@ Before installing this solution, you need:
 1. Go to **make.powerapps.com** > select your environment
 2. Navigate to **Solutions** > **Import solution**
 3. Upload either:
-   - `ESignatureClient_1_0_0_4_unmanaged.zip` — if you want to modify the sample flows
-   - `ESignatureClient_1_0_0_4_managed.zip` — for production use (locked, cannot be modified)
+   - `ESignatureClient_1_0_0_5_unmanaged.zip` — if you want to modify the sample flows
+   - `ESignatureClient_1_0_0_5_managed.zip` — for production use (locked, cannot be modified)
 4. Click **Next**
 
 ### Step 2: Configure the Connection Reference
@@ -216,3 +216,4 @@ Contact your broker administrator for:
 | 1.0.0.1 | 2026-03-17 | Switch all Dataverse actions to "from selected environment" variants targeting the broker environment URL |
 | 1.0.0.2 | 2026-03-17 | Fix signer lookup binding: pass item as JSON object for WithOrganization compatibility |
 | 1.0.0.4 | 2026-03-17 | Fix navigation property name: use cs_EnvelopeLookup (schema name) for cross-environment @odata.bind |
+| 1.0.0.5 | 2026-03-18 | Remove explicit statuscode from create actions; let Dataverse state machine handle defaults |
