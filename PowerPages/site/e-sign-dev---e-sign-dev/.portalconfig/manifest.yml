@@ -1,1 +1,13 @@
-{}
+annotation:
+- RecordId: 3020826d-3b1c-f111-8342-7ced8da58400
+  DisplayName: portalbasictheme.css
+  CheckSum: 
+  IsDeleted: true
+- RecordId: d38f686c-3b1c-f111-8342-7ced8da586db
+  DisplayName: bootstrap.min.css
+  CheckSum: 
+  IsDeleted: true
+- RecordId: ff0bed6b-3b1c-f111-8342-7ced8da5deab
+  DisplayName: theme.css
+  CheckSum: 
+  IsDeleted: true

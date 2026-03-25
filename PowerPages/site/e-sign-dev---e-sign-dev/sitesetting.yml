@@ -21,20 +21,28 @@
   adx_name: Authentication/Registration/LocalLoginDeprecated
   adx_sitesettingid: 13a15e8f-a065-4bda-a54e-42c3effcd97b
   adx_value: false
+- adx_name: Webapi/cs_templates/enabled
+  adx_sitesettingid: 15d3b4b3-a785-4e76-a780-45d6e2ec168c
+  adx_value: true
 - adx_name: Authentication/OpenAuth/Microsoft/ClientSecret
   adx_sitesettingid: 1a3cf81b-6bd6-410c-85ff-5412680a0b0e
 - adx_description: Specifies the default value for the SameSite attribute on HTTP cookies set by the portal.
   adx_name: HTTP/SameSite/Default
   adx_sitesettingid: 1a781f5b-eae7-47c6-891b-0e8c5a54cd37
   adx_value: Lax
-- adx_name: Authentication/Registration/LoginButtonAuthenticationType
+- adx_filecontent: 
+  adx_name: Authentication/Registration/LoginButtonAuthenticationType
   adx_sitesettingid: 1d612118-666b-48be-b3dd-62bc0a58e517
+  adx_value: https://login.windows.net/24a46daa-7b87-4566-9eea-281326a1b75c/
 - adx_name: Authentication/OpenAuth/LinkedIn/ConsumerKey
   adx_sitesettingid: 1f541d04-f698-45d0-a13f-2e37308af944
 - adx_description: Setting controls whether attachments will be displayed on Knowledge articles
   adx_name: KnowledgeManagement/DisplayNotes
   adx_sitesettingid: 2628429f-c894-4aaa-bc32-5cbaffedb0df
   adx_value: false
+- adx_name: Webapi/cs_envelopes/enabled
+  adx_sitesettingid: 26af12ff-7392-4639-a848-681b768ca584
+  adx_value: true
 - adx_description: Site setting that controls the depth of the webpage hierarchy that’s cloned in a newly-added supported language. Web link sets and content snippets are cloned in the newly-added language when webpages are cloned.
   adx_name: MultiLanguage/MaximumDepthToClone
   adx_sitesettingid: 304b9df7-ad9d-4599-910b-47189f7b1af9
@@ -46,22 +54,35 @@
 - adx_description: Site setting that determines if the language code is included in the portal URL.
   adx_name: MultiLanguage/DisplayLanguageCodeInURL
   adx_sitesettingid: 31fc5053-d292-41af-94d0-0865c6c96af2
-  adx_value: false
+  adx_value: True
 - adx_name: Profile/ShowMarketingOptionsPanel
   adx_sitesettingid: 34bd7618-7c10-428e-b178-30e9eb5a522b
   adx_value: true
 - adx_name: Authentication/Registration/InvitationEnabled
   adx_sitesettingid: 445f366c-e90b-4f18-8733-124045f03c88
   adx_value: true
-- adx_description: 'A collection of search logical name filter options. Defining a value here will add dropdown filter options to site-wide search.
+- adx_description: >-
+    A collection of search logical name filter options. Defining a value here will add dropdown filter options to site-wide search.
 
 
-    This value should be in the form of name/value pairs, with name and value separated by a colon, and pairs separated by a semicolon. For example: "Forums:adx_communityforum,adx_communityforumthread,adx_communityforumpost;Blogs:adx_blog,adx_blogpost,adx_blogpostcomment".'
+    This value should be in the form of name/value pairs, with name and value separated by a colon, and pairs separated by a semicolon. For example: "Forums:adx_communityforum,adx_communityforumthread,adx_communityforumpost;Blogs:adx_blog,adx_blogpost,adx_blogpostcomment".
   adx_name: search/filters
   adx_sitesettingid: 4585b0f8-6915-4cd5-90c4-7fa954493a26
   adx_value: ''
 - adx_name: Authentication/OpenAuth/Facebook/AppId
   adx_sitesettingid: 4a7db46b-4f8b-4c83-8683-74b90e8a4c21
+- adx_name: Webapi/error/innererror
+  adx_sitesettingid: 4e47a9aa-e7c1-4e24-91db-b60cdd3b4fb3
+  adx_value: true
+- adx_name: Webapi/cs_signers/enabled
+  adx_sitesettingid: 4f1a9933-3916-4264-b331-e44b7b412fe1
+  adx_value: true
+- adx_name: Webapi/cs_envelopes/fields
+  adx_sitesettingid: 57127edb-db77-4935-a3ff-e210e1fa679f
+  adx_value: '*'
+- adx_name: Webapi/cs_documents/fields
+  adx_sitesettingid: 5938bae2-adde-466b-855b-5dee77de7c82
+  adx_value: '*'
 - adx_name: Header/ShowAllProfileNavigationLinks
   adx_sitesettingid: 5cc44f71-5a86-4735-8955-cc18c391a107
   adx_value: false
@@ -95,6 +116,9 @@
 - adx_name: Authentication/Registration/OpenRegistrationEnabled
   adx_sitesettingid: 89b6b458-7b1d-48de-a36e-e1e009156048
   adx_value: true
+- adx_name: Forums/Enabled
+  adx_sitesettingid: 8a2b3c4d-5e6f-7a8b-9c0d-e1f2a3b4c5d6
+  adx_value: false
 - adx_description: Enabling this setting will show all customer activity on the portal timeline.
   adx_name: CustomerSupport/DisplayAllUserActivitiesOnTimeline
   adx_sitesettingid: 8c979d77-01d8-45a0-9cc9-b1e79d0e413a
@@ -107,6 +131,9 @@
   adx_sitesettingid: 94ea8b3b-9689-43c1-a000-00b3de52145f
 - adx_name: Site/BootstrapV5Enabled
   adx_sitesettingid: 97548fb1-5006-46b3-95d0-9a832ae86a85
+  adx_value: true
+- adx_name: Webapi/cs_documents/enabled
+  adx_sitesettingid: 9c60d8d9-7ad4-4812-a2ca-93532edefb55
   adx_value: true
 - adx_name: OnlineDomains
   adx_sitesettingid: a16c1d23-b5f8-470c-9a61-1742a56cd296
@@ -157,43 +184,19 @@
   adx_name: Authentication/Registration/ProfileRedirectEnabled
   adx_sitesettingid: d024eb22-7983-40e9-8910-e529555bed7d
   adx_value: true
+- adx_name: Webapi/cs_signers/fields
+  adx_sitesettingid: d5ad8d76-8d9c-4280-ad1d-15d4d640deba
+  adx_value: '*'
 - adx_description: Set whether the footer web template is output cached.
   adx_name: Footer/OutputCache/Enabled
   adx_sitesettingid: dd7f2106-b704-4079-934a-c82439a8b596
   adx_value: true
+- adx_name: Webapi/cs_templates/fields
+  adx_sitesettingid: ead79853-80f8-4bc2-b534-2e7a0d43cdb7
+  adx_value: '*'
 - adx_name: Profile/ForceSignUp
   adx_sitesettingid: ebe80db4-b42e-4eaf-b978-de254730b5c5
   adx_value: false
 - adx_name: Search/IndexNotesAttachments
   adx_sitesettingid: ee795644-672c-4f73-b9dd-435bcfaa0ac2
   adx_value: false
-- adx_name: Webapi/cs_envelopes/enabled
-  adx_sitesettingid: 26af12ff-7392-4639-a848-681b768ca584
-  adx_value: 'true'
-- adx_name: Webapi/cs_envelopes/fields
-  adx_sitesettingid: 57127edb-db77-4935-a3ff-e210e1fa679f
-  adx_value: '*'
-- adx_name: Webapi/cs_signers/enabled
-  adx_sitesettingid: 4f1a9933-3916-4264-b331-e44b7b412fe1
-  adx_value: 'true'
-- adx_name: Webapi/cs_signers/fields
-  adx_sitesettingid: d5ad8d76-8d9c-4280-ad1d-15d4d640deba
-  adx_value: '*'
-- adx_name: Webapi/cs_documents/enabled
-  adx_sitesettingid: 9c60d8d9-7ad4-4812-a2ca-93532edefb55
-  adx_value: 'true'
-- adx_name: Webapi/cs_documents/fields
-  adx_sitesettingid: 5938bae2-adde-466b-855b-5dee77de7c82
-  adx_value: '*'
-- adx_name: Webapi/cs_templates/enabled
-  adx_sitesettingid: 15d3b4b3-a785-4e76-a780-45d6e2ec168c
-  adx_value: 'true'
-- adx_name: Webapi/cs_templates/fields
-  adx_sitesettingid: ead79853-80f8-4bc2-b534-2e7a0d43cdb7
-  adx_value: '*'
-- adx_name: Webapi/error/innererror
-  adx_sitesettingid: 4e47a9aa-e7c1-4e24-91db-b60cdd3b4fb3
-  adx_value: 'true'
-- adx_name: Forums/Enabled
-  adx_sitesettingid: 8a2b3c4d-5e6f-7a8b-9c0d-e1f2a3b4c5d6
-  adx_value: 'false'
