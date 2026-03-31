@@ -153,9 +153,7 @@
               "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
               "entityName": "cs_envelopes",
               "recordId": "@outputs('Create_Envelope')?['body/cs_envelopeid']",
-              "item": {
-                "statuscode": 717640001
-              }
+              "item/statuscode": 717640001
             },
             "authentication": "@parameters('$authentication')"
           },
