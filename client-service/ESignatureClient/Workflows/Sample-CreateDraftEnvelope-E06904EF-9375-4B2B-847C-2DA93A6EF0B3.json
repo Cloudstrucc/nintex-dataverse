@@ -75,24 +75,30 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "CreateRecordWithOrganization",
+              "operationId": "httpRequest",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "organization": "https://goc-wetv14.crm3.dynamics.com",
-              "entityName": "cs_envelopes",
-              "item/cs_subject": "@triggerBody()?['text']",
-              "item/cs_name": "@triggerBody()?['text']",
-              "item/cs_templateid": "@triggerBody()?['text_1']",
-              "item/cs_message": "@triggerBody()?['text_2']",
-              "item/cs_daystoexpire": "@if(equals(triggerBody()?['number'], null), 30, triggerBody()?['number'])",
-              "item/cs_reminderfrequency": 3,
-              "item/cs_processingmode": "Sequential"
+              "url": "cs_envelopes",
+              "method": "POST",
+              "body": {
+                "cs_subject": "@triggerBody()?['text']",
+                "cs_name": "@triggerBody()?['text']",
+                "cs_templateid": "@triggerBody()?['text_1']",
+                "cs_message": "@triggerBody()?['text_2']",
+                "cs_daystoexpire": "@if(equals(triggerBody()?['number'], null), 30, triggerBody()?['number'])",
+                "cs_reminderfrequency": 3,
+                "cs_processingmode": "Sequential"
+              },
+              "headers": {
+                "Prefer": "return=representation",
+                "Content-Type": "application/json; charset=utf-8"
+              }
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {},
-          "description": "Creates an envelope in Draft status (statuscode=1). Add signers and documents before setting status to Preparing."
+          "description": "POST to cs_envelopes on the broker environment. Creates an envelope in Draft status (statuscode=1). Add signers and documents before setting status to Preparing (717640001)."
         }
       }
     },
