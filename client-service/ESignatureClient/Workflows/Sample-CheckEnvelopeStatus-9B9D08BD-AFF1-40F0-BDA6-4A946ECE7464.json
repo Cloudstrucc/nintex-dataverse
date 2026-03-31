@@ -53,32 +53,32 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "httpRequest",
+              "operationId": "GetItemWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "/api/data/v9.2/cs_envelopes(@{triggerBody()?['text']})",
-              "method": "GET",
-              "headers": {
-                "Prefer": "return=representation"
-              }
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']"
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {},
-          "description": "GET cs_envelopes(id) from the broker environment. Check body.statuscode: 1=Draft, 717640001=Preparing, 717640002=Ready to Send, 717640003=In Process, 717640004=Completed, 717640005=Error, 717640006=Cancelled"
+          "description": "Retrieves the envelope record. Check outputs for statuscode: 1=Draft, 717640001=Preparing, 717640002=Ready to Send, 717640003=In Process, 717640004=Completed, 717640005=Error, 717640006=Cancelled"
         },
         "List_Signers": {
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "httpRequest",
+              "operationId": "ListRecordsWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "/api/data/v9.2/cs_signers?$filter=_cs_envelopelookup_value eq @{triggerBody()?['text']}&$orderby=cs_signerorder asc",
-              "method": "GET"
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_signers",
+              "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
+              "$orderby": "cs_signerorder asc"
             },
             "authentication": "@parameters('$authentication')"
           },
@@ -87,19 +87,21 @@
               "Succeeded"
             ]
           },
-          "description": "GET cs_signers filtered by envelope lookup. Lists all signers for this envelope with their current status."
+          "description": "Lists all signers for this envelope with their current status."
         },
         "List_Documents": {
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "httpRequest",
+              "operationId": "ListRecordsWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "/api/data/v9.2/cs_documents?$filter=_cs_envelopelookup_value eq @{triggerBody()?['text']}&$orderby=cs_documentorder asc",
-              "method": "GET"
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_documents",
+              "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
+              "$orderby": "cs_documentorder asc"
             },
             "authentication": "@parameters('$authentication')"
           },
@@ -108,7 +110,7 @@
               "Succeeded"
             ]
           },
-          "description": "GET cs_documents filtered by envelope lookup. Lists all documents attached to this envelope."
+          "description": "Lists all documents attached to this envelope."
         }
       }
     },

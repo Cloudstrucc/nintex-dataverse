@@ -53,17 +53,17 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "httpRequest",
+              "operationId": "GetItemWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "/api/data/v9.2/cs_envelopes(@{triggerBody()?['text']})?$select=statuscode",
-              "method": "GET"
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']"
             },
             "authentication": "@parameters('$authentication')"
           },
-          "runAfter": {},
-          "description": "GET cs_envelopes(id) from the broker environment to check the current statuscode."
+          "runAfter": {}
         },
         "Check_If_Cancellable": {
           "type": "If",
@@ -71,7 +71,7 @@
             "and": [
               {
                 "equals": [
-                  "@outputs('Get_Envelope_Status')?['body']['statuscode']",
+                  "@outputs('Get_Envelope_Status')?['body/statuscode']",
                   717640003
                 ]
               }
@@ -83,23 +83,19 @@
               "inputs": {
                 "host": {
                   "connectionName": "shared_commondataserviceforapps",
-                  "operationId": "httpRequest",
+                  "operationId": "UpdateRecordWithOrganization",
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
                 },
                 "parameters": {
-                  "url": "/api/data/v9.2/cs_envelopes(@{triggerBody()?['text']})",
-                  "method": "PATCH",
-                  "body": {
-                    "cs_iscancelled": true
-                  },
-                  "headers": {
-                    "Content-Type": "application/json; charset=utf-8"
-                  }
+                  "organization": "https://goc-wetv14.crm3.dynamics.com",
+                  "entityName": "cs_envelopes",
+                  "recordId": "@triggerBody()?['text']",
+                  "item/cs_iscancelled": true
                 },
                 "authentication": "@parameters('$authentication')"
               },
               "runAfter": {},
-              "description": "PATCH cs_iscancelled to true on the broker environment. This triggers the broker's Cancel Envelope flow, which cancels via the Nintex API and sets statuscode to 717640006 (Cancelled)."
+              "description": "Setting cs_iscancelled to true triggers the broker's Cancel Envelope flow, which cancels via the Nintex API and sets statuscode to 717640006 (Cancelled)."
             }
           },
           "else": {

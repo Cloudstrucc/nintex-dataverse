@@ -77,13 +77,13 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "httpRequest",
+              "operationId": "CreateRecordWithOrganization",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "/api/data/v9.2/cs_signers",
-              "method": "POST",
-              "body": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_signers",
+              "item": {
                 "cs_fullname": "@triggerBody()?['text_1']",
                 "cs_email": "@triggerBody()?['text_2']",
                 "cs_name": "@triggerBody()?['text_1']",
@@ -91,15 +91,12 @@
                 "cs_language": "en-US",
                 "cs_authenticationtype": "None",
                 "cs_EnvelopeLookup@odata.bind": "/cs_envelopes(@{triggerBody()?['text']})"
-              },
-              "headers": {
-                "Content-Type": "application/json; charset=utf-8"
               }
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {},
-          "description": "POST to cs_signers on the broker environment. Creates a signer record linked to the specified envelope via OData bind. Add all signers before setting the envelope status to Preparing (717640001)."
+          "description": "Creates a signer record linked to the specified envelope. Add all signers before setting the envelope status to Preparing."
         }
       }
     },
