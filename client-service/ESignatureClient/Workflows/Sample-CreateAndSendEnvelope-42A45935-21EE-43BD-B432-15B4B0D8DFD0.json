@@ -90,13 +90,15 @@
             "parameters": {
               "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_envelopes",
-              "item/cs_subject": "@triggerBody()?['text']",
-              "item/cs_name": "@triggerBody()?['text']",
-              "item/cs_templateid": "@triggerBody()?['text_3']",
-              "item/cs_message": "@triggerBody()?['text_4']",
-              "item/cs_daystoexpire": 30,
-              "item/cs_reminderfrequency": 3,
-              "item/cs_processingmode": "Sequential"
+              "item": {
+                "cs_subject": "@triggerBody()?['text']",
+                "cs_name": "@triggerBody()?['text']",
+                "cs_templateid": "@triggerBody()?['text_3']",
+                "cs_message": "@triggerBody()?['text_4']",
+                "cs_daystoexpire": 30,
+                "cs_reminderfrequency": 3,
+                "cs_processingmode": "Sequential"
+              }
             },
             "authentication": "@parameters('$authentication')"
           },
@@ -113,13 +115,15 @@
             "parameters": {
               "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_signers",
-              "item/cs_fullname": "@triggerBody()?['text_1']",
-              "item/cs_email": "@triggerBody()?['text_2']",
-              "item/cs_signerorder": 1,
-              "item/cs_name": "@triggerBody()?['text_1']",
-              "item/cs_language": "en-US",
-              "item/cs_authenticationtype": "None",
-              "item/_cs_envelopelookup_value": "@outputs('Create_Envelope')?['body/cs_envelopeid']"
+              "item": {
+                "cs_fullname": "@triggerBody()?['text_1']",
+                "cs_email": "@triggerBody()?['text_2']",
+                "cs_signerorder": 1,
+                "cs_name": "@triggerBody()?['text_1']",
+                "cs_language": "en-US",
+                "cs_authenticationtype": "None",
+                "cs_EnvelopeLookup@odata.bind": "/cs_envelopes(@{outputs('Create_Envelope')?['body/cs_envelopeid']})"
+              }
             },
             "authentication": "@parameters('$authentication')"
           },
@@ -141,7 +145,9 @@
               "organization": "https://goc-wetv14.crm3.dynamics.com",
               "entityName": "cs_envelopes",
               "recordId": "@outputs('Create_Envelope')?['body/cs_envelopeid']",
-              "item/statuscode": 717640001
+              "item": {
+                "statuscode": 717640001
+              }
             },
             "authentication": "@parameters('$authentication')"
           },
