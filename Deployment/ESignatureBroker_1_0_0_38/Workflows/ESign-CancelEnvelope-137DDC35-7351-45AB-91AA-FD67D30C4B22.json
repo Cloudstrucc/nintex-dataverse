@@ -103,7 +103,14 @@
             "headers": {
               "Authorization": "@{variables('BearerToken')}",
               "X-AS-UserContext": "@{variables('UserContext')}",
-              "accept": "application/json"
+              "accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "request": {
+                "authToken": "@{outputs('Get_Envelope_Record')?['body/cs_requestbody']}",
+                "remarks": "Cancelled by broker service"
+              }
             }
           },
           "runAfter": {

@@ -99,7 +99,7 @@
           "type": "Http",
           "inputs": {
             "method": "GET",
-            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{outputs('Get_Envelope_Record')?['body/cs_envelopeid']}/signingLinks",
+            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelope/@{outputs('Get_Envelope_Record')?['body/cs_envelopeid']}/signingLinks",
             "headers": {
               "Authorization": "@{variables('BearerToken')}",
               "X-AS-UserContext": "@{variables('UserContext')}",

@@ -119,20 +119,16 @@
             ]
           }
         },
-        "List_Documents": {
-          "type": "OpenApiConnection",
+        "Initialize_ValuesArray": {
+          "type": "InitializeVariable",
           "inputs": {
-            "host": {
-              "connectionName": "shared_commondataserviceforapps",
-              "operationId": "ListRecords",
-              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
-            },
-            "parameters": {
-              "entityName": "cs_documents",
-              "$filter": "_cs_envelopelookup_value eq @{triggerOutputs()?['body/cs_envelopeid']}",
-              "$orderby": "cs_documentorder asc"
-            },
-            "authentication": "@parameters('$authentication')"
+            "variables": [
+              {
+                "name": "ValuesArray",
+                "type": "array",
+                "value": []
+              }
+            ]
           },
           "runAfter": {
             "List_Signers": [
@@ -140,93 +136,48 @@
             ]
           }
         },
-        "Initialize_SignersArray": {
-          "type": "InitializeVariable",
-          "inputs": {
-            "variables": [
-              {
-                "name": "SignersArray",
-                "type": "array",
-                "value": []
-              }
-            ]
-          },
-          "runAfter": {
-            "List_Documents": [
-              "Succeeded"
-            ]
-          }
-        },
-        "Initialize_DocumentsArray": {
-          "type": "InitializeVariable",
-          "inputs": {
-            "variables": [
-              {
-                "name": "DocumentsArray",
-                "type": "array",
-                "value": []
-              }
-            ]
-          },
-          "runAfter": {
-            "Initialize_SignersArray": [
-              "Succeeded"
-            ]
-          }
-        },
-        "Build_Signers_Array": {
+        "Build_Values_Array": {
           "type": "Foreach",
           "foreach": "@outputs('List_Signers')?['body/value']",
           "actions": {
-            "Append_Signer": {
+            "Append_Signer_Name": {
               "type": "AppendToArrayVariable",
               "inputs": {
-                "name": "SignersArray",
+                "name": "ValuesArray",
                 "value": {
-                  "Email": "@{items('Build_Signers_Array')?['cs_email']}",
-                  "FullName": "@{items('Build_Signers_Array')?['cs_fullname']}",
-                  "SignerOrder": "@items('Build_Signers_Array')?['cs_signerorder']",
-                  "AuthenticationType": "@{if(empty(items('Build_Signers_Array')?['cs_authenticationtype']), 'None', items('Build_Signers_Array')?['cs_authenticationtype'])}",
-                  "Language": "@{if(empty(items('Build_Signers_Array')?['cs_language']), 'en-US', items('Build_Signers_Array')?['cs_language'])}"
+                  "name": "Signer @{items('Build_Values_Array')?['cs_signerorder']} Name",
+                  "value": "@{items('Build_Values_Array')?['cs_fullname']}"
                 }
               },
               "runAfter": {}
+            },
+            "Append_Signer_Email": {
+              "type": "AppendToArrayVariable",
+              "inputs": {
+                "name": "ValuesArray",
+                "value": {
+                  "name": "Signer @{items('Build_Values_Array')?['cs_signerorder']} Email",
+                  "value": "@{items('Build_Values_Array')?['cs_email']}"
+                }
+              },
+              "runAfter": {
+                "Append_Signer_Name": [
+                  "Succeeded"
+                ]
+              }
             }
           },
           "runAfter": {
-            "Initialize_DocumentsArray": [
+            "Initialize_ValuesArray": [
               "Succeeded"
             ]
           }
         },
-        "Build_Documents_Array": {
-          "type": "Foreach",
-          "foreach": "@outputs('List_Documents')?['body/value']",
-          "actions": {
-            "Append_Document": {
-              "type": "AppendToArrayVariable",
-              "inputs": {
-                "name": "DocumentsArray",
-                "value": {
-                  "FileName": "@{items('Build_Documents_Array')?['cs_filename']}",
-                  "FileContent": "@{items('Build_Documents_Array')?['cs_filecontent']}",
-                  "DocumentOrder": "@items('Build_Documents_Array')?['cs_documentorder']"
-                }
-              },
-              "runAfter": {}
-            }
-          },
-          "runAfter": {
-            "Build_Signers_Array": [
-              "Succeeded"
-            ]
-          }
-        },
-        "HTTP_Prepare_Envelope": {
+        "HTTP_Submit_Envelope": {
           "type": "Http",
           "inputs": {
             "method": "POST",
-            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/submit/prepare",
+            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/submit",
             "headers": {
               "Authorization": "@{variables('BearerToken')}",
               "X-AS-UserContext": "@{variables('UserContext')}",
@@ -234,23 +185,23 @@
               "Content-Type": "application/json"
             },
             "body": {
-              "TemplateID": "@{outputs('Get_Envelope_Record')?['body/cs_templateid']}",
-              "Subject": "@{outputs('Get_Envelope_Record')?['body/cs_subject']}",
-              "Message": "@{outputs('Get_Envelope_Record')?['body/cs_message']}",
-              "DaysToExpire": "@outputs('Get_Envelope_Record')?['body/cs_daystoexpire']",
-              "ReminderFrequency": "@outputs('Get_Envelope_Record')?['body/cs_reminderfrequency']",
-              "ProcessingMode": "@{if(empty(outputs('Get_Envelope_Record')?['body/cs_processingmode']), 'Sequential', outputs('Get_Envelope_Record')?['body/cs_processingmode'])}",
-              "Signers": "@variables('SignersArray')",
-              "Documents": "@variables('DocumentsArray')"
+              "request": {
+                "templates": [
+                  {
+                    "templateID": "@{outputs('Get_Envelope_Record')?['body/cs_templateid']}",
+                    "values": "@variables('ValuesArray')"
+                  }
+                ]
+              }
             }
           },
           "runAfter": {
-            "Build_Documents_Array": [
+            "Build_Values_Array": [
               "Succeeded"
             ]
           }
         },
-        "Update_Envelope_Draft": {
+        "Update_Envelope_Submitted": {
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
@@ -261,14 +212,16 @@
             "parameters": {
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
-              "item/cs_preparedenvelopeid": "@{body('HTTP_Prepare_Envelope')?['result']?['preparedEnvelopeID']}",
-              "item/statuscode": 717640002,
-              "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
+              "item/cs_preparedenvelopeid": "@{body('HTTP_Submit_Envelope')?['result']?['envelopeID']}",
+              "item/cs_requestbody": "@{body('HTTP_Submit_Envelope')?['result']?['authToken']}",
+              "item/statuscode": 717640003,
+              "item/cs_sentdate": "@{utcNow()}",
+              "item/cs_responsebody": "@{string(body('HTTP_Submit_Envelope'))}"
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "HTTP_Prepare_Envelope": [
+            "HTTP_Submit_Envelope": [
               "Succeeded"
             ]
           }
@@ -285,12 +238,12 @@
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
               "item/statuscode": 717640005,
-              "item/cs_responsebody": "@{string(body('HTTP_Prepare_Envelope'))}"
+              "item/cs_responsebody": "@{string(body('HTTP_Submit_Envelope'))}"
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "HTTP_Prepare_Envelope": [
+            "HTTP_Submit_Envelope": [
               "Failed",
               "TimedOut"
             ]
