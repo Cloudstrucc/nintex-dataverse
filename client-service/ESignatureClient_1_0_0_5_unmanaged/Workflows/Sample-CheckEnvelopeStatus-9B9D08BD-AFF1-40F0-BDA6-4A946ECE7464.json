@@ -1,0 +1,120 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_esignbrokerconnection"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Envelope ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "The cs_envelopeid of the envelope to check",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Get_Envelope": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetItemWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {},
+          "description": "Retrieves the envelope record. Check outputs for statuscode: 1=Draft, 717640001=Preparing, 717640002=Ready to Send, 717640003=In Process, 717640004=Completed, 717640005=Error, 717640006=Cancelled"
+        },
+        "List_Signers": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecordsWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_signers",
+              "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
+              "$orderby": "cs_signerorder asc"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Get_Envelope": [
+              "Succeeded"
+            ]
+          },
+          "description": "Lists all signers for this envelope with their current status."
+        },
+        "List_Documents": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecordsWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "entityName": "cs_documents",
+              "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
+              "$orderby": "cs_documentorder asc"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Get_Envelope": [
+              "Succeeded"
+            ]
+          },
+          "description": "Lists all documents attached to this envelope."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
