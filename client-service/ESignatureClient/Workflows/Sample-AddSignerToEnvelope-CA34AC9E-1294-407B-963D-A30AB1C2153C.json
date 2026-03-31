@@ -81,7 +81,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_signers",
+              "url": "/api/data/v9.2/cs_signers",
               "method": "POST",
               "body": {
                 "cs_fullname": "@triggerBody()?['text_1']",

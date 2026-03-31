@@ -88,7 +88,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_envelopes",
+              "url": "/api/data/v9.2/cs_envelopes",
               "method": "POST",
               "body": {
                 "cs_subject": "@triggerBody()?['text']",
@@ -118,7 +118,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_signers",
+              "url": "/api/data/v9.2/cs_signers",
               "method": "POST",
               "body": {
                 "cs_fullname": "@triggerBody()?['text_1']",
@@ -151,7 +151,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_envelopes(@{outputs('Create_Envelope')?['body']['cs_envelopeid']})",
+              "url": "/api/data/v9.2/cs_envelopes(@{outputs('Create_Envelope')?['body']['cs_envelopeid']})",
               "method": "PATCH",
               "body": {
                 "statuscode": 717640001

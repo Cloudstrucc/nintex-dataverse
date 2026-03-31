@@ -57,7 +57,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_envelopes(@{triggerBody()?['text']})?$select=statuscode",
+              "url": "/api/data/v9.2/cs_envelopes(@{triggerBody()?['text']})?$select=statuscode",
               "method": "GET"
             },
             "authentication": "@parameters('$authentication')"
@@ -87,7 +87,7 @@
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
                 },
                 "parameters": {
-                  "url": "cs_envelopes(@{triggerBody()?['text']})",
+                  "url": "/api/data/v9.2/cs_envelopes(@{triggerBody()?['text']})",
                   "method": "PATCH",
                   "body": {
                     "cs_iscancelled": true

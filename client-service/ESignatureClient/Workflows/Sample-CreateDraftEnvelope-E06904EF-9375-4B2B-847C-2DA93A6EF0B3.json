@@ -79,7 +79,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_envelopes",
+              "url": "/api/data/v9.2/cs_envelopes",
               "method": "POST",
               "body": {
                 "cs_subject": "@triggerBody()?['text']",

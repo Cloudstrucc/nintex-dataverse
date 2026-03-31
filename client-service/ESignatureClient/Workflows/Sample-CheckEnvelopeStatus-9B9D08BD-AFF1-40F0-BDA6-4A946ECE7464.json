@@ -57,7 +57,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_envelopes(@{triggerBody()?['text']})",
+              "url": "/api/data/v9.2/cs_envelopes(@{triggerBody()?['text']})",
               "method": "GET",
               "headers": {
                 "Prefer": "return=representation"
@@ -77,7 +77,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_signers?$filter=_cs_envelopelookup_value eq @{triggerBody()?['text']}&$orderby=cs_signerorder asc",
+              "url": "/api/data/v9.2/cs_signers?$filter=_cs_envelopelookup_value eq @{triggerBody()?['text']}&$orderby=cs_signerorder asc",
               "method": "GET"
             },
             "authentication": "@parameters('$authentication')"
@@ -98,7 +98,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "url": "cs_documents?$filter=_cs_envelopelookup_value eq @{triggerBody()?['text']}&$orderby=cs_documentorder asc",
+              "url": "/api/data/v9.2/cs_documents?$filter=_cs_envelopelookup_value eq @{triggerBody()?['text']}&$orderby=cs_documentorder asc",
               "method": "GET"
             },
             "authentication": "@parameters('$authentication')"
