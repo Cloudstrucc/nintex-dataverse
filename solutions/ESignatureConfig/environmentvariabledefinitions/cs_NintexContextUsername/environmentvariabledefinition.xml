@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="cs_NintexContextUsername">
+  <defaultvalue></defaultvalue>
+  <description default="Context username sent in X-AS-UserContext header for all Nintex API calls">
+    <label description="Context username sent in X-AS-UserContext header for all Nintex API calls" languagecode="1033" />
+  </description>
+  <displayname default="Nintex Context Username">
+    <label description="Nintex Context Username" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

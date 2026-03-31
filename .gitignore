@@ -21,7 +21,7 @@ mono_crash.*
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
-[Rr]eleases/
+# [Rr]eleases/ — disabled: project uses releases/ for solution zips
 x64/
 x86/
 [Ww][Ii][Nn]32/
@@ -416,7 +416,7 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
-*config.json
+# *config.json — disabled: project uses scripts/config.json
 
 # macOS
 .DS_Store

@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="cs_NintexAuthUrl">
+  <defaultvalue>https://account.assuresign.net/api/v3.7</defaultvalue>
+  <description default="Base URL for Nintex eSign authentication endpoint (without trailing slash)">
+    <label description="Base URL for Nintex eSign authentication endpoint (without trailing slash)" languagecode="1033" />
+  </description>
+  <displayname default="Nintex Auth URL">
+    <label description="Nintex Auth URL" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

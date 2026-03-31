@@ -1,0 +1,11 @@
+{
+  "clientId": "3fc17671-754e-497f-a37a-41a9ddbd5a38",
+  "tenantId": "24a46daa-7b87-4566-9eea-281326a1b75c",
+  "crmInstance": "goc-wetv14",
+  "clientSecret": "<SET_VIA_ENV_OR_REPLACE>",
+  "publisherPrefix": "cs",
+  "publisherName": "Cloudstrucc Inc",
+  "roleName": "Nintex Digital Signature API User",
+  "roleDescription": "API user role for Nintex digital signature operations with minimal privileges",
+  "appUserName": "Dataverse API Explorer"
+}

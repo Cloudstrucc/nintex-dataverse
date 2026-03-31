@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="cs_NintexApiBaseUrl">
+  <defaultvalue>https://ca1.assuresign.net/api/documentnow/v3.7</defaultvalue>
+  <description default="Base URL for Nintex DocumentNow API endpoints (without trailing slash)">
+    <label description="Base URL for Nintex DocumentNow API endpoints (without trailing slash)" languagecode="1033" />
+  </description>
+  <displayname default="Nintex API Base URL">
+    <label description="Nintex API Base URL" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

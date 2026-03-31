@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="cs_NintexApiKey">
+  <defaultvalue></defaultvalue>
+  <description default="API key for Nintex eSign authentication">
+    <label description="API key for Nintex eSign authentication" languagecode="1033" />
+  </description>
+  <displayname default="Nintex API Key">
+    <label description="Nintex API Key" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>
