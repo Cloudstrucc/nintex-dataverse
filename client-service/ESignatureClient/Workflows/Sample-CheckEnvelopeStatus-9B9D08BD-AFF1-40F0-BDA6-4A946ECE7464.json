@@ -22,6 +22,14 @@
         "$authentication": {
           "defaultValue": {},
           "type": "SecureObject"
+        },
+        "cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)": {
+          "defaultValue": "https://goc-wetv14.crm3.dynamics.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cs_BrokerServiceEnvironment",
+            "description": "The Dataverse environment URL for the E-Signature Broker Service"
+          }
         }
       },
       "triggers": {
@@ -57,7 +65,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
               "entityName": "cs_envelopes",
               "recordId": "@triggerBody()?['text']"
             },
@@ -75,7 +83,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
               "entityName": "cs_signers",
               "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
               "$orderby": "cs_signerorder asc"
@@ -98,7 +106,7 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "organization": "https://goc-wetv14.crm3.dynamics.com",
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
               "entityName": "cs_documents",
               "$filter": "_cs_envelopelookup_value eq @{triggerBody()?['text']}",
               "$orderby": "cs_documentorder asc"

@@ -1,0 +1,16 @@
+<environmentvariabledefinition schemaname="cs_BrokerServiceEnvironment">
+  <defaultvalue>https://goc-wetv14.crm3.dynamics.com</defaultvalue>
+  <description default="The Dataverse environment URL for the E-Signature Broker Service">
+    <label description="The Dataverse environment URL for the E-Signature Broker Service" languagecode="1033" />
+    <label description="URL de l'environnement Dataverse pour le service de courtage de signature electronique" languagecode="1036" />
+  </description>
+  <displayname default="Broker Service Environment">
+    <label description="Broker Service Environment" languagecode="1033" />
+    <label description="Environnement du service de courtage" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.11</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>
