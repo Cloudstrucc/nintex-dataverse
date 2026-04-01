@@ -57,14 +57,13 @@
             "parameters": {
               "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
               "entityName": "cs_templates",
-              "$select": "cs_name,cs_description,cs_templateid,cs_isactive,cs_category",
-              "$filter": "cs_isactive eq true",
+              "$select": "cs_name,cs_description,cs_templateid,cs_category",
               "$orderby": "cs_name asc"
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {},
-          "description": "Queries the broker environment for all active e-signature templates. Returns template name, description, templateID (needed for envelope creation), and category."
+          "description": "Queries the broker environment for all e-signature templates. Returns template name, description, templateID (needed for envelope creation), and category."
         }
       }
     },

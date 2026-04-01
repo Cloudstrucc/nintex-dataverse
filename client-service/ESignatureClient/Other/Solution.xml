@@ -10,7 +10,7 @@
       <Description description="Sample Power Automate flows for integrating with the E-Signature Broker Service" languagecode="1033" />
       <Description description="Exemples de flux Power Automate pour l'integration avec le service de courtage de signature electronique" languagecode="1036" />
     </Descriptions>
-    <Version>1.0.0.13</Version>
+    <Version>1.0.0.14</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>cs</UniqueName>
