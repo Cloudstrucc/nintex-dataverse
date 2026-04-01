@@ -1,603 +1,209 @@
-# ESign Broker Service - Admin Setup Guide
+# E-Signature Broker Service — Admin Guide
 
 ## Overview
 
-This guide is for **Elections Company administrators** setting up and managing the ESign broker service.
+The broker service runs in a centralized Dataverse environment and handles all communication with the Nintex AssureSign API. Client environments create records in the broker's Dataverse tables, and broker flows automatically process them.
 
-## Architecture Overview
+## Installation
 
-```
-Client Agencies → Custom Connector → Your Broker Environment → Nintex API
-```
+### Prerequisites
 
-Your broker environment acts as the middleware, handling:
-- Authentication & authorization
-- Approval workflows  
-- API integration with Nintex
-- Status synchronization
-- Audit logging
-- Multi-tenant isolation
+- Power Platform environment with Dataverse
+- Nintex AssureSign account with API credentials
+- PAC CLI for solution packing (optional)
 
----
+### Import Solutions (in order)
 
-## Initial Setup
+1. **Nintex Schema** — creates all Dataverse tables
+   ```
+   solutions/releases/schema/nintex_1_0_0_2_unmanaged.zip
+   ```
 
-### Step 1: Deploy Dataverse Tables
+2. **E-Signature Config** — creates environment variables
+   ```
+   solutions/releases/config/ESignatureConfig_1_0_0_0_unmanaged.zip
+   ```
 
-You already have the schema. Ensure these tables are deployed:
+3. **E-Signature Broker** — creates the 10 automation flows
+   ```
+   solutions/releases/broker/ESignatureBroker_1_0_0_47_unmanaged.zip
+   ```
 
-- ✅ cs_envelope
-- ✅ cs_signer
-- ✅ cs_document
-- ✅ cs_field
-- ✅ cs_template
-- ✅ cs_apirequest
-- ✅ cs_webhook
-- ✅ cs_emailnotification
-- ✅ cs_authtoken
+### Configure Environment Variables
 
-### Step 2: Configure Security Roles
+After importing ESignatureConfig, set these values in the Power Platform admin center or via the maker portal:
 
-Create **Application User** security role with:
+| Variable | Purpose | Example |
+|---|---|---|
+| `cs_NintexApiUsername` | API user created in Nintex portal | `my-broker-service_apdXXXXX` |
+| `cs_NintexApiKey` | API key for the above user | `abc123...` |
+| `cs_NintexContextUsername` | Nintex user to impersonate | `admin@company.com` |
+| `cs_NintexAuthUrl` | Authentication endpoint | `https://account.assuresign.net/api/v3.7` |
+| `cs_NintexApiBaseUrl` | API base URL (region-specific) | `https://ca1.assuresign.net/api/documentnow/v3.7` |
 
-**Privileges on Nintex tables:**
-- cs_envelope: Create, Read, Write, Append, AppendTo
-- cs_signer: Create, Read, Write, Append, AppendTo
-- cs_document: Create, Read, Write, Append, AppendTo
-- cs_field: Create, Read, Write, Append, AppendTo
-- cs_template: Read
-- cs_apirequest: Create, Read, Write
+### Configure Connection Reference
 
-**Note:** Users should only see their own records (configure column security)
+The broker flows use connection reference `cs_sharecommondataserviceforapps`. Set this to a Dataverse connection authenticated against the broker environment itself.
 
-### Step 3: Enable Web API Access
+### Activate Flows
 
-1. **Settings** → **Administration** → **System Settings**
-2. **Customization** tab
-3. Enable **Web API** ✅
-4. Save
+Activate all 10 flows in Power Automate. They will begin listening for Dataverse record changes.
 
-### Step 4: Deploy Broker Flows
+### Assign Security Role
 
-Deploy these flows in your broker environment:
-
-#### Flow 1: On Envelope Create - Submit to Nintex
-
-```yaml
-Trigger: When a row is added
-Table: cs_envelope
-
-Condition: cs_requiresapproval eq false
-
-Steps:
-  1. Get related signers
-  2. Get related documents
-  3. Authenticate with Nintex (HTTP)
-  4. Build submission payload
-  5. Submit to Nintex (HTTP)
-  6. Parse response
-  7. Update envelope with Nintex ID
-  8. Update signers with signing links
-  9. Log to cs_apirequest
-```
-
-#### Flow 2: Approval Workflow
-
-```yaml
-Trigger: When a row is added
-Table: cs_envelope
-
-Condition: cs_requiresapproval eq true
-
-Steps:
-  1. Get envelope details
-  2. Start approval (built-in Approval action)
-     - Assigned to: Director email
-     - Title: Envelope approval request
-     - Details: Envelope info
-  3. Wait for approval response
-  4. If approved:
-     - Update status: Approved
-     - Trigger submission (update record)
-  5. If rejected:
-     - Update status: Rejected
-     - Notify requestor
-```
-
-#### Flow 3: Status Sync (Scheduled)
-
-```yaml
-Trigger: Recurrence (every 30 minutes)
-
-Steps:
-  1. List envelopes
-     Filter: cs_status in ('Submitted', 'InProcess')
-  
-  2. For each envelope:
-     - Authenticate with Nintex
-     - Get status
-     - Update Dataverse record
-     - If completed: Download docs
-```
+Assign the **E-Signature Broker User** security role to any service accounts or users that need CRUD access to the broker tables.
 
 ---
 
-## Client Onboarding Process
+## Broker Flows — Detailed Reference
 
-### For Each New Agency:
+### ESign - Prepare Envelope
 
-#### 1. Create Application User (Service Principal)
+**Trigger:** Envelope `statuscode` changes to `717640001` (Preparing)
 
-**Azure Portal:**
-```
-1. Azure AD → App registrations → New registration
-   Name: ESign-[AgencyName]
-   
-2. Create Client Secret
-   Copy: Client ID, Client Secret, Tenant ID
+**What it does:**
+1. Reads the envelope record (template ID, subject, message, etc.)
+2. Authenticates with Nintex API
+3. Fetches template details from Nintex to get dynamic signer placeholder names (e.g., `[Recipient Name]` vs `[Signer 1 Name]`)
+4. Lists all signers linked to the envelope (ordered by `cs_signerorder`)
+5. Builds the `values` array by mapping each signer's fullname/email to the template's placeholder names
+6. Calls `POST /submit` with `{request: {templates: [{templateID, values}]}}`
+7. Stores the returned `envelopeID` in `cs_preparedenvelopeid` and `authToken` in `cs_requestbody`
+8. Sets status to In Process (`717640003`)
+9. On failure: sets status to Error (`717640005`) and stores response in `cs_responsebody`
 
-3. API Permissions → Add permission
-   - Dynamics CRM → user_impersonation
-   - Grant admin consent
-```
+### ESign - Send Envelope
 
-**Power Platform Admin Center:**
-```
-1. Environments → [Your Broker Environment]
-2. Settings → Users + permissions → Application users
-3. New app user
-   - App: [The app you created]
-   - Business unit: Root
-   - Security role: [Your custom role]
-```
+**Trigger:** Envelope `statuscode` changes to `717640002` (Ready to Send)
 
-#### 2. Send Credentials to Agency
+**Note:** With the current Prepare Envelope flow going directly to In Process, this flow is a fallback path. It handles envelopes that have a `cs_preparedenvelopeid` (from a legacy prepare step) or submits fresh.
 
-Email template:
-```
-Subject: ESign Elections Canada - Service Principal Credentials
+### ESign - Get Signing Links
 
-Hello [Agency Contact],
+**Trigger:** Envelope `statuscode` changes to `717640003` (In Process)
 
-Your ESign service is ready! Here are your credentials:
+**What it does:**
+1. Calls `GET /envelope/{id}/signingLinks` (note: **singular** `/envelope/`)
+2. For each signing link returned, matches to the signer record by email
+3. Updates the signer's `cs_signinglink` and `cs_signerstatus`
 
-Tenant ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-Client ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-Client Secret: [secret]
-Broker Environment: https://lce-broker.crm3.dynamics.com
+### ESign - Cancel Envelope
 
-Next steps:
-1. Import the custom connector (attached)
-2. Follow the Client Integration Guide (attached)
-3. Test with sample flow
+**Trigger:** Envelope `cs_iscancelled` changes to `true`
 
-Support: esign-support@Elections.com
+**What it does:**
+1. Reads the envelope record
+2. Authenticates with Nintex
+3. Calls `PUT /envelopes/{id}/cancel` with body `{request: {authToken, remarks}}`
+4. The `authToken` is read from `cs_requestbody` (stored during submit)
+5. Sets status to Cancelled (`717640006`)
 
-Best regards,
-Elections IT Team
-```
+### ESign - Status Sync
 
-#### 3. Configure Row-Level Security
+**Trigger:** Recurrence (every 30 minutes)
 
-Ensure application users only see their own records:
+**What it does:**
+1. Lists all envelopes with status In Process
+2. For each, calls `GET /envelopes/{id}/status`
+3. Updates envelope status if changed (completed, cancelled)
+4. Calls `GET /envelopes/{id}/signers` to update individual signer statuses
 
-**Option A: Owner-based (Recommended)**
-```
-When agency creates record via API:
-- Owner = their application user
-- They can only query their records
-```
+### ESign - Get Access Links
 
-**Option B: Custom field filter**
-```
-Add field: cs_clientid (Text)
-Populate with: Client ID on create
-Filter all queries by: cs_clientid eq [their client ID]
-```
+**Trigger:** Envelope `statuscode` changes to `717640004` (Completed)
 
----
+Creates access link records (`cs_accesslink`) for completed envelopes.
 
-## Customizing the Swagger File
+### ESign - Get Envelope History
 
-Before distributing to clients, update:
+**Trigger:** Envelope `cs_requesthistory` changes to `true`
 
-```json
-{
-  "host": "YOUR-ACTUAL-BROKER-URL.crm3.dynamics.com",
-  "securityDefinitions": {
-    "oauth2": {
-      "authorizationUrl": "https://login.microsoftonline.com/YOUR-TENANT-ID/oauth2/v2.0/authorize",
-      "tokenUrl": "https://login.microsoftonline.com/YOUR-TENANT-ID/oauth2/v2.0/token",
-      "scopes": {
-        "https://YOUR-ACTUAL-BROKER-URL.crm3.dynamics.com/.default": "Access broker service"
-      }
-    }
-  }
-}
-```
+Fetches event history from Nintex and creates `cs_envelopehistory` records.
 
-**Tool to update:** Use find/replace in VS Code
+### ESign - Get Document Content
+
+**Trigger:** Document `cs_requestsignedcopy` changes to `true`
+
+Downloads the signed document content and stores it in `cs_signedcontent`.
+
+### ESign - Send Signer Reminder
+
+**Trigger:** Signer `cs_sendreminder` changes to `true`
+
+Sends a reminder notification to the signer via Nintex API.
+
+### ESign - Sync Templates
+
+**Trigger:** Recurrence (daily)
+
+Syncs the template list from Nintex API into the `cs_templates` table. Creates new records or updates existing ones by matching on `cs_templateid`.
 
 ---
 
-## Monitoring & Management
+## Client Onboarding
 
-### Dashboard Queries
+For each client environment:
 
-Create Power BI dashboard with these queries:
-
-**Total Envelopes by Status:**
-```sql
-SELECT 
-  cs_status,
-  COUNT(*) as Count
-FROM cs_envelope
-GROUP BY cs_status
-```
-
-**Envelopes by Agency:**
-```sql
-SELECT 
-  ownerid,
-  cs_departmentname,
-  COUNT(*) as TotalEnvelopes,
-  SUM(CASE WHEN cs_status = 'Completed' THEN 1 ELSE 0 END) as Completed
-FROM cs_envelope
-GROUP BY ownerid, cs_departmentname
-```
-
-**Failed Submissions:**
-```sql
-SELECT 
-  cs_name,
-  cs_requestoremail,
-  cs_errormessage,
-  createdon
-FROM cs_envelope
-WHERE cs_status = 'Failed'
-ORDER BY createdon DESC
-```
-
-### Alerts
-
-Set up alerts for:
-- ❌ Failed envelope submissions (>5 in 1 hour)
-- ⏱️ Pending approvals >24 hours old
-- 🔐 Authentication failures
-- 📊 Usage exceeds quota
+1. **Import ESignatureClient solution** into the client environment
+2. **Set `cs_BrokerServiceEnvironment`** to the broker's Dataverse URL
+3. **Configure `cs_esignbrokerconnection`** — the client needs a Dataverse connection that can reach the broker environment
+4. **Assign the E-Signature Broker User role** to the client's service account in the broker environment
+5. **Test** — run the "Sample - List Templates" flow to verify connectivity
 
 ---
 
-## Billing & Usage Tracking
+## Testing
 
-### Track Usage per Agency
+### API Test Script
 
-```sql
-SELECT 
-  ownerid,
-  cs_departmentname,
-  COUNT(*) as EnvelopesThisMonth,
-  COUNT(*) * 2.50 as VariableFees
-FROM cs_envelope
-WHERE 
-  createdon >= DATEADD(month, -1, GETDATE())
-  AND cs_status = 'Completed'
-GROUP BY ownerid, cs_departmentname
+```bash
+# From repo root — tests all 9 Nintex API endpoints
+./scripts/test-nintex-api.sh
 ```
 
-### Generate Monthly Invoices
+### End-to-End Test
 
-Create scheduled flow:
-```yaml
-Trigger: Recurrence (1st of each month)
+1. In the client environment, run **Sample - Create and Send Envelope**
+2. In the broker environment, verify the **Prepare Envelope** flow ran successfully
+3. Check that the envelope status is now In Process
+4. Verify the signer received a signing email
 
-Steps:
-  1. Query usage per agency (last month)
-  2. Calculate fees
-  3. Generate invoice PDF
-  4. Email to billing contact
-  5. Log in finance system
-```
+### Flow Run History
+
+Check flow run history in Power Automate for each broker flow to diagnose issues. The `cs_responsebody` field on the envelope record stores the Nintex API response for debugging.
 
 ---
 
-## Troubleshooting
+## Monitoring
 
-### Client Reports "Unauthorized"
+### Key Fields to Monitor
 
-**Check:**
-1. Application user exists in environment
-2. Security role assigned
-3. Client ID/Secret match
-4. Token not expired
+| Field | Table | Meaning |
+|---|---|---|
+| `statuscode` | cs_envelope | Current lifecycle state |
+| `cs_responsebody` | cs_envelope | Last Nintex API response (for debugging) |
+| `cs_preparedenvelopeid` | cs_envelope | Nintex envelope ID |
+| `cs_requestbody` | cs_envelope | Nintex authToken (needed for cancel) |
+| `cs_signerstatus` | cs_signer | Per-signer signing status |
+| `cs_signinglink` | cs_signer | URL the signer uses to sign |
 
-**Fix:**
-```powershell
-# Test authentication
-$body = @{
-    client_id = "client-id"
-    client_secret = "secret"
-    scope = "https://broker-url.crm3.dynamics.com/.default"
-    grant_type = "client_credentials"
-}
-Invoke-RestMethod -Uri "https://login.microsoftonline.com/tenant-id/oauth2/v2.0/token" -Method POST -Body $body
-```
+### Common Issues
 
-### Envelope Stuck in "Pending Approval"
-
-**Check:**
-1. Approval flow is running
-2. Director email is correct
-3. No errors in flow run history
-
-**Fix:**
-- Manually approve via flow
-- Check approval action configuration
-
-### Nintex API Calls Failing
-
-**Check:**
-1. Nintex credentials in environment variables
-2. Token refresh logic working
-3. API rate limits
-
-**Fix:**
-- Test authentication endpoint directly
-- Verify environment variables set
-- Check Nintex API status
+| Symptom | Cause | Fix |
+|---|---|---|
+| Prepare flow not triggering | Client didn't set statuscode to 717640001 | Verify client flow sets `item/statuscode: 717640001` (flat form) |
+| Nintex API 401 | Expired or wrong credentials | Update environment variables in ESignatureConfig |
+| Nintex API 500 on submit | Wrong request body format | Ensure body uses `{request: {templates: [{templateID, values}]}}` |
+| Signing links 404 | Wrong URL path | Must use singular `/envelope/` not `/envelopes/` |
+| Cancel fails | Missing authToken | Ensure `cs_requestbody` has the authToken from submit |
+| Empty template list | Sync Templates hasn't run | Run the Sync Templates flow manually, or wait for daily recurrence |
 
 ---
 
-## Scaling Considerations
+## Security
 
-### Current Architecture Limits
-
-- **Envelopes/day:** ~10,000 (Dataverse API limits)
-- **Concurrent requests:** 100 (DLP throttling)
-- **Storage:** Unlimited (Dataverse)
-
-### When to Scale
-
-If you exceed:
-- 500 envelopes/hour consistently
-- 20+ client agencies
-- 50,000 envelopes/month total
-
-**Consider:**
-1. Multiple broker environments (geographic)
-2. Premium capacity (dedicated resources)
-3. Azure API Management (caching, throttling)
-
----
-
-## Security Hardening
-
-### Recommendations
-
-1. **Enable MFA** for all admin accounts
-2. **Rotate secrets** quarterly
-3. **Monitor API calls** for anomalies
-4. **Audit security roles** monthly
-5. **Enable DLP policies**
-6. **Implement IP restrictions** (if possible)
-
-### Compliance
-
-Maintain:
-- ✅ Audit logs (2 years)
-- ✅ Security documentation
-- ✅ Incident response plan
-- ✅ Privacy impact assessment
-- ✅ Data classification
-
----
-
-## Backup & Disaster Recovery
-
-### Backup Strategy
-
-**Weekly:** Full environment backup
-**Daily:** Incremental backups
-**Retention:** 30 days
-
-**Use:**
-```
-Power Platform Admin Center → Environments → Backups
-```
-
-### Disaster Recovery
-
-**RTO:** 4 hours  
-**RPO:** 24 hours
-
-**Plan:**
-1. Restore from backup
-2. Reconfigure DNS (if needed)
-3. Notify clients of maintenance
-4. Verify all flows running
-5. Test sample envelope submission
-
----
-
-## Version Control
-
-### Connector Versioning
-
-When updating connector:
-1. Increment version in swagger
-2. Test in sandbox
-3. Notify clients 2 weeks ahead
-4. Maintain backward compatibility
-5. Deprecate old versions after 3 months
-
-**Example:**
-```json
-{
-  "info": {
-    "version": "1.1.0",
-    "description": "v1.1.0 - Added bulk submission endpoint"
-  }
-}
-```
-
----
-
-## Support Escalation
-
-### Tier 1: Client Support
-- Email: esign-support@Elections.com
-- Response: 4 business hours
-- Handles: Usage questions, connector import, flow examples
-
-### Tier 2: Technical Support  
-- Email: esign-admin@Elections.com
-- Response: 2 business hours
-- Handles: API errors, authentication issues, data problems
-
-### Tier 3: Engineering
-- Internal escalation only
-- Response: 1 business hour (critical)
-- Handles: System outages, security incidents
-
----
-
-## Appendix: Full Broker Flow Example
-
-### Complete Envelope Submission Flow
-
-```yaml
-Name: Process Envelope Submission
-
-Trigger: When a row is added
-Table: cs_envelope
-
-Steps:
-
-1. Initialize variables
-   - varNintexToken (String)
-   - varEnvelopePayload (Object)
-   - varNintexResponse (Object)
-
-2. Condition: Check if requires approval
-   If: cs_requiresapproval eq true
-   Then:
-     - Update status: Pending Approval
-     - Start approval process
-     - Stop (approval flow handles next steps)
-   Else: Continue
-
-3. Get related signers
-   List rows: cs_signer
-   Filter: _cs_envelopeid_value eq @{triggerOutputs()?['body/cs_envelopeid']}
-   OrderBy: cs_signerorder asc
-
-4. Get related documents
-   List rows: cs_document
-   Filter: _cs_envelopeid_value eq @{triggerOutputs()?['body/cs_envelopeid']}
-   OrderBy: cs_documentorder asc
-
-5. HTTP - Authenticate Nintex
-   Method: POST
-   URI: https://api.assuresign.net/v3.7/authentication/apiUser
-   Body: {APIUsername, Key, ContextUsername}
-
-6. Parse JSON - Token
-   Content: @{body('HTTP_-_Authenticate_Nintex')}
-
-7. Set variable: varNintexToken
-   Value: @{body('Parse_JSON_-_Token')?['token']}
-
-8. Select - Build Signers Array
-   From: @{outputs('Get_related_signers')?['body/value']}
-   Map: {Email, FullName, SignerOrder}
-
-9. Select - Build Documents Array
-   From: @{outputs('Get_related_documents')?['body/value']}
-   Map: {FileName, FileContent, DocumentOrder}
-
-10. Compose - Build Payload
-    {
-      "TemplateID": "@{triggerOutputs()?['body/cs_templateid']}",
-      "Subject": "@{triggerOutputs()?['body/cs_subject']}",
-      "Message": "@{triggerOutputs()?['body/cs_message']}",
-      "DaysToExpire": @{triggerOutputs()?['body/cs_daystoexpire']},
-      "ReminderFrequency": @{triggerOutputs()?['body/cs_reminderfrequency']},
-      "Signers": @{outputs('Select_-_Build_Signers_Array')},
-      "Documents": @{outputs('Select_-_Build_Documents_Array')}
-    }
-
-11. HTTP - Submit to Nintex
-    Method: POST
-    URI: https://api.assuresign.net/v3.7/submit
-    Headers:
-      Authorization: Bearer @{variables('varNintexToken')}
-      Content-Type: application/json
-    Body: @{outputs('Compose_-_Build_Payload')}
-
-12. Parse JSON - Nintex Response
-    Content: @{body('HTTP_-_Submit_to_Nintex')}
-
-13. Update a row - Update Envelope
-    Table: cs_envelope
-    Row ID: @{triggerOutputs()?['body/cs_envelopeid']}
-    Fields:
-      cs_nintexenvelopeid: @{body('Parse_JSON_-_Nintex_Response')?['EnvelopeID']}
-      cs_status: Submitted
-      cs_sentdate: @{utcNow()}
-      cs_requestbody: @{outputs('Compose_-_Build_Payload')}
-      cs_responsebody: @{body('HTTP_-_Submit_to_Nintex')}
-
-14. Apply to each - Update Signers
-    From: @{body('Parse_JSON_-_Nintex_Response')?['Signers']}
-    
-    Steps:
-      Update a row: cs_signer
-      Filter: cs_email eq '@{items('Apply_to_each')?['Email']}'
-      Fields:
-        cs_nintexsignerid: @{items('Apply_to_each')?['SignerID']}
-        cs_signinglink: @{items('Apply_to_each')?['SigningLink']}
-
-15. Add a new row - Log API Request
-    Table: cs_apirequest
-    Fields:
-      cs_name: Envelope Submission - @{utcNow()}
-      cs_envelopeid: @{triggerOutputs()?['body/cs_envelopeid']}
-      cs_method: POST
-      cs_endpoint: /submit
-      cs_requestbody: @{outputs('Compose_-_Build_Payload')}
-      cs_responsebody: @{body('HTTP_-_Submit_to_Nintex')}
-      cs_statuscode: 200
-      cs_success: true
-
-16. Send email - Notify requestor
-    To: @{triggerOutputs()?['body/cs_requestoremail']}
-    Subject: Envelope Submitted
-    Body: Your envelope has been sent to signers...
-
---- Error Handling ---
-
-17. Configure run after: HTTP - Submit to Nintex
-    Run after: has failed
-
-    Steps:
-      a. Update a row - Mark Failed
-         Table: cs_envelope
-         Row ID: @{triggerOutputs()?['body/cs_envelopeid']}
-         Fields:
-           cs_status: Failed
-           cs_errormessage: @{outputs('HTTP_-_Submit_to_Nintex')?['error']}
-      
-      b. Add a new row - Log Error
-         Table: cs_apirequest
-         Fields:
-           cs_success: false
-           cs_errormessage: @{outputs('HTTP_-_Submit_to_Nintex')?['error']}
-      
-      c. Send email - Alert Admin
-         To: esign-admin@Elections.com
-         Subject: Envelope Submission Failed
-```
-
----
-
-**Your broker service is ready to serve multiple agencies! 🚀**
+- **Connection references** control which Dataverse environment the flows target
+- **E-Signature Broker User** security role restricts access to broker tables only
+- **Environment variables** store API credentials — never hardcode in flows
+- **Row-level security** can be configured so clients only see their own envelope records
+- Rotate Nintex API keys periodically and update the environment variables
