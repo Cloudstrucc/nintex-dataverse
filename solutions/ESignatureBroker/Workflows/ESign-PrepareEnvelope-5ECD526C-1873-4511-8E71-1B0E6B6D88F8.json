@@ -222,7 +222,10 @@
                 "templates": [
                   {
                     "templateID": "@{outputs('Get_Envelope_Record')?['body/cs_templateid']}",
-                    "values": "@variables('ValuesArray')"
+                    "values": "@variables('ValuesArray')",
+                    "envelope": {
+                      "name": "@{outputs('Get_Envelope_Record')?['body/cs_subject']}"
+                    }
                   }
                 ]
               }
