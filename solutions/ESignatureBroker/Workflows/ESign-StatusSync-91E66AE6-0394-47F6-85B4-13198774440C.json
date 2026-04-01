@@ -129,7 +129,7 @@
                     "not": {
                       "equals": [
                         "@body('HTTP_Get_Envelope_Status')?['result']?['status']",
-                        "@if(equals(items('Process_Each_Envelope')?['statuscode'],717640003),'InProcess',if(equals(items('Process_Each_Envelope')?['statuscode'],717640004),'Completed',if(equals(items('Process_Each_Envelope')?['statuscode'],717640006),'Cancelled','InProcess')))"
+                        "@if(equals(items('Process_Each_Envelope')?['statuscode'],717640003),'iN_PROGRESS',if(equals(items('Process_Each_Envelope')?['statuscode'],717640004),'completed',if(equals(items('Process_Each_Envelope')?['statuscode'],717640006),'cancelled','iN_PROGRESS')))"
                       ]
                     }
                   }
@@ -147,9 +147,9 @@
                     "parameters": {
                       "entityName": "cs_envelopes",
                       "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
-                      "item/statuscode": "@{if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Completed'),717640004,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Cancelled'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Expired'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'Declined'),717640006,717640003))))}",
-                      "item/cs_completeddate": "@{body('HTTP_Get_Envelope_Status')?['result']?['completedDate']}",
-                      "item/cs_cancelleddate": "@{body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate']}"
+                      "item/statuscode": "@{if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'completed'),717640004,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'cancelled'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'expired'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'declined'),717640006,717640003))))}",
+                      "item/cs_completeddate": "@if(empty(body('HTTP_Get_Envelope_Status')?['result']?['completedDate']),null,body('HTTP_Get_Envelope_Status')?['result']?['completedDate'])",
+                      "item/cs_cancelleddate": "@if(empty(body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate']),null,body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate'])"
                     },
                     "authentication": "@parameters('$authentication')"
                   },
