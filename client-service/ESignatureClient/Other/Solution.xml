@@ -10,7 +10,7 @@
       <Description description="Sample Power Automate flows for integrating with the E-Signature Broker Service" languagecode="1033" />
       <Description description="Exemples de flux Power Automate pour l'integration avec le service de courtage de signature electronique" languagecode="1036" />
     </Descriptions>
-    <Version>1.0.0.12</Version>
+    <Version>1.0.0.13</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>cs</UniqueName>
@@ -30,6 +30,7 @@
       <RootComponent type="29" id="{ca34ac9e-1294-407b-963d-a30ab1c2153c}" behavior="0" />
       <RootComponent type="29" id="{9b9d08bd-aff1-40f0-bda6-4a946ece7464}" behavior="0" />
       <RootComponent type="29" id="{f6af47c2-5f12-4792-8be9-5aad1d2d0882}" behavior="0" />
+      <RootComponent type="29" id="{73709407-8e63-4eb2-9197-d4947eb8a306}" behavior="0" />
       <RootComponent type="380" schemaName="cs_BrokerServiceEnvironment" behavior="0" />
     </RootComponents>
     <MissingDependencies />

@@ -111,13 +111,31 @@
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
+            "HTTP_Get_Template": [
+              "Succeeded"
+            ]
+          }
+        },
+        "HTTP_Get_Template": {
+          "type": "Http",
+          "inputs": {
+            "method": "GET",
+            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/templates/@{outputs('Get_Envelope_Record')?['body/cs_templateid']}",
+            "headers": {
+              "Authorization": "@{variables('BearerToken')}",
+              "X-AS-UserContext": "@{variables('UserContext')}",
+              "Accept": "application/json"
+            }
+          },
+          "runAfter": {
             "Set_BearerToken": [
               "Succeeded"
             ],
             "Set_UserContext": [
               "Succeeded"
             ]
-          }
+          },
+          "description": "Fetches template details from Nintex API to get dynamic signer placeholder names (e.g. Recipient Name vs Signer 1 Name)."
         },
         "Initialize_ValuesArray": {
           "type": "InitializeVariable",
@@ -140,23 +158,33 @@
           "type": "Foreach",
           "foreach": "@outputs('List_Signers')?['body/value']",
           "actions": {
+            "Get_Template_Signer": {
+              "type": "Compose",
+              "inputs": "@body('HTTP_Get_Template')?['result']?['content']?['signers'][sub(int(items('Build_Values_Array')?['cs_signerorder']), 1)]",
+              "runAfter": {},
+              "description": "Extracts the template signer definition at the index matching this signer's order (1-based order → 0-based index)."
+            },
             "Append_Signer_Name": {
               "type": "AppendToArrayVariable",
               "inputs": {
                 "name": "ValuesArray",
                 "value": {
-                  "name": "Signer @{items('Build_Values_Array')?['cs_signerorder']} Name",
+                  "name": "@{replace(replace(outputs('Get_Template_Signer')?['name'], '[', ''), ']', '')}",
                   "value": "@{items('Build_Values_Array')?['cs_fullname']}"
                 }
               },
-              "runAfter": {}
+              "runAfter": {
+                "Get_Template_Signer": [
+                  "Succeeded"
+                ]
+              }
             },
             "Append_Signer_Email": {
               "type": "AppendToArrayVariable",
               "inputs": {
                 "name": "ValuesArray",
                 "value": {
-                  "name": "Signer @{items('Build_Values_Array')?['cs_signerorder']} Email",
+                  "name": "@{replace(replace(outputs('Get_Template_Signer')?['email'], '[', ''), ']', '')}",
                   "value": "@{items('Build_Values_Array')?['cs_email']}"
                 }
               },
@@ -171,6 +199,11 @@
             "Initialize_ValuesArray": [
               "Succeeded"
             ]
+          },
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 1
+            }
           }
         },
         "HTTP_Submit_Envelope": {
@@ -238,7 +271,7 @@
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
               "item/statuscode": 717640005,
-              "item/cs_responsebody": "@{string(body('HTTP_Submit_Envelope'))}"
+              "item/cs_responsebody": "@{coalesce(string(body('HTTP_Submit_Envelope')), string(body('HTTP_Get_Template')))}"
             },
             "authentication": "@parameters('$authentication')"
           },
