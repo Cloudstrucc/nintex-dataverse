@@ -8,7 +8,7 @@
     <Descriptions>
       <Description description="E-Signature Broker Service for Elections Canada" languagecode="1033" />
     </Descriptions>
-    <Version>1.0.0.48</Version>
+    <Version>1.0.0.49</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>cs</UniqueName>

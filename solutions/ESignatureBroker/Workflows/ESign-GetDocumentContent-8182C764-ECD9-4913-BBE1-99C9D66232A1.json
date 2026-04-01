@@ -119,7 +119,7 @@
           "type": "Http",
           "inputs": {
             "method": "GET",
-            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{outputs('Get_Parent_Envelope')?['body/cs_envelopeid']}/documents/@{outputs('Get_Document_Record')?['body/cs_envelopesignerid']}/content?documentType=Signed",
+            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{outputs('Get_Parent_Envelope')?['body/cs_preparedenvelopeid']}/documents/@{outputs('Get_Document_Record')?['body/cs_envelopesignerid']}/content?documentType=Signed",
             "headers": {
               "Authorization": "@{variables('BearerToken')}",
               "X-AS-UserContext": "@{variables('UserContext')}",

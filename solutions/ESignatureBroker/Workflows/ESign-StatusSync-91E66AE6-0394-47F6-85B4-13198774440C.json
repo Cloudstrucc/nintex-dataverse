@@ -91,7 +91,7 @@
             },
             "parameters": {
               "entityName": "cs_envelopes",
-              "$filter": "statuscode eq 717640003 and cs_envelopeid ne null"
+              "$filter": "statuscode eq 717640003 and cs_preparedenvelopeid ne null"
             },
             "authentication": "@parameters('$authentication')"
           },
@@ -112,7 +112,7 @@
               "type": "Http",
               "inputs": {
                 "method": "GET",
-                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{items('Process_Each_Envelope')?['cs_envelopeid']}/status",
+                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{items('Process_Each_Envelope')?['cs_preparedenvelopeid']}/status",
                 "headers": {
                   "Authorization": "@{variables('BearerToken')}",
                   "X-AS-UserContext": "@{variables('UserContext')}",
@@ -169,7 +169,7 @@
               "type": "Http",
               "inputs": {
                 "method": "GET",
-                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{items('Process_Each_Envelope')?['cs_envelopeid']}/signers",
+                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{items('Process_Each_Envelope')?['cs_preparedenvelopeid']}/signers",
                 "headers": {
                   "Authorization": "@{variables('BearerToken')}",
                   "X-AS-UserContext": "@{variables('UserContext')}",
