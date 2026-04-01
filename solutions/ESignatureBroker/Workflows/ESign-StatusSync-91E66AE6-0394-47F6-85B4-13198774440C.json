@@ -165,11 +165,11 @@
                 ]
               }
             },
-            "HTTP_Get_Signers": {
+            "HTTP_Get_Signing_Links": {
               "type": "Http",
               "inputs": {
                 "method": "GET",
-                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{items('Process_Each_Envelope')?['cs_preparedenvelopeid']}/signers",
+                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelope/@{items('Process_Each_Envelope')?['cs_preparedenvelopeid']}/signingLinks",
                 "headers": {
                   "Authorization": "@{variables('BearerToken')}",
                   "X-AS-UserContext": "@{variables('UserContext')}",
@@ -184,7 +184,7 @@
             },
             "Update_Each_Signer_Status": {
               "type": "Foreach",
-              "foreach": "@body('HTTP_Get_Signers')?['result']?['signers']",
+              "foreach": "@body('HTTP_Get_Signing_Links')?['result']?['signingLinks']",
               "actions": {
                 "List_Signer_Record": {
                   "type": "OpenApiConnection",
@@ -196,7 +196,7 @@
                     },
                     "parameters": {
                       "entityName": "cs_signers",
-                      "$filter": "cs_email eq '@{items('Update_Each_Signer_Status')?['email']}' and _cs_envelopelookup_value eq @{items('Process_Each_Envelope')?['cs_envelopeid']}",
+                      "$filter": "cs_email eq '@{items('Update_Each_Signer_Status')?['signatoryEmail']}' and _cs_envelopelookup_value eq @{items('Process_Each_Envelope')?['cs_envelopeid']}",
                       "$top": 1
                     },
                     "authentication": "@parameters('$authentication')"
@@ -227,9 +227,7 @@
                         "parameters": {
                           "entityName": "cs_signers",
                           "recordId": "@{first(outputs('List_Signer_Record')?['body/value'])?['cs_signerid']}",
-                          "item/cs_signerstatus": "@{items('Update_Each_Signer_Status')?['status']}",
-                          "item/cs_signeddate": "@{items('Update_Each_Signer_Status')?['signedDate']}",
-                          "item/cs_signinglink": "@{items('Update_Each_Signer_Status')?['signingLink']}"
+                          "item/cs_signinglink": "@{items('Update_Each_Signer_Status')?['url']}"
                         },
                         "authentication": "@parameters('$authentication')"
                       },
@@ -247,7 +245,7 @@
                 }
               },
               "runAfter": {
-                "HTTP_Get_Signers": [
+                "HTTP_Get_Signing_Links": [
                   "Succeeded"
                 ]
               }
