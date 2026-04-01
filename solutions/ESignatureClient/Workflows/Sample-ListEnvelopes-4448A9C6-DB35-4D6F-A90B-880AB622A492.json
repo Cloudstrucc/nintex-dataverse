@@ -1,0 +1,73 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_esignbrokerconnection"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)": {
+          "defaultValue": "https://goc-wetv14.crm3.dynamics.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cs_BrokerServiceEnvironment",
+            "description": "The Dataverse environment URL for the E-Signature Broker Service"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            }
+          }
+        }
+      },
+      "actions": {
+        "List_Envelopes": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecordsWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+              "entityName": "cs_envelopes",
+              "$select": "cs_envelopeid,cs_name,cs_subject,cs_templateid,cs_preparedenvelopeid,statuscode,cs_sentdate,cs_completeddate,cs_cancelleddate",
+              "$orderby": "createdon desc"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {},
+          "description": "Queries the broker environment for all envelopes regardless of status. Returns envelope ID, name, subject, template ID, Nintex envelope ID, status, and key dates."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
