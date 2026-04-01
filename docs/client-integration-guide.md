@@ -215,6 +215,40 @@ The sample flows demonstrate the patterns — use them as templates for your own
 
 The `cs_BrokerServiceEnvironment` environment variable has the wrong URL. Verify it matches the broker's Dataverse environment URL exactly (include `https://`).
 
+### 404 "File or directory not found" or "The response is not in a JSON format"
+
+This means the Dataverse API gateway is routing the request to the **client** environment instead of the broker. The `organization` parameter in the flow only works if the underlying **connection** has access to the broker environment.
+
+**Fix:**
+1. Go to **Solutions** > **E-Signature Client** > **Connection References**
+2. Click `cs_esignbrokerconnection`
+3. Set it to a Dataverse connection authenticated with a user who has access to the **broker** environment
+4. **Turn off** the affected flow, then **turn it back on** — this re-binds all actions to the connection reference
+
+**Important:** Never manually create new connections per-action inside the flow editor. This overrides the solution's connection reference and causes actions to target the wrong environment. Always set the connection at the **connection reference** level.
+
+### Environment variable value not being used
+
+If the `cs_BrokerServiceEnvironment` environment variable has a **Default Value** but no **Current Value**, the flow may not resolve it at runtime.
+
+**Fix:**
+1. Go to **Solutions** > **Default Solution** > **Environment Variables**
+2. Find **Broker Service Environment** (`cs_BrokerServiceEnvironment`)
+3. Click it > under **Current Value**, click **+ New value**
+4. Enter the broker URL (e.g., `https://goc-wetv14.crm3.dynamics.com`)
+5. Save
+
+### "Entity 'cs_envelope' With Id = ... Does Not Exist"
+
+You are passing the wrong ID. The client flows use two different IDs:
+
+| Field | What It Is | When to Use |
+|---|---|---|
+| `cs_envelopeid` | Dataverse row ID (primary key) | Use this in all client flows (Check Status, Cancel, Add Signer) |
+| `cs_preparedenvelopeid` | Nintex envelope ID (returned by API) | Do NOT use this in client flows — it's for broker-to-Nintex communication only |
+
+To get the correct `cs_envelopeid`: open the **Create and Send Envelope** flow run history, expand the **Create_Envelope** action output, and copy the `cs_envelopeid` value.
+
 ### Flow runs but no broker flow triggers
 
 Verify that:
@@ -232,6 +266,10 @@ The broker's **Sync Templates** flow runs daily. If no templates appear, run Syn
 2. Check the signer record's `cs_signinglink` field — if empty, the **Get Signing Links** broker flow may have failed
 3. Check the signer's spam/junk folder
 4. Verify the email address is correct
+
+### Signer email has generic subject/body instead of custom subject
+
+Import broker solution **v1.0.0.48 or later** and reactivate the **Prepare Envelope** flow. Earlier versions did not pass the envelope subject to the Nintex API, so Nintex used its default email template.
 
 ---
 
