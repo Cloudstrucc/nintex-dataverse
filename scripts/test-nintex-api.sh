@@ -90,31 +90,75 @@ fi
 
 if [ -z "$TEMPLATE_ID" ]; then
   echo ""
-  echo "ERROR: No template available. Pass a template ID as argument: ./test-nintex-api.sh <template_id>"
+  echo "ERROR: No template available. Pass a template ID as argument: ./scripts/test-nintex-api.sh <template_id>"
   exit 1
 fi
 
-# ── 3. Get Template Details ──────────────────────────────────────────
+# ── 3. Get Template Details + Dynamic Signer Names ───────────────────
 echo ""
 echo "── 3. Get Template Details ──"
 RESP=$(curl -s -w "\n%{http_code}" "$NINTEX_API_BASE_URL/templates/$TEMPLATE_ID" "${AUTH_HEADERS[@]}")
 HTTP_CODE=$(echo "$RESP" | tail -1)
-BODY=$(echo "$RESP" | sed '$d')
+TEMPLATE_BODY=$(echo "$RESP" | sed '$d')
+
+SIGNER_NAME_KEY=""
+SIGNER_EMAIL_KEY=""
 
 if [ "$HTTP_CODE" = "200" ]; then
-  SIGNERS=$(echo "$BODY" | python3 -c "import sys,json; s=json.load(sys.stdin)['result']['content']['signers']; print(', '.join([x['label'] for x in s]))" 2>/dev/null || echo "unknown")
+  SIGNER_INFO=$(echo "$TEMPLATE_BODY" | python3 -c "
+import sys, json
+signers = json.load(sys.stdin)['result']['content']['signers']
+labels = []
+for s in signers:
+    name_key = s['name'].strip('[]')
+    email_key = s['email'].strip('[]')
+    labels.append(s['label'])
+    print(f'{name_key}|{email_key}')
+print('LABELS:' + ', '.join(labels))
+" 2>/dev/null)
+  SIGNER_NAME_KEY=$(echo "$SIGNER_INFO" | head -1 | cut -d'|' -f1)
+  SIGNER_EMAIL_KEY=$(echo "$SIGNER_INFO" | head -1 | cut -d'|' -f2)
+  SIGNERS=$(echo "$SIGNER_INFO" | grep '^LABELS:' | sed 's/^LABELS://')
   log_pass "GET /templates/{id} (HTTP $HTTP_CODE, signers: $SIGNERS)"
+  echo "  Dynamic signer keys: name=\"$SIGNER_NAME_KEY\", email=\"$SIGNER_EMAIL_KEY\""
 else
-  log_fail "GET /templates/{id}" "HTTP $HTTP_CODE - $BODY"
+  log_fail "GET /templates/{id}" "HTTP $HTTP_CODE - $TEMPLATE_BODY"
 fi
 
-# ── 4. Submit Envelope ───────────────────────────────────────────────
+# Fallback if template detail failed
+if [ -z "$SIGNER_NAME_KEY" ]; then
+  SIGNER_NAME_KEY="Signer 1 Name"
+  SIGNER_EMAIL_KEY="Signer 1 Email"
+  echo "  Using fallback signer keys: $SIGNER_NAME_KEY / $SIGNER_EMAIL_KEY"
+fi
+
+# ── 4. Submit Envelope (with dynamic signer names + envelope name) ───
 echo ""
 echo "── 4. Submit Envelope ──"
+ENVELOPE_NAME="API Test - $(date +%Y-%m-%d_%H%M%S)"
+SUBMIT_BODY=$(python3 -c "
+import json
+body = {
+    'request': {
+        'templates': [{
+            'templateID': '$TEMPLATE_ID',
+            'values': [
+                {'name': '$SIGNER_NAME_KEY', 'value': 'API Test User'},
+                {'name': '$SIGNER_EMAIL_KEY', 'value': '$NINTEX_CONTEXT_USERNAME'}
+            ],
+            'envelope': {
+                'name': '$ENVELOPE_NAME'
+            }
+        }]
+    }
+}
+print(json.dumps(body))
+")
+
 RESP=$(curl -s -w "\n%{http_code}" -X POST "$NINTEX_API_BASE_URL/submit" \
   "${AUTH_HEADERS[@]}" \
   -H "Content-Type: application/json" \
-  -d "{\"request\":{\"templates\":[{\"templateID\":\"$TEMPLATE_ID\",\"values\":[{\"name\":\"Signer 1 Name\",\"value\":\"API Test\"},{\"name\":\"Signer 1 Email\",\"value\":\"$NINTEX_CONTEXT_USERNAME\"}]}]}}")
+  -d "$SUBMIT_BODY")
 
 HTTP_CODE=$(echo "$RESP" | tail -1)
 BODY=$(echo "$RESP" | sed '$d')
@@ -123,6 +167,8 @@ if [ "$HTTP_CODE" = "200" ]; then
   ENVELOPE_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['envelopeID'])" 2>/dev/null)
   AUTH_TOKEN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['authToken'])" 2>/dev/null)
   log_pass "POST /submit (HTTP $HTTP_CODE, envelopeID: $ENVELOPE_ID)"
+  echo "  Envelope name: $ENVELOPE_NAME"
+  echo "  Auth token stored for cancel"
 else
   log_fail "POST /submit" "HTTP $HTTP_CODE - $BODY"
   echo ""
@@ -219,13 +265,16 @@ echo ""
 echo "API Path Reference:"
 echo "  POST  /authentication/apiUser          - Auth (request wrapper)"
 echo "  GET   /templates                       - List templates"
-echo "  GET   /templates/{id}                  - Template details"
-echo "  POST  /submit                          - Submit envelope (request.templates[])"
+echo "  GET   /templates/{id}                  - Template details + signer placeholder names"
+echo "  POST  /submit                          - Submit envelope (request.templates[].values + envelope.name)"
 echo "  GET   /envelopes/{id}/status           - Envelope status (plural)"
 echo "  GET   /envelope/{id}/signingLinks      - Signing links (SINGULAR)"
 echo "  GET   /envelopes/{id}/history          - Envelope history (plural)"
 echo "  PUT   /envelopes/{id}/cancel           - Cancel (request.authToken + request.remarks)"
 echo ""
 echo "NOTE: /envelope/ (singular) for signingLinks, /envelopes/ (plural) for all others"
+echo ""
+echo "Submit body structure:"
+echo '  {"request":{"templates":[{"templateID":"...","values":[{"name":"<from template>","value":"..."}],"envelope":{"name":"Custom Subject"}}]}}'
 
 exit $FAIL
