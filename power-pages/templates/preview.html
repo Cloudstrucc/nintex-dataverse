@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>E-Sign Portal — Templates Preview</title>
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- interact.js -->
+<script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js"></script>
+
+<style>
+/* ── GC Design Tokens ─────────────────────────────────────── */
+:root {
+    --gc-red: #AF3C43;
+    --gc-red-dark: #922B31;
+    --gc-white: #FFFFFF;
+    --gc-gray-light: #F8F8F8;
+    --gc-gray: #E1E4E7;
+    --gc-gray-dark: #333333;
+    --gc-blue: #26374A;
+    --gc-blue-light: #335075;
+    --gc-green: #1B6C2A;
+}
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--gc-gray-dark); margin: 0; background: #f4f4f4; }
+
+/* ── Shared Component Styles (from default-studio-template) ── */
+.gc-card { border: 1px solid var(--gc-gray); border-radius: 4px; background: var(--gc-white); }
+.gc-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.gc-card .card-header { background: var(--gc-blue); color: var(--gc-white); font-weight: 600; }
+.btn-gc-primary { background: var(--gc-blue); color: var(--gc-white); border: none; }
+.btn-gc-primary:hover { background: var(--gc-blue-light); color: var(--gc-white); }
+.btn-gc-danger { background: var(--gc-red); color: var(--gc-white); border: none; }
+.btn-gc-danger:hover { background: var(--gc-red-dark); color: var(--gc-white); }
+.btn-gc-success { background: var(--gc-green); color: var(--gc-white); border: none; }
+.btn-gc-success:hover { background: #155722; color: var(--gc-white); }
+.table-gc thead { background: var(--gc-blue); color: var(--gc-white); }
+.table-gc thead th { font-weight: 600; border: none; }
+.badge-draft { background: #6c757d; }
+.badge-active { background: var(--gc-green); color: #fff; }
+.badge-inactive { background: #6c757d; color: #fff; }
+
+/* ── Fake Portal Chrome ───────────────────────────────────── */
+.portal-header {
+    background: var(--gc-blue);
+    border-bottom: 3px solid var(--gc-red);
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.portal-header .brand { font-weight: 700; font-size: 1.1rem; text-decoration: none; color: #fff; }
+.portal-header .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
+.portal-header .nav-links a:hover, .portal-header .nav-links a.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+.portal-footer { background: var(--gc-blue); color: rgba(255,255,255,0.7); padding: 16px 20px; text-align: center; font-size: 0.8rem; }
+
+/* ── View toggling ────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: block; }
+.view-editor.active { display: flex; flex-direction: column; }
+
+/* ===== TEMPLATES LIST STYLES ===== */
+.tpl-row { cursor: default; }
+.tpl-row:hover { background-color: #f8f9fa; }
+.tpl-icon { width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+.tpl-icon-doc { background: #e8f0fe; color: #1565C0; }
+.tpl-icon-nintex { background: #e8f5e9; color: #2E7D32; }
+.btn-use { background: var(--gc-green); color: #fff; border: none; }
+.btn-use:hover { background: #155722; color: #fff; }
+.tpl-name-link { color: var(--gc-blue); text-decoration: none; font-weight: 600; cursor: pointer; }
+.tpl-name-link:hover { text-decoration: underline; }
+.tpl-desc { color: #666; font-size: 0.85rem; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== TEMPLATE EDITOR STYLES ===== */
+.template-editor {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 52px);
+    overflow: hidden;
+}
+.te-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--gc-blue);
+    color: #fff;
+    padding: 8px 16px;
+    flex-shrink: 0;
+    z-index: 100;
+}
+.te-title-input {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    min-width: 250px;
+}
+.te-title-input:hover { border-color: rgba(255,255,255,0.3); }
+.te-title-input:focus { border-color: rgba(255,255,255,0.6); outline: none; background: rgba(255,255,255,0.1); }
+.te-title-input::placeholder { color: rgba(255,255,255,0.5); }
+.te-save-status {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+    padding-left: 8px;
+}
+.te-save-status.saving { color: #ffc107; }
+.te-save-status.saved { color: #4caf50; }
+.te-save-status.error { color: #f44336; }
+.te-workspace { display: flex; flex: 1; overflow: hidden; }
+.te-canvas-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.te-pdf-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #333;
+    color: #fff;
+    padding: 6px 12px;
+    flex-shrink: 0;
+}
+.te-page-info { font-size: 0.8rem; min-width: 80px; text-align: center; }
+.te-separator { color: rgba(255,255,255,0.3); }
+.te-viewport {
+    flex: 1;
+    background: #525659;
+    overflow: auto;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+.te-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    padding: 60px 20px;
+    margin: auto;
+}
+.te-page-wrapper {
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    background: #fff;
+}
+.te-page-wrapper canvas { display: block; }
+.te-field-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+
+/* Right Panel */
+.te-right-panel {
+    width: 280px;
+    min-width: 280px;
+    background: #fff;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+.te-panel-section { border-bottom: 1px solid #e0e0e0; }
+.te-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    background: #fafafa;
+}
+.te-panel-header:hover { background: #f0f0f0; }
+.te-chevron { transition: transform 0.2s; font-size: 0.75rem; }
+.te-panel-section.collapsed .te-chevron { transform: rotate(-90deg); }
+.te-panel-section.collapsed .te-panel-body { display: none; }
+.te-panel-body { padding: 10px 14px; }
+
+/* Signer Rows */
+.te-signer-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+}
+.te-signer-color { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.te-signer-row input {
+    flex: 1;
+    border: none;
+    font-size: 0.8rem;
+    padding: 2px 4px;
+    background: transparent;
+    outline: none;
+    min-width: 0;
+}
+.te-signer-row input:focus { background: #f8f8f8; }
+
+/* Field Palette */
+.te-field-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.te-palette-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: grab;
+    font-size: 0.7rem;
+    color: #555;
+    text-align: center;
+    background: #fff;
+    transition: all 0.15s;
+    user-select: none;
+    touch-action: none;
+}
+.te-palette-item i { font-size: 1.1rem; margin-bottom: 4px; color: var(--gc-blue); }
+.te-palette-item:hover { background: #f0f4ff; border-color: var(--gc-blue); }
+.te-palette-item:active { cursor: grabbing; }
+
+/* Placed Fields on PDF */
+.te-field {
+    position: absolute;
+    pointer-events: all;
+    border: 2px dashed;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    cursor: move;
+    user-select: none;
+    touch-action: none;
+    opacity: 0.85;
+    transition: opacity 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.te-field:hover { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.te-field.selected {
+    opacity: 1;
+    border-style: solid;
+    box-shadow: 0 0 0 2px rgba(13,110,253,0.5), 0 2px 8px rgba(0,0,0,0.2);
+}
+.te-field .te-field-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+.te-field .te-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+    background: rgba(0,0,0,0.15);
+    border-radius: 2px 0;
+}
+
+/* Placed Fields List */
+.te-placed-field-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    margin-bottom: 3px;
+}
+.te-placed-field-item:hover { background: #f0f0f0; }
+.te-placed-field-item.active { background: #e8f0fe; }
+.te-pf-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.te-pf-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.te-pf-page { color: #999; font-size: 0.7rem; }
+
+/* Drag clone */
+.te-drag-clone {
+    padding: 6px 12px;
+    background: var(--gc-blue);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 9999;
+}
+
+@media (max-width: 768px) {
+    .te-right-panel { width: 100%; min-width: 100%; border-left: none; border-top: 1px solid #e0e0e0; max-height: 300px; }
+    .te-workspace { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PORTAL HEADER (simulated)
+     ═══════════════════════════════════════════════════════════ -->
+<header class="portal-header" id="portalHeader">
+    <a class="brand" href="#" onclick="showView('list');return false;">
+        <i class="bi bi-pen me-2"></i>E-Sign Portal
+    </a>
+    <div class="nav-links">
+        <a href="#" onclick="showView('list');return false;" id="navTemplates" class="active">Templates</a>
+        <a href="#" onclick="showView('editor');return false;" id="navEditor">Template Editor</a>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     VIEW 1 — TEMPLATES LIST
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view active" id="viewList">
+<div class="container py-4">
+<nav class="gc-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item active">Templates</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-text me-2"></i>Templates</h2>
+    <button class="btn btn-gc-primary" onclick="showView('editor')">
+        <i class="bi bi-plus-circle me-1"></i>New Template
+    </button>
+</div>
+
+<!-- Filter Bar -->
+<div class="gc-card card mb-4">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <input type="text" id="searchTemplates" class="form-control form-control-sm" placeholder="Search templates..." oninput="filterTemplates()"/>
+            </div>
+            <div class="col-md-3">
+                <select id="filterCategory" class="form-select form-select-sm" onchange="filterTemplates()">
+                    <option value="">All Categories</option>
+                    <option value="Contracts">Contracts</option>
+                    <option value="HR">HR</option>
+                    <option value="Legal">Legal</option>
+                    <option value="Finance">Finance</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="filterStatus" class="form-select form-select-sm" onchange="filterTemplates()">
+                    <option value="">All Statuses</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-sm btn-outline-secondary" onclick="filterTemplates()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Templates Table -->
+<div class="gc-card card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-gc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"></th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Last Modified</th>
+                        <th class="text-end" style="width: 180px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="templates-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3" id="pagination-bar" style="display:none;">
+    <small class="text-muted" id="pagination-info"></small>
+    <nav><ul class="pagination pagination-sm mb-0" id="pagination-links"></ul></nav>
+</div>
+</div><!-- /container -->
+</div><!-- /viewList -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     VIEW 2 — TEMPLATE EDITOR
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view view-editor" id="viewEditor">
+<div class="template-editor" id="editorApp">
+
+    <!-- Top Bar -->
+    <div class="te-topbar">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm btn-outline-light" title="Back to Templates" onclick="showView('list')">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <input type="text" id="tplName" class="te-title-input" placeholder="Untitled Template" value="Standard NDA Agreement"/>
+                <small class="te-save-status" id="saveStatus">
+                    <i class="bi bi-cloud-check me-1"></i>No changes
+                </small>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.save()" title="Save">
+                <i class="bi bi-floppy me-1"></i>Save
+            </button>
+            <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.saveAndClose()" title="Save & Close">
+                <i class="bi bi-check-circle me-1"></i>Save &amp; Close
+            </button>
+            <button class="btn btn-sm btn-outline-light" onclick="showView('list')" title="Close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="te-workspace">
+
+        <!-- PDF Canvas Area -->
+        <div class="te-canvas-area" id="canvasArea">
+            <!-- PDF Toolbar -->
+            <div class="te-pdf-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.prevPage()"><i class="bi bi-chevron-left"></i></button>
+                    <span id="pageInfo" class="te-page-info">Page 0 / 0</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.nextPage()"><i class="bi bi-chevron-right"></i></button>
+                    <span class="te-separator">|</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.zoomOut()"><i class="bi bi-zoom-out"></i></button>
+                    <span id="zoomLevel" class="te-page-info">100%</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.zoomIn()"><i class="bi bi-zoom-in"></i></button>
+                    <button class="btn btn-sm btn-outline-light" onclick="TemplateEditor.fitWidth()"><i class="bi bi-arrows-fullscreen"></i></button>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="file" id="fileUpload" accept=".pdf" class="d-none" onchange="TemplateEditor.handleUpload(this)"/>
+                    <button class="btn btn-sm btn-outline-light" onclick="document.getElementById('fileUpload').click()">
+                        <i class="bi bi-upload me-1"></i>Upload PDF
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="TemplateEditor.loadSamplePdf()" title="Load a generated sample PDF to test with">
+                        <i class="bi bi-file-earmark-plus me-1"></i>Load Sample PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- PDF Viewport -->
+            <div class="te-viewport" id="viewport">
+                <div class="te-empty-state" id="emptyState">
+                    <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; opacity: 0.3;"></i>
+                    <h5 class="mt-3 mb-2" style="color: rgba(255,255,255,0.7);">No document loaded</h5>
+                    <p style="color: rgba(255,255,255,0.5); max-width: 400px;">
+                        Upload a PDF or click <strong>Load Sample PDF</strong> to generate a test document and start placing signature fields.
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-light" onclick="document.getElementById('fileUpload').click()">
+                            <i class="bi bi-upload me-1"></i>Upload PDF
+                        </button>
+                        <button class="btn btn-warning" onclick="TemplateEditor.loadSamplePdf()">
+                            <i class="bi bi-file-earmark-plus me-1"></i>Load Sample PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="te-page-wrapper" id="pageWrapper" style="display:none;">
+                    <canvas id="pdfCanvas"></canvas>
+                    <div class="te-field-layer" id="fieldLayer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="te-right-panel" id="rightPanel">
+
+            <!-- Signers -->
+            <div class="te-panel-section">
+                <div class="te-panel-header" onclick="toggleSection(this)">
+                    <span><i class="bi bi-people me-2"></i>Signers</span>
+                    <i class="bi bi-chevron-down te-chevron"></i>
+                </div>
+                <div class="te-panel-body" id="signersPanel">
+                    <div id="signersList"></div>
+                    <button class="btn btn-sm btn-outline-secondary w-100 mt-2" onclick="TemplateEditor.addSigner()">
+                        <i class="bi bi-plus me-1"></i>Add Signer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Field Palette -->
+            <div class="te-panel-section">
+                <div class="te-panel-header" onclick="toggleSection(this)">
+                    <span><i class="bi bi-puzzle me-2"></i>Fields</span>
+                    <i class="bi bi-chevron-down te-chevron"></i>
+                </div>
+                <div class="te-panel-body" id="fieldPalette">
+                    <p class="text-muted small mb-2">Drag fields onto the document</p>
+                    <div class="te-field-grid">
+                        <div class="te-palette-item" data-field-type="signature"><i class="bi bi-pen"></i><span>Signature</span></div>
+                        <div class="te-palette-item" data-field-type="initials"><i class="bi bi-type-italic"></i><span>Initials</span></div>
+                        <div class="te-palette-item" data-field-type="date_signed"><i class="bi bi-calendar-check"></i><span>Date Signed</span></div>
+                        <div class="te-palette-item" data-field-type="text"><i class="bi bi-fonts"></i><span>Text</span></div>
+                        <div class="te-palette-item" data-field-type="checkbox"><i class="bi bi-check-square"></i><span>Checkbox</span></div>
+                        <div class="te-palette-item" data-field-type="name"><i class="bi bi-person"></i><span>Full Name</span></div>
+                        <div class="te-palette-item" data-field-type="email"><i class="bi bi-envelope-at"></i><span>Email</span></div>
+                        <div class="te-palette-item" data-field-type="company"><i class="bi bi-building"></i><span>Company</span></div>
+                        <div class="te-palette-item" data-field-type="title"><i class="bi bi-briefcase"></i><span>Title</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placed Fields List -->
+            <div class="te-panel-section">
+                <div class="te-panel-header" onclick="toggleSection(this)">
+                    <span><i class="bi bi-list-check me-2"></i>Placed Fields <span class="badge bg-secondary ms-1" id="fieldCount">0</span></span>
+                    <i class="bi bi-chevron-down te-chevron"></i>
+                </div>
+                <div class="te-panel-body" id="placedFieldsPanel">
+                    <div id="placedFieldsList" class="te-placed-fields">
+                        <p class="text-muted small mb-0">No fields placed yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Field Properties -->
+            <div class="te-panel-section" id="propsSection" style="display:none;">
+                <div class="te-panel-header">
+                    <span><i class="bi bi-gear me-2"></i>Field Properties</span>
+                    <button class="btn btn-sm p-0 border-0" onclick="TemplateEditor.deselectField()" title="Close">
+                        <i class="bi bi-x-lg" style="color:#666;"></i>
+                    </button>
+                </div>
+                <div class="te-panel-body">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Type</label>
+                        <div id="propType" class="form-control-plaintext small"></div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Label</label>
+                        <input type="text" id="propLabel" class="form-control form-control-sm" onchange="TemplateEditor.updateFieldProp('label', this.value)"/>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Assigned Signer</label>
+                        <select id="propSigner" class="form-select form-select-sm" onchange="TemplateEditor.updateFieldProp('signerIndex', parseInt(this.value))"></select>
+                    </div>
+                    <div class="mb-2">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="propRequired" onchange="TemplateEditor.updateFieldProp('required', this.checked)"/>
+                            <label class="form-check-label small" for="propRequired">Required</label>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Page</label>
+                        <div id="propPage" class="form-control-plaintext small"></div>
+                    </div>
+                    <hr/>
+                    <button class="btn btn-sm btn-outline-danger w-100" onclick="TemplateEditor.deleteSelectedField()">
+                        <i class="bi bi-trash me-1"></i>Delete Field
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div><!-- /viewEditor -->
+
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function showView(name) {
+    document.getElementById('viewList').classList.toggle('active', name === 'list');
+    document.getElementById('viewEditor').classList.toggle('active', name === 'editor');
+    document.getElementById('navTemplates').classList.toggle('active', name === 'list');
+    document.getElementById('navEditor').classList.toggle('active', name === 'editor');
+    document.getElementById('portalHeader').style.display = name === 'editor' ? 'none' : '';
+    if (name === 'editor') {
+        // Refit after layout change
+        setTimeout(function() { if (TemplateEditor.fitWidth) TemplateEditor.fitWidth(); }, 100);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TEMPLATES LIST (mock data)
+// ═══════════════════════════════════════════════════════════════
+var MOCK_TEMPLATES = [
+    { cs_templateid: '1a', cs_name: 'Standard NDA Agreement', cs_description: 'Non-disclosure agreement for external contractors and vendors.', cs_category: 'Legal', cs_isactive: true, cs_filename: null, modifiedon: '2026-04-08T14:30:00Z', createdon: '2026-03-01T09:00:00Z' },
+    { cs_templateid: '2b', cs_name: 'Employment Offer Letter', cs_description: 'Standard offer letter template with compensation details and start date.', cs_category: 'HR', cs_isactive: true, cs_filename: 'offer_letter.pdf', modifiedon: '2026-04-07T10:15:00Z', createdon: '2026-02-15T08:00:00Z' },
+    { cs_templateid: '3c', cs_name: 'Vendor Service Agreement', cs_description: 'Master service agreement for approved vendors. Includes SLA terms.', cs_category: 'Contracts', cs_isactive: true, cs_filename: null, modifiedon: '2026-04-05T16:45:00Z', createdon: '2026-01-20T11:30:00Z' },
+    { cs_templateid: '4d', cs_name: 'Budget Approval Form', cs_description: 'Internal budget approval form for fiscal year expenditures.', cs_category: 'Finance', cs_isactive: true, cs_filename: 'budget_form.pdf', modifiedon: '2026-04-03T09:00:00Z', createdon: '2026-03-10T14:00:00Z' },
+    { cs_templateid: '5e', cs_name: 'Candidate Nomination Form', cs_description: 'Official candidate nomination form per the Canada Elections Act.', cs_category: 'Legal', cs_isactive: true, cs_filename: null, modifiedon: '2026-04-01T13:20:00Z', createdon: '2025-12-05T10:00:00Z' },
+    { cs_templateid: '6f', cs_name: 'Electoral Officer Agreement', cs_description: 'Appointment agreement for returning officers and support staff.', cs_category: 'HR', cs_isactive: true, cs_filename: null, modifiedon: '2026-03-28T11:00:00Z', createdon: '2025-11-15T09:00:00Z' },
+    { cs_templateid: '7g', cs_name: 'IT Security Acknowledgement', cs_description: 'Acknowledgement of IT security policies for new employees.', cs_category: 'Legal', cs_isactive: false, cs_filename: 'security_ack.pdf', modifiedon: '2026-03-20T08:30:00Z', createdon: '2025-10-01T10:00:00Z' },
+    { cs_templateid: '8h', cs_name: 'Travel Authorization Form', cs_description: 'Pre-travel authorization and expense approval form.', cs_category: 'Finance', cs_isactive: true, cs_filename: 'travel_auth.pdf', modifiedon: '2026-03-15T14:00:00Z', createdon: '2026-01-05T08:00:00Z' },
+    { cs_templateid: '9i', cs_name: 'Consulting Services SOW', cs_description: 'Statement of work template for consulting engagements.', cs_category: 'Contracts', cs_isactive: true, cs_filename: null, modifiedon: '2026-03-10T10:45:00Z', createdon: '2025-09-20T11:00:00Z' },
+    { cs_templateid: '10j', cs_name: 'Deprecated Onboarding Checklist', cs_description: 'Old onboarding checklist — replaced by the new HR portal process.', cs_category: 'HR', cs_isactive: false, cs_filename: 'onboarding_old.pdf', modifiedon: '2026-02-01T09:00:00Z', createdon: '2025-06-01T10:00:00Z' },
+];
+
+var allTemplates = MOCK_TEMPLATES;
+var currentPage = 1;
+var pageSize = 20;
+
+function filterTemplates() {
+    var search = (document.getElementById('searchTemplates').value || '').toLowerCase();
+    var category = document.getElementById('filterCategory').value;
+    var status = document.getElementById('filterStatus').value;
+
+    var filtered = allTemplates.filter(function(t) {
+        if (search && (t.cs_name || '').toLowerCase().indexOf(search) === -1 &&
+            (t.cs_description || '').toLowerCase().indexOf(search) === -1) return false;
+        if (category && t.cs_category !== category) return false;
+        if (status !== '' && String(t.cs_isactive) !== status) return false;
+        return true;
+    });
+    renderTemplates(filtered);
+}
+
+function renderTemplates(list) {
+    var tbody = document.getElementById('templates-body');
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">' +
+            '<i class="bi bi-file-earmark-text" style="font-size: 3rem; color: var(--gc-gray);"></i>' +
+            '<p class="text-muted mt-2 mb-1">No templates found.</p></td></tr>';
+        return;
+    }
+    tbody.innerHTML = '';
+    list.forEach(function(tpl) {
+        var isActive = tpl.cs_isactive !== false;
+        var isNintex = !tpl.cs_filename;
+        var iconClass = isNintex ? 'tpl-icon-nintex' : 'tpl-icon-doc';
+        var iconSymbol = isNintex ? 'bi-cloud-check' : 'bi-file-earmark-pdf';
+        var statusBadge = isActive
+            ? '<span class="badge badge-active">Active</span>'
+            : '<span class="badge badge-inactive">Inactive</span>';
+        var modified = tpl.modifiedon ? new Date(tpl.modifiedon).toLocaleDateString('en-CA') : '--';
+
+        var row = '<tr class="tpl-row">' +
+            '<td><div class="tpl-icon ' + iconClass + '"><i class="bi ' + iconSymbol + '"></i></div></td>' +
+            '<td><a class="tpl-name-link" onclick="showView(\'editor\')">' + esc(tpl.cs_name || 'Untitled') + '</a></td>' +
+            '<td><span class="tpl-desc" title="' + escA(tpl.cs_description || '') + '">' + esc(tpl.cs_description || '--') + '</span></td>' +
+            '<td>' + esc(tpl.cs_category || '--') + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td>' + modified + '</td>' +
+            '<td class="text-end">' +
+                '<button class="btn btn-sm btn-gc-primary me-1" onclick="showView(\'editor\')" title="Edit"><i class="bi bi-pencil me-1"></i>Edit</button>' +
+                '<button class="btn btn-sm btn-use" title="Use" onclick="alert(\'This would navigate to create a new envelope from this template.\')"><i class="bi bi-send me-1"></i>Use</button>' +
+            '</td></tr>';
+        tbody.innerHTML += row;
+    });
+}
+
+function esc(s) { var d=document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+function escA(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+
+// ═══════════════════════════════════════════════════════════════
+// TEMPLATE EDITOR
+// ═══════════════════════════════════════════════════════════════
+(function() {
+    'use strict';
+
+    var SIGNER_COLORS = [
+        { bg: 'rgba(175,60,67,0.15)', border: '#AF3C43', text: '#AF3C43' },
+        { bg: 'rgba(21,101,192,0.15)', border: '#1565C0', text: '#1565C0' },
+        { bg: 'rgba(46,125,50,0.15)', border: '#2E7D32', text: '#2E7D32' },
+        { bg: 'rgba(230,81,0,0.15)', border: '#E65100', text: '#E65100' },
+        { bg: 'rgba(106,27,154,0.15)', border: '#6A1B9A', text: '#6A1B9A' },
+        { bg: 'rgba(0,131,143,0.15)', border: '#00838F', text: '#00838F' }
+    ];
+
+    var FIELD_TYPES = {
+        signature:   { label: 'Signature',  icon: 'bi-pen',            w: 200, h: 50 },
+        initials:    { label: 'Initials',   icon: 'bi-type-italic',    w: 80,  h: 40 },
+        date_signed: { label: 'Date Signed',icon: 'bi-calendar-check', w: 140, h: 28 },
+        text:        { label: 'Text',       icon: 'bi-fonts',          w: 160, h: 28 },
+        checkbox:    { label: 'Checkbox',   icon: 'bi-check-square',   w: 24,  h: 24 },
+        name:        { label: 'Full Name',  icon: 'bi-person',         w: 160, h: 28 },
+        email:       { label: 'Email',      icon: 'bi-envelope-at',    w: 180, h: 28 },
+        company:     { label: 'Company',    icon: 'bi-building',       w: 160, h: 28 },
+        title:       { label: 'Title',      icon: 'bi-briefcase',      w: 140, h: 28 }
+    };
+
+    var state = {
+        pdfDoc: null, pageNum: 1, pageCount: 0, scale: 1.0,
+        signers: [], fields: [], selectedFieldId: null,
+        dirty: false, nextFieldId: 1
+    };
+
+    var canvas = document.getElementById('pdfCanvas');
+    var ctx = canvas.getContext('2d');
+
+    function init() {
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        addSigner('Primary Signer');
+        addSigner('Counter-Signer');
+        setupPaletteDrag();
+        setupFieldInteractions();
+
+        document.getElementById('tplName').addEventListener('input', function() { markDirty(); });
+    }
+
+    // ── Generate a sample PDF using PDF.js-compatible raw PDF ──
+    function loadSamplePdf() {
+        // Build a minimal valid PDF in memory
+        var pdfContent =
+            '%PDF-1.4\n' +
+            '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n' +
+            '2 0 obj<</Type/Pages/Kids[3 0 R 6 0 R]/Count 2>>endobj\n' +
+            // Page 1
+            '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n' +
+            '5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n' +
+            '4 0 obj<</Length 430>>\nstream\n' +
+            'BT\n/F1 24 Tf\n72 720 Td\n(NON-DISCLOSURE AGREEMENT) Tj\n' +
+            '/F1 11 Tf\n0 -40 Td\n(This Non-Disclosure Agreement \\(the "Agreement"\\) is entered into) Tj\n' +
+            '0 -18 Td\n(as of the date of last signature below, by and between:) Tj\n' +
+            '0 -30 Td\n/F1 13 Tf\n(Party A \\(Disclosing Party\\):) Tj\n/F1 11 Tf\n' +
+            '0 -20 Td\n(Name: ________________________________________) Tj\n' +
+            '0 -18 Td\n(Title: ________________________________________) Tj\n' +
+            '0 -18 Td\n(Company: _____________________________________) Tj\n' +
+            '0 -30 Td\n/F1 13 Tf\n(Party B \\(Receiving Party\\):) Tj\n/F1 11 Tf\n' +
+            '0 -20 Td\n(Name: ________________________________________) Tj\n' +
+            '0 -18 Td\n(Title: ________________________________________) Tj\n' +
+            '0 -18 Td\n(Company: _____________________________________) Tj\n' +
+            '0 -30 Td\n/F1 13 Tf\n(1. Definition of Confidential Information) Tj\n/F1 11 Tf\n' +
+            '0 -20 Td\n(Confidential Information means any data or information, oral or written,) Tj\n' +
+            '0 -16 Td\n(disclosed by the Disclosing Party that is designated as confidential.) Tj\n' +
+            'ET\n' +
+            'endstream\nendobj\n' +
+            // Page 2
+            '6 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 7 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n' +
+            '7 0 obj<</Length 410>>\nstream\n' +
+            'BT\n/F1 13 Tf\n72 720 Td\n(2. Obligations of the Receiving Party) Tj\n/F1 11 Tf\n' +
+            '0 -22 Td\n(The Receiving Party agrees to hold all Confidential Information in) Tj\n' +
+            '0 -16 Td\n(strict confidence and not to disclose it to any third party.) Tj\n' +
+            '0 -30 Td\n/F1 13 Tf\n(3. Term) Tj\n/F1 11 Tf\n' +
+            '0 -22 Td\n(This Agreement shall remain in effect for a period of two \\(2\\) years) Tj\n' +
+            '0 -16 Td\n(from the date of execution.) Tj\n' +
+            '0 -40 Td\n/F1 13 Tf\n(SIGNATURES) Tj\n/F1 11 Tf\n' +
+            '0 -30 Td\n(Disclosing Party:) Tj\n' +
+            '0 -40 Td\n(Signature: ____________________________  Date: ___________) Tj\n' +
+            '0 -18 Td\n(Printed Name: _________________________) Tj\n' +
+            '0 -40 Td\n(Receiving Party:) Tj\n' +
+            '0 -40 Td\n(Signature: ____________________________  Date: ___________) Tj\n' +
+            '0 -18 Td\n(Printed Name: _________________________) Tj\n' +
+            'ET\n' +
+            'endstream\nendobj\n' +
+            'xref\n0 8\n' +
+            '0000000000 65535 f \n' +
+            '0000000009 00000 n \n' +
+            '0000000058 00000 n \n' +
+            '0000000115 00000 n \n' +
+            '0000000310 00000 n \n' +
+            '0000000266 00000 n \n' +
+            '0000000792 00000 n \n' +
+            '0000000987 00000 n \n' +
+            'trailer<</Size 8/Root 1 0 R>>\nstartxref\n1449\n%%EOF';
+
+        var bytes = new Uint8Array(pdfContent.length);
+        for (var i = 0; i < pdfContent.length; i++) {
+            bytes[i] = pdfContent.charCodeAt(i);
+        }
+        loadPdf(bytes.buffer);
+    }
+
+    function loadPdf(data) {
+        pdfjsLib.getDocument({ data: data }).promise.then(function(pdf) {
+            state.pdfDoc = pdf;
+            state.pageCount = pdf.numPages;
+            state.pageNum = 1;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('pageWrapper').style.display = '';
+            fitWidth();
+        }).catch(function(err) {
+            alert('Error loading PDF: ' + err.message);
+        });
+    }
+
+    function renderPage() {
+        if (!state.pdfDoc) return;
+        state.pdfDoc.getPage(state.pageNum).then(function(page) {
+            var viewport = page.getViewport({ scale: state.scale });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            var wrapper = document.getElementById('pageWrapper');
+            wrapper.style.width = viewport.width + 'px';
+            wrapper.style.height = viewport.height + 'px';
+            page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+                renderFieldOverlays();
+            });
+            document.getElementById('pageInfo').textContent = 'Page ' + state.pageNum + ' / ' + state.pageCount;
+            document.getElementById('zoomLevel').textContent = Math.round(state.scale * 100) + '%';
+        });
+    }
+
+    function prevPage() { if (state.pageNum > 1) { state.pageNum--; renderPage(); } }
+    function nextPage() { if (state.pageNum < state.pageCount) { state.pageNum++; renderPage(); } }
+    function zoomIn() { state.scale = Math.min(state.scale + 0.25, 3.0); renderPage(); }
+    function zoomOut() { state.scale = Math.max(state.scale - 0.25, 0.5); renderPage(); }
+
+    function fitWidth() {
+        if (!state.pdfDoc) return;
+        state.pdfDoc.getPage(state.pageNum).then(function(page) {
+            var containerWidth = document.getElementById('canvasArea').clientWidth - 60;
+            var unscaled = page.getViewport({ scale: 1.0 });
+            state.scale = containerWidth / unscaled.width;
+            renderPage();
+        });
+    }
+
+    function handleUpload(input) {
+        if (!input.files || !input.files[0]) return;
+        var reader = new FileReader();
+        reader.onload = function(e) { loadPdf(e.target.result); markDirty(); };
+        reader.readAsArrayBuffer(input.files[0]);
+    }
+
+    // ── Signers ────────────────────────────────────────────────
+    function addSigner(label) {
+        var idx = state.signers.length;
+        state.signers.push({ label: label || 'Signer ' + (idx + 1), color: SIGNER_COLORS[idx % SIGNER_COLORS.length] });
+        renderSigners();
+        updateSignerDropdowns();
+    }
+
+    function removeSigner(idx) {
+        if (state.signers.length <= 1) { alert('At least one signer is required.'); return; }
+        state.signers.splice(idx, 1);
+        state.fields.forEach(function(f) {
+            if (f.signerIndex === idx) f.signerIndex = 0;
+            else if (f.signerIndex > idx) f.signerIndex--;
+        });
+        renderSigners(); updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+    }
+
+    function updateSignerLabel(idx, val) {
+        state.signers[idx].label = val;
+        updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+    }
+
+    function renderSigners() {
+        var c = document.getElementById('signersList');
+        c.innerHTML = '';
+        state.signers.forEach(function(s, i) {
+            c.innerHTML +=
+                '<div class="te-signer-row">' +
+                '<span class="te-signer-color" style="background:' + s.color.border + ';"></span>' +
+                '<input type="text" value="' + escA(s.label) + '" onchange="TemplateEditor.updateSignerLabel(' + i + ', this.value)" placeholder="Signer name"/>' +
+                '<button class="btn btn-sm p-0 border-0" onclick="TemplateEditor.removeSigner(' + i + ')"><i class="bi bi-x" style="color:#999;"></i></button>' +
+                '</div>';
+        });
+    }
+
+    function updateSignerDropdowns() {
+        var sel = document.getElementById('propSigner');
+        var val = sel.value;
+        sel.innerHTML = '';
+        state.signers.forEach(function(s, i) { sel.innerHTML += '<option value="' + i + '">' + esc(s.label) + '</option>'; });
+        sel.value = val;
+    }
+
+    // ── Palette Drag ───────────────────────────────────────────
+    function setupPaletteDrag() {
+        interact('.te-palette-item').draggable({
+            inertia: false,
+            listeners: {
+                start: function(ev) {
+                    var ft = FIELD_TYPES[ev.target.getAttribute('data-field-type')];
+                    var clone = document.createElement('div');
+                    clone.className = 'te-drag-clone'; clone.id = 'dragClone';
+                    clone.textContent = ft.label;
+                    clone.style.position = 'fixed';
+                    clone.style.left = ev.clientX + 'px';
+                    clone.style.top = ev.clientY + 'px';
+                    clone.style.transform = 'translate(-50%, -50%)';
+                    document.body.appendChild(clone);
+                },
+                move: function(ev) {
+                    var c = document.getElementById('dragClone');
+                    if (c) { c.style.left = ev.clientX + 'px'; c.style.top = ev.clientY + 'px'; }
+                },
+                end: function(ev) {
+                    var c = document.getElementById('dragClone'); if (c) c.remove();
+                    var layer = document.getElementById('fieldLayer');
+                    var rect = layer.getBoundingClientRect();
+                    var x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+                    if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
+                        placeField(ev.target.getAttribute('data-field-type'), x, y);
+                    }
+                }
+            }
+        });
+    }
+
+    function placeField(type, x, y) {
+        var ft = FIELD_TYPES[type];
+        var field = {
+            id: state.nextFieldId++, type: type, label: ft.label,
+            signerIndex: 0, required: true, page: state.pageNum,
+            x: x, y: y, w: ft.w * state.scale, h: ft.h * state.scale
+        };
+        state.fields.push(field);
+        renderFieldOverlays(); selectField(field.id); updatePlacedFieldsList(); markDirty();
+    }
+
+    function renderFieldOverlays() {
+        var layer = document.getElementById('fieldLayer');
+        layer.innerHTML = '';
+        state.fields.filter(function(f) { return f.page === state.pageNum; }).forEach(function(f) {
+            var color = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
+            var ft = FIELD_TYPES[f.type];
+            var div = document.createElement('div');
+            div.className = 'te-field' + (f.id === state.selectedFieldId ? ' selected' : '');
+            div.setAttribute('data-field-id', f.id);
+            div.style.cssText = 'left:' + f.x + 'px;top:' + f.y + 'px;width:' + f.w + 'px;height:' + f.h + 'px;border-color:' + color.border + ';background:' + color.bg + ';color:' + color.text + ';';
+            div.innerHTML = '<i class="bi ' + ft.icon + ' me-1" style="font-size:0.7rem;"></i><span class="te-field-label">' + esc(f.label) + '</span><div class="te-resize-handle"></div>';
+            div.addEventListener('mousedown', function(e) { if (!e.target.classList.contains('te-resize-handle')) selectField(f.id); });
+            layer.appendChild(div);
+        });
+        document.getElementById('fieldCount').textContent = state.fields.length;
+    }
+
+    function setupFieldInteractions() {
+        interact('.te-field').draggable({
+            inertia: false,
+            modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: false })],
+            listeners: {
+                move: function(ev) {
+                    var el = ev.target, fid = parseInt(el.getAttribute('data-field-id')), f = getField(fid);
+                    if (!f) return;
+                    f.x += ev.dx; f.y += ev.dy;
+                    el.style.left = f.x + 'px'; el.style.top = f.y + 'px';
+                    markDirty();
+                },
+                end: function() { updatePlacedFieldsList(); }
+            }
+        });
+        interact('.te-field').resizable({
+            edges: { right: '.te-resize-handle', bottom: '.te-resize-handle' },
+            modifiers: [
+                interact.modifiers.restrictSize({ min: { width: 20, height: 16 } }),
+                interact.modifiers.restrictEdges({ outer: 'parent' })
+            ],
+            listeners: {
+                move: function(ev) {
+                    var el = ev.target, fid = parseInt(el.getAttribute('data-field-id')), f = getField(fid);
+                    if (!f) return;
+                    f.w = ev.rect.width; f.h = ev.rect.height;
+                    el.style.width = f.w + 'px'; el.style.height = f.h + 'px';
+                    markDirty();
+                }
+            }
+        });
+        document.getElementById('viewport').addEventListener('mousedown', function(e) {
+            if (e.target.id === 'viewport' || e.target.id === 'pdfCanvas' || e.target.id === 'fieldLayer') deselectField();
+        });
+    }
+
+    // ── Selection ──────────────────────────────────────────────
+    function selectField(id) {
+        state.selectedFieldId = id;
+        var f = getField(id); if (!f) return;
+        document.querySelectorAll('.te-field').forEach(function(el) { el.classList.toggle('selected', parseInt(el.getAttribute('data-field-id')) === id); });
+        document.getElementById('propsSection').style.display = '';
+        document.getElementById('propType').textContent = FIELD_TYPES[f.type].label;
+        document.getElementById('propLabel').value = f.label;
+        document.getElementById('propSigner').value = f.signerIndex;
+        document.getElementById('propRequired').checked = f.required;
+        document.getElementById('propPage').textContent = 'Page ' + f.page;
+        document.querySelectorAll('.te-placed-field-item').forEach(function(el) { el.classList.toggle('active', parseInt(el.getAttribute('data-field-id')) === id); });
+    }
+
+    function deselectField() {
+        state.selectedFieldId = null;
+        document.querySelectorAll('.te-field').forEach(function(el) { el.classList.remove('selected'); });
+        document.getElementById('propsSection').style.display = 'none';
+        document.querySelectorAll('.te-placed-field-item').forEach(function(el) { el.classList.remove('active'); });
+    }
+
+    function deleteSelectedField() {
+        if (!state.selectedFieldId) return;
+        state.fields = state.fields.filter(function(f) { return f.id !== state.selectedFieldId; });
+        deselectField(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+    }
+
+    function updateFieldProp(prop, value) {
+        var f = getField(state.selectedFieldId); if (!f) return;
+        f[prop] = value;
+        renderFieldOverlays();
+        if (state.selectedFieldId) selectField(state.selectedFieldId);
+        updatePlacedFieldsList(); markDirty();
+    }
+
+    function updatePlacedFieldsList() {
+        var c = document.getElementById('placedFieldsList');
+        if (state.fields.length === 0) { c.innerHTML = '<p class="text-muted small mb-0">No fields placed yet.</p>'; return; }
+        c.innerHTML = '';
+        state.fields.forEach(function(f) {
+            var color = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
+            var div = document.createElement('div');
+            div.className = 'te-placed-field-item' + (f.id === state.selectedFieldId ? ' active' : '');
+            div.setAttribute('data-field-id', f.id);
+            div.innerHTML = '<span class="te-pf-color" style="background:' + color.border + ';"></span><span class="te-pf-label">' + esc(f.label) + '</span><span class="te-pf-page">P' + f.page + '</span>';
+            div.addEventListener('click', function() {
+                if (f.page !== state.pageNum) { state.pageNum = f.page; renderPage(); }
+                selectField(f.id);
+            });
+            c.appendChild(div);
+        });
+        document.getElementById('fieldCount').textContent = state.fields.length;
+    }
+
+    // ── Save (mock) ────────────────────────────────────────────
+    function save() {
+        updateSaveStatus('saving', 'Saving...');
+        setTimeout(function() {
+            state.dirty = false;
+            updateSaveStatus('saved', 'Saved');
+        }, 800);
+    }
+
+    function saveAndClose() {
+        updateSaveStatus('saving', 'Saving...');
+        setTimeout(function() { showView('list'); updateSaveStatus('saved', 'Saved'); }, 800);
+    }
+
+    function getField(id) { for (var i = 0; i < state.fields.length; i++) { if (state.fields[i].id === id) return state.fields[i]; } return null; }
+    function markDirty() { state.dirty = true; updateSaveStatus('', 'Unsaved changes'); }
+    function updateSaveStatus(cls, text) {
+        var el = document.getElementById('saveStatus');
+        el.className = 'te-save-status' + (cls ? ' ' + cls : '');
+        var icon = cls === 'saving' ? 'bi-arrow-repeat' : cls === 'saved' ? 'bi-cloud-check' : cls === 'error' ? 'bi-exclamation-triangle' : 'bi-pencil';
+        el.innerHTML = '<i class="bi ' + icon + ' me-1"></i>' + text;
+    }
+
+    window.TemplateEditor = {
+        prevPage: prevPage, nextPage: nextPage, zoomIn: zoomIn, zoomOut: zoomOut,
+        fitWidth: fitWidth, handleUpload: handleUpload,
+        addSigner: function(l) { addSigner(l); },
+        removeSigner: removeSigner, updateSignerLabel: updateSignerLabel,
+        save: save, saveAndClose: saveAndClose,
+        selectField: selectField, deselectField: deselectField,
+        deleteSelectedField: deleteSelectedField, updateFieldProp: updateFieldProp,
+        loadSamplePdf: loadSamplePdf
+    };
+    window.toggleSection = function(h) { h.parentElement.classList.toggle('collapsed'); };
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+
+// ── Boot Templates List ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() { filterTemplates(); });
+</script>
+
+</body>
+</html>

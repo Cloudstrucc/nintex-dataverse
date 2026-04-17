@@ -1,0 +1,484 @@
+{% comment %}
+  Elections Canada – Electronic Signature Service (ESIGN)
+  All Templates Web Template  (/all-templates)
+  NO inline onclick/onX handlers — all listeners attached via addEventListener
+  to satisfy Power Pages CSP (script-src nonce injection only covers <script> blocks).
+  Snippet namespace: ESIGN/*
+{% endcomment %}
+
+{% if user %}
+
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+
+    <!-- Page header -->
+    <section class="row mrgn-bttm-md">
+      <div class="col-sm-8">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb" style="background:none;padding:0;margin-bottom:8px;font-size:13px;">
+            <li><a href="/">{{ snippets['ESIGN/BC/HOME'] | default: 'Home' }}</a></li>
+            <li class="active">{{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Available Templates' }}</li>
+          </ol>
+        </nav>
+        <h1 class="h2 mrgn-tp-0">
+          <span class="fa fa-files-o mrgn-rght-sm" style="color:#26374A;"></span>
+          {{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Available Templates' }}
+        </h1>
+        <p class="text-muted">{{ snippets['ESIGN/TEMPLATES/DESC'] | default: 'Browse approved signature templates. Click <strong>Use</strong> to send a new envelope, or <strong>Download</strong> to save the source document.' }}</p>
+      </div>
+      <div class="col-sm-4 text-right" style="padding-top:28px;">
+        <!-- Triggers WET lightbox / Bootstrap 3 modal — no inline handler -->
+        <a href="/templates/edit-template"
+           class="btn btn-default"
+           style="border-color:#26374A;color:#26374A;border-radius:0;font-weight:600;">
+          <span class="fa fa-plus mrgn-rght-sm"></span>
+          {{ snippets['ESIGN/TEMPLATES/CREATE_BTN'] | default: 'Create Template' }}
+        </a>
+      </div>
+    </section>
+
+    <!-- Search / filter bar: search left, category dropdown right-aligned -->
+    <section class="row mrgn-bttm-md" style="display:flex;align-items:center;flex-wrap:wrap;gap:0;">
+      <div class="col-md-6 col-sm-8">
+        <div class="input-group">
+          <input type="text" id="tpl-search" class="form-control"
+                 placeholder="{{ snippets['ESIGN/TEMPLATES/SEARCH_PH'] | default: 'Search templates...' }}"
+                 style="border-radius:0;border-color:#ccc;">
+          <span class="input-group-btn">
+            <button id="tpl-search-btn" class="btn btn-default" type="button"
+                    style="border-radius:0;background:#26374A;color:#fff;border-color:#26374A;">
+              <span class="fa fa-search"></span>
+              <span class="wb-inv">Search</span>
+            </button>
+          </span>
+        </div>
+      </div>
+      <!-- col-md-3 col-md-offset-3 pushes the dropdown to the far right on md+ screens -->
+      <div class="col-md-3 col-md-offset-3 col-sm-4">
+        <select id="tpl-category" class="form-control" style="border-radius:0;border-color:#ccc;">
+          <option value="">{{ snippets['ESIGN/TEMPLATES/ALL_CATS'] | default: 'All Categories' }}</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Templates table panel -->
+    <section class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background:#26374A;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h2 class="panel-title" style="font-weight:600;color:#fff;font-size:15px;">
+                <span class="fa fa-table mrgn-rght-sm"></span>
+                {{ snippets['ESIGN/TEMPLATES/TABLE_HEADING'] | default: 'Signature Templates' }}
+              </h2>
+<span id="tpl-count"
+                    style="background:rgba(0,0,0,0.35);color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:3px;display:inline-block;white-space:nowrap;"></span>
+            </div>
+          </div>
+
+          <div id="tpl-loading" class="panel-body text-center" style="padding:40px;">
+            <span class="fa fa-spinner fa-spin" style="font-size:2rem;color:#26374A;display:block;margin-bottom:10px;"></span>
+            <p class="text-muted mrgn-bttm-0">{{ snippets['ESIGN/TEMPLATES/LOADING'] | default: 'Loading templates...' }}</p>
+          </div>
+
+          <div id="tpl-error" class="panel-body" style="display:none;">
+            <div class="alert alert-danger mrgn-bttm-0" role="alert">
+              <span class="fa fa-exclamation-triangle mrgn-rght-sm"></span>
+              <strong>{{ snippets['ESIGN/TEMPLATES/ERR_TITLE'] | default: 'Unable to load templates.' }}</strong>
+              {{ snippets['ESIGN/TEMPLATES/ERR_DESC'] | default: 'Please refresh the page or contact support.' }}
+            <br><small id="tpl-error-detail" class="text-muted"></small>
+            </div>
+          </div>
+
+          <div id="tpl-table-wrap" class="panel-body" style="display:none;padding:0;">
+            <div class="table-responsive">
+              <table class="table table-hover mrgn-bttm-0" id="tpl-table">
+                <thead>
+                  <tr style="background:#f5f5f5;">
+                    <th style="width:38%;">{{ snippets['ESIGN/TEMPLATES/COL_NAME']     | default: 'Template Name' }}</th>
+                    <th style="width:18%;">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
+                    <th style="width:15%;">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:11%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
+                    <th style="width:18%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_ACTIONS'] | default: 'Actions' }}</th>
+                  </tr>
+                </thead>
+                <tbody id="tpl-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="tpl-empty" class="panel-body text-center" style="display:none;padding:50px 20px;">
+            <span class="fa fa-inbox" style="font-size:3rem;color:#ccc;display:block;margin-bottom:15px;"></span>
+            <h3 class="h4" style="color:#555;">{{ snippets['ESIGN/TEMPLATES/EMPTY_TITLE'] | default: 'No templates found' }}</h3>
+            <p class="text-muted">{{ snippets['ESIGN/TEMPLATES/EMPTY_DESC'] | default: 'No templates match your search. Try adjusting your filters or create a new template.' }}</p>
+            <a href="/templates/edit-template"
+               class="btn btn-default"
+               style="border-color:#26374A;color:#26374A;border-radius:0;margin-top:10px;">
+              <span class="fa fa-plus mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/TEMPLATES/CREATE_BTN'] | default: 'Create Template' }}
+            </a>
+          </div>
+
+          <div id="tpl-pagination" class="panel-footer"
+               style="display:none;background:#f9f9f9;border-top:1px solid #ddd;padding:10px 15px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span id="tpl-page-info" class="small text-muted"></span>
+              <div>
+                <button id="tpl-prev" class="btn btn-xs btn-default" style="border-radius:0;" disabled>
+                  <span class="fa fa-chevron-left mrgn-rght-xs"></span>
+                  {{ snippets['ESIGN/TEMPLATES/PREV'] | default: 'Previous' }}
+                </button>
+                <button id="tpl-next" class="btn btn-xs btn-default" style="border-radius:0;margin-left:4px;" disabled>
+                  {{ snippets['ESIGN/TEMPLATES/NEXT'] | default: 'Next' }}
+                  <span class="fa fa-chevron-right mrgn-lft-xs"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Config ──────────────────────────────────────────────────────────── */
+  var PAGE_SIZE  = 10;
+  var API_BASE   = '/_api/cs_templates';
+  var USE_URL    = '/new-envelope';
+  var PARAM_TPL  = 'templateId';
+
+  /* ── State ───────────────────────────────────────────────────────────── */
+  var allRecords  = [];
+  var filtered    = [];
+  var currentPage = 1;
+  var signerCount = 0;
+
+  /* ── DOM refs (all resolved after DOMContentLoaded) ──────────────────── */
+  var elLoading, elError, elTableWrap, elEmpty, elTbody,
+      elCount, elPagWrap, elPageInfo, elPrev, elNext,
+      elSearch, elCategory, elSignersList,
+      elName, elDesc, elCatInput, elFileInput, elPreview,
+      elCreateSuccess, elCreateError, elCreateErrorMsg,
+      elSubmitBtn;
+
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  function show(el)  { el.style.display = ''; }
+  function hide(el)  { el.style.display = 'none'; }
+
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '--';
+    return new Date(iso).toLocaleDateString('en-CA');
+  }
+
+  var STATUS_STYLE = {
+    'Active':   'background:#1a5336;color:#fff;',
+    'Inactive': 'background:#767676;color:#fff;',
+    'Archived': 'background:#d83b01;color:#fff;'
+  };
+
+  /* ── Category dropdown ───────────────────────────────────────────────── */
+  function buildCategoryFilter(records) {
+    var seen = {};
+    records.forEach(function (r) {
+      var cat = r.cs_category || '';
+      if (cat && !seen[cat]) {
+        seen[cat] = true;
+        var opt = document.createElement('option');
+        opt.value       = cat;
+        opt.textContent = cat;
+        elCategory.appendChild(opt);
+      }
+    });
+  }
+
+  /* ── Render current page ─────────────────────────────────────────────── */
+  function renderPage() {
+    var total = filtered.length;
+    var start = (currentPage - 1) * PAGE_SIZE;
+    var end   = Math.min(start + PAGE_SIZE, total);
+    var page  = filtered.slice(start, end);
+
+    elTbody.innerHTML = '';
+
+    if (total === 0) {
+      hide(elTableWrap);
+      hide(elPagWrap);
+      show(elEmpty);
+      elCount.textContent = '0 templates';
+      return;
+    }
+
+    hide(elEmpty);
+    show(elTableWrap);
+
+    page.forEach(function (tpl) {
+      var isActive   = tpl.cs_isactive !== false;
+      var status     = isActive ? 'Active' : 'Inactive';
+      var badge      = STATUS_STYLE[status] || STATUS_STYLE['Inactive'];
+      var useHref    = USE_URL + '?' + PARAM_TPL + '=' + esc(tpl.cs_templateid);
+      var hasJson    = !!tpl.cs_templatejson;
+
+      var dlBtn = hasJson
+        ? '<a href="/_api/cs_templates(' + tpl.cs_templateid + ')/cs_templatejson/$value" '
+            + '  class="btn btn-xs btn-default" style="border-radius:0;" title="Download template">'
+            + '<span class="fa fa-download"></span></a>'
+        : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" '
+            + 'disabled title="No document attached"><span class="fa fa-download"></span></button>';
+
+      elTbody.innerHTML +=
+        '<tr>' +
+          '<td>' +
+            '<strong>' + esc(tpl.cs_name || 'Untitled') + '</strong>' +
+            (tpl.cs_description ? '<br><span class="small text-muted">' + esc(tpl.cs_description) + '</span>' : '') +
+          '</td>' +
+          '<td>' + esc(tpl.cs_category || '--') + '</td>' +
+          '<td>' + fmtDate(tpl.modifiedon) + '</td>' +
+          '<td class="text-center">' +
+            '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
+              esc(status) +
+            '</span>' +
+          '</td>' +
+          '<td class="text-center" style="white-space:nowrap;">' +
+            '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+               'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
+               'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
+            '<a href="/new-envelope?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+               'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
+               'title="Use this template to create an envelope"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
+            dlBtn +
+          '</td>' +
+        '</tr>';
+    });
+
+    elCount.textContent = total + (total === 1 ? ' template' : ' templates');
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    elPageInfo.textContent = 'Showing ' + (start + 1) + '–' + end + ' of ' + total;
+    elPrev.disabled = (currentPage === 1);
+    elNext.disabled = (currentPage >= totalPages);
+    if (total > PAGE_SIZE) { show(elPagWrap); } else { hide(elPagWrap); }
+  }
+
+  /* ── Filter ──────────────────────────────────────────────────────────── */
+  function applyFilters() {
+    var q   = (elSearch.value || '').toLowerCase().trim();
+    var cat = elCategory.value;
+    currentPage = 1;
+    filtered = allRecords.filter(function (r) {
+      var nm = !q ||
+        (r.cs_name        || '').toLowerCase().indexOf(q) >= 0 ||
+        (r.cs_description || '').toLowerCase().indexOf(q) >= 0 ||
+        (r.cs_category    || '').toLowerCase().indexOf(q) >= 0 ||
+        false;
+      var cm = !cat || (r.cs_category || '') === cat;
+      return nm && cm;
+    });
+    renderPage();
+  }
+
+  /* ── Portal fetch helpers (Power Pages Bootstrap 5) ────────────────────
+     Power Pages Web API lives at /_api/<entitysetname>
+     - Do NOT send OData-Version headers — the portal proxy rejects them
+     - GET requests need only Accept: application/json
+     - POST/PATCH need the __RequestVerificationToken from the page's
+       hidden input (Power Pages injects this on every authenticated page)
+     - On error, parse the JSON body so we can surface the OData error code  */
+
+  function safeAjax(ajaxOptions) {
+    var deferred = $.Deferred();
+    shell.getTokenDeferred().done(function (token) {
+      if (!ajaxOptions.headers) { ajaxOptions.headers = {}; }
+      ajaxOptions.headers['__RequestVerificationToken'] = token;
+      $.ajax(ajaxOptions)
+        .done(function (data, status, xhr) { deferred.resolve(data, status, xhr); })
+        .fail(function (xhr, status, err)  { deferred.reject(xhr, status, err); });
+    }).fail(function () { deferred.rejectWith(this, arguments); });
+    return deferred.promise();
+  }
+
+    function portalGet(url) {
+    return fetch(url, {
+      method: 'GET', credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    }).then(function (r) {
+      if (!r.ok) { return parseErrorBody(r).then(function (e) { throw e; }); }
+      return r.json();
+    });
+  }
+
+  function portalPost(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'POST', url: url, contentType: 'application/json',
+        data: JSON.stringify(payload), headers: { 'Accept': 'application/json' }
+      })
+      .done(function (data, status, xhr) { resolve(xhr.status === 204 ? null : data); })
+      .fail(function (xhr) { reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText)); });
+    });
+  }
+
+  /* ── Load templates ──────────────────────────────────────────────────── */
+  /* Column list — remove any that don't exist in your Dataverse table yet  */
+  /* Columns confirmed from /_api/cs_templates?$top=1 response */
+  var SELECT_COLS = [
+    'cs_templateid',
+    'cs_name',
+    'cs_description',
+    'cs_category',
+    'cs_isactive',
+    'cs_templatejson',
+    'statecode',
+    'statuscode',
+    'modifiedon',
+    'createdon',
+  ].join(',');
+
+  function loadTemplates() {
+    hide(elError);
+    hide(elTableWrap);
+    hide(elEmpty);
+    show(elLoading);
+
+    /* Phase 1 — minimal probe: just $top=1, no $select, no $orderby.
+       Failure modes:
+         400 / 9004010A → Table Permission missing or portal cache stale
+         403            → Web Role not assigned to Table Permission
+         404            → Entity set name wrong (not "cs_templates")
+         200            → table reachable; Phase 2 runs full query          */
+    portalGet(API_BASE + '?$top=1')
+      .then(function () {
+        /* Phase 2 — full query with $select */
+        return portalGet(
+          API_BASE + '?$orderby=cs_name asc&$select=' + SELECT_COLS
+        );
+      })
+      .then(function (data) {
+        hide(elLoading);
+        if (!data || !data.value) { show(elError); return; }
+        allRecords = data.value;
+        filtered   = allRecords.slice();
+        buildCategoryFilter(allRecords);
+        renderPage();
+      })
+      .catch(function (err) {
+        console.error('ESIGN loadTemplates:', err.message);
+        hide(elLoading);
+        var detail = document.getElementById('tpl-error-detail');
+        if (detail) {
+          var msg = err.message || '';
+          var hint = '';
+          if (msg.indexOf('9004010A') >= 0 || msg.indexOf('400') >= 0) {
+            hint =
+              'Site Settings are present — the likely causes are: ' +
+              '(1) Portal cache not cleared after adding Site Settings ' +
+              '— go to /_services/about and click Restart, or use PAC CLI: ' +
+              'pac paportal clear-cache; ' +
+              '(2) Table Permission record missing — in Portal Management, ' +
+              'create a Table Permission for cs_template with scope=Global, ' +
+              'privilege=Read+Write, and assign it to the Authenticated Users web role. ';
+          } else if (msg.indexOf('403') >= 0) {
+            hint = 'Access denied — Table Permission exists but is not linked to the correct Web Role. ' +
+                   'Open the Table Permission record and add Authenticated Users to Web Roles. ';
+          } else if (msg.indexOf('404') >= 0) {
+            hint = 'Table not found — verify the Dataverse table entity set name. ' +
+                   'Try opening /_api/ in browser to list available entity sets. ';
+          } else if (msg.indexOf('SELECT') >= 0 || msg.indexOf('column') >= 0) {
+            hint = 'A column in the $select list does not exist on the table. ' +
+                   'Remove custom columns from SELECT_COLS one by one to isolate. ';
+          }
+          detail.innerHTML = hint +
+            '<br><code style="font-size:11px;word-break:break-all;">' + msg + '</code>';
+        }
+        show(elError);
+      });
+  }
+
+
+
+
+
+  /* ── Init ────────────────────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+
+    /* Resolve DOM refs */
+    elLoading       = document.getElementById('tpl-loading');
+    elError         = document.getElementById('tpl-error');
+    elTableWrap     = document.getElementById('tpl-table-wrap');
+    elEmpty         = document.getElementById('tpl-empty');
+    elTbody         = document.getElementById('tpl-tbody');
+    elCount         = document.getElementById('tpl-count');
+    elPagWrap       = document.getElementById('tpl-pagination');
+    elPageInfo      = document.getElementById('tpl-page-info');
+    elPrev          = document.getElementById('tpl-prev');
+    elNext          = document.getElementById('tpl-next');
+    elSearch        = document.getElementById('tpl-search');
+    elCategory      = document.getElementById('tpl-category');
+
+    /* Table events */
+    document.getElementById('tpl-search-btn').addEventListener('click', applyFilters);
+    elSearch.addEventListener('keyup', function (e) { if (e.key === 'Enter') applyFilters(); });
+    elCategory.addEventListener('change', applyFilters);
+    elPrev.addEventListener('click', function () { if (currentPage > 1) { currentPage--; renderPage(); } });
+    elNext.addEventListener('click', function () {
+      if (currentPage < Math.ceil(filtered.length / PAGE_SIZE)) { currentPage++; renderPage(); }
+    });
+
+    /* Kick off data load */
+    loadTemplates();
+  });
+
+})();
+</script>
+
+
+<!-- GCWeb Footer (matches CS-Home-WET.liquid pattern) -->
+<footer id="wb-info" style="background:#26374A;padding:20px 0;margin-top:40px;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK1'] | default: 'Terms &amp; Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg"
+             alt="Symbol of the Government of Canada"
+             style="height:24px;filter:brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% else %}
+<script>window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);</script>
+{% endif %}
+
+<style>
+  .pepp-app { background: #f9f9f9; min-height: calc(100vh - 200px); }
+  .panel    { border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  #tpl-table th { font-size: 13px; white-space: nowrap; }
+  #tpl-table td { vertical-align: middle; font-size: 14px; }
+  #tpl-table tbody tr:hover { background: #f0f4f8; }
+  .breadcrumb li + li::before { content: "/ "; }
+  /* Fix search input-group: ensure input and button share the same height */
+  #tpl-search { height: 34px; }
+  #tpl-search-btn { height: 34px; line-height: 1; padding-top: 0; padding-bottom: 0; }
+  .input-group { display: flex; align-items: stretch; }
+  .input-group .form-control { flex: 1 1 auto; }
+  .input-group-btn { display: flex; align-items: stretch; }
+  .input-group-btn .btn { display: flex; align-items: center; }
+</style>

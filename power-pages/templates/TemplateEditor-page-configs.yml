@@ -1,0 +1,78 @@
+# ============================================================
+# Power Pages configuration files needed for the Template Editor page.
+# Copy each section into the appropriate file/folder in the site source.
+# ============================================================
+
+
+# ── 1. Web Template YAML ────────────────────────────────────
+# File: web-templates/template-editor/TemplateEditor.webtemplate.yml
+# (The .source.html goes next to it as TemplateEditor.webtemplate.source.html
+#  — copy TemplateEditor.liquid contents into that file)
+
+# adx_name: TemplateEditor
+# adx_webtemplateid: <generate-new-guid>
+#   e.g. b1c2d3e4-f5a6-7890-abcd-ef1234567890
+
+
+# ── 2. Page Template YAML ───────────────────────────────────
+# File: page-templates/TemplateEditor.pagetemplate.yml
+
+# adx_description: Template Editor page - PDF canvas with drag-and-drop field placement
+# adx_entityname: adx_webpage
+# adx_isdefault: false
+# adx_name: TemplateEditor
+# adx_pagetemplateid: <generate-new-guid>
+#   e.g. a2b3c4d5-e6f7-8901-abcd-ef2345678901
+# adx_type: 756150001
+# adx_usewebsiteheaderandfooter: true
+# adx_webtemplateid: <same guid as web template above>
+
+
+# ── 3. Web Page YAML (root) ────────────────────────────────
+# File: web-pages/template-editor/TemplateEditor.webpage.yml
+
+# adx_displayorder: 4
+# adx_enablerating: false
+# adx_enabletracking: false
+# adx_excludefromsearch: false
+# adx_feedbackpolicy: 756150005
+# adx_hiddenfromsitemap: true
+# adx_isroot: true
+# adx_name: Template Editor
+# adx_pagetemplateid: <same guid as page template above>
+# adx_parentpageid: 696f7f46-dd3a-48b6-a333-3e9b17859607   # Home page
+# adx_partialurl: /template-editor
+# adx_publishingstateid: b28e4a69-3c59-4737-ad75-e4a0b66ab3ef
+# adx_sharedpageconfiguration: false
+# adx_title: Template Editor
+# adx_webpageid: <generate-new-guid>
+#   e.g. c3d4e5f6-a7b8-9012-cdef-345678901234
+
+
+# ── 4. Content Page YAML (English) ─────────────────────────
+# File: web-pages/template-editor/content-pages/TemplateEditor.en.webpage.yml
+
+# adx_displayorder: 4
+# adx_enablerating: false
+# adx_enabletracking: false
+# adx_excludefromsearch: false
+# adx_feedbackpolicy: 756150005
+# adx_hiddenfromsitemap: true
+# adx_isroot: false
+# adx_name: Template Editor
+# adx_pagetemplateid: <same guid as page template above>
+# adx_partialurl: /template-editor
+# adx_publishingstateid: b28e4a69-3c59-4737-ad75-e4a0b66ab3ef
+# adx_rootwebpageid: <same guid as web page above>
+# adx_sharedpageconfiguration: false
+# adx_title: Template Editor
+# adx_webpageid: <generate-new-guid>
+#   e.g. d4e5f6a7-b8c9-0123-def4-56789012345a
+# adx_webpagelanguageid: 00f8e6d9-91b2-4429-95e4-87fe6a85084e  # English (1033)
+
+
+# ── 5. Site Settings (add to sitesetting.yml) ──────────────
+# The cs_templates Web API access is already enabled in your site settings.
+# If cs_templatejson is not included, add it to the field list:
+#
+# Webapi/cs_template/fields: cs_name,cs_description,cs_templateid,cs_isactive,cs_category,cs_filename,cs_filecontent,cs_templatejson,createdon,modifiedon

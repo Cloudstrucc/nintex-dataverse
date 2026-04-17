@@ -1,174 +1,397 @@
-{% extends "Layout" %}
+{% comment %}
+  Elections Canada – Electronic Signature Broker Service (ESIGN)
+  Home Page Web Template
+  Adapts existing GCWeb/WET-BOEW panel/grid structure for the Nintex eSign portal.
+  Snippet namespace: ESIGN/*
+{% endcomment %}
 
-{% block main %}
-<!-- Hero Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="p-4 rounded-3" style="background: linear-gradient(135deg, var(--gc-blue) 0%, var(--gc-blue-light) 100%); color: white;">
-            <h1 class="mb-2"><i class="bi bi-pen-fill me-2"></i>Nintex eSign Portal</h1>
-            <p class="lead mb-0">Manage electronic signature envelopes, templates, and documents securely.</p>
-        </div>
-    </div>
-</div>
+{% if user %}
 
-<!-- Quick Action Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="gc-card card h-100">
-            <div class="card-header">
-                <i class="bi bi-send me-2"></i>Send Envelope
-            </div>
-            <div class="card-body">
-                <p class="card-text">Create and send a new signature envelope to one or more recipients.</p>
-                <a href="/envelopes/?action=new" class="btn btn-gc-primary">
-                    <i class="bi bi-plus-circle me-1"></i>New Envelope
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="gc-card card h-100">
-            <div class="card-header">
-                <i class="bi bi-file-earmark-plus me-2"></i>Create Template
-            </div>
-            <div class="card-body">
-                <p class="card-text">Upload a Word document with field mappings to create a reusable template.</p>
-                <a href="/templates/?action=new" class="btn btn-gc-primary">
-                    <i class="bi bi-plus-circle me-1"></i>New Template
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="gc-card card h-100">
-            <div class="card-header">
-                <i class="bi bi-download me-2"></i>Download Template
-            </div>
-            <div class="card-body">
-                <p class="card-text">Browse and download existing templates for use in Word.</p>
-                <a href="/templates/" class="btn btn-gc-primary">
-                    <i class="bi bi-collection me-1"></i>Browse Templates
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Dashboard Stats -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="gc-card card text-center p-3">
-            <div style="font-size: 2rem; color: var(--gc-blue);">
-                <i class="bi bi-envelope"></i>
-            </div>
-            <div class="h3 mb-0" id="stat-envelopes">--</div>
-            <small class="text-muted">Total Envelopes</small>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="gc-card card text-center p-3">
-            <div style="font-size: 2rem; color: var(--gc-green);">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="h3 mb-0" id="stat-signed">--</div>
-            <small class="text-muted">Signed</small>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="gc-card card text-center p-3">
-            <div style="font-size: 2rem; color: #0d6efd;">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-            <div class="h3 mb-0" id="stat-pending">--</div>
-            <small class="text-muted">Pending</small>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="gc-card card text-center p-3">
-            <div style="font-size: 2rem; color: var(--gc-blue-light);">
-                <i class="bi bi-file-earmark-text"></i>
-            </div>
-            <div class="h3 mb-0" id="stat-templates">--</div>
-            <small class="text-muted">Templates</small>
-        </div>
-    </div>
-</div>
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
 
-<!-- Recent Envelopes -->
-<div class="gc-card card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-clock-history me-2"></i>Recent Envelopes</span>
-        <a href="/envelopes/" class="btn btn-sm btn-outline-light">View All</a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-gc table-hover mb-0">
+    <!-- Welcome banner -->
+    <section class="row mrgn-bttm-lg">
+      <div class="col-md-12">
+        <div class="panel panel-default" style="border-left: 4px solid #26374A; background: #f0f4f8;">
+          <div class="panel-body" style="padding: 20px 24px;">
+            <h1 class="h3 mrgn-tp-0 mrgn-bttm-xs" style="color: #26374A;">
+              <span class="fa fa-pencil-square-o mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/APP/TITLE'] | default: 'Electronic Signature Service' }}
+            </h1>
+            <p class="mrgn-bttm-0" style="color: #555;">
+              {{ snippets['ESIGN/APP/SUBTITLE'] | default: 'Create envelopes, manage signature templates, and track signing status — all within the Elections Canada secure portal.' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+    <!-- Stats Row -->
+    <section class="row mrgn-bttm-lg">
+      <div class="col-md-12">
+        <h2 class="mrgn-tp-0 mrgn-bttm-md">{{ snippets['ESIGN/STATS/TITLE'] | default: 'Overview' }}</h2>
+      </div>
+
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <div class="panel panel-default text-center" style="border-top: 3px solid #26374A;">
+          <div class="panel-body" style="padding: 20px;">
+            <span class="fa fa-envelope" style="font-size: 2rem; color: #26374A; display: block; margin-bottom: 8px;"></span>
+            <div class="h2 mrgn-tp-0 mrgn-bttm-xs" id="stat-envelopes" style="color: #26374A;">--</div>
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT1/LABEL'] | default: 'Total Envelopes' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <div class="panel panel-default text-center" style="border-top: 3px solid #1a5336;">
+          <div class="panel-body" style="padding: 20px;">
+            <span class="fa fa-check-circle" style="font-size: 2rem; color: #1a5336; display: block; margin-bottom: 8px;"></span>
+            <div class="h2 mrgn-tp-0 mrgn-bttm-xs" id="stat-signed" style="color: #1a5336;">--</div>
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT2/LABEL'] | default: 'Signed' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <div class="panel panel-default text-center" style="border-top: 3px solid #005a70;">
+          <div class="panel-body" style="padding: 20px;">
+            <span class="fa fa-hourglass-half" style="font-size: 2rem; color: #005a70; display: block; margin-bottom: 8px;"></span>
+            <div class="h2 mrgn-tp-0 mrgn-bttm-xs" id="stat-pending" style="color: #005a70;">--</div>
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT3/LABEL'] | default: 'Pending Signatures' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <a href="/templates" class="pepp-card" style="display:block;text-decoration:none;">
+          <div class="panel panel-default text-center" style="border-top:3px solid #d83b01;transition:box-shadow 0.2s;">
+            <div class="panel-body" style="padding:20px;">
+              <span class="fa fa-files-o" style="font-size:2rem;color:#d83b01;display:block;margin-bottom:8px;"></span>
+              <div class="h2 mrgn-tp-0 mrgn-bttm-xs" id="stat-templates" style="color:#d83b01;">--</div>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT4/LABEL'] | default: 'Available Templates' }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Recent Envelopes + Quick Links -->
+    <section class="row">
+      <div class="col-md-8 mrgn-bttm-md">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background: #26374A; border-bottom: 1px solid #26374A;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 class="panel-title" style="font-weight: 600; color: #fff;">
+                <span class="fa fa-clock-o mrgn-rght-sm"></span>
+                {{ snippets['ESIGN/RECENT/TITLE'] | default: 'Recent Envelopes' }}
+              </h3>
+              <a href="{{ sitemarkers['AllEnvelopes'].url | default: '/envelopes/' }}" class="btn btn-xs btn-default" style="color: #fff; border-color: rgba(255,255,255,0.5);">
+                {{ snippets['ESIGN/RECENT/VIEWALL'] | default: 'View All' }}
+              </a>
+            </div>
+          </div>
+          <div class="panel-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="table table-hover mrgn-bttm-0">
                 <thead>
-                    <tr>
-                        <th>Envelope Name</th>
-                        <th>Status</th>
-                        <th>Signers</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                    </tr>
+                  <tr style="background: #f5f5f5;">
+                    <th>{{ snippets['ESIGN/TABLE/COL1'] | default: 'Envelope Name' }}</th>
+                    <th>{{ snippets['ESIGN/TABLE/COL2'] | default: 'Status' }}</th>
+                    <th>{{ snippets['ESIGN/TABLE/COL3'] | default: 'Recipients' }}</th>
+                    <th>{{ snippets['ESIGN/TABLE/COL4'] | default: 'Created' }}</th>
+                    <th>{{ snippets['ESIGN/TABLE/COL5'] | default: 'Actions' }}</th>
+                  </tr>
                 </thead>
                 <tbody id="recent-envelopes">
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                            <p class="mb-0 mt-2">No envelopes yet. Create your first envelope to get started.</p>
-                        </td>
-                    </tr>
+                  <tr>
+                    <td colspan="5" class="text-center text-muted" style="padding: 30px;">
+                      <span class="fa fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 10px;"></span>
+                      {{ snippets['ESIGN/RECENT/EMPTY'] | default: 'No envelopes yet. Send your first envelope to get started.' }}
+                    </td>
+                  </tr>
                 </tbody>
-            </table>
+              </table>
+            </div>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
+
+      <div class="col-md-4 mrgn-bttm-md">
+        <div class="panel panel-default" style="border-top: 4px solid #26374A;">
+          <div class="panel-heading" style="background: #f5f5f5; border-bottom: 1px solid #ddd;">
+            <h3 class="panel-title" style="font-weight: 600;">
+              <span class="fa fa-link mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/LINKS/TITLE'] | default: 'Quick Links' }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <ul class="list-unstyled mrgn-bttm-0">
+              <li class="mrgn-bttm-sm">
+                <a href="{{ sitemarkers['QuickLink1'].url }}">
+                  <span class="fa fa-angle-right mrgn-rght-sm"></span>
+                  {{ snippets['ESIGN/QUICKLINK1'] | default: 'Nintex AssureSign User Guide' }}
+                </a>
+              </li>
+              <li class="mrgn-bttm-sm">
+                <a href="{{ sitemarkers['QuickLink2'].url }}">
+                  <span class="fa fa-angle-right mrgn-rght-sm"></span>
+                  {{ snippets['ESIGN/QUICKLINK2'] | default: 'Template Field Mapping Guide' }}
+                </a>
+              </li>
+              <li class="mrgn-bttm-sm">
+                <a href="{{ sitemarkers['QuickLink3'].url }}">
+                  <span class="fa fa-angle-right mrgn-rght-sm"></span>
+                  {{ snippets['ESIGN/QUICKLINK3'] | default: 'IT Security & Privacy Policy' }}
+                </a>
+              </li>
+              <li>
+                <a href="{{ sitemarkers['QuickLink4'].url }}">
+                  <span class="fa fa-angle-right mrgn-rght-sm"></span>
+                  {{ snippets['ESIGN/QUICKLINK4'] | default: 'Contact Support' }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel panel-default" style="border-top: 4px solid #005a70;">
+          <div class="panel-heading" style="background: #f5f5f5; border-bottom: 1px solid #ddd;">
+            <h3 class="panel-title" style="font-weight: 600;">
+              <span class="fa fa-info-circle mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/NOTICE/TITLE'] | default: 'Important Notice' }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <p class="small">{{ snippets['ESIGN/NOTICE/BODY'] | default: 'All documents signed through this portal are legally binding under the <em>Canada Elections Act</em>. Retain signed copies as required by your records management obligations.' }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
 
 <script>
-// Load dashboard stats from Dataverse Web API
-(function() {
-    var apiBase = '/_api/cs_envelopes';
+(function () {
+  var apiBase = '/_api/cs_envelopes';
 
-    // Fetch envelope count
-    shell.ajaxSafeGet({
-        url: apiBase + '?$count=true&$top=0',
-        success: function(data) {
-            if (data && data['@odata.count'] !== undefined) {
-                document.getElementById('stat-envelopes').textContent = data['@odata.count'];
-            }
-        },
-        error: function() {
-            document.getElementById('stat-envelopes').textContent = '0';
-        }
-    });
+  // Total envelope count
+  shell.ajaxSafeGet({
+    url: apiBase + '?$count=true&$top=0',
+    success: function (data) {
+      if (data && data['@odata.count'] !== undefined) {
+        document.getElementById('stat-envelopes').textContent = data['@odata.count'];
+      }
+    },
+    error: function () {
+      document.getElementById('stat-envelopes').textContent = '0';
+    }
+  });
 
-    // Fetch recent envelopes
-    shell.ajaxSafeGet({
-        url: apiBase + '?$top=5&$orderby=createdon desc&$select=cs_name,cs_status,createdon',
-        success: function(data) {
-            if (data && data.value && data.value.length > 0) {
-                var tbody = document.getElementById('recent-envelopes');
-                tbody.innerHTML = '';
-                data.value.forEach(function(env) {
-                    var statusClass = 'badge-draft';
-                    var status = env.cs_status || 'Draft';
-                    if (status === 'Signed') statusClass = 'badge-signed';
-                    else if (status === 'Sent') statusClass = 'badge-sent';
-                    else if (status === 'ReadyToSend') statusClass = 'badge-ready';
+  // Signed count
+  shell.ajaxSafeGet({
+    url: apiBase + "?$count=true&$top=0&$filter=cs_status eq 'Signed'",
+    success: function (data) {
+      document.getElementById('stat-signed').textContent =
+        (data && data['@odata.count'] !== undefined) ? data['@odata.count'] : '0';
+    },
+    error: function () { document.getElementById('stat-signed').textContent = '0'; }
+  });
 
-                    var row = '<tr>' +
-                        '<td>' + (env.cs_name || 'Untitled') + '</td>' +
-                        '<td><span class="badge ' + statusClass + '">' + status + '</span></td>' +
-                        '<td>--</td>' +
-                        '<td>' + new Date(env.createdon).toLocaleDateString() + '</td>' +
-                        '<td><a href="/document-viewer/?id=' + env.cs_envelopeid + '" class="btn btn-sm btn-gc-primary"><i class="bi bi-eye"></i></a></td>' +
-                        '</tr>';
-                    tbody.innerHTML += row;
-                });
-            }
-        }
-    });
+  // Pending count (Sent but not yet signed)
+  shell.ajaxSafeGet({
+    url: apiBase + "?$count=true&$top=0&$filter=cs_status eq 'Sent'",
+    success: function (data) {
+      document.getElementById('stat-pending').textContent =
+        (data && data['@odata.count'] !== undefined) ? data['@odata.count'] : '0';
+    },
+    error: function () { document.getElementById('stat-pending').textContent = '0'; }
+  });
+
+  // Template count
+  shell.ajaxSafeGet({
+    url: '/_api/cs_templates?$count=true&$top=0',
+    success: function (data) {
+      document.getElementById('stat-templates').textContent =
+        (data && data['@odata.count'] !== undefined) ? data['@odata.count'] : '0';
+    },
+    error: function () { document.getElementById('stat-templates').textContent = '0'; }
+  });
+
+  // Recent envelopes table
+  shell.ajaxSafeGet({
+    url: apiBase + '?$top=5&$orderby=createdon desc&$select=cs_name,cs_status,cs_recipientcount,createdon,cs_envelopeid',
+    success: function (data) {
+      if (data && data.value && data.value.length > 0) {
+        var tbody = document.getElementById('recent-envelopes');
+        tbody.innerHTML = '';
+        var statusStyles = {
+          'Signed':      'background:#1a5336;color:#fff;',
+          'Sent':        'background:#005a70;color:#fff;',
+          'ReadyToSend': 'background:#26374A;color:#fff;',
+          'Draft':       'background:#767676;color:#fff;',
+          'Declined':    'background:#d83b01;color:#fff;',
+          'Voided':      'background:#6c757d;color:#fff;'
+        };
+        data.value.forEach(function (env) {
+          var status    = env.cs_status || 'Draft';
+          var badgeStyle = statusStyles[status] || statusStyles['Draft'];
+          var row = '<tr>' +
+            '<td>' + (env.cs_name || 'Untitled') + '</td>' +
+            '<td><span class="label" style="' + badgeStyle + 'padding:3px 8px;border-radius:3px;font-size:11px;">' + status + '</span></td>' +
+            '<td>' + (env.cs_recipientcount || '--') + '</td>' +
+            '<td>' + new Date(env.createdon).toLocaleDateString('en-CA') + '</td>' +
+            '<td><a href="' + (sitemarkers['EnvelopeDetail'] ? sitemarkers['EnvelopeDetail'].url : '/envelope/') + '?id=' + env.cs_envelopeid + '" class="btn btn-xs btn-default"><span class="fa fa-eye"></span></a></td>' +
+            '</tr>';
+          tbody.innerHTML += row;
+        });
+      }
+    }
+  });
 })();
 </script>
-{% endblock %}
+
+{% else %}
+
+
+<main class="pepp-app pepp-anon" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+
+  <!-- Hero -->
+  <div class="pepp-hero" style="background-image: url('/landscape.png'); background-size: 400px auto; background-repeat: repeat; background-position: center; padding: 120px 0 80px 0;">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+          <h1 style="color: #fff; border-bottom: 3px solid #fff; display: inline-block; padding-bottom: 10px; margin-bottom: 15px;">
+            {{ snippets['ESIGN/HOME/TITLE'] | default: 'Electronic Signature Service' }}
+          </h1>
+          <p class="lead" style="color: #fff; font-size: 1.6rem; margin-bottom: 12px;">
+            {{ snippets['ESIGN/HOME/SUBTITLE'] | default: 'Elections Canada — Nintex AssureSign Portal' }}
+          </p>
+          <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 25px;">
+            {{ snippets['ESIGN/HOME/DESC'] | default: 'Securely send, sign, and manage legally binding electronic documents in accordance with the <em>Canada Elections Act</em> and Government of Canada IT security standards.' }}
+          </p>
+          <a href="/Account/Login" class="btn btn-light" style="background-color: #fff; color: #26374A; border-radius: 0; padding: 10px 25px; margin-right: 10px; font-weight: 600;">
+            {{ snippets['ESIGN/HOME/SIGNIN'] | default: 'Sign In' }}
+          </a>
+          <a href="{{ sitemarkers['QuickLink3'].url | default: '#' }}" class="btn btn-outline-light" style="color: #fff; border-color: #fff; border-radius: 0; padding: 10px 25px;">
+            {{ snippets['ESIGN/HOME/HELP'] | default: 'Get Help' }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+
+    <!-- About + Features -->
+    <section class="row">
+      <div class="col-md-8">
+        <h2 class="mrgn-tp-0">{{ snippets['ESIGN/ANON/TITLE'] | default: 'About This Service' }}</h2>
+        <p>{{ snippets['ESIGN/ANON/DESC'] | default: 'The Elections Canada Electronic Signature Service (ESS) integrates Nintex AssureSign with the Elections Canada Microsoft 365 environment, enabling staff and authorised parties to initiate, route, and complete electronic signatures on regulated documents — from candidate nomination forms to electoral officer agreements.' }}</p>
+        <p>{{ snippets['ESIGN/ANON/DESC2'] | default: 'All envelope workflows are recorded in Dataverse and auditable through the Elections Canada compliance framework, in alignment with ITSG-33 security controls and the <em>Privacy Act</em>.' }}</p>
+
+        <div class="row mrgn-tp-lg">
+
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #26374A; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['ESIGN/FEATURE1/TITLE'] | default: 'Send & Track Envelopes' }}</h3>
+              <p class="small text-muted">{{ snippets['ESIGN/FEATURE1/DESC'] | default: 'Initiate signature requests from approved Word templates and track signing progress in real time.' }}</p>
+            </div>
+          </div>
+
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #005a70; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['ESIGN/FEATURE2/TITLE'] | default: 'Reusable Templates' }}</h3>
+              <p class="small text-muted">{{ snippets['ESIGN/FEATURE2/DESC'] | default: 'Upload tagged Word documents once and re-use them as Nintex AssureSign templates across your team.' }}</p>
+            </div>
+          </div>
+
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #d83b01; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['ESIGN/FEATURE3/TITLE'] | default: 'Compliant & Auditable' }}</h3>
+              <p class="small text-muted">{{ snippets['ESIGN/FEATURE3/DESC'] | default: 'Every signature event is logged with a tamper-evident audit trail meeting GC Protected B standards.' }}</p>
+            </div>
+          </div>
+
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #1a5336; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['ESIGN/FEATURE4/TITLE'] | default: 'Power Automate Integration' }}</h3>
+              <p class="small text-muted">{{ snippets['ESIGN/FEATURE4/DESC'] | default: 'Envelope lifecycle events trigger automated workflows via Power Automate, notifying stakeholders and updating Dataverse records automatically.' }}</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="panel panel-default" style="border-top: 4px solid #26374A;">
+          <div class="panel-body">
+            <h3 class="h5 mrgn-tp-0">
+              <span class="fa fa-lock mrgn-rght-sm" style="color: #26374A;"></span>
+              {{ snippets['ESIGN/ACCESS/TITLE'] | default: 'Access &amp; Authorisation' }}
+            </h3>
+            <p class="small">{{ snippets['ESIGN/ACCESS/DESC'] | default: 'Access is restricted to authorised Elections Canada staff. Sign in with your Elections Canada Microsoft Entra ID account to use this portal.' }}</p>
+            <a href="/Account/Login" class="btn btn-default btn-block" style="border-color: #26374A; color: #26374A; border-radius: 0; font-weight: 600;">
+              <span class="fa fa-sign-in mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/ACCESS/BTN'] | default: 'Sign In' }}
+            </a>
+          </div>
+        </div>
+
+        <div class="panel panel-default" style="border-top: 4px solid #005a70;">
+          <div class="panel-body">
+            <h3 class="h5 mrgn-tp-0">
+              <span class="fa fa-question-circle mrgn-rght-sm" style="color: #005a70;"></span>
+              {{ snippets['ESIGN/SUPPORT/TITLE'] | default: 'Need Help?' }}
+            </h3>
+            <p class="small">{{ snippets['ESIGN/SUPPORT/DESC'] | default: 'Contact the Elections Canada IT Service Desk for access requests or technical issues.' }}</p>
+            <hr>
+            <p class="small mrgn-bttm-0">
+              <span class="fa fa-envelope mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/SUPPORT/EMAIL'] | default: 'itservicedesk@elections.ca' }}<br>
+              <span class="fa fa-phone mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/SUPPORT/PHONE'] | default: '1-800-463-6868' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+{% endif %}
+
+<!-- GCWeb Footer (standard – matched to existing CS-footer.liquid output) -->
+<footer id="wb-info" style="background: #26374A; padding: 20px 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK1'] | default: 'Terms &amp; Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg" alt="Symbol of the Government of Canada" style="height: 24px; filter: brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* Inherit PEPP app chrome, no extra overrides needed */
+  .pepp-app { background: #f9f9f9; min-height: calc(100vh - 200px); }
+  .pepp-app.pepp-anon { min-height: 100vh; }
+  .pepp-hero { position: relative; }
+  .pepp-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(38,55,74,0.65); }
+  .pepp-hero .container { position: relative; z-index: 1; }
+  .pepp-card .panel:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .panel { border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+</style>
