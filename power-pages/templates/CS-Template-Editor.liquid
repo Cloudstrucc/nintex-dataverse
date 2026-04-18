@@ -37,38 +37,33 @@
 /* Prevent the portal page container adding extra padding around the editor */
 .pepp-app { background: #f4f4f4 !important; min-height: unset !important; }
 
-/* ── Compact header for editors: collapse portal chrome into one row ── */
-/* Hide the default GCWeb banner and application bar; replace with .te-compact-header */
-#wb-bnr, .application-bar { display: none !important; }
-.te-compact-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border-bottom: 3px solid var(--gc-red);
-  padding: 6px 16px;
-  flex-shrink: 0;
-  z-index: 20;
+/* ── Compact header: hide the application bar (blue bar with user name) ── */
+.application-bar { display: none !important; }
+/* ── Hamburger menu replaces language toggle in the GCWeb banner ── */
+.esign-hamburger {
+  position: relative; display: inline-block;
 }
-.te-compact-header .te-brand {
-  display: flex; align-items: center; gap: 10px;
-  text-decoration: none; color: #333;
-}
-.te-compact-header .te-brand img { height: 28px; }
-.te-compact-header .te-menu-btn {
+.esign-hamburger-btn {
   background: none; border: 1px solid #ccc; border-radius: 3px;
-  padding: 4px 10px; font-size: 0.8rem; color: #333; cursor: pointer;
-  display: flex; align-items: center; gap: 5px;
+  padding: 5px 12px; font-size: 0.85rem; color: #333; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
 }
-.te-compact-header .te-menu-btn:hover { background: #f0f0f0; }
-.te-compact-header .dropdown-menu {
-  right: 0; left: auto; min-width: 180px; margin-top: 4px;
-  border-radius: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.esign-hamburger-btn:hover { background: #f0f0f0; }
+.esign-hamburger-menu {
+  display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
+  background: #fff; border: 1px solid #ddd; border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 200px; z-index: 9999;
 }
-.te-compact-header .dropdown-menu a {
-  padding: 8px 14px; font-size: 0.85rem; color: #333; text-decoration: none; display: block;
+.esign-hamburger-menu.open { display: block; }
+.esign-hamburger-menu a {
+  display: block; padding: 10px 16px; font-size: 0.85rem;
+  color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;
 }
-.te-compact-header .dropdown-menu a:hover { background: #f5f5f5; }
+.esign-hamburger-menu a:last-child { border-bottom: none; }
+.esign-hamburger-menu a:hover { background: #f5f5f5; }
+.esign-hamburger-menu .esign-menu-divider {
+  height: 1px; background: #e0e0e0; margin: 0;
+}
 
 /* Top bar */
 .te-topbar {
@@ -408,26 +403,6 @@
   color: #fff;
 }
 </style>
-
-<!-- Compact single-row header for editor — replaces multi-row portal chrome -->
-<div class="te-compact-header">
-  <a href="/" class="te-brand">
-    <img src="/sig-blk-en.svg" alt="Elections Canada" onerror="this.style.display='none';">
-  </a>
-  <div class="dropdown">
-    <button type="button" class="te-menu-btn" data-toggle="dropdown" aria-expanded="false">
-      <span class="fa fa-bars"></span> Menu
-    </button>
-    <ul class="dropdown-menu dropdown-menu-right">
-      {% if user %}
-      <li><a href="/profile"><span class="fa fa-user mrgn-rght-sm"></span>{{ user.fullname | default: 'Profile' }}</a></li>
-      {% endif %}
-      <li><a href="{% if page.language.code == 'en' %}{{ page.url | replace: '/en/', '/fr/' }}{% else %}{{ page.url | replace: '/fr/', '/en/' }}{% endif %}"><span class="fa fa-globe mrgn-rght-sm"></span>{% if page.language.code == 'en' %}Français{% else %}English{% endif %}</a></li>
-      <li class="divider" role="separator"></li>
-      <li><a href="/Account/Login/LogOff?returnUrl=/"><span class="fa fa-sign-out mrgn-rght-sm"></span>Sign out</a></li>
-    </ul>
-  </div>
-</div>
 
 <main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement" style="padding:0;background:#f4f4f4;">
 <div class="esign-editor-shell" id="editorShell">
@@ -1514,6 +1489,54 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    /* ── Compact header: replace lang toggle with hamburger menu ────── */
+    (function compactHeader() {
+      /* Hide the application bar (blue bar with user dropdown) */
+      var appBar = document.querySelector('.application-bar');
+      if (appBar) appBar.style.display = 'none';
+
+      /* Find the language section in the GCWeb banner and replace with hamburger */
+      var lngSection = document.getElementById('wb-lng');
+      if (lngSection) {
+        /* Gather user info from the application bar before it's hidden */
+        var userName = '';
+        var profileLink = '/profile';
+        var logoutLink = '/Account/Login/LogOff?returnUrl=/';
+        var userEl = appBar ? appBar.querySelector('.dropdown .dropbtn, .dropdown button, [class*="profile"]') : null;
+        if (userEl) userName = userEl.textContent.trim().replace(/[\u25BC\u25BE▼▾]/g, '').trim();
+        if (!userName) userName = '{{ user.fullname | default: "Profile" }}';
+
+        /* Get language toggle URL from existing link */
+        var langLink = lngSection.querySelector('a[href]');
+        var langUrl = langLink ? langLink.href : '#';
+        var langLabel = langLink ? langLink.textContent.trim() : 'Français';
+
+        /* Replace language section content with hamburger */
+        lngSection.innerHTML =
+          '<div class="esign-hamburger">' +
+            '<button type="button" class="esign-hamburger-btn" id="esignMenuBtn">' +
+              '<span class="fa fa-bars"></span> Menu' +
+            '</button>' +
+            '<div class="esign-hamburger-menu" id="esignMenuDrop">' +
+              '<a href="' + profileLink + '"><span class="fa fa-user mrgn-rght-sm"></span>' + userName + '</a>' +
+              '<a href="' + langUrl + '"><span class="fa fa-globe mrgn-rght-sm"></span>' + langLabel + '</a>' +
+              '<div class="esign-menu-divider"></div>' +
+              '<a href="' + logoutLink + '"><span class="fa fa-sign-out mrgn-rght-sm"></span>Sign out</a>' +
+            '</div>' +
+          '</div>';
+
+        /* Pure JS toggle */
+        var btn  = document.getElementById('esignMenuBtn');
+        var menu = document.getElementById('esignMenuDrop');
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', function () { menu.classList.remove('open'); });
+        menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      }
+    })();
+
     /* Run after full layout pass so portal chrome is measured correctly */
     setTimeout(setEditorHeight, 0);
     window.addEventListener('resize', setEditorHeight);

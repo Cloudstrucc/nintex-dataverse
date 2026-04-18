@@ -96,9 +96,9 @@
                 <thead>
                   <tr style="background:#f5f5f5;">
                     <th style="width:38%;">{{ snippets['ESIGN/TEMPLATES/COL_NAME']     | default: 'Template Name' }}</th>
-                    <th style="width:18%;">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
-                    <th style="width:15%;">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
-                    <th style="width:11%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
+                    <th style="width:18%;" class="tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
+                    <th style="width:15%;" class="tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:11%;" class="text-center tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
                     <th style="width:18%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_ACTIONS'] | default: 'Actions' }}</th>
                   </tr>
                 </thead>
@@ -246,14 +246,14 @@
             '<strong>' + esc(tpl.cs_name || 'Untitled') + '</strong>' +
             (tpl.cs_description ? '<br><span class="small text-muted">' + esc(tpl.cs_description) + '</span>' : '') +
           '</td>' +
-          '<td class="tpl-col-cat">' + esc(tpl.cs_category || '--') + '</td>' +
-          '<td class="tpl-col-date">' + fmtDate(tpl.modifiedon) + '</td>' +
-          '<td class="text-center tpl-col-ver">' +
+          '<td class="tpl-hide-mobile">' + esc(tpl.cs_category || '--') + '</td>' +
+          '<td class="tpl-hide-mobile">' + fmtDate(tpl.modifiedon) + '</td>' +
+          '<td class="text-center tpl-hide-mobile">' +
             '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
               esc(status) +
             '</span>' +
           '</td>' +
-          '<td class="text-center tpl-col-actions" style="white-space:nowrap;">' +
+          '<td class="text-center" style="white-space:nowrap;">' +
             /* Desktop: inline buttons */
             '<span class="tpl-actions-desktop">' +
               '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
@@ -264,23 +264,37 @@
                  'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
               dlBtn +
             '</span>' +
-            /* Mobile: dropdown */
-            '<span class="tpl-actions-mobile">' +
-              '<span class="dropdown">' +
-                '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" data-toggle="dropdown" aria-expanded="false">' +
-                  '<span class="fa fa-ellipsis-v"></span>' +
-                '</button>' +
-                '<ul class="dropdown-menu dropdown-menu-right" style="min-width:140px;">' +
-                  '<li><a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '"><span class="fa fa-pencil mrgn-rght-sm"></span>Edit</a></li>' +
-                  '<li><a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '"><span class="fa fa-paper-plane mrgn-rght-sm"></span>Use</a></li>' +
-                  (hasJson
-                    ? '<li><a href="#" class="tpl-dl-btn-m" data-id="' + esc(tpl.cs_templateid) + '" data-name="' + esc(tpl.cs_name || 'template') + '"><span class="fa fa-download mrgn-rght-sm"></span>Download</a></li>'
-                    : '<li class="disabled"><a href="#" style="color:#999;"><span class="fa fa-download mrgn-rght-sm"></span>Download</a></li>') +
-                '</ul>' +
-              '</span>' +
+            /* Mobile: action menu (pure JS toggle) */
+            '<span class="tpl-actions-mobile" style="position:relative;">' +
+              '<button type="button" class="btn btn-xs btn-default esign-action-toggle" style="border-radius:0;">' +
+                '<span class="fa fa-ellipsis-v"></span>' +
+              '</button>' +
+              '<div class="esign-action-menu">' +
+                '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '"><span class="fa fa-pencil mrgn-rght-sm"></span>Edit</a>' +
+                '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '"><span class="fa fa-paper-plane mrgn-rght-sm"></span>Use</a>' +
+                (hasJson
+                  ? '<a href="#" class="tpl-dl-btn-m" data-id="' + esc(tpl.cs_templateid) + '" data-name="' + esc(tpl.cs_name || 'template') + '"><span class="fa fa-download mrgn-rght-sm"></span>Download</a>'
+                  : '') +
+              '</div>' +
             '</span>' +
           '</td>' +
         '</tr>';
+    });
+
+    /* Wire mobile action toggles (pure JS) */
+    elTbody.querySelectorAll('.esign-action-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var menu = this.nextElementSibling;
+        /* Close any other open menus first */
+        document.querySelectorAll('.esign-action-menu.open').forEach(function (m) {
+          if (m !== menu) m.classList.remove('open');
+        });
+        menu.classList.toggle('open');
+      });
+    });
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); });
     });
 
     /* Wire download buttons — desktop */
@@ -550,30 +564,33 @@
   .breadcrumb li + li::before { content: "/ "; }
   #tpl-search { height: 34px; }
   #tpl-search-btn {
-    width: 34px; height: 34px;
-    padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    width: 34px; height: 34px; padding: 0;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .input-group { display: flex; align-items: stretch; }
   .input-group .form-control { flex: 1 1 auto; }
   .input-group-btn { display: flex; align-items: stretch; flex-shrink: 0; }
-  /* Responsive: hide mobile actions on desktop */
+
+  /* Action menu (pure JS, no Bootstrap dropdown) */
   .tpl-actions-mobile { display: none; }
   .tpl-actions-desktop { display: inline; }
+  .esign-action-menu {
+    display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
+    background: #fff; border: 1px solid #ddd; border-radius: 4px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 150px; z-index: 999;
+  }
+  .esign-action-menu.open { display: block; }
+  .esign-action-menu a {
+    display: block; padding: 8px 14px; font-size: 0.85rem;
+    color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;
+  }
+  .esign-action-menu a:last-child { border-bottom: none; }
+  .esign-action-menu a:hover { background: #f5f5f5; }
 
   @media (max-width: 768px) {
-    /* Hide category, date, version columns on mobile */
-    .tpl-col-cat, .tpl-col-date, .tpl-col-ver,
-    #tpl-table thead th:nth-child(2),
-    #tpl-table thead th:nth-child(3),
-    #tpl-table thead th:nth-child(4) { display: none; }
-    /* Swap action buttons for dropdown */
+    .tpl-hide-mobile { display: none !important; }
     .tpl-actions-desktop { display: none !important; }
     .tpl-actions-mobile { display: inline !important; }
-    /* Adjust column widths */
     #tpl-table th, #tpl-table td { font-size: 13px; padding: 8px 6px; }
-    #tpl-table th:first-child { width: 70%; }
-    .tpl-col-actions { width: 30%; }
   }
 </style>

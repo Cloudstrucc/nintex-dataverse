@@ -103,8 +103,8 @@
                   <tr style="background:#f5f5f5;">
                     <th style="width:32%;">{{ snippets['ESIGN/ENVELOPES/COL_NAME']     | default: 'Envelope Name' }}</th>
                     <th style="width:14%;">{{ snippets['ESIGN/ENVELOPES/COL_STATUS']   | default: 'Status' }}</th>
-                    <th style="width:20%;">{{ snippets['ESIGN/ENVELOPES/COL_TEMPLATE'] | default: 'Template' }}</th>
-                    <th style="width:14%;">{{ snippets['ESIGN/ENVELOPES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:20%;" class="env-hide-mobile">{{ snippets['ESIGN/ENVELOPES/COL_TEMPLATE'] | default: 'Template' }}</th>
+                    <th style="width:14%;" class="env-hide-mobile">{{ snippets['ESIGN/ENVELOPES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
                     <th style="width:20%;" class="text-center">{{ snippets['ESIGN/ENVELOPES/COL_ACTIONS'] | default: 'Actions' }}</th>
                   </tr>
                 </thead>
@@ -290,9 +290,9 @@
           '<td><strong>' + esc(env.cs_name || 'Untitled') + '</strong></td>' +
           '<td><span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
             esc(statusLabel) + '</span></td>' +
-          '<td class="env-col-tpl"><span class="small text-muted">' + esc(tplDisplay) + '</span></td>' +
-          '<td class="env-col-date">' + fmtDate(env.modifiedon) + '</td>' +
-          '<td class="text-center env-col-actions" style="white-space:nowrap;">' +
+          '<td class="env-hide-mobile"><span class="small text-muted">' + esc(tplDisplay) + '</span></td>' +
+          '<td class="env-hide-mobile">' + fmtDate(env.modifiedon) + '</td>' +
+          '<td class="text-center" style="white-space:nowrap;">' +
             /* Desktop: inline buttons */
             '<span class="env-actions-desktop">' +
               '<a href="' + viewHref + '" class="btn btn-xs btn-default" ' +
@@ -301,19 +301,17 @@
                  '<span class="fa ' + viewIcon + ' mrgn-rght-xs"></span>' + viewLabel + '</a>' +
               cancelBtn +
             '</span>' +
-            /* Mobile: dropdown */
-            '<span class="env-actions-mobile">' +
-              '<span class="dropdown">' +
-                '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" data-toggle="dropdown" aria-expanded="false">' +
-                  '<span class="fa fa-ellipsis-v"></span>' +
-                '</button>' +
-                '<ul class="dropdown-menu dropdown-menu-right" style="min-width:140px;">' +
-                  '<li><a href="' + viewHref + '"><span class="fa ' + viewIcon + ' mrgn-rght-sm"></span>' + viewLabel + '</a></li>' +
-                  (isCancellable
-                    ? '<li><a href="#" class="env-cancel-btn-m" data-id="' + esc(env.cs_envelopeid) + '" data-name="' + esc(env.cs_name || 'this envelope') + '" style="color:#922B31;"><span class="fa fa-ban mrgn-rght-sm"></span>Cancel</a></li>'
-                    : '<li class="disabled"><a href="#" style="color:#999;"><span class="fa fa-ban mrgn-rght-sm"></span>Cancel</a></li>') +
-                '</ul>' +
-              '</span>' +
+            /* Mobile: action menu (pure JS toggle) */
+            '<span class="env-actions-mobile" style="position:relative;">' +
+              '<button type="button" class="btn btn-xs btn-default esign-action-toggle" style="border-radius:0;">' +
+                '<span class="fa fa-ellipsis-v"></span>' +
+              '</button>' +
+              '<div class="esign-action-menu">' +
+                '<a href="' + viewHref + '"><span class="fa ' + viewIcon + ' mrgn-rght-sm"></span>' + viewLabel + '</a>' +
+                (isCancellable
+                  ? '<a href="#" class="env-cancel-btn-m" data-id="' + esc(env.cs_envelopeid) + '" data-name="' + esc(env.cs_name || 'this envelope') + '" style="color:#922B31;"><span class="fa fa-ban mrgn-rght-sm"></span>Cancel</a>'
+                  : '') +
+              '</div>' +
             '</span>' +
           '</td>' +
         '</tr>';
@@ -325,6 +323,21 @@
     elPrev.disabled = (currentPage === 1);
     elNext.disabled = (currentPage >= totalPages);
     if (total > PAGE_SIZE) { show(elPagWrap); } else { hide(elPagWrap); }
+
+    /* Wire mobile action toggles (pure JS) */
+    elTbody.querySelectorAll('.esign-action-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var menu = this.nextElementSibling;
+        document.querySelectorAll('.esign-action-menu.open').forEach(function (m) {
+          if (m !== menu) m.classList.remove('open');
+        });
+        menu.classList.toggle('open');
+      });
+    });
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); });
+    });
 
     /* Wire cancel buttons — desktop (no inline handlers) */
     elTbody.querySelectorAll('.env-cancel-btn').forEach(function (btn) {
@@ -484,22 +497,27 @@
     padding: 0 !important; flex-shrink: 0;
     display: flex !important; align-items: center; justify-content: center;
   }
-  /* Responsive: hide mobile actions on desktop, show on mobile */
+
+  /* Action menu (pure JS, no Bootstrap dropdown) */
   .env-actions-mobile { display: none; }
   .env-actions-desktop { display: inline; }
+  .esign-action-menu {
+    display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
+    background: #fff; border: 1px solid #ddd; border-radius: 4px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 150px; z-index: 999;
+  }
+  .esign-action-menu.open { display: block; }
+  .esign-action-menu a {
+    display: block; padding: 8px 14px; font-size: 0.85rem;
+    color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;
+  }
+  .esign-action-menu a:last-child { border-bottom: none; }
+  .esign-action-menu a:hover { background: #f5f5f5; }
 
   @media (max-width: 768px) {
-    /* Hide template and date columns on mobile */
-    .env-col-tpl, .env-col-date,
-    #env-table thead th:nth-child(3),
-    #env-table thead th:nth-child(4) { display: none; }
-    /* Swap action buttons for dropdown */
+    .env-hide-mobile { display: none !important; }
     .env-actions-desktop { display: none !important; }
     .env-actions-mobile { display: inline !important; }
-    /* Adjust column widths */
     #env-table th, #env-table td { font-size: 13px; padding: 8px 6px; }
-    #env-table th:first-child { width: 50%; }
-    #env-table th:nth-child(2) { width: 25%; }
-    .env-col-actions { width: 25%; }
   }
 </style>
