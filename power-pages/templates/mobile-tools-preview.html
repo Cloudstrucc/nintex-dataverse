@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Mobile Tools Panel Preview</title>
+<title>Mobile Tools Panel Preview v3</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -24,10 +24,9 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
 .sim-page p{margin-bottom:8px;color:#555;line-height:1.5}
 
 /* ══════════════════════════════════════════════════════════════════
-   MOBILE TOOLS PANEL
-   - Fixed to bottom
-   - Collapsed: shows drag bar + section headers as compact tabs
-   - Expanded: user drags up, sections open as accordions
+   MOBILE TOOLS PANEL v3
+   - Collapsed: only drag handle visible, pinned flush to bottom
+   - Tap header or drag up: expands with exclusive accordion
    ══════════════════════════════════════════════════════════════════ */
 .mtp{
   position:fixed;left:0;right:0;bottom:0;
@@ -38,8 +37,6 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
   z-index:1000;
   display:flex;flex-direction:column;
   overflow:hidden;
-  /* Collapsed height: drag bar (28px) + 4 headers (44px each) = ~204px */
-  height:204px;
   transition:height .25s ease;
 }
 
@@ -61,6 +58,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
 
 /* ── Section ─────────────────────────────────────────────────── */
 .mtp-sec{border-bottom:1px solid #eee}
+.mtp-sec:last-child{border-bottom:none}
 .mtp-sec-hdr{
   display:flex;justify-content:space-between;align-items:center;
   padding:11px 14px;font-weight:600;font-size:.82rem;
@@ -70,8 +68,25 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
 .mtp-sec-hdr:active{background:#f0f0f0}
 .mtp-sec-hdr .chv{transition:transform .2s;font-size:.7rem;color:#999}
 .mtp-sec.open .chv{transform:rotate(90deg)}
-.mtp-sec-body{display:none;padding:10px 14px}
-.mtp-sec.open .mtp-sec-body{display:block}
+.mtp-sec-body{
+  max-height:0;overflow:hidden;
+  transition:max-height .25s ease, padding .25s ease;
+  padding:0 14px;
+}
+.mtp-sec.open .mtp-sec-body{
+  max-height:600px; /* large enough for any content */
+  padding:10px 14px;
+}
+
+/* ── Badge (count indicator) ─────────────────────────────────── */
+.mtp-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#6c757d;color:#fff;border-radius:10px;
+  padding:1px 7px;font-size:.6rem;font-weight:700;
+  margin-left:6px;min-width:18px;
+}
+.mtp-badge.required{background:var(--gc-red)}
+.mtp-badge.info{background:#6c757d}
 
 /* ── Field palette ───────────────────────────────────────────── */
 .fp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
@@ -106,7 +121,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
 .so-btn{flex:1;padding:5px 8px;border:1px solid #d0d0d0;border-radius:4px;font-size:.72rem;text-align:center;color:#666;cursor:pointer}
 .so-btn.active{background:var(--gc-blue);color:#fff;border-color:var(--gc-blue);font-weight:600}
 
-/* Desktop: hide the mobile panel */
+/* Desktop: hide */
 @media(min-width:769px){.mtp{display:none}}
 </style>
 </head>
@@ -144,7 +159,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
       <p><strong>Expiry Date:</strong> 2026-06-12</p>
       <br>
       <h2>Compliance Summary</h2>
-      <p><strong>Total Controls Assessed:</strong> 305&nbsp;&nbsp;<strong>Applicable:</strong> 305&nbsp;&nbsp;<strong>Inherited:</strong> 0</p>
+      <p><strong>Total Controls Assessed:</strong> 305</p>
       <p><strong>Compliance Score:</strong> 3%</p>
       <div style="height:8px;background:#e0e0e0;border-radius:4px;margin:8px 0">
         <div style="width:3%;height:100%;background:var(--gc-green);border-radius:4px"></div>
@@ -173,37 +188,37 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     MOBILE TOOLS PANEL
+     MOBILE TOOLS PANEL v3
+     Default: only drag handle visible (28px), flush to bottom
      ══════════════════════════════════════════════════════════════ -->
 <div class="mtp" id="mtp">
 
-  <!-- Drag handle -->
   <div class="mtp-handle" id="mtpHandle">
     <div class="mtp-bar"></div>
   </div>
 
-  <!-- Scrollable sections -->
   <div class="mtp-scroll">
 
-    <!-- Details -->
+    <!-- Details (3 required fields) -->
     <div class="mtp-sec" data-sec="details">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-info-circle" style="margin-right:6px"></i>Details</span>
+        <span><i class="bi bi-info-circle" style="margin-right:6px"></i>Details <span class="mtp-badge required">3</span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
+        <div class="df"><label>Template Name <span style="color:var(--gc-red)">*</span></label><input type="text" value="IATO Form"/></div>
         <div class="df"><label>Description</label><textarea placeholder="Brief description..."></textarea></div>
-        <div class="df"><label>Category</label><input type="text" placeholder="e.g. HR, Legal, Finance"/></div>
+        <div class="df"><label>Category <span style="color:var(--gc-red)">*</span></label><input type="text" placeholder="e.g. HR, Legal, Finance"/></div>
         <div class="df" style="display:flex;align-items:center;gap:6px">
           <input type="checkbox" id="chk1" checked/><label for="chk1" style="margin:0">Active</label>
         </div>
       </div>
     </div>
 
-    <!-- Signers -->
+    <!-- Signers (1 required: at least 1 signer) -->
     <div class="mtp-sec" data-sec="signers">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-people" style="margin-right:6px"></i>Signers</span>
+        <span><i class="bi bi-people" style="margin-right:6px"></i>Signers <span class="mtp-badge required">1</span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -233,10 +248,10 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
       </div>
     </div>
 
-    <!-- Fields -->
+    <!-- Fields (9 available) -->
     <div class="mtp-sec" data-sec="fields">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-puzzle" style="margin-right:6px"></i>Fields</span>
+        <span><i class="bi bi-puzzle" style="margin-right:6px"></i>Fields <span class="mtp-badge info">9</span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -255,12 +270,10 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
       </div>
     </div>
 
-    <!-- Placed Fields -->
+    <!-- Placed Fields (2 placed) -->
     <div class="mtp-sec" data-sec="placed">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-list-check" style="margin-right:6px"></i>Placed Fields
-          <span style="background:#6c757d;color:#fff;border-radius:10px;padding:1px 7px;font-size:.6rem;margin-left:4px">2</span>
-        </span>
+        <span><i class="bi bi-list-check" style="margin-right:6px"></i>Placed Fields <span class="mtp-badge info">2</span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -269,8 +282,8 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
       </div>
     </div>
 
-  </div><!-- /mtp-scroll -->
-</div><!-- /mtp -->
+  </div>
+</div>
 
 <script>
 (function(){
@@ -280,61 +293,71 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
   var handle = document.getElementById('mtpHandle');
   var canvas = document.getElementById('canvas');
 
-  // Calculate collapsed height: drag bar + all headers
-  var COLLAPSED_H = 204; // 28px handle + 4 x 44px headers
-  var MIN_H       = COLLAPSED_H;
-  var DEFAULT_H_VH = 55; // expanded default: 55vh
+  var HANDLE_H    = 28;   // drag bar height
+  var EXPANDED_VH = 55;   // default expanded height as % of viewport
 
-  // Set initial collapsed height and canvas padding
-  panel.style.height = COLLAPSED_H + 'px';
-  canvas.style.paddingBottom = COLLAPSED_H + 'px';
+  // Start collapsed: just the handle visible with a small bottom padding
+  panel.style.height = HANDLE_H + 'px';
+  canvas.style.paddingBottom = (HANDLE_H + 8) + 'px';
 
-  /* ── Accordion toggle ─────────────────────────────────────── */
+  function getH(){ return panel.getBoundingClientRect().height; }
+
+  function setH(h, animate){
+    var maxH = Math.round(window.innerHeight * 0.78);
+    h = Math.max(HANDLE_H, Math.min(h, maxH));
+    if(animate){
+      panel.style.transition = 'height .25s ease';
+      setTimeout(function(){ panel.style.transition = ''; }, 260);
+    }
+    panel.style.height = h + 'px';
+    canvas.style.paddingBottom = h + 'px';
+  }
+
+  function collapsePanel(animate){
+    // Close all sections
+    document.querySelectorAll('.mtp-sec.open').forEach(function(s){ s.classList.remove('open'); });
+    setH(HANDLE_H, animate);
+  }
+
+  function expandPanel(animate){
+    var expandTo = Math.round(window.innerHeight * EXPANDED_VH / 100);
+    setH(expandTo, animate);
+  }
+
+  /* ── Exclusive accordion: only one section open at a time ───── */
   document.querySelectorAll('.mtp-sec-hdr').forEach(function(hdr){
     hdr.addEventListener('click', function(){
       var sec = this.parentElement;
       var wasOpen = sec.classList.contains('open');
 
-      // If panel is at collapsed height, expand it first
-      var h = panel.getBoundingClientRect().height;
-      if (h <= COLLAPSED_H + 10) {
-        var expandTo = Math.round(window.innerHeight * DEFAULT_H_VH / 100);
-        panel.style.transition = 'height .25s ease';
-        panel.style.height = expandTo + 'px';
-        canvas.style.paddingBottom = expandTo + 'px';
-        setTimeout(function(){ panel.style.transition = ''; }, 260);
-      }
+      // Close ALL sections first (exclusive accordion)
+      document.querySelectorAll('.mtp-sec.open').forEach(function(s){ s.classList.remove('open'); });
 
-      // Toggle this section
-      sec.classList.toggle('open');
+      if (!wasOpen) {
+        // Open this section
+        sec.classList.add('open');
+        // If panel is collapsed, expand it
+        if (getH() < HANDLE_H + 50) {
+          expandPanel(true);
+        }
+      } else {
+        // User closed the only open section — collapse panel
+        collapsePanel(true);
+      }
     });
   });
 
   /* ── Drag to resize ───────────────────────────────────────── */
   var dragging = false, startY = 0, startH = 0;
 
-  function getH(){ return panel.getBoundingClientRect().height; }
-
-  function setH(h){
-    var maxH = Math.round(window.innerHeight * 0.78);
-    h = Math.max(MIN_H, Math.min(h, maxH));
-    panel.style.height = h + 'px';
-    canvas.style.paddingBottom = h + 'px';
-  }
-
   function endDrag(){
     if(!dragging) return;
     dragging = false;
-    panel.style.transition = 'height .2s ease';
-    // Snap to collapsed if close
     var h = getH();
-    if (h < COLLAPSED_H + 40) {
-      panel.style.height = COLLAPSED_H + 'px';
-      canvas.style.paddingBottom = COLLAPSED_H + 'px';
-      // Close all sections
-      document.querySelectorAll('.mtp-sec.open').forEach(function(s){ s.classList.remove('open'); });
+    // Snap: if below threshold, collapse fully
+    if (h < HANDLE_H + 60) {
+      collapsePanel(true);
     }
-    setTimeout(function(){ panel.style.transition = ''; }, 220);
   }
 
   // Touch
@@ -344,20 +367,47 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
   }, {passive:false});
   document.addEventListener('touchmove', function(e){
     if(!dragging) return;
-    setH(startH + (startY - e.touches[0].clientY));
+    setH(startH + (startY - e.touches[0].clientY), false);
   }, {passive:true});
   document.addEventListener('touchend', endDrag);
 
-  // Mouse (for desktop dev tools testing)
+  // Mouse (for desktop dev tools)
   handle.addEventListener('mousedown', function(e){
     dragging = true; startY = e.clientY; startH = getH();
     panel.style.transition = 'none'; e.preventDefault();
   });
   document.addEventListener('mousemove', function(e){
     if(!dragging) return;
-    setH(startH + (startY - e.clientY));
+    setH(startH + (startY - e.clientY), false);
   });
   document.addEventListener('mouseup', endDrag);
+
+  /* ── Double-tap handle to toggle expand/collapse ──────────── */
+  var lastTap = 0;
+  handle.addEventListener('click', function(){
+    var now = Date.now();
+    if (now - lastTap < 400) {
+      // Double tap — toggle
+      if (getH() > HANDLE_H + 60) { collapsePanel(true); }
+      else { expandPanel(true); }
+    }
+    lastTap = now;
+  });
+
+  /* ── Single swipe-up gesture on handle expands ────────────── */
+  var swipeStartY = 0;
+  handle.addEventListener('touchstart', function(e){
+    swipeStartY = e.touches[0].clientY;
+  }, {passive:true});
+  handle.addEventListener('touchend', function(e){
+    if(dragging) return; // handled by drag logic
+    var endY = e.changedTouches[0].clientY;
+    var dy = swipeStartY - endY;
+    if (dy > 30 && getH() < HANDLE_H + 60) {
+      // Swipe up from collapsed state
+      expandPanel(true);
+    }
+  });
 
 })();
 </script>
