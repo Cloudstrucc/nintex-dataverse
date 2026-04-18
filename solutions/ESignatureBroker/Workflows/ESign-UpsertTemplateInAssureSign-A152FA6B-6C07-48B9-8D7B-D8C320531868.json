@@ -447,17 +447,28 @@
           "type": "Compose",
           "inputs": {
             "request": {
-              "templateName": "@{outputs('Get_Template_Record')?['body/cs_name']}",
-              "templateDescription": "@{coalesce(outputs('Get_Template_Record')?['body/cs_description'], '')}",
-              "documents": [
-                {
-                  "documentName": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}",
-                  "documentContent": "@{coalesce(body('Parse_TemplateJson')?['pdfBase64'], '')}",
-                  "documentContentType": "application/pdf"
+              "name": "@{outputs('Get_Template_Record')?['body/cs_name']}",
+              "description": "@{coalesce(outputs('Get_Template_Record')?['body/cs_description'], '')}",
+              "content": {
+                "documents": [
+                  {
+                    "name": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}",
+                    "file": {
+                      "fileToUpload": {
+                        "data": "@{coalesce(body('Parse_TemplateJson')?['pdfBase64'], '')}",
+                        "fileName": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}"
+                      },
+                      "extension": "pdf"
+                    },
+                    "fields": "@coalesce(body('Parse_TemplateJson')?['fields'], json('[]'))"
+                  }
+                ],
+                "signers": "@coalesce(body('Parse_TemplateJson')?['signers'], json('[{\"label\":\"Signer 1\",\"email\":\"[Signer 1 Email]\",\"name\":\"[Signer 1 Name]\"}]'))",
+                "steps": "@coalesce(body('Parse_TemplateJson')?['steps'], json('[{\"name\":\"Step 1\",\"signers\":[\"Signer 1\"]}]'))",
+                "envelope": {
+                  "name": "@{outputs('Get_Template_Record')?['body/cs_name']}"
                 }
-              ],
-              "steps": "@body('Parse_TemplateJson')?['signers']",
-              "jotBlocks": "@body('Parse_TemplateJson')?['fields']"
+              }
             }
           }
         },
