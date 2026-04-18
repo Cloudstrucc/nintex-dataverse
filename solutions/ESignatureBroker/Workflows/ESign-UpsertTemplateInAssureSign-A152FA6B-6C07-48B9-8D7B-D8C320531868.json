@@ -429,7 +429,7 @@
             ]
           }
         },
-        "Build_Template_Payload": {
+        "Transform_Fields_To_Nintex": {
           "runAfter": {
             "Set_BearerToken": [
               "Succeeded"
@@ -438,6 +438,74 @@
               "Succeeded"
             ],
             "Set_ApiBaseUrl": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "71a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@coalesce(body('Parse_TemplateJson')?['fields'], json('[]'))",
+            "select": {
+              "fieldType": "@if(equals(item()?['type'], 'date_signed'), 'text', if(equals(item()?['type'], 'name'), 'text', if(equals(item()?['type'], 'email'), 'text', if(equals(item()?['type'], 'company'), 'text', if(equals(item()?['type'], 'title'), 'text', if(equals(item()?['type'], 'checkbox'), 'checkbox', item()?['type']))))))",
+              "inputType": "signer",
+              "name": "@item()?['label']",
+              "signer": "@{coalesce(body('Parse_TemplateJson')?['signers']?[item()?['signerIndex']]?['label'], 'Signer 1')}",
+              "required": "@item()?['required']",
+              "pageIndex": "@sub(item()?['page'], 1)",
+              "position": {
+                "x": "@div(float(item()?['x']), 612)",
+                "y": "@div(float(item()?['y']), 792)"
+              },
+              "size": {
+                "width": "@div(float(item()?['w']), 612)",
+                "height": "@div(float(item()?['h']), 792)"
+              },
+              "signatureType": "@if(equals(item()?['type'], 'initials'), 'Initials', if(equals(item()?['type'], 'signature'), 'Signature', ''))"
+            }
+          }
+        },
+        "Transform_Signers_To_Nintex": {
+          "runAfter": {
+            "Transform_Fields_To_Nintex": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "72a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@coalesce(body('Parse_TemplateJson')?['signers'], json('[{\"label\":\"Signer 1\"}]'))",
+            "select": {
+              "label": "@item()?['label']",
+              "email": "@concat('[', item()?['label'], ' ', 'Email]')",
+              "name": "@concat('[', item()?['label'], ' ', 'Name]')"
+            }
+          }
+        },
+        "Transform_Steps_To_Nintex": {
+          "runAfter": {
+            "Transform_Signers_To_Nintex": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "73a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@coalesce(body('Parse_TemplateJson')?['signers'], json('[{\"label\":\"Signer 1\"}]'))",
+            "select": {
+              "name": "@concat('Step ', string(add(iterationIndexes('Transform_Steps_To_Nintex'), 1)))",
+              "signers": "@createArray(item()?['label'])"
+            }
+          }
+        },
+        "Build_Template_Payload": {
+          "runAfter": {
+            "Transform_Steps_To_Nintex": [
               "Succeeded"
             ]
           },
@@ -460,11 +528,11 @@
                       },
                       "extension": "pdf"
                     },
-                    "fields": "@coalesce(body('Parse_TemplateJson')?['fields'], json('[]'))"
+                    "fields": "@body('Transform_Fields_To_Nintex')"
                   }
                 ],
-                "signers": "@coalesce(body('Parse_TemplateJson')?['signers'], json('[{\"label\":\"Signer 1\",\"email\":\"[Signer 1 Email]\",\"name\":\"[Signer 1 Name]\"}]'))",
-                "steps": "@coalesce(body('Parse_TemplateJson')?['steps'], json('[{\"name\":\"Step 1\",\"signers\":[\"Signer 1\"]}]'))",
+                "signers": "@body('Transform_Signers_To_Nintex')",
+                "steps": "@body('Transform_Steps_To_Nintex')",
                 "envelope": {
                   "name": "@{outputs('Get_Template_Record')?['body/cs_name']}"
                 }
