@@ -485,7 +485,7 @@
             }
           }
         },
-        "Transform_Steps_To_Nintex": {
+        "Build_Signer_Labels_Array": {
           "runAfter": {
             "Transform_Signers_To_Nintex": [
               "Succeeded"
@@ -497,15 +497,24 @@
           "type": "Select",
           "inputs": {
             "from": "@coalesce(body('Parse_TemplateJson')?['signers'], json('[{\"label\":\"Signer 1\"}]'))",
-            "select": {
-              "name": "@concat('Step ', string(add(iterationIndexes('Transform_Steps_To_Nintex'), 1)))",
-              "signers": "@createArray(item()?['label'])"
-            }
+            "select": "@item()?['label']"
           }
+        },
+        "Build_Steps_Array": {
+          "runAfter": {
+            "Build_Signer_Labels_Array": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "74a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Compose",
+          "inputs": "@createArray(json(concat('{\"name\":\"Step 1\",\"signers\":', string(body('Build_Signer_Labels_Array')), '}')))"
         },
         "Build_Template_Payload": {
           "runAfter": {
-            "Transform_Steps_To_Nintex": [
+            "Build_Steps_Array": [
               "Succeeded"
             ]
           },
@@ -532,7 +541,7 @@
                   }
                 ],
                 "signers": "@body('Transform_Signers_To_Nintex')",
-                "steps": "@body('Transform_Steps_To_Nintex')",
+                "steps": "@outputs('Build_Steps_Array')",
                 "envelope": {
                   "name": "@{outputs('Get_Template_Record')?['body/cs_name']}"
                 }
