@@ -37,6 +37,34 @@
 /* Prevent the portal page container adding extra padding around the editor */
 .pepp-app { background: #f4f4f4 !important; min-height: unset !important; }
 
+/* ── Compact header: hide the application bar (blue bar with user name) ── */
+.application-bar { display: none !important; }
+/* ── Hamburger menu replaces language toggle in the GCWeb banner ── */
+.esign-hamburger {
+  position: relative; display: inline-block;
+}
+.esign-hamburger-btn {
+  background: none; border: 1px solid #ccc; border-radius: 3px;
+  padding: 5px 12px; font-size: 0.85rem; color: #333; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.esign-hamburger-btn:hover { background: #f0f0f0; }
+.esign-hamburger-menu {
+  display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
+  background: #fff; border: 1px solid #ddd; border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 200px; z-index: 9999;
+}
+.esign-hamburger-menu.open { display: block; }
+.esign-hamburger-menu a {
+  display: block; padding: 10px 16px; font-size: 0.85rem;
+  color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;
+}
+.esign-hamburger-menu a:last-child { border-bottom: none; }
+.esign-hamburger-menu a:hover { background: #f5f5f5; }
+.esign-hamburger-menu .esign-menu-divider {
+  height: 1px; background: #e0e0e0; margin: 0;
+}
+
 /* Top bar */
 .te-topbar {
   display: flex;
@@ -49,19 +77,27 @@
   z-index: 10;
   border-bottom: 3px solid var(--gc-red);
 }
-.te-title-input {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 3px 8px;
+.te-title-input,
+input.te-title-input,
+input.te-title-input[type="text"],
+#tplNameInput,
+#tplNameInput[type="text"] {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
   min-width: 280px;
+  -webkit-text-fill-color: #ffffff !important;
 }
-.te-title-input:hover  { border-color: rgba(255,255,255,0.35); }
-.te-title-input:focus  { border-color: rgba(255,255,255,0.65); outline: none; background: rgba(255,255,255,0.08); }
-.te-title-input::placeholder { color: rgba(255,255,255,0.45); }
+.te-title-input:hover,
+#tplNameInput:hover { border-color: rgba(255,255,255,0.35) !important; }
+.te-title-input:focus,
+#tplNameInput:focus { border-color: rgba(255,255,255,0.65) !important; outline: none !important; background: rgba(255,255,255,0.12) !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+.te-title-input::placeholder,
+#tplNameInput::placeholder { color: rgba(255,255,255,0.55) !important; -webkit-text-fill-color: rgba(255,255,255,0.55) !important; }
 .te-save-status { font-size: 0.75rem; color: rgba(255,255,255,0.6); padding-left: 8px; display: block; }
 .te-save-status.saving { color: #ffc107; }
 .te-save-status.saved  { color: #4caf50; }
@@ -1461,6 +1497,54 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    /* ── Compact header: replace lang toggle with hamburger menu ────── */
+    (function compactHeader() {
+      /* Remove the application bar (blue bar with user dropdown) entirely */
+      var appBar = document.querySelector('.application-bar');
+      if (appBar) appBar.parentNode.removeChild(appBar);
+
+      /* Find the language section in the GCWeb banner and replace with hamburger */
+      var lngSection = document.getElementById('wb-lng');
+      if (lngSection) {
+        /* Gather user info from the application bar before it's hidden */
+        var userName = '';
+        var profileLink = '/profile';
+        var logoutLink = '/Account/Login/LogOff?returnUrl=/';
+        var userEl = appBar ? appBar.querySelector('.dropdown .dropbtn, .dropdown button, [class*="profile"]') : null;
+        if (userEl) userName = userEl.textContent.trim().replace(/[\u25BC\u25BE▼▾]/g, '').trim();
+        if (!userName) userName = '{{ user.fullname | default: "Profile" }}';
+
+        /* Get language toggle URL from existing link */
+        var langLink = lngSection.querySelector('a[href]');
+        var langUrl = langLink ? langLink.href : '#';
+        var langLabel = langLink ? langLink.textContent.trim() : 'Français';
+
+        /* Replace language section content with hamburger */
+        lngSection.innerHTML =
+          '<div class="esign-hamburger">' +
+            '<button type="button" class="esign-hamburger-btn" id="esignMenuBtn">' +
+              '<span class="fa fa-bars"></span> Menu' +
+            '</button>' +
+            '<div class="esign-hamburger-menu" id="esignMenuDrop">' +
+              '<a href="' + profileLink + '"><span class="fa fa-user mrgn-rght-sm"></span>' + userName + '</a>' +
+              '<a href="' + langUrl + '"><span class="fa fa-globe mrgn-rght-sm"></span>' + langLabel + '</a>' +
+              '<div class="esign-menu-divider"></div>' +
+              '<a href="' + logoutLink + '"><span class="fa fa-sign-out mrgn-rght-sm"></span>Sign out</a>' +
+            '</div>' +
+          '</div>';
+
+        /* Pure JS toggle */
+        var btn  = document.getElementById('esignMenuBtn');
+        var menu = document.getElementById('esignMenuDrop');
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', function () { menu.classList.remove('open'); });
+        menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      }
+    })();
+
     /* Run after full layout pass so portal chrome is measured correctly */
     setTimeout(setEditorHeight, 0);
     window.addEventListener('resize', setEditorHeight);

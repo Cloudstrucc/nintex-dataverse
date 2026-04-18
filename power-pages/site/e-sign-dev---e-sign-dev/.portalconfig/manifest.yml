@@ -1,9 +1,28 @@
+adx_pagetemplate:
+- RecordId: 65c225e7-a736-44f2-aada-03f26a427f6a
+  DisplayName: Envelopes
+  CheckSum: 
+  IsDeleted: true
+adx_weblink:
+- RecordId: 3561e1d6-20fc-4134-856b-7eed3d88bd85
+  DisplayName: Profile
+  CheckSum: 
+  IsDeleted: true
+- RecordId: 7b6f2633-d627-f111-88b4-70a8a51110e6
+  DisplayName: Profile
+  CheckSum: 
+  IsDeleted: true
 adx_webpage:
 - RecordId: 63d5aabe-70d2-425c-b695-8aee28dcc843
   DisplayName: Envelopes
   CheckSum: 
   IsDeleted: true
 - RecordId: a0056b14-e740-4cdc-adc9-2f9e4361e95c
+  DisplayName: Envelopes
+  CheckSum: 
+  IsDeleted: true
+adx_webtemplate:
+- RecordId: 1fb55b22-0169-4c7e-8090-7685f13505d3
   DisplayName: Envelopes
   CheckSum: 
   IsDeleted: true

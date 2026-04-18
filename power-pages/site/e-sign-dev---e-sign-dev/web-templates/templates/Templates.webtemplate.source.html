@@ -96,9 +96,9 @@
                 <thead>
                   <tr style="background:#f5f5f5;">
                     <th style="width:38%;">{{ snippets['ESIGN/TEMPLATES/COL_NAME']     | default: 'Template Name' }}</th>
-                    <th style="width:18%;">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
-                    <th style="width:15%;">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
-                    <th style="width:11%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
+                    <th style="width:18%;" class="tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
+                    <th style="width:15%;" class="tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:11%;" class="text-center tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
                     <th style="width:18%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_ACTIONS'] | default: 'Actions' }}</th>
                   </tr>
                 </thead>
@@ -142,32 +142,6 @@
   </div>
 </main>
 
-<!-- ── Template Info Modal ──────────────────────────────────────────────── -->
-<div id="tpl-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-     z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:4px;max-width:480px;width:90%;
-              box-shadow:0 8px 32px rgba(0,0,0,0.25);overflow:hidden;">
-    <div style="background:#26374A;color:#fff;padding:12px 16px;
-                display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-weight:700;font-size:0.95rem;">
-        <span class="fa fa-info-circle" style="margin-right:6px;"></span>
-        Template Details
-      </span>
-      <button id="tpl-modal-close"
-              style="background:none;border:none;color:#fff;font-size:1.3rem;
-                     cursor:pointer;line-height:1;padding:0;">&times;</button>
-    </div>
-    <div style="padding:20px;">
-      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
-        <tbody id="tpl-modal-body"></tbody>
-      </table>
-    </div>
-    <div style="padding:10px 20px 16px;text-align:right;">
-      <button id="tpl-modal-ok" class="btn btn-sm btn-default"
-              style="border-color:#26374A;color:#26374A;border-radius:3px;">Close</button>
-    </div>
-  </div>
-</div>
 
 <script>
 (function () {
@@ -266,71 +240,83 @@
         : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" ' +
             'disabled title="No document attached"><span class="fa fa-download"></span></button>';
 
-      /* Parse nintexTemplateId if present */
-      var nintexId = '';
-      var isNintex = false;
-      try {
-        if (tpl.cs_templatejson) {
-          var tj = JSON.parse(tpl.cs_templatejson);
-          nintexId = tj.nintexTemplateId || '';
-          isNintex = tj.source === 'nintex';
-        }
-      } catch (e) { /* ignore */ }
-
       elTbody.innerHTML +=
         '<tr>' +
           '<td>' +
-            '<a href="#" class="tpl-name-link" ' +
-               'data-id="' + esc(tpl.cs_templateid) + '" ' +
-               'data-name="' + esc(tpl.cs_name || 'Untitled') + '" ' +
-               'data-nintex-id="' + esc(nintexId) + '" ' +
-               'data-is-nintex="' + (isNintex ? '1' : '0') + '" ' +
-               'data-cat="' + esc(tpl.cs_category || '') + '" ' +
-               'style="font-weight:700;color:#26374A;text-decoration:none;" ' +
-               'title="View template details">' +
-              esc(tpl.cs_name || 'Untitled') +
-            '</a>' +
+            '<a href="#" class="esign-tpl-link" data-tpl-id="' + esc(tpl.cs_templateid) + '" style="color:#26374A;text-decoration:none;"><strong>' + esc(tpl.cs_name || 'Untitled') + '</strong></a>' +
             (tpl.cs_description ? '<br><span class="small text-muted">' + esc(tpl.cs_description) + '</span>' : '') +
           '</td>' +
-          '<td>' + esc(tpl.cs_category || '--') + '</td>' +
-          '<td>' + fmtDate(tpl.modifiedon) + '</td>' +
-          '<td class="text-center">' +
+          '<td class="tpl-hide-mobile">' + esc(tpl.cs_category || '--') + '</td>' +
+          '<td class="tpl-hide-mobile">' + fmtDate(tpl.modifiedon) + '</td>' +
+          '<td class="text-center tpl-hide-mobile">' +
             '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
               esc(status) +
             '</span>' +
           '</td>' +
           '<td class="text-center" style="white-space:nowrap;">' +
-            '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
-               'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
-               'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
-            '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
-               'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
-               'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
-            dlBtn +
+            /* Desktop: inline buttons */
+            '<span class="tpl-actions-desktop">' +
+              '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+                 'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
+                 'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
+              '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+                 'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
+                 'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
+              dlBtn +
+            '</span>' +
+            /* Mobile: action menu (pure JS toggle) */
+            '<span class="tpl-actions-mobile" style="position:relative;">' +
+              '<button type="button" class="btn btn-xs btn-default esign-action-toggle" style="border-radius:0;">' +
+                '<span class="fa fa-ellipsis-v"></span>' +
+              '</button>' +
+              '<div class="esign-action-menu">' +
+                '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '"><span class="fa fa-pencil mrgn-rght-sm"></span>Edit</a>' +
+                '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '"><span class="fa fa-paper-plane mrgn-rght-sm"></span>Use</a>' +
+                (hasJson
+                  ? '<a href="#" class="tpl-dl-btn-m" data-id="' + esc(tpl.cs_templateid) + '" data-name="' + esc(tpl.cs_name || 'template') + '"><span class="fa fa-download mrgn-rght-sm"></span>Download</a>'
+                  : '') +
+              '</div>' +
+            '</span>' +
           '</td>' +
         '</tr>';
     });
 
-    /* Wire template name links → open info modal */
-    elTbody.querySelectorAll('.tpl-name-link').forEach(function (a) {
-      a.addEventListener('click', function (e) {
-        e.preventDefault();
-        openTplModal(
-          this.getAttribute('data-name'),
-          this.getAttribute('data-id'),
-          this.getAttribute('data-nintex-id'),
-          this.getAttribute('data-is-nintex') === '1',
-          this.getAttribute('data-cat')
-        );
+    /* Wire mobile action toggles (pure JS) */
+    elTbody.querySelectorAll('.esign-action-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var menu = this.nextElementSibling;
+        /* Close any other open menus first */
+        document.querySelectorAll('.esign-action-menu.open').forEach(function (m) {
+          if (m !== menu) m.classList.remove('open');
+        });
+        menu.classList.toggle('open');
       });
     });
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); });
+    });
 
-    /* Wire download buttons — fetch templatejson, extract pdfBase64, blob-download */
+    /* Wire download buttons — desktop */
     elTbody.querySelectorAll('.tpl-dl-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var id   = this.getAttribute('data-id');
         var name = this.getAttribute('data-name');
         downloadTplPdf(id, name, this);
+      });
+    });
+    /* Wire download buttons — mobile dropdown */
+    elTbody.querySelectorAll('.tpl-dl-btn-m').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        downloadTplPdf(this.getAttribute('data-id'), this.getAttribute('data-name'), this);
+      });
+    });
+    /* Wire template name links → show detail modal */
+    elTbody.querySelectorAll('.esign-tpl-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        showTemplateModal(this.getAttribute('data-tpl-id'));
       });
     });
 
@@ -480,52 +466,6 @@
 
 
 
-  /* ── Template info modal ────────────────────────────────────────────── */
-  function openTplModal(name, templateId, nintexId, isNintex, category) {
-    var modal = document.getElementById('tpl-info-modal');
-    var tbody = document.getElementById('tpl-modal-body');
-
-    function row(label, value, mono) {
-      return '<tr style="border-bottom:1px solid #f0f0f0;">' +
-        '<td style="padding:7px 12px 7px 0;font-weight:700;color:#555;width:40%;vertical-align:top;white-space:nowrap;">' +
-          esc(label) +
-        '</td>' +
-        '<td style="padding:7px 0;color:#222;word-break:break-all;">' +
-          (mono ? '<code style="font-size:0.8rem;background:#f5f5f5;padding:2px 5px;border-radius:3px;">' + esc(value) + '</code>'
-                : esc(value)) +
-        '</td>' +
-      '</tr>';
-    }
-
-    var rows = '';
-    rows += row('Template Name', name);
-    if (category) rows += row('Category', category);
-    rows += row('Dataverse ID', templateId, true);
-
-    if (isNintex) {
-      rows += row('Source', 'Nintex AssureSign');
-      if (nintexId) {
-        rows += row('Nintex Template ID', nintexId, true);
-        rows += '<tr><td colspan="2" style="padding:8px 0 0;">' +
-          '<a href="https://account.assuresign.net/Templates/' + encodeURIComponent(nintexId) + '" ' +
-             'target="_blank" rel="noopener" ' +
-             'class="btn btn-xs btn-default" style="border-color:#37474f;color:#37474f;border-radius:3px;">' +
-            '<span class="fa fa-external-link" style="margin-right:4px;"></span>Open in Nintex Portal' +
-          '</a></td></tr>';
-      } else {
-        rows += '<tr><td colspan="2"><span class="text-muted small">Nintex Template ID not available.</span></td></tr>';
-      }
-    } else {
-      rows += row('Source', 'Power Pages Editor');
-      rows += '<tr><td colspan="2" style="padding:4px 0 0;">' +
-        '<span class="small text-muted">This template was created in the portal. No Nintex Template ID is associated.</span>' +
-        '</td></tr>';
-    }
-
-    tbody.innerHTML = rows;
-    modal.style.display = 'flex';
-  }
-
   /* ── Download template PDF ──────────────────────────────────────────── */
   function downloadTplPdf(templateId, templateName, btnEl) {
     if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<span class="fa fa-spinner fa-spin"></span>'; }
@@ -589,21 +529,64 @@
       if (currentPage < Math.ceil(filtered.length / PAGE_SIZE)) { currentPage++; renderPage(); }
     });
 
+    /* Close modal on overlay or X click */
+    document.addEventListener('click', function (e) {
+      if (e.target.id === 'esignTplModal' || e.target.classList.contains('esign-modal-close')) {
+        document.getElementById('esignTplModal').style.display = 'none';
+      }
+    });
+
     /* Kick off data load */
     loadTemplates();
-
-    /* Modal close */
-    function closeTplModal() { document.getElementById('tpl-info-modal').style.display = 'none'; }
-    document.getElementById('tpl-modal-close').addEventListener('click', closeTplModal);
-    document.getElementById('tpl-modal-ok').addEventListener('click', closeTplModal);
-    document.getElementById('tpl-info-modal').addEventListener('click', function (e) {
-      if (e.target === this) closeTplModal(); /* click backdrop to close */
-    });
   });
+
+  /* ── Template detail modal ─────────────────────────────────────────── */
+  function showTemplateModal(tplId) {
+    /* Find the template in allRecords (already loaded with cs_templatejson) */
+    var tpl = null;
+    for (var i = 0; i < allRecords.length; i++) {
+      if (allRecords[i].cs_templateid === tplId) { tpl = allRecords[i]; break; }
+    }
+    if (!tpl) return;
+
+    var nintexId = '';
+    try {
+      var json = JSON.parse(tpl.cs_templatejson || '{}');
+      nintexId = json.nintexTemplateId || '';
+    } catch (e) { /* ignore */ }
+
+    var modal = document.getElementById('esignTplModal');
+    var body  = document.getElementById('esignTplModalBody');
+    body.innerHTML =
+      '<table class="table table-condensed" style="margin:0;">' +
+        '<tr><td style="font-weight:600;width:40%;padding:8px;">Template Name</td><td style="padding:8px;">' + esc(tpl.cs_name || 'Untitled') + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Description</td><td style="padding:8px;">' + esc(tpl.cs_description || '--') + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Category</td><td style="padding:8px;">' + esc(tpl.cs_category || '--') + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Nintex Template ID</td><td style="padding:8px;font-family:monospace;font-size:12px;">' + esc(nintexId || 'Not synced') + '</td></tr>' +
+      '</table>' +
+      '<div style="padding:12px;text-align:right;border-top:1px solid #e0e0e0;margin-top:8px;">' +
+        '<a href="/templates/edit-template/?id=' + esc(tplId) + '" class="btn btn-sm btn-default" style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:6px;">' +
+          '<span class="fa fa-pencil mrgn-rght-xs"></span>Edit Template</a>' +
+        '<a href="/envelopes/edit-envelope/?templateId=' + esc(tplId) + '" class="btn btn-sm btn-default" style="border-color:#26374A;color:#26374A;border-radius:0;">' +
+          '<span class="fa fa-paper-plane mrgn-rght-xs"></span>Use Template</a>' +
+      '</div>';
+    document.getElementById('esignTplModalTitle').textContent = tpl.cs_name || 'Template Details';
+    modal.style.display = 'flex';
+  }
 
 })();
 </script>
 
+<!-- Template Detail Modal (pure CSS/JS, no Bootstrap) -->
+<div id="esignTplModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:4px;width:90%;max-width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="background:#26374A;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+      <strong id="esignTplModalTitle">Template Details</strong>
+      <button type="button" class="esign-modal-close" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px;">&times;</button>
+    </div>
+    <div id="esignTplModalBody" style="padding:0;"></div>
+  </div>
+</div>
 
 <!-- GCWeb Footer (matches CS-Home-WET.liquid pattern) -->
 <footer id="wb-info" style="background:#26374A;padding:20px 0;margin-top:40px;">
@@ -637,15 +620,35 @@
   #tpl-table td { vertical-align: middle; font-size: 14px; }
   #tpl-table tbody tr:hover { background: #f0f4f8; }
   .breadcrumb li + li::before { content: "/ "; }
-  /* Search input-group: same height, button is a perfect square */
   #tpl-search { height: 34px; }
   #tpl-search-btn {
-    width: 34px; height: 34px;
-    padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    width: 34px; height: 34px; padding: 0;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .input-group { display: flex; align-items: stretch; }
   .input-group .form-control { flex: 1 1 auto; }
   .input-group-btn { display: flex; align-items: stretch; flex-shrink: 0; }
+
+  /* Action menu (pure JS, no Bootstrap dropdown) */
+  .tpl-actions-mobile { display: none; }
+  .tpl-actions-desktop { display: inline; }
+  .esign-action-menu {
+    display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
+    background: #fff; border: 1px solid #ddd; border-radius: 4px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 150px; z-index: 999;
+  }
+  .esign-action-menu.open { display: block; }
+  .esign-action-menu a {
+    display: block; padding: 8px 14px; font-size: 0.85rem;
+    color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;
+  }
+  .esign-action-menu a:last-child { border-bottom: none; }
+  .esign-action-menu a:hover { background: #f5f5f5; }
+
+  @media (max-width: 768px) {
+    .tpl-hide-mobile { display: none !important; }
+    .tpl-actions-desktop { display: none !important; }
+    .tpl-actions-mobile { display: inline !important; }
+    #tpl-table th, #tpl-table td { font-size: 13px; padding: 8px 6px; }
+  }
 </style>
