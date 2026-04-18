@@ -908,20 +908,33 @@
         '<i class="fa ' + ft.icon + ' me-1" style="font-size:0.7rem;flex-shrink:0;"></i>' +
         '<span class="te-field-label">' + esc(f.label) + '</span>' +
         '<div class="te-resize-handle"></div>';
+      /* Mouse drag/resize */
       div.addEventListener('mousedown', function (e) {
         if (e.target.classList.contains('te-resize-handle')) {
           e.preventDefault(); e.stopPropagation();
-          fieldResize = { id: f.id,
-            startX: e.clientX, startY: e.clientY,
-            origW: f.w, origH: f.h, el: div };
+          fieldResize = { id: f.id, startX: e.clientX, startY: e.clientY,
+                          origW: f.w, origH: f.h, el: div };
           return;
         }
         e.preventDefault(); e.stopPropagation();
         selectField(f.id);
-        fieldMove = { id: f.id,
-          startX: e.clientX, startY: e.clientY,
-          origX: f.x, origY: f.y, el: div };
+        fieldMove = { id: f.id, startX: e.clientX, startY: e.clientY,
+                      origX: f.x, origY: f.y, el: div };
       });
+      /* Touch drag/resize — mirrors mousedown logic */
+      div.addEventListener('touchstart', function (e) {
+        var t = e.touches[0];
+        if (e.target.classList.contains('te-resize-handle')) {
+          e.preventDefault(); e.stopPropagation();
+          fieldResize = { id: f.id, startX: t.clientX, startY: t.clientY,
+                          origW: f.w, origH: f.h, el: div };
+          return;
+        }
+        e.preventDefault(); e.stopPropagation();
+        selectField(f.id);
+        fieldMove = { id: f.id, startX: t.clientX, startY: t.clientY,
+                      origX: f.x, origY: f.y, el: div };
+      }, { passive: false });
       layer.appendChild(div);
     });
     document.getElementById('fieldCount').textContent = state.fields.length;
@@ -936,70 +949,118 @@
   var fieldMove   = null; /* { id, startX, startY, origX, origY, el }        */
   var fieldResize = null; /* { id, startX, startY, origW, origH, el }        */
 
+  /* ── Shared helper: start a palette drag from any input (mouse or touch) ── */
+  function startPaletteGrab(type, clientX, clientY) {
+    paletteGrab = { type: type };
+    var ft = FIELD_TYPES[type] || FIELD_TYPES.text;
+    var clone = document.createElement('div');
+    clone.className = 'te-drag-clone';
+    clone.id = 'dragClone';
+    clone.textContent = ft.label;
+    clone.style.cssText =
+      'position:fixed;pointer-events:none;z-index:9999;' +
+      'left:' + clientX + 'px;top:' + clientY + 'px;transform:translate(-50%,-50%);';
+    document.body.appendChild(clone);
+  }
+
   function setupPaletteDrag() {
     document.getElementById('fieldPalette').querySelectorAll('.te-palette-item').forEach(function (item) {
+      var type = item.getAttribute('data-field-type');
+
+      /* ── Mouse ── */
       item.addEventListener('mousedown', function (e) {
         if (e.button !== 0) return;
         e.preventDefault();
-        paletteGrab = { type: item.getAttribute('data-field-type') };
-        var ft = FIELD_TYPES[paletteGrab.type] || FIELD_TYPES.text;
-        var clone = document.createElement('div');
-        clone.className = 'te-drag-clone';
-        clone.id = 'dragClone';
-        clone.textContent = ft.label;
-        clone.style.cssText =
-          'position:fixed;pointer-events:none;z-index:9999;' +
-          'left:' + e.clientX + 'px;top:' + e.clientY + 'px;transform:translate(-50%,-50%);';
-        document.body.appendChild(clone);
+        startPaletteGrab(type, e.clientX, e.clientY);
       });
+
+      /* ── Touch ── */
+      item.addEventListener('touchstart', function (e) {
+        e.preventDefault(); /* prevent scroll while dragging a palette item */
+        var t = e.touches[0];
+        startPaletteGrab(type, t.clientX, t.clientY);
+      }, { passive: false });
     });
   }
 
-  function setupFieldInteractions() {
-    /* mousemove: move ghost clone / reposition field / resize field */
-    document.addEventListener('mousemove', function (e) {
-      if (paletteGrab) {
-        var c = document.getElementById('dragClone');
-        if (c) { c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; }
-      }
-      if (fieldMove) {
-        var f = getField(fieldMove.id); if (!f) { fieldMove = null; return; }
-        f.x = Math.max(0, fieldMove.origX + (e.clientX - fieldMove.startX));
-        f.y = Math.max(0, fieldMove.origY + (e.clientY - fieldMove.startY));
-        fieldMove.el.style.left = f.x + 'px';
-        fieldMove.el.style.top  = f.y + 'px';
-        markDirty();
-      }
-      if (fieldResize) {
-        var f = getField(fieldResize.id); if (!f) { fieldResize = null; return; }
-        f.w = Math.max(20, fieldResize.origW + (e.clientX - fieldResize.startX));
-        f.h = Math.max(16, fieldResize.origH + (e.clientY - fieldResize.startY));
-        fieldResize.el.style.width  = f.w + 'px';
-        fieldResize.el.style.height = f.h + 'px';
-        markDirty();
-      }
-    });
+  /* ── Shared helpers: process move/end from any pointer type ─────────── */
+  function handlePointerMove(clientX, clientY) {
+    if (paletteGrab) {
+      var c = document.getElementById('dragClone');
+      if (c) { c.style.left = clientX + 'px'; c.style.top = clientY + 'px'; }
+    }
+    if (fieldMove) {
+      var f = getField(fieldMove.id); if (!f) { fieldMove = null; return; }
+      f.x = Math.max(0, fieldMove.origX + (clientX - fieldMove.startX));
+      f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY));
+      fieldMove.el.style.left = f.x + 'px';
+      fieldMove.el.style.top  = f.y + 'px';
+      markDirty();
+    }
+    if (fieldResize) {
+      var f = getField(fieldResize.id); if (!f) { fieldResize = null; return; }
+      f.w = Math.max(20, fieldResize.origW + (clientX - fieldResize.startX));
+      f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY));
+      fieldResize.el.style.width  = f.w + 'px';
+      fieldResize.el.style.height = f.h + 'px';
+      markDirty();
+    }
+  }
 
-    /* mouseup: complete drop / move / resize */
-    document.addEventListener('mouseup', function (e) {
-      if (paletteGrab) {
-        var c = document.getElementById('dragClone'); if (c) c.remove();
-        if (state.pdfDoc) {
-          var layer = document.getElementById('fieldLayer');
-          var rect  = layer.getBoundingClientRect();
-          var x = e.clientX - rect.left, y = e.clientY - rect.top;
-          if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
-            placeField(paletteGrab.type, x, y);
-          }
+  function handlePointerEnd(clientX, clientY) {
+    if (paletteGrab) {
+      var c = document.getElementById('dragClone'); if (c) c.remove();
+      if (state.pdfDoc) {
+        var layer = document.getElementById('fieldLayer');
+        var rect  = layer.getBoundingClientRect();
+        var x = clientX - rect.left, y = clientY - rect.top;
+        if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
+          placeField(paletteGrab.type, x, y);
         }
-        paletteGrab = null;
       }
-      if (fieldMove)   { updatePlacedFieldsList(); fieldMove   = null; }
-      if (fieldResize) { updatePlacedFieldsList(); fieldResize = null; }
+      paletteGrab = null;
+    }
+    if (fieldMove)   { updatePlacedFieldsList(); fieldMove   = null; }
+    if (fieldResize) { updatePlacedFieldsList(); fieldResize = null; }
+  }
+
+  function setupFieldInteractions() {
+    /* ── Mouse events ── */
+    document.addEventListener('mousemove', function (e) {
+      handlePointerMove(e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseup', function (e) {
+      handlePointerEnd(e.clientX, e.clientY);
     });
 
-    /* Click on empty canvas area deselects any selected field */
+    /* ── Touch events — enable finger drag on palette → canvas ── */
+    document.addEventListener('touchmove', function (e) {
+      if (paletteGrab || fieldMove || fieldResize) {
+        e.preventDefault(); /* prevent page scroll while dragging */
+        var t = e.touches[0];
+        handlePointerMove(t.clientX, t.clientY);
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function (e) {
+      if (paletteGrab || fieldMove || fieldResize) {
+        var t = e.changedTouches[0];
+        handlePointerEnd(t.clientX, t.clientY);
+      }
+    });
+
+    document.addEventListener('touchcancel', function () {
+      var c = document.getElementById('dragClone'); if (c) c.remove();
+      paletteGrab = null; fieldMove = null; fieldResize = null;
+    });
+
+    /* Click/tap on empty canvas area deselects any selected field */
     document.getElementById('viewport').addEventListener('mousedown', function (e) {
+      if (e.target.id === 'viewport' || e.target.id === 'pdfCanvas' || e.target.id === 'fieldLayer') {
+        deselectField();
+      }
+    });
+    document.getElementById('viewport').addEventListener('touchstart', function (e) {
       if (e.target.id === 'viewport' || e.target.id === 'pdfCanvas' || e.target.id === 'fieldLayer') {
         deselectField();
       }

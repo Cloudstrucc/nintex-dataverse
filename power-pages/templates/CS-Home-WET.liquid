@@ -29,7 +29,7 @@
         <a href="/templates/" class="pepp-card" style="display:block;text-decoration:none;">
           <div class="panel panel-default text-center" style="border-top:3px solid #d83b01;transition:box-shadow 0.2s;">
             <div class="panel-body" style="padding:20px;">
-              <span class="fa fa-files-o" style="font-size:2rem;color:#d83b01;display:block;margin-bottom:8px;"></span>
+              <span class="fa fa-file-text" style="font-size:2.5rem;color:#222;display:block;margin-bottom:8px;"></span>
               <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-templates" style="color:#d83b01;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
               <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT1/LABEL'] | default: 'Available Templates' }}</p>
             </div>
@@ -453,7 +453,7 @@
   .panel {
     border-radius: 0;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
+  } 
 
   /* Stat tile loading spinner — occupies same space as the count number */
   .stat-tile-num { min-height: 1.4em; display: flex; align-items: center; justify-content: center; }

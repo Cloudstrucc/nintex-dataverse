@@ -230,12 +230,15 @@
       var useHref    = USE_URL + '?' + PARAM_TPL + '=' + esc(tpl.cs_templateid);
       var hasJson    = !!tpl.cs_templatejson;
 
+      /* Download: fetch the template's pdfBase64 from cs_templatejson and
+         trigger a client-side blob download. The button calls downloadTplPdf(id). */
       var dlBtn = hasJson
-        ? '<a href="/_api/cs_templates(' + tpl.cs_templateid + ')/cs_templatejson/$value" '
-            + '  class="btn btn-xs btn-default" style="border-radius:0;" title="Download template">'
-            + '<span class="fa fa-download"></span></a>'
-        : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" '
-            + 'disabled title="No document attached"><span class="fa fa-download"></span></button>';
+        ? '<button type="button" class="btn btn-xs btn-default tpl-dl-btn" ' +
+            'style="border-radius:0;" title="Download PDF" ' +
+            'data-id="' + esc(tpl.cs_templateid) + '" data-name="' + esc(tpl.cs_name || 'template') + '">' +
+            '<span class="fa fa-download"></span></button>'
+        : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" ' +
+            'disabled title="No document attached"><span class="fa fa-download"></span></button>';
 
       elTbody.innerHTML +=
         '<tr>' +
@@ -254,12 +257,21 @@
             '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
                'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
                'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
-            '<a href="/new-envelope?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+            '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
                'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
-               'title="Use this template to create an envelope"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
+               'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
             dlBtn +
           '</td>' +
         '</tr>';
+    });
+
+    /* Wire download buttons — fetch templatejson, extract pdfBase64, blob-download */
+    elTbody.querySelectorAll('.tpl-dl-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id   = this.getAttribute('data-id');
+        var name = this.getAttribute('data-name');
+        downloadTplPdf(id, name, this);
+      });
     });
 
     elCount.textContent = total + (total === 1 ? ' template' : ' templates');
@@ -408,6 +420,43 @@
 
 
 
+  /* ── Download template PDF ──────────────────────────────────────────── */
+  function downloadTplPdf(templateId, templateName, btnEl) {
+    if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<span class="fa fa-spinner fa-spin"></span>'; }
+    portalGet('/_api/cs_templates(' + templateId + ')?$select=cs_templatejson,cs_name')
+      .then(function (data) {
+        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+        if (!data || !data.cs_templatejson) {
+          alert('No document is attached to this template.');
+          return;
+        }
+        var json = JSON.parse(data.cs_templatejson);
+        if (!json.pdfBase64) {
+          alert('This template has no PDF document attached. Open the template editor to upload one.');
+          return;
+        }
+        /* Decode base64 → Uint8Array → Blob → object URL → auto-click download */
+        var binary  = atob(json.pdfBase64);
+        var bytes   = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+        var blob    = new Blob([bytes], { type: 'application/pdf' });
+        var url     = URL.createObjectURL(blob);
+        var anchor  = document.createElement('a');
+        anchor.href = url;
+        anchor.download = (json.pdfFilename || templateName || 'template') + '.pdf';
+        anchor.download = anchor.download.replace(/\.pdf\.pdf$/, '.pdf'); /* avoid double ext */
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+      })
+      .catch(function (err) {
+        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+        console.error('ESIGN: download failed:', err.message);
+        alert('Download failed: ' + err.message);
+      });
+  }
+
   /* ── Init ────────────────────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
 
@@ -474,11 +523,15 @@
   #tpl-table td { vertical-align: middle; font-size: 14px; }
   #tpl-table tbody tr:hover { background: #f0f4f8; }
   .breadcrumb li + li::before { content: "/ "; }
-  /* Fix search input-group: ensure input and button share the same height */
+  /* Search input-group: same height, button is a perfect square */
   #tpl-search { height: 34px; }
-  #tpl-search-btn { height: 34px; line-height: 1; padding-top: 0; padding-bottom: 0; }
+  #tpl-search-btn {
+    width: 34px; height: 34px;
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
   .input-group { display: flex; align-items: stretch; }
   .input-group .form-control { flex: 1 1 auto; }
-  .input-group-btn { display: flex; align-items: stretch; }
-  .input-group-btn .btn { display: flex; align-items: center; }
+  .input-group-btn { display: flex; align-items: stretch; flex-shrink: 0; }
 </style>
