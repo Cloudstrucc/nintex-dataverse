@@ -523,10 +523,10 @@
           },
           "type": "Select",
           "inputs": {
-            "from": "@body('Build_Signer_Labels_Array')",
+            "from": "@range(0, length(body('Build_Signer_Labels_Array')))",
             "select": {
-              "name": "@concat('Step ', string(add(indexOf(body('Build_Signer_Labels_Array'), item()), 1)))",
-              "signers": "@createArray(item())"
+              "name": "@concat('Step ', string(add(item(), 1)))",
+              "signers": "@createArray(body('Build_Signer_Labels_Array')[item()])"
             }
           }
         },
