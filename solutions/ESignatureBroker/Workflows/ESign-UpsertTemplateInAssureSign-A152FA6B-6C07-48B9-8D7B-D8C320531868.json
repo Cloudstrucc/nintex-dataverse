@@ -500,7 +500,7 @@
             "select": "@item()?['label']"
           }
         },
-        "Build_Steps_Array": {
+        "Build_Steps_Parallel": {
           "runAfter": {
             "Build_Signer_Labels_Array": [
               "Succeeded"
@@ -511,6 +511,39 @@
           },
           "type": "Compose",
           "inputs": "@createArray(json(concat('{\"name\":\"Step 1\",\"signers\":', string(body('Build_Signer_Labels_Array')), '}')))"
+        },
+        "Build_Steps_Sequential": {
+          "runAfter": {
+            "Build_Signer_Labels_Array": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "75a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('Build_Signer_Labels_Array')",
+            "select": {
+              "name": "@concat('Step ', string(add(indexOf(body('Build_Signer_Labels_Array'), item()), 1)))",
+              "signers": "@createArray(item())"
+            }
+          }
+        },
+        "Build_Steps_Array": {
+          "runAfter": {
+            "Build_Steps_Parallel": [
+              "Succeeded"
+            ],
+            "Build_Steps_Sequential": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "76a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Compose",
+          "inputs": "@if(equals(coalesce(body('Parse_TemplateJson')?['signingOrder'], 'sequential'), 'parallel'), outputs('Build_Steps_Parallel'), body('Build_Steps_Sequential'))"
         },
         "Build_Template_Payload": {
           "runAfter": {
@@ -543,7 +576,8 @@
                 "signers": "@body('Transform_Signers_To_Nintex')",
                 "steps": "@outputs('Build_Steps_Array')",
                 "envelope": {
-                  "name": "@{outputs('Get_Template_Record')?['body/cs_name']}"
+                  "name": "@{outputs('Get_Template_Record')?['body/cs_name']}",
+                  "workflowType": "@{coalesce(body('Parse_TemplateJson')?['signingOrder'], 'sequential')}"
                 }
               }
             }
