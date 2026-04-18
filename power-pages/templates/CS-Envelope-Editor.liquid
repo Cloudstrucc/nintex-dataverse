@@ -161,10 +161,33 @@ input.te-title-input[type="text"],
 
 /* Responsive */
 @media (max-width: 768px) {
-  .te-right-panel { width: 100%; min-width: 100%; border-left: none; border-top: 1px solid #e0e0e0; max-height: 280px; }
+  .te-right-panel { display: none !important; }
   .te-workspace { flex-direction: column; }
-  .esign-editor-shell { height: auto !important; min-height: 80vh; }
+  .esign-editor-shell { height: auto !important; min-height: 100vh; min-height: 100dvh; }
 }
+
+/* ── Mobile Tools Panel (bottom sheet) ───────────────────────── */
+.mtp{
+  display:none;position:fixed;left:0;right:0;bottom:0;
+  background:#fff;border-top:1px solid #c0c0c0;
+  border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.2);
+  z-index:1000;flex-direction:column;overflow:hidden;transition:height .25s ease;
+}
+.mtp-handle{display:flex;justify-content:center;align-items:center;padding:10px 0 6px;cursor:grab;flex-shrink:0;touch-action:none;user-select:none}
+.mtp-handle:active{cursor:grabbing}
+.mtp-bar{width:42px;height:5px;border-radius:3px;background:#ccc}
+.mtp-handle:active .mtp-bar{background:#888}
+.mtp-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.mtp-sec{border-bottom:1px solid #eee}.mtp-sec:last-child{border-bottom:none}
+.mtp-sec-hdr{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-weight:600;font-size:.82rem;color:#333;cursor:pointer;user-select:none;background:#fafafa;min-height:44px}
+.mtp-sec-hdr:active{background:#f0f0f0}
+.mtp-sec-hdr .mtp-chv{transition:transform .2s;font-size:.7rem;color:#999}
+.mtp-sec.open .mtp-chv{transform:rotate(90deg)}
+.mtp-sec-body{max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s ease;padding:0 14px}
+.mtp-sec.open .mtp-sec-body{max-height:800px;padding:10px 14px}
+.mtp-vbadge{margin-left:6px;font-size:.75rem}
+.mtp-vbadge.incomplete{color:var(--gc-red)}
+.mtp-vbadge.complete{color:var(--gc-green)}
 
 /* ── Button contrast overrides ─────────────────────────────────────────
    Bootstrap (BS3/BS5 hybrid portal) renders btn-outline-light with a
@@ -350,6 +373,22 @@ input.te-title-input[type="text"],
   </div>
 
 </div><!-- /editor-shell -->
+
+<!-- Mobile bottom tools panel -->
+<div class="mtp" id="mtp">
+  <div class="mtp-handle" id="mtpHandle"><div class="mtp-bar"></div></div>
+  <div class="mtp-scroll">
+    <div class="mtp-sec" data-mtp-src="detailsSection">
+      <div class="mtp-sec-hdr"><span><i class="fa fa-info-circle" style="margin-right:6px"></i>Details <span class="mtp-vbadge complete" id="mtpBadgeDetails"><i class="fa fa-check-circle"></i></span></span><i class="fa fa-chevron-right mtp-chv"></i></div>
+      <div class="mtp-sec-body" id="mtpBodyDetails"></div>
+    </div>
+    <div class="mtp-sec" data-mtp-src="recipientsSection">
+      <div class="mtp-sec-hdr"><span><i class="fa fa-users" style="margin-right:6px"></i>Recipients <span class="mtp-vbadge incomplete" id="mtpBadgeRecipients"><i class="fa fa-times-circle"></i></span></span><i class="fa fa-chevron-right mtp-chv"></i></div>
+      <div class="mtp-sec-body" id="mtpBodyRecipients"></div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- PDF.js (self-hosted) -->
@@ -954,6 +993,121 @@ input.te-title-input[type="text"],
     ['detailsHeader','recipientsHeader'].forEach(function (hid) {
       document.getElementById(hid).addEventListener('click', function () { toggleSection(this); });
     });
+
+    /* ── Mobile tools panel ──────────────────────────────────────────── */
+    (function initMobilePanel() {
+      var mtp = document.getElementById('mtp');
+      if (!mtp) return;
+      var mtpHandle = document.getElementById('mtpHandle');
+      var mtpCanvas = document.querySelector('.te-canvas-area');
+      var HANDLE_H = 28, EXPANDED_VH = 55;
+      var isMobile = function(){ return window.innerWidth <= 768; };
+
+      var bodyMap = [
+        { src: 'detailsSection',    dst: 'mtpBodyDetails' },
+        { src: 'recipientsSection', dst: 'mtpBodyRecipients' }
+      ];
+      var movedToMobile = false;
+
+      function moveBodies(toMobile) {
+        if (toMobile === movedToMobile) return;
+        bodyMap.forEach(function(m) {
+          var srcSec = document.getElementById(m.src);
+          var dstEl  = document.getElementById(m.dst);
+          if (!srcSec || !dstEl) return;
+          var srcBody = srcSec.querySelector('.te-panel-body');
+          if (!srcBody) return;
+          if (toMobile) { while (srcBody.firstChild) dstEl.appendChild(srcBody.firstChild); }
+          else { while (dstEl.firstChild) srcBody.appendChild(dstEl.firstChild); }
+        });
+        movedToMobile = toMobile;
+      }
+
+      function layoutCheck() {
+        var mobile = isMobile();
+        mtp.style.display = mobile ? 'flex' : 'none';
+        moveBodies(mobile);
+        if (mobile) {
+          mtp.style.height = HANDLE_H + 'px';
+          if (mtpCanvas) mtpCanvas.style.paddingBottom = (HANDLE_H + 8) + 'px';
+        } else { if (mtpCanvas) mtpCanvas.style.paddingBottom = ''; }
+      }
+      layoutCheck();
+      window.addEventListener('resize', layoutCheck);
+
+      /* Exclusive accordion */
+      mtp.querySelectorAll('.mtp-sec-hdr').forEach(function(hdr) {
+        hdr.addEventListener('click', function() {
+          var sec = this.parentElement;
+          var wasOpen = sec.classList.contains('open');
+          mtp.querySelectorAll('.mtp-sec.open').forEach(function(s){ s.classList.remove('open'); });
+          if (!wasOpen) {
+            sec.classList.add('open');
+            if (mtp.getBoundingClientRect().height < HANDLE_H + 50) {
+              var h = Math.round(window.innerHeight * EXPANDED_VH / 100);
+              mtp.style.transition = 'height .25s ease'; mtp.style.height = h + 'px';
+              if (mtpCanvas) mtpCanvas.style.paddingBottom = h + 'px';
+              setTimeout(function(){ mtp.style.transition = ''; }, 260);
+            }
+          } else {
+            mtp.style.transition = 'height .25s ease'; mtp.style.height = HANDLE_H + 'px';
+            if (mtpCanvas) mtpCanvas.style.paddingBottom = (HANDLE_H + 8) + 'px';
+            setTimeout(function(){ mtp.style.transition = ''; }, 260);
+          }
+        });
+      });
+
+      /* Drag to resize */
+      var dragging = false, startY = 0, startH = 0;
+      function setH(h) {
+        var maxH = Math.round(window.innerHeight * 0.78);
+        h = Math.max(HANDLE_H, Math.min(h, maxH));
+        mtp.style.height = h + 'px';
+        if (mtpCanvas) mtpCanvas.style.paddingBottom = h + 'px';
+      }
+      function endDrag() {
+        if (!dragging) return; dragging = false;
+        mtp.style.transition = 'height .2s ease';
+        if (mtp.getBoundingClientRect().height < HANDLE_H + 60) {
+          mtp.style.height = HANDLE_H + 'px';
+          if (mtpCanvas) mtpCanvas.style.paddingBottom = (HANDLE_H + 8) + 'px';
+          mtp.querySelectorAll('.mtp-sec.open').forEach(function(s){ s.classList.remove('open'); });
+        }
+        setTimeout(function(){ mtp.style.transition = ''; }, 220);
+      }
+      mtpHandle.addEventListener('touchstart', function(e){
+        dragging = true; startY = e.touches[0].clientY; startH = mtp.getBoundingClientRect().height;
+        mtp.style.transition = 'none'; e.preventDefault();
+      }, {passive:false});
+      document.addEventListener('touchmove', function(e){ if(dragging) setH(startH + (startY - e.touches[0].clientY)); }, {passive:true});
+      document.addEventListener('touchend', endDrag);
+      mtpHandle.addEventListener('mousedown', function(e){
+        dragging = true; startY = e.clientY; startH = mtp.getBoundingClientRect().height;
+        mtp.style.transition = 'none'; e.preventDefault();
+      });
+      document.addEventListener('mousemove', function(e){ if(dragging) setH(startH + (startY - e.clientY)); });
+      document.addEventListener('mouseup', endDrag);
+
+      /* Validation badges: Details = always ok (read-only), Recipients = all names+emails filled */
+      function updateMtpBadges() {
+        var detBadge = document.getElementById('mtpBadgeDetails');
+        if (detBadge) { detBadge.className = 'mtp-vbadge complete'; detBadge.innerHTML = '<i class="fa fa-check-circle"></i>'; }
+        var recBadge = document.getElementById('mtpBadgeRecipients');
+        if (recBadge) {
+          var rows = document.querySelectorAll('.env-recipient-row');
+          var allOk = rows.length > 0;
+          rows.forEach(function(r) {
+            var n = (r.querySelector('.rec-name') || {}).value || '';
+            var e = (r.querySelector('.rec-email') || {}).value || '';
+            if (!n.trim() || !e.trim()) allOk = false;
+          });
+          recBadge.className = 'mtp-vbadge ' + (allOk ? 'complete' : 'incomplete');
+          recBadge.innerHTML = allOk ? '<i class="fa fa-check-circle"></i>' : '<i class="fa fa-times-circle"></i>';
+        }
+      }
+      setInterval(updateMtpBadges, 500);
+      updateMtpBadges();
+    })();
 
     /* Warn on unload if dirty */
     window.addEventListener('beforeunload', function (e) {

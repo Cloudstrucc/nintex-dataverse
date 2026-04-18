@@ -79,14 +79,10 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
 }
 
 /* ── Badge (count indicator) ─────────────────────────────────── */
-.mtp-badge{
-  display:inline-flex;align-items:center;justify-content:center;
-  background:#6c757d;color:#fff;border-radius:10px;
-  padding:1px 7px;font-size:.6rem;font-weight:700;
-  margin-left:6px;min-width:18px;
-}
-.mtp-badge.required{background:var(--gc-red)}
-.mtp-badge.info{background:#6c757d}
+.mtp-vbadge{margin-left:6px;font-size:.75rem}
+.mtp-vbadge.incomplete{color:var(--gc-red)}
+.mtp-vbadge.complete{color:var(--gc-green)}
+.mtp-count{background:#6c757d;color:#fff;border-radius:10px;padding:1px 7px;font-size:.6rem;font-weight:700;margin-left:4px}
 
 /* ── Field palette ───────────────────────────────────────────── */
 .fp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
@@ -202,7 +198,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
     <!-- Details (3 required fields) -->
     <div class="mtp-sec" data-sec="details">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-info-circle" style="margin-right:6px"></i>Details <span class="mtp-badge required">3</span></span>
+        <span><i class="bi bi-info-circle" style="margin-right:6px"></i>Details <span class="mtp-vbadge incomplete" id="pvBadgeDetails"><i class="bi bi-x-circle-fill"></i></span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -218,7 +214,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
     <!-- Signers (1 required: at least 1 signer) -->
     <div class="mtp-sec" data-sec="signers">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-people" style="margin-right:6px"></i>Signers <span class="mtp-badge required">1</span></span>
+        <span><i class="bi bi-people" style="margin-right:6px"></i>Signers <span class="mtp-vbadge complete" id="pvBadgeSigners"><i class="bi bi-check-circle-fill"></i></span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -251,7 +247,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
     <!-- Fields (9 available) -->
     <div class="mtp-sec" data-sec="fields">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-puzzle" style="margin-right:6px"></i>Fields <span class="mtp-badge info">9</span></span>
+        <span><i class="bi bi-puzzle" style="margin-right:6px"></i>Fields</span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -273,7 +269,7 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
     <!-- Placed Fields (2 placed) -->
     <div class="mtp-sec" data-sec="placed">
       <div class="mtp-sec-hdr">
-        <span><i class="bi bi-list-check" style="margin-right:6px"></i>Placed Fields <span class="mtp-badge info">2</span></span>
+        <span><i class="bi bi-list-check" style="margin-right:6px"></i>Placed Fields <span class="mtp-count">2</span></span>
         <i class="bi bi-chevron-right chv"></i>
       </div>
       <div class="mtp-sec-body">
@@ -408,6 +404,27 @@ body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
       expandPanel(true);
     }
   });
+
+  /* ── Validation badges: red X ↔ green checkmark ──────────── */
+  function updateBadges() {
+    var detBadge = document.getElementById('pvBadgeDetails');
+    if (detBadge) {
+      /* Check: template name filled and category filled */
+      var nameInput = document.querySelector('.mtp-sec[data-sec="details"] input[type="text"]');
+      var catInput  = document.querySelectorAll('.mtp-sec[data-sec="details"] input[type="text"]')[1];
+      var nameOk = nameInput && nameInput.value.trim().length > 0;
+      var catOk  = catInput && catInput.value.trim().length > 0;
+      var ok = nameOk && catOk;
+      detBadge.className = 'mtp-vbadge ' + (ok ? 'complete' : 'incomplete');
+      detBadge.innerHTML = ok ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-x-circle-fill"></i>';
+    }
+    /* Signers: always valid in this demo (has 2 signers) */
+  }
+  /* Listen for input changes */
+  document.querySelectorAll('.mtp-sec[data-sec="details"] input, .mtp-sec[data-sec="details"] textarea').forEach(function(el) {
+    el.addEventListener('input', updateBadges);
+  });
+  updateBadges();
 
 })();
 </script>
