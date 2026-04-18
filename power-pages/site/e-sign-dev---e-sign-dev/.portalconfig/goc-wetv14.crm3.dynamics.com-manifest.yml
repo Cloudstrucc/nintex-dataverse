@@ -1012,6 +1012,10 @@ adx_entitypermission:
   DisplayName: cs_template
   CheckSum: 0c985d14de1959e36719281a4dfedb75c0dbd2da275703b1cc06d06493008c69
   IsDeleted: false
+- RecordId: 7642ecbd-073b-f111-88b5-7ced8da58400
+  DisplayName: cs_signer
+  CheckSum: dd4cd470a3f57043f4e7c4c6202c6e76f01e5db7c5b0f473a7421f9680c9e6fe
+  IsDeleted: false
 adx_entitypermission_webrole:
 - RecordId: cc291ece-e88e-4ddf-9668-7c06d00d2b5f
   DisplayName: $RELATIONSHIP$adx_entitypermission:13db47c9-c639-f111-88b5-7ced8da586db:adx_webrole
@@ -1020,6 +1024,10 @@ adx_entitypermission_webrole:
 - RecordId: cc291ece-e88e-4ddf-9668-7c06d00d2b5f
   DisplayName: $RELATIONSHIP$adx_entitypermission:20e303b1-c639-f111-88b5-7ced8da586db:adx_webrole
   CheckSum: fa4bc373e4c1d0cb0031d6e97746107888fba520c9c2434639706dc3e2ffbb15
+  IsDeleted: false
+- RecordId: cc291ece-e88e-4ddf-9668-7c06d00d2b5f
+  DisplayName: $RELATIONSHIP$adx_entitypermission:7642ecbd-073b-f111-88b5-7ced8da58400:adx_webrole
+  CheckSum: 1f44b68fad4334d716ec5c65ee1ed1d4f736f173e5efd6ebecb633ded9dd9554
   IsDeleted: false
 adx_pagetemplate:
 - RecordId: 05b9e6aa-4b8a-4d88-a29e-a6607e6908ed
@@ -3788,7 +3796,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: 3ecb30b4-19c2-4c52-8f56-c2a1e0e5894f
   DisplayName: Templates
-  CheckSum: 8abc801ead1e0f4377bfa228bca19276c1645ce104576e571ec7ec7cbcecbb68
+  CheckSum: 284c752b10c7d66194cfd6a5e359f0ee3ccc3ccd49be65dd71c1f1481cca14b4
   IsDeleted: false
 - RecordId: 3f2f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-header-bak
@@ -3800,7 +3808,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: 4456046c-cc39-f111-88b4-7c1e52541891
   DisplayName: CS Template Editor
-  CheckSum: 8987f00faba7d90b4a443d4aadc364fd4415ecbfaba3d7ccd5746c0de55a797d
+  CheckSum: 153a2db3b40684e54aa46aaf8907b7a7c3b5f86fbac5633546b472ab985ffcbe
   IsDeleted: false
 - RecordId: 462f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-header
@@ -3840,7 +3848,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: c86550ea-3e3a-f111-88b5-7ced8da586db
   DisplayName: CS-Envelope-Editor
-  CheckSum: 187b19e6f271fe365b7392d95209ca0c35b4255eee149dc72f73d4fa1e212c5c
+  CheckSum: f195af37bcbf3aa49690e71a0e3a82b8cb88add13c1c7379be3d8c27ace0f7c4
   IsDeleted: false
 - RecordId: cb7b552d-d727-f111-88b5-7ced8da58400
   DisplayName: CS-Wizard-Style
@@ -3884,7 +3892,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: fdcb47d8-3e3a-f111-88b5-7ced8da586db
   DisplayName: CS-Envelopes
-  CheckSum: 26fa02f80481e6d5606c11f6137c41fa519aec13678cdba79672beaaf6715cdd
+  CheckSum: 4f52f033d44c13e0d94a89236bbb26e16c9077ae8a2fb5696ebf9dc8b6ae72a2
   IsDeleted: false
 annotation:
 - RecordId: 003a9e19-0f28-f111-88b5-7ced8da58400

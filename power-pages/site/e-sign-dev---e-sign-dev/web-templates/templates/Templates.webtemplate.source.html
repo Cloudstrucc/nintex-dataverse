@@ -142,6 +142,32 @@
   </div>
 </main>
 
+<!-- ── Template Info Modal ──────────────────────────────────────────────── -->
+<div id="tpl-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+     z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:4px;max-width:480px;width:90%;
+              box-shadow:0 8px 32px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="background:#26374A;color:#fff;padding:12px 16px;
+                display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-weight:700;font-size:0.95rem;">
+        <span class="fa fa-info-circle" style="margin-right:6px;"></span>
+        Template Details
+      </span>
+      <button id="tpl-modal-close"
+              style="background:none;border:none;color:#fff;font-size:1.3rem;
+                     cursor:pointer;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div style="padding:20px;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <tbody id="tpl-modal-body"></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 20px 16px;text-align:right;">
+      <button id="tpl-modal-ok" class="btn btn-sm btn-default"
+              style="border-color:#26374A;color:#26374A;border-radius:3px;">Close</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -240,10 +266,30 @@
         : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" ' +
             'disabled title="No document attached"><span class="fa fa-download"></span></button>';
 
+      /* Parse nintexTemplateId if present */
+      var nintexId = '';
+      var isNintex = false;
+      try {
+        if (tpl.cs_templatejson) {
+          var tj = JSON.parse(tpl.cs_templatejson);
+          nintexId = tj.nintexTemplateId || '';
+          isNintex = tj.source === 'nintex';
+        }
+      } catch (e) { /* ignore */ }
+
       elTbody.innerHTML +=
         '<tr>' +
           '<td>' +
-            '<strong>' + esc(tpl.cs_name || 'Untitled') + '</strong>' +
+            '<a href="#" class="tpl-name-link" ' +
+               'data-id="' + esc(tpl.cs_templateid) + '" ' +
+               'data-name="' + esc(tpl.cs_name || 'Untitled') + '" ' +
+               'data-nintex-id="' + esc(nintexId) + '" ' +
+               'data-is-nintex="' + (isNintex ? '1' : '0') + '" ' +
+               'data-cat="' + esc(tpl.cs_category || '') + '" ' +
+               'style="font-weight:700;color:#26374A;text-decoration:none;" ' +
+               'title="View template details">' +
+              esc(tpl.cs_name || 'Untitled') +
+            '</a>' +
             (tpl.cs_description ? '<br><span class="small text-muted">' + esc(tpl.cs_description) + '</span>' : '') +
           '</td>' +
           '<td>' + esc(tpl.cs_category || '--') + '</td>' +
@@ -263,6 +309,20 @@
             dlBtn +
           '</td>' +
         '</tr>';
+    });
+
+    /* Wire template name links → open info modal */
+    elTbody.querySelectorAll('.tpl-name-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        openTplModal(
+          this.getAttribute('data-name'),
+          this.getAttribute('data-id'),
+          this.getAttribute('data-nintex-id'),
+          this.getAttribute('data-is-nintex') === '1',
+          this.getAttribute('data-cat')
+        );
+      });
     });
 
     /* Wire download buttons — fetch templatejson, extract pdfBase64, blob-download */
@@ -420,6 +480,52 @@
 
 
 
+  /* ── Template info modal ────────────────────────────────────────────── */
+  function openTplModal(name, templateId, nintexId, isNintex, category) {
+    var modal = document.getElementById('tpl-info-modal');
+    var tbody = document.getElementById('tpl-modal-body');
+
+    function row(label, value, mono) {
+      return '<tr style="border-bottom:1px solid #f0f0f0;">' +
+        '<td style="padding:7px 12px 7px 0;font-weight:700;color:#555;width:40%;vertical-align:top;white-space:nowrap;">' +
+          esc(label) +
+        '</td>' +
+        '<td style="padding:7px 0;color:#222;word-break:break-all;">' +
+          (mono ? '<code style="font-size:0.8rem;background:#f5f5f5;padding:2px 5px;border-radius:3px;">' + esc(value) + '</code>'
+                : esc(value)) +
+        '</td>' +
+      '</tr>';
+    }
+
+    var rows = '';
+    rows += row('Template Name', name);
+    if (category) rows += row('Category', category);
+    rows += row('Dataverse ID', templateId, true);
+
+    if (isNintex) {
+      rows += row('Source', 'Nintex AssureSign');
+      if (nintexId) {
+        rows += row('Nintex Template ID', nintexId, true);
+        rows += '<tr><td colspan="2" style="padding:8px 0 0;">' +
+          '<a href="https://account.assuresign.net/Templates/' + encodeURIComponent(nintexId) + '" ' +
+             'target="_blank" rel="noopener" ' +
+             'class="btn btn-xs btn-default" style="border-color:#37474f;color:#37474f;border-radius:3px;">' +
+            '<span class="fa fa-external-link" style="margin-right:4px;"></span>Open in Nintex Portal' +
+          '</a></td></tr>';
+      } else {
+        rows += '<tr><td colspan="2"><span class="text-muted small">Nintex Template ID not available.</span></td></tr>';
+      }
+    } else {
+      rows += row('Source', 'Power Pages Editor');
+      rows += '<tr><td colspan="2" style="padding:4px 0 0;">' +
+        '<span class="small text-muted">This template was created in the portal. No Nintex Template ID is associated.</span>' +
+        '</td></tr>';
+    }
+
+    tbody.innerHTML = rows;
+    modal.style.display = 'flex';
+  }
+
   /* ── Download template PDF ──────────────────────────────────────────── */
   function downloadTplPdf(templateId, templateName, btnEl) {
     if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<span class="fa fa-spinner fa-spin"></span>'; }
@@ -485,6 +591,14 @@
 
     /* Kick off data load */
     loadTemplates();
+
+    /* Modal close */
+    function closeTplModal() { document.getElementById('tpl-info-modal').style.display = 'none'; }
+    document.getElementById('tpl-modal-close').addEventListener('click', closeTplModal);
+    document.getElementById('tpl-modal-ok').addEventListener('click', closeTplModal);
+    document.getElementById('tpl-info-modal').addEventListener('click', function (e) {
+      if (e.target === this) closeTplModal(); /* click backdrop to close */
+    });
   });
 
 })();

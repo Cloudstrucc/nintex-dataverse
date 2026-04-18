@@ -139,18 +139,51 @@
 .te-panel-section.collapsed .te-panel-body { display: none; }
 .te-panel-body { padding: 10px 14px; }
 
+/* Signing order toggle */
+.te-signing-order {
+  display: flex; gap: 4px; margin-bottom: 10px;
+}
+.te-signing-order .te-so-btn {
+  flex: 1; padding: 5px 8px; border: 1px solid #d0d0d0; border-radius: 4px;
+  background: #fff; font-size: 0.75rem; text-align: center; cursor: pointer;
+  color: #666; transition: all 0.15s; user-select: none;
+}
+.te-signing-order .te-so-btn:hover { border-color: #999; }
+.te-signing-order .te-so-btn.active {
+  background: var(--gc-blue); color: #fff; border-color: var(--gc-blue); font-weight: 600;
+}
+
 /* Signer rows */
 .te-signer-row {
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 6px; padding: 6px 8px;
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 4px; padding: 5px 6px;
   border-radius: 4px; border: 1px solid #e0e0e0; background: #fff;
+  transition: box-shadow 0.15s, border-color 0.15s;
 }
-.te-signer-color { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.te-signer-row.drag-over { border-color: var(--gc-blue); box-shadow: 0 0 0 2px rgba(38,55,74,0.2); }
+.te-signer-row.dragging { opacity: 0.4; }
+.te-signer-order-badge {
+  width: 20px; height: 20px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 0.65rem;
+  font-weight: 700; flex-shrink: 0; color: #fff; transition: opacity 0.2s;
+}
+.te-signer-order-badge.dimmed { opacity: 0.35; }
+.te-signer-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .te-signer-row input {
-  flex: 1; border: none; font-size: 0.8rem;
+  flex: 1; border: none; font-size: 0.78rem;
   padding: 2px 4px; background: transparent; outline: none; min-width: 0;
 }
 .te-signer-row input:focus { background: #f8f8f8; border-radius: 2px; }
+.te-signer-actions { display: flex; gap: 1px; flex-shrink: 0; }
+.te-signer-actions button {
+  background: none; border: none; padding: 2px 3px; cursor: pointer;
+  color: #999; font-size: 0.7rem; line-height: 1; border-radius: 2px;
+}
+.te-signer-actions button:hover { color: var(--gc-blue); background: #eef; }
+.te-signer-actions button:disabled { opacity: 0.25; cursor: default; }
+.te-signer-actions button:disabled:hover { color: #999; background: none; }
+.te-signer-drag-handle { cursor: grab; color: #bbb; padding: 0 2px; font-size: 0.8rem; }
+.te-signer-drag-handle:active { cursor: grabbing; }
 
 /* Field palette */
 .te-field-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
@@ -465,6 +498,17 @@
           <i class="fa fa-chevron-down te-chevron"></i>
         </div>
         <div class="te-panel-body">
+          <label style="font-size:0.75rem;font-weight:600;color:#555;margin-bottom:4px;display:block;">
+            {{ snippets['ESIGN/EDITOR/SIGNING_ORDER'] | default: 'Signing Order' }}
+          </label>
+          <div class="te-signing-order" id="signingOrderToggle">
+            <div class="te-so-btn active" data-value="sequential" id="soSequential">
+              <i class="fa fa-sort-numeric-asc me-1"></i>Sequential
+            </div>
+            <div class="te-so-btn" data-value="parallel" id="soParallel">
+              <i class="fa fa-random me-1"></i>All at once
+            </div>
+          </div>
           <div id="signersList"></div>
           <button id="btnAddSigner" class="btn btn-sm btn-outline-secondary w-100" style="margin-top:8px;">
             <i class="fa fa-plus me-1"></i>{{ snippets['ESIGN/EDITOR/ADD_SIGNER'] | default: 'Add Signer' }}
@@ -600,7 +644,9 @@
     pdfDoc: null, pageNum: 1, pageCount: 0, scale: 1.0,
     signers: [], fields: [], selectedFieldId: null,
     dirty: false, nextFieldId: 1,
-    pdfBase64: null, pdfFilename: null
+    pdfBase64: null, pdfFilename: null,
+    nintexTemplateId: null, pageWidth: null, pageHeight: null,
+    signingOrder: 'sequential'
   };
 
   /* PDF.js readiness — set true once /js/pdf.min.js onload fires */
@@ -747,6 +793,12 @@
   function renderPdfPage() {
     if (!state.pdfDoc) return;
     state.pdfDoc.getPage(state.pageNum).then(function (page) {
+      /* Capture unscaled page dimensions for coordinate normalization */
+      if (!state.pageWidth || !state.pageHeight) {
+        var vpUnscaled = page.getViewport({ scale: 1.0 });
+        state.pageWidth  = vpUnscaled.width;
+        state.pageHeight = vpUnscaled.height;
+      }
       var vp = page.getViewport({ scale: state.scale });
       canvas.width  = vp.width;
       canvas.height = vp.height;
@@ -848,6 +900,7 @@
       if (f.signerIndex === idx) f.signerIndex = 0;
       else if (f.signerIndex > idx) f.signerIndex--;
     });
+    reassignSignerColors();
     renderSigners(); updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
   }
 
@@ -856,25 +909,107 @@
     updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
   }
 
+  function reassignSignerColors() {
+    state.signers.forEach(function (s, i) { s.color = SIGNER_COLORS[i % SIGNER_COLORS.length]; });
+  }
+
+  /* Move signer from position `from` to position `to`, remapping field signerIndex */
+  function moveSigner(from, to) {
+    if (from === to || from < 0 || to < 0 || from >= state.signers.length || to >= state.signers.length) return;
+    var signer = state.signers.splice(from, 1)[0];
+    state.signers.splice(to, 0, signer);
+    /* Remap field signerIndex references */
+    state.fields.forEach(function (f) {
+      if (f.signerIndex === from) {
+        f.signerIndex = to;
+      } else if (from < to && f.signerIndex > from && f.signerIndex <= to) {
+        f.signerIndex--;
+      } else if (from > to && f.signerIndex >= to && f.signerIndex < from) {
+        f.signerIndex++;
+      }
+    });
+    reassignSignerColors();
+    renderSigners(); updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+  }
+
+  function setSigningOrder(mode) {
+    state.signingOrder = mode;
+    document.getElementById('soSequential').classList.toggle('active', mode === 'sequential');
+    document.getElementById('soParallel').classList.toggle('active', mode === 'parallel');
+    renderSigners();
+    markDirty();
+  }
+
+  /* ── Drag state for signer reorder ─────────────────────── */
+  var signerDragIdx = null;
+
   function renderSigners() {
     var c = document.getElementById('signersList');
     c.innerHTML = '';
+    var isSeq = state.signingOrder === 'sequential';
     state.signers.forEach(function (s, i) {
       var row = document.createElement('div');
       row.className = 'te-signer-row';
+      row.setAttribute('draggable', 'true');
+      row.setAttribute('data-signer-idx', i);
+
+      var badgeDimmed = isSeq ? '' : ' dimmed';
       row.innerHTML =
-        '<span class="te-signer-color" style="background:' + s.color.border + ';"></span>' +
+        '<span class="te-signer-drag-handle" title="Drag to reorder"><i class="fa fa-grip-vertical"></i></span>' +
+        '<span class="te-signer-order-badge' + badgeDimmed + '" style="background:' + s.color.border + ';">' + (i + 1) + '</span>' +
         '<input type="text" value="' + escA(s.label) + '" placeholder="Signer name" data-signer-idx="' + i + '">' +
-        '<button class="btn btn-sm p-0 border-0 btn-remove-signer" data-signer-idx="' + i + '" title="Remove">' +
-          '<i class="fa fa-times" style="color:#999;"></i>' +
-        '</button>';
-      /* wire events without inline handlers */
+        '<div class="te-signer-actions">' +
+          '<button data-dir="up" data-signer-idx="' + i + '" title="Move up"' + (i === 0 ? ' disabled' : '') + '><i class="fa fa-chevron-up"></i></button>' +
+          '<button data-dir="down" data-signer-idx="' + i + '" title="Move down"' + (i === state.signers.length - 1 ? ' disabled' : '') + '><i class="fa fa-chevron-down"></i></button>' +
+          '<button class="btn-remove-signer" data-signer-idx="' + i + '" title="Remove"><i class="fa fa-times" style="color:#c33;"></i></button>' +
+        '</div>';
+
+      /* Input event */
       row.querySelector('input').addEventListener('input', function () {
         updateSignerLabel(parseInt(this.getAttribute('data-signer-idx')), this.value);
       });
+      /* Remove button */
       row.querySelector('.btn-remove-signer').addEventListener('click', function () {
         removeSigner(parseInt(this.getAttribute('data-signer-idx')));
       });
+      /* Up/down buttons */
+      row.querySelectorAll('[data-dir]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(this.getAttribute('data-signer-idx'));
+          var dir = this.getAttribute('data-dir');
+          moveSigner(idx, dir === 'up' ? idx - 1 : idx + 1);
+        });
+      });
+
+      /* HTML5 drag-and-drop for reorder */
+      row.addEventListener('dragstart', function (e) {
+        signerDragIdx = i;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(i));
+      });
+      row.addEventListener('dragend', function () {
+        row.classList.remove('dragging');
+        signerDragIdx = null;
+        c.querySelectorAll('.te-signer-row').forEach(function (r) { r.classList.remove('drag-over'); });
+      });
+      row.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (signerDragIdx !== null && signerDragIdx !== i) {
+          row.classList.add('drag-over');
+        }
+      });
+      row.addEventListener('dragleave', function () { row.classList.remove('drag-over'); });
+      row.addEventListener('drop', function (e) {
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        var from = parseInt(e.dataTransfer.getData('text/plain'));
+        if (!isNaN(from) && from !== i) {
+          moveSigner(from, i);
+        }
+      });
+
       c.appendChild(row);
     });
   }
@@ -895,14 +1030,16 @@
   function renderFieldOverlays() {
     var layer = document.getElementById('fieldLayer');
     layer.innerHTML = '';
+    var sc = state.scale || 1.0;
     state.fields.filter(function (f) { return f.page === state.pageNum; }).forEach(function (f) {
       var color = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
       var ft    = FIELD_TYPES[f.type] || FIELD_TYPES.text;
       var div   = document.createElement('div');
       div.className = 'te-field' + (f.id === state.selectedFieldId ? ' selected' : '');
       div.setAttribute('data-field-id', f.id);
+      /* Field x/y/w/h are stored at scale=1; multiply by current scale for display */
       div.style.cssText =
-        'left:' + f.x + 'px;top:' + f.y + 'px;width:' + f.w + 'px;height:' + f.h + 'px;' +
+        'left:' + (f.x * sc) + 'px;top:' + (f.y * sc) + 'px;width:' + (f.w * sc) + 'px;height:' + (f.h * sc) + 'px;' +
         'border-color:' + color.border + ';background:' + color.bg + ';color:' + color.text + ';';
       div.innerHTML =
         '<i class="fa ' + ft.icon + ' me-1" style="font-size:0.7rem;flex-shrink:0;"></i>' +
@@ -991,18 +1128,20 @@
     }
     if (fieldMove) {
       var f = getField(fieldMove.id); if (!f) { fieldMove = null; return; }
-      f.x = Math.max(0, fieldMove.origX + (clientX - fieldMove.startX));
-      f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY));
-      fieldMove.el.style.left = f.x + 'px';
-      fieldMove.el.style.top  = f.y + 'px';
+      var sc = state.scale || 1.0;
+      f.x = Math.max(0, fieldMove.origX + (clientX - fieldMove.startX) / sc);
+      f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY) / sc);
+      fieldMove.el.style.left = (f.x * sc) + 'px';
+      fieldMove.el.style.top  = (f.y * sc) + 'px';
       markDirty();
     }
     if (fieldResize) {
       var f = getField(fieldResize.id); if (!f) { fieldResize = null; return; }
-      f.w = Math.max(20, fieldResize.origW + (clientX - fieldResize.startX));
-      f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY));
-      fieldResize.el.style.width  = f.w + 'px';
-      fieldResize.el.style.height = f.h + 'px';
+      var sc = state.scale || 1.0;
+      f.w = Math.max(20, fieldResize.origW + (clientX - fieldResize.startX) / sc);
+      f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY) / sc);
+      fieldResize.el.style.width  = (f.w * sc) + 'px';
+      fieldResize.el.style.height = (f.h * sc) + 'px';
       markDirty();
     }
   }
@@ -1069,13 +1208,16 @@
 
     function placeField(type, x, y) {
     var ft = FIELD_TYPES[type] || FIELD_TYPES.text;
+    var sc = state.scale || 1.0;
+    /* Store at scale=1.0. Drop position arrives in rendered pixels; divide by scale.
+       Default size is defined in FIELD_TYPES at scale=1 already. */
     var f  = {
       id: state.nextFieldId++, type: type, label: ft.label,
       signerIndex: 0, required: true, page: state.pageNum,
-      x: x - ft.w * state.scale / 2,
-      y: y - ft.h * state.scale / 2,
-      w: ft.w * state.scale,
-      h: ft.h * state.scale
+      x: (x / sc) - ft.w / 2,
+      y: (y / sc) - ft.h / 2,
+      w: ft.w,
+      h: ft.h
     };
     state.fields.push(f);
     renderFieldOverlays(); selectField(f.id); updatePlacedFieldsList(); markDirty();
@@ -1184,6 +1326,13 @@
               state.nextFieldId = (json.nextFieldId || 0) + 1;
               updatePlacedFieldsList();
             }
+            /* Restore signing order */
+            if (json.signingOrder) setSigningOrder(json.signingOrder);
+            /* Preserve nintexTemplateId so re-saving doesn't break the Nintex link */
+            if (json.nintexTemplateId) state.nintexTemplateId = json.nintexTemplateId;
+            /* Restore page dimensions (used by broker flow for coordinate normalization) */
+            if (json.pageWidth)  state.pageWidth  = json.pageWidth;
+            if (json.pageHeight) state.pageHeight = json.pageHeight;
             /* Restore PDF */
             if (json.pdfBase64) {
               state.pdfBase64   = json.pdfBase64;
@@ -1203,18 +1352,30 @@
 
   /* ── Save ────────────────────────────────────────────────── */
   function buildPayload() {
+    /* Fields are already stored at scale=1 (unscaled PDF points).
+       The broker flow divides x by pageWidth and y by pageHeight to produce
+       0-1 fractions for the Nintex API. */
+    var jsonObj = {
+      signers:      state.signers.map(function (s) { return { label: s.label }; }),
+      signingOrder: state.signingOrder || 'sequential',
+      fields:       state.fields,
+      nextFieldId:  state.nextFieldId,
+      pdfBase64:    state.pdfBase64,
+      pdfFilename:  state.pdfFilename,
+      pageWidth:    state.pageWidth  || 612,
+      pageHeight:   state.pageHeight || 792
+    };
+    /* Preserve Nintex template link if it was set by the broker */
+    if (state.nintexTemplateId) {
+      jsonObj.nintexTemplateId = state.nintexTemplateId;
+    }
+
     return {
       cs_name:        (document.getElementById('tplNameInput').value || '').trim() || 'Untitled Template',
       cs_description: document.getElementById('tplDescInput').value.trim(),
       cs_category:    document.getElementById('tplCatInput').value.trim(),
       cs_isactive:    document.getElementById('tplActiveInput').checked,
-      cs_templatejson: JSON.stringify({
-        signers:     state.signers.map(function (s) { return { label: s.label }; }),
-        fields:      state.fields,
-        nextFieldId: state.nextFieldId,
-        pdfBase64:   state.pdfBase64,
-        pdfFilename: state.pdfFilename
-      })
+      cs_templatejson: JSON.stringify(jsonObj)
     };
   }
 
@@ -1395,6 +1556,10 @@
     document.getElementById('tplDescInput').addEventListener('input', markDirty);
     document.getElementById('tplCatInput').addEventListener('input', markDirty);
     document.getElementById('tplActiveInput').addEventListener('change', markDirty);
+
+    /* Signing order toggle */
+    document.getElementById('soSequential').addEventListener('click', function () { setSigningOrder('sequential'); });
+    document.getElementById('soParallel').addEventListener('click', function () { setSigningOrder('parallel'); });
 
     /* Signers panel */
     document.getElementById('btnAddSigner').addEventListener('click', function () { addSigner(); });
