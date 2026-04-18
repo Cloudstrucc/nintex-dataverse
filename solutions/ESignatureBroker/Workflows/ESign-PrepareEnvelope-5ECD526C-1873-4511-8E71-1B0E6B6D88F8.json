@@ -85,7 +85,7 @@
         },
         "Parse_Nintex_Template_Id": {
           "type": "Compose",
-          "inputs": "@coalesce(json(coalesce(first(outputs('Get_Template_Record')?['body/value'])?['cs_templatejson'], '{}')).nintexTemplateId, outputs('Get_Envelope_Record')?['body/cs_templateid'])",
+          "inputs": "@if(contains(coalesce(first(outputs('Get_Template_Record')?['body/value'])?['cs_templatejson'], '{}'), 'nintexTemplateId'), json(first(outputs('Get_Template_Record')?['body/value'])?['cs_templatejson']).nintexTemplateId, outputs('Get_Envelope_Record')?['body/cs_templateid'])",
           "runAfter": {
             "Get_Template_Record": [
               "Succeeded"
