@@ -1,0 +1,888 @@
+{% comment %}
+  Elections Canada – ESIGN
+  Envelope Editor Web Template  (/envelopes/edit-envelope)
+  Create mode: ?templateId=GUID&name=EnvelopeName
+  Edit mode:   ?id=GUID
+  Read-only:   automatically when envelope is Sent/Signed/Preparing
+  Snippet namespace: ESIGN/ENV_EDITOR/*
+{% endcomment %}
+
+{% if user %}
+
+<style>
+/* ── GC Tokens ─────────────────────────────────────────────────────── */
+:root { --gc-blue:#26374A; --gc-red:#AF3C43; --gc-green:#1B6C2A; }
+
+/* ── Editor shell ──────────────────────────────────────────────────── */
+.esign-editor-shell {
+  display: flex; flex-direction: column;
+  height: 600px; /* JS overrides */
+  overflow: hidden;
+  background: #f4f4f4;
+  font-family: 'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+.pepp-app { background: #f4f4f4 !important; min-height: unset !important; }
+
+/* ── Topbar ─────────────────────────────────────────────────────────── */
+.te-topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--gc-blue); color: #fff;
+  padding: 8px 16px; flex-shrink: 0; z-index: 10;
+  border-bottom: 3px solid var(--gc-red);
+}
+.te-title-input {
+  background: transparent; border: 1px solid transparent; border-radius: 4px;
+  color: #fff; font-size: 1rem; font-weight: 600; padding: 3px 8px; min-width: 280px;
+}
+.te-title-input:hover  { border-color: rgba(255,255,255,0.35); }
+.te-title-input:focus  { border-color: rgba(255,255,255,0.65); outline: none; background: rgba(255,255,255,0.08); }
+.te-title-input::placeholder { color: rgba(255,255,255,0.45); }
+.te-title-input:disabled { opacity: 0.6; cursor: not-allowed; }
+.te-save-status { font-size: 0.75rem; color: rgba(255,255,255,0.6); padding-left: 8px; display: block; }
+.te-save-status.saving { color: #ffc107; }
+.te-save-status.saved  { color: #4caf50; }
+.te-save-status.error  { color: #f44336; }
+.te-save-status.readonly { color: #ffc107; }
+
+/* ── Workspace ──────────────────────────────────────────────────────── */
+.te-workspace { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Left: document preview area ───────────────────────────────────── */
+.te-canvas-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.te-pdf-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #333; color: #fff; padding: 6px 12px; flex-shrink: 0; gap: 8px; flex-wrap: wrap;
+}
+.te-pdf-toolbar .btn-outline-light { font-size: 0.78rem; padding: 3px 8px; }
+.te-page-info { font-size: 0.8rem; min-width: 80px; text-align: center; color: #ccc; }
+.te-viewport {
+  flex: 1; background: #525659; overflow: auto; position: relative;
+  display: flex; justify-content: center; align-items: flex-start; padding: 20px;
+}
+.te-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: rgba(255,255,255,0.55); padding: 60px 20px; margin: auto;
+}
+.te-page-wrapper { position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.4); background: #fff; }
+.te-page-wrapper canvas { display: block; }
+.te-field-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+/* Fields read-only overlay */
+.te-field-ro {
+  position: absolute; border: 2px dashed; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 600; opacity: 0.7;
+  box-sizing: border-box; overflow: hidden; pointer-events: none;
+}
+.te-field-ro .te-field-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+
+/* ── Right panel ────────────────────────────────────────────────────── */
+.te-right-panel {
+  width: 300px; min-width: 300px; background: #fff;
+  border-left: 1px solid #e0e0e0; overflow-y: auto; flex-shrink: 0;
+}
+.te-panel-section { border-bottom: 1px solid #e0e0e0; }
+.te-panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; font-weight: 600; font-size: 0.85rem;
+  color: #333; cursor: pointer; user-select: none; background: #fafafa;
+}
+.te-panel-header:hover { background: #f0f0f0; }
+.te-chevron { transition: transform 0.2s; font-size: 0.75rem; }
+.te-panel-section.collapsed .te-chevron { transform: rotate(-90deg); }
+.te-panel-section.collapsed .te-panel-body { display: none; }
+.te-panel-body { padding: 10px 14px; }
+
+/* Recipient rows */
+.env-recipient-row {
+  padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 4px;
+  margin-bottom: 8px; background: #fff;
+}
+.env-recipient-role {
+  font-size: 0.78rem; font-weight: 600; color: #555;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.env-role-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.env-recipient-row input {
+  width: 100%; border: 1px solid #ccc; border-radius: 3px;
+  padding: 4px 8px; font-size: 0.82rem; margin-bottom: 4px;
+}
+.env-recipient-row input:focus { border-color: #26374A; outline: none; box-shadow: 0 0 0 2px rgba(38,55,74,0.15); }
+.env-recipient-row input:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+
+/* Meta fields */
+.te-meta-row { margin-bottom: 10px; }
+.te-meta-row label { font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 3px; display: block; }
+.te-meta-row input, .te-meta-row textarea, .te-meta-row select {
+  font-size: 0.82rem; width: 100%; padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px;
+}
+.te-meta-row .read-only-val {
+  font-size: 0.82rem; color: #333; padding: 4px 0;
+  border-bottom: 1px solid #eee; word-break: break-all;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .te-right-panel { width: 100%; min-width: 100%; border-left: none; border-top: 1px solid #e0e0e0; max-height: 280px; }
+  .te-workspace { flex-direction: column; }
+  .esign-editor-shell { height: auto !important; min-height: 80vh; }
+}
+
+/* ── Button contrast overrides ─────────────────────────────────────────
+   Bootstrap (BS3/BS5 hybrid portal) renders btn-outline-light with a
+   near-white background, blending buttons into dark toolbars.
+   Force transparent bg + white text/border for all buttons on dark bars. */
+.te-topbar .btn,
+.te-topbar a.btn {
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.55) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.te-topbar .btn:hover,
+.te-topbar a.btn:hover {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.8) !important;
+}
+/* Send Envelope: keep its distinct green style */
+.te-topbar #btnSendEnvelope {
+  background: #1B6C2A !important;
+  border-color: #1B6C2A !important;
+  color: #fff !important;
+}
+.te-topbar #btnSendEnvelope:hover {
+  background: #155722 !important;
+  border-color: #155722 !important;
+}
+/* PDF toolbar buttons */
+.te-pdf-toolbar .btn {
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.45) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.te-pdf-toolbar .btn:hover {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.75) !important;
+}
+/* Envelope name input — ensure white text stays white */
+.te-title-input,
+.te-title-input:focus {
+  color: #fff !important;
+}
+/* Save status text */
+.te-save-status { color: rgba(255,255,255,0.7) !important; }
+.te-save-status.saved  { color: #4caf50 !important; }
+.te-save-status.saving { color: #ffc107 !important; }
+.te-save-status.error  { color: #f44336 !important; }
+
+/* WET fallback */
+.wb-inv { clip:rect(1px,1px,1px,1px)!important; height:1px!important; margin:0!important; overflow:hidden!important; position:absolute!important; width:1px!important; }
+#wb-tphp li a,#wb-tphp li a:visited { position:absolute!important; top:-100em!important; left:-100em!important; height:1px!important; width:1px!important; clip:rect(1px,1px,1px,1px)!important; }
+#wb-tphp li a:focus,#wb-tphp li a:active { position:static!important; top:auto!important; left:auto!important; height:auto!important; width:auto!important; clip:auto!important; background:#26374A; color:#fff; padding:6px 12px; display:inline-block; z-index:9999; }
+#wb-lng h2 { clip:rect(1px,1px,1px,1px)!important; height:1px!important; margin:0!important; overflow:hidden!important; position:absolute!important; width:1px!important; }
+#wb-bnr { display:block!important; } #wb-bnr .row { display:flex!important; align-items:flex-start!important; flex-wrap:wrap!important; }
+#wb-bnr.container,#wb-bnr { width:100%!important; max-width:100%!important; padding-left:20px!important; padding-right:20px!important; }
+.application-bar .container { width:100%!important; max-width:100%!important; padding-left:20px!important; padding-right:20px!important; }
+.visible-xs { display:none!important; }
+@media (max-width:767px) { .hidden-xs { display:none!important; } .visible-xs { display:block!important; } abbr.visible-xs,span.visible-xs { display:inline!important; } }
+#wb-lng abbr { font-size:inherit!important; font-weight:normal!important; }
+.application-bar { display:block!important; background-color:#38414d; color:#fff; }
+</style>
+
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement" style="padding:0;background:#f4f4f4;">
+<div class="esign-editor-shell" id="editorShell">
+
+  <!-- ── Topbar ──────────────────────────────────────────────────────── -->
+  <div class="te-topbar" id="teTopbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="/envelopes/" class="btn btn-sm btn-outline-light" id="btnBack" title="Back to Envelopes">
+        <i class="fa fa-arrow-left"></i>
+      </a>
+      <div>
+        <input type="text" id="envNameInput" class="te-title-input"
+               placeholder="{{ snippets['ESIGN/ENV_EDITOR/NAME_PH'] | default: 'Envelope Name' }}">
+        <small class="te-save-status" id="saveStatus">
+          <i class="fa fa-cloud me-1"></i>{{ snippets['ESIGN/ENV_EDITOR/NO_CHANGES'] | default: 'No changes' }}
+        </small>
+      </div>
+    </div>
+    <div id="topbar-actions" style="display:flex;align-items:center;gap:8px;">
+      <button id="btnSaveDraft" class="btn btn-sm btn-outline-light">
+        <i class="fa fa-floppy-o me-1"></i>{{ snippets['ESIGN/ENV_EDITOR/SAVE_DRAFT'] | default: 'Save Draft' }}
+      </button>
+      <button id="btnSendEnvelope" class="btn btn-sm"
+              style="background:#1B6C2A;color:#fff;border-color:#1B6C2A;border-radius:4px;">
+        <i class="fa fa-send me-1"></i>{{ snippets['ESIGN/ENV_EDITOR/SEND'] | default: 'Send Envelope' }}
+      </button>
+    </div>
+    <div id="topbar-readonly" style="display:none;align-items:center;gap:8px;">
+      <span style="background:rgba(255,200,0,0.2);color:#ffc107;padding:4px 12px;border-radius:4px;font-size:0.82rem;">
+        <i class="fa fa-eye me-1"></i>{{ snippets['ESIGN/ENV_EDITOR/VIEW_ONLY'] | default: 'View Only' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Workspace ────────────────────────────────────────────────────── -->
+  <div class="te-workspace">
+
+    <!-- PDF / template preview area -->
+    <div class="te-canvas-area" id="canvasArea">
+      <div class="te-pdf-toolbar">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button id="btnPrevPage" class="btn btn-sm btn-outline-light" title="Previous page"><i class="fa fa-chevron-left"></i></button>
+          <span id="pageInfo" class="te-page-info">Page 0 / 0</span>
+          <button id="btnNextPage" class="btn btn-sm btn-outline-light" title="Next page"><i class="fa fa-chevron-right"></i></button>
+          <span style="color:rgba(255,255,255,0.3);">|</span>
+          <button id="btnZoomOut" class="btn btn-sm btn-outline-light" title="Zoom out"><i class="fa fa-search-minus"></i></button>
+          <span id="zoomLevel" class="te-page-info">100%</span>
+          <button id="btnZoomIn"  class="btn btn-sm btn-outline-light" title="Zoom in"><i class="fa fa-search-plus"></i></button>
+          <button id="btnFitWidth" class="btn btn-sm btn-outline-light" title="Fit width"><i class="fa fa-expand"></i></button>
+        </div>
+        <span style="font-size:0.78rem;color:rgba(255,255,255,0.5);">
+          <i class="fa fa-lock me-1"></i>{{ snippets['ESIGN/ENV_EDITOR/PREVIEW_LABEL'] | default: 'Template preview — read only' }}
+        </span>
+      </div>
+
+      <div class="te-viewport" id="viewport">
+        <div class="te-empty-state" id="emptyState">
+          <i class="fa fa-file-pdf-o" style="font-size:4rem;opacity:0.3;"></i>
+          <h5 style="margin-top:16px;margin-bottom:8px;color:rgba(255,255,255,0.7);">
+            {{ snippets['ESIGN/ENV_EDITOR/NO_DOC'] | default: 'Loading template document...' }}
+          </h5>
+          <p style="color:rgba(255,255,255,0.5);max-width:400px;" id="noDocDesc">
+            {{ snippets['ESIGN/ENV_EDITOR/NO_DOC_DESC'] | default: 'The template document will appear here once the template is loaded.' }}
+          </p>
+        </div>
+        <div class="te-page-wrapper" id="pageWrapper" style="display:none;">
+          <canvas id="pdfCanvas"></canvas>
+          <div class="te-field-layer" id="fieldLayer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="te-right-panel" id="rightPanel">
+
+      <!-- Details -->
+      <div class="te-panel-section" id="detailsSection">
+        <div class="te-panel-header" id="detailsHeader">
+          <span><i class="fa fa-info-circle me-2"></i>{{ snippets['ESIGN/ENV_EDITOR/DETAILS'] | default: 'Details' }}</span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <div class="te-meta-row">
+            <label>{{ snippets['ESIGN/ENV_EDITOR/TPL_LABEL'] | default: 'Template' }}</label>
+            <div class="read-only-val" id="tplNameDisplay">—</div>
+          </div>
+          <div class="te-meta-row" id="statusMetaRow" style="display:none;">
+            <label>{{ snippets['ESIGN/ENV_EDITOR/STATUS_LABEL'] | default: 'Status' }}</label>
+            <div class="read-only-val" id="statusDisplay">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipients -->
+      <div class="te-panel-section" id="recipientsSection">
+        <div class="te-panel-header" id="recipientsHeader">
+          <span><i class="fa fa-users me-2"></i>{{ snippets['ESIGN/ENV_EDITOR/RECIPIENTS'] | default: 'Recipients' }}</span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <p class="small text-muted" style="margin-bottom:10px;">
+            {{ snippets['ESIGN/ENV_EDITOR/RECIPIENTS_HELP'] | default: 'Enter the name and email address for each signer role defined in the template.' }}
+          </p>
+          <div id="recipientsList">
+            <p class="text-muted small">Loading signer roles from template...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation summary (shown on Send attempt) -->
+      <div class="te-panel-section" id="validationSection" style="display:none;">
+        <div class="te-panel-header" style="background:#fff3cd;">
+          <span><i class="fa fa-exclamation-triangle me-2" style="color:#856404;"></i>
+            <span style="color:#856404;">{{ snippets['ESIGN/ENV_EDITOR/VALIDATION_TITLE'] | default: 'Required fields missing' }}</span>
+          </span>
+        </div>
+        <div class="te-panel-body" id="validationBody"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /editor-shell -->
+</main>
+
+<!-- PDF.js (self-hosted) -->
+<!-- Bootstrap Icons + PDF.js loaded via JS inside DOMContentLoaded below -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Config ──────────────────────────────────────────────────────────── */
+  var API_ENV      = '/_api/cs_envelopes';
+  var API_TPL      = '/_api/cs_templates';
+  var BACK_URL     = '/envelopes/';
+  /* Status codes — update STATUSCODE_DRAFT if your table has a custom draft code */
+  var STATUSCODE_PREPARING = 717640001;   /* Confirmed */
+  var STATUSCODE_DRAFT     = null;        /* null = use Dataverse default on create */
+
+  /* Signer colour palette (matches template editor) */
+  var SIGNER_COLORS = [
+    '#AF3C43','#1565C0','#2E7D32','#E65100','#6A1B9A','#00838F'
+  ];
+
+  /* ── Read URL params ─────────────────────────────────────────────────── */
+  var params      = new URLSearchParams(window.location.search);
+  var ENVELOPE_ID = params.get('id')         ? decodeURIComponent(params.get('id'))         : null;
+  var TEMPLATE_ID = params.get('templateId') ? decodeURIComponent(params.get('templateId')) : null;
+  var INIT_NAME   = params.get('name')       ? decodeURIComponent(params.get('name'))       : '';
+
+  /* ── State ───────────────────────────────────────────────────────────── */
+  var state = {
+    dirty:        false,
+    isReadOnly:   false,
+    templateData: null,   /* loaded template record */
+    envelope:     null,   /* loaded envelope record (edit mode) */
+    pdfDoc:       null,
+    pageNum:      1,
+    pageCount:    0,
+    scale:        1.0,
+    pdfJsReady:   false,
+    pendingPdf:   null
+  };
+
+  var canvas, ctx;
+
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  function esc(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s || ''));
+    return d.innerHTML;
+  }
+
+  function setSaveStatus(cls, text, icon) {
+    var el = document.getElementById('saveStatus');
+    el.className = 'te-save-status' + (cls ? ' ' + cls : '');
+    el.innerHTML = '<i class="fa ' + (icon || 'fa-pencil') + ' me-1"></i>' + text;
+  }
+  function markDirty() { state.dirty = true; setSaveStatus('', 'Unsaved changes', 'fa-pencil'); }
+
+  /* ── safeAjax ────────────────────────────────────────────────────────── */
+  function safeAjax(opts) {
+    var d = $.Deferred();
+    shell.getTokenDeferred().done(function (token) {
+      if (!opts.headers) opts.headers = {};
+      opts.headers['__RequestVerificationToken'] = token;
+      $.ajax(opts).done(function (data, s, xhr) { d.resolve(data, s, xhr); })
+                  .fail(function (xhr, s, e)    { d.reject(xhr, s, e); });
+    }).fail(function () { d.rejectWith(this, arguments); });
+    return d.promise();
+  }
+
+  function portalGet(url) {
+    return new Promise(function (resolve, reject) {
+      $.ajax({ type: 'GET', url: url, headers: { 'Accept': 'application/json' } })
+       .done(resolve)
+       .fail(function (xhr) { reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText)); });
+    });
+  }
+
+  function portalPost(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'POST', url: url,
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        headers: { 'Accept': 'application/json', 'Prefer': 'return=representation' }
+      }).done(function (data, s, xhr) {
+          if (data && typeof data === 'object') { return resolve(data); }
+          var h = xhr.getResponseHeader('OData-EntityId');
+          if (h) { var m = h.match(/\(([0-9a-f\-]{36})\)/i); if (m) return resolve({ cs_envelopeid: m[1] }); }
+          resolve(null);
+        })
+        .fail(function (xhr) { reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText)); });
+    });
+  }
+
+  function portalPatch(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'PATCH', url: url,
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        headers: { 'Accept': 'application/json', 'If-Match': '*' }
+      }).done(function (data, s, xhr) { resolve(xhr.status === 204 ? null : data); })
+        .fail(function (xhr) { reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText)); });
+    });
+  }
+
+  /* ── PDF rendering (read-only) ────────────────────────────────────────── */
+  function loadPdf(base64) {
+    if (!state.pdfJsReady) { state.pendingPdf = base64; return; }
+    var binary = atob(base64);
+    var bytes  = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    pdfjsLib.getDocument({ data: bytes.buffer }).promise.then(function (pdf) {
+      state.pdfDoc    = pdf;
+      state.pageCount = pdf.numPages;
+      state.pageNum   = 1;
+      document.getElementById('emptyState').style.display  = 'none';
+      document.getElementById('pageWrapper').style.display = '';
+      fitWidth();
+      setEditorHeight();
+    }).catch(function (err) { console.warn('ESIGN: PDF load failed:', err.message); });
+  }
+
+  function renderPdfPage() {
+    if (!state.pdfDoc) return;
+    state.pdfDoc.getPage(state.pageNum).then(function (page) {
+      var vp = page.getViewport({ scale: state.scale });
+      canvas.width  = vp.width;
+      canvas.height = vp.height;
+      var w = document.getElementById('pageWrapper');
+      w.style.width = vp.width + 'px'; w.style.height = vp.height + 'px';
+      page.render({ canvasContext: ctx, viewport: vp }).promise.then(renderFieldOverlays);
+      document.getElementById('pageInfo').textContent  = 'Page ' + state.pageNum + ' / ' + state.pageCount;
+      document.getElementById('zoomLevel').textContent = Math.round(state.scale * 100) + '%';
+    });
+  }
+
+  function fitWidth() {
+    if (!state.pdfDoc) return;
+    state.pdfDoc.getPage(state.pageNum).then(function (page) {
+      var cw = document.getElementById('canvasArea').clientWidth - 60;
+      state.scale = cw / page.getViewport({ scale: 1.0 }).width;
+      renderPdfPage();
+    });
+  }
+
+  /* ── Field overlays (read-only visual) ───────────────────────────────── */
+  function renderFieldOverlays() {
+    if (!state.templateData) return;
+    var layer = document.getElementById('fieldLayer');
+    layer.innerHTML = '';
+    try {
+      var json   = JSON.parse(state.templateData.cs_templatejson || '{}');
+      var fields = json.fields || [];
+      var signers= json.signers || [];
+      var sc = state.scale || 1.0;
+      fields.filter(function (f) { return f.page === state.pageNum; }).forEach(function (f) {
+        var color  = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
+        var div    = document.createElement('div');
+        div.className = 'te-field-ro';
+        /* Field coordinates are stored at scale=1; multiply by current render scale */
+        div.style.cssText = 'left:' + (f.x * sc) + 'px;top:' + (f.y * sc) + 'px;width:' + (f.w * sc) + 'px;height:' + (f.h * sc) + 'px;' +
+          'border-color:' + color + ';background:' + color.replace(')', ',0.12)').replace('rgb', 'rgba') + ';color:' + color + ';';
+        div.innerHTML = '<span class="te-field-label">' + esc(f.label) + '</span>';
+        layer.appendChild(div);
+      });
+    } catch (e) { /* template JSON missing — no overlays */ }
+  }
+
+  /* ── Recipients panel ─────────────────────────────────────────────────── */
+  function renderRecipients(signerRoles, savedRecipients, isReadOnly) {
+    var c = document.getElementById('recipientsList');
+    c.innerHTML = '';
+    if (!signerRoles || signerRoles.length === 0) {
+      c.innerHTML = '<p class="small text-muted">No signer roles defined in this template.</p>';
+      return;
+    }
+    signerRoles.forEach(function (role, i) {
+      var saved  = (savedRecipients && savedRecipients[i]) ? savedRecipients[i] : {};
+      var color  = SIGNER_COLORS[i % SIGNER_COLORS.length];
+      var row    = document.createElement('div');
+      row.className = 'env-recipient-row';
+      row.setAttribute('data-role-idx', i);
+      row.innerHTML =
+        '<div class="env-recipient-role">' +
+          '<span class="env-role-dot" style="background:' + color + ';"></span>' +
+          '<strong>' + esc(role.label || ('Signer ' + (i + 1))) + '</strong>' +
+        '</div>' +
+        '<input type="text" class="rec-name" placeholder="Full Name *"' +
+               (isReadOnly ? ' disabled' : '') +
+               ' value="' + esc(saved.name || '') + '">' +
+        '<input type="email" class="rec-email" placeholder="Email Address *"' +
+               (isReadOnly ? ' disabled' : '') +
+               ' value="' + esc(saved.email || '') + '">';
+      c.appendChild(row);
+    });
+    /* Live dirty tracking */
+    if (!isReadOnly) {
+      c.querySelectorAll('input').forEach(function (inp) {
+        inp.addEventListener('input', markDirty);
+      });
+    }
+  }
+
+  /* ── Collect recipients from form ────────────────────────────────────── */
+  function collectRecipients() {
+    var rows = document.querySelectorAll('.env-recipient-row');
+    var result = [];
+    rows.forEach(function (row) {
+      var signers = state.templateData ? JSON.parse(state.templateData.cs_templatejson || '{}').signers || [] : [];
+      var idx  = parseInt(row.getAttribute('data-role-idx'));
+      result.push({
+        role:  (signers[idx] && signers[idx].label) ? signers[idx].label : ('Signer ' + (idx + 1)),
+        name:  (row.querySelector('.rec-name')  || {}).value || '',
+        email: (row.querySelector('.rec-email') || {}).value || ''
+      });
+    });
+    return result;
+  }
+
+  /* ── Validate recipients ─────────────────────────────────────────────── */
+  function validateRecipients() {
+    var errors = [];
+    document.querySelectorAll('.env-recipient-row').forEach(function (row) {
+      var idx  = parseInt(row.getAttribute('data-role-idx'));
+      var signers = state.templateData ? JSON.parse(state.templateData.cs_templatejson || '{}').signers || [] : [];
+      var role = (signers[idx] && signers[idx].label) ? signers[idx].label : ('Signer ' + (idx + 1));
+      var name  = (row.querySelector('.rec-name')  || {}).value || '';
+      var email = (row.querySelector('.rec-email') || {}).value || '';
+      if (!name.trim())  errors.push(role + ': Full Name is required.');
+      if (!email.trim()) errors.push(role + ': Email Address is required.');
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+        errors.push(role + ': "' + email.trim() + '" is not a valid email address.');
+    });
+    return errors;
+  }
+
+  /* ── Build payload ───────────────────────────────────────────────────── */
+  function buildPayload(statuscode) {
+    var payload = {
+      cs_name:        (document.getElementById('envNameInput').value || '').trim() || 'Untitled Envelope',
+      cs_templateid:  TEMPLATE_ID || (state.envelope && state.envelope.cs_templateid) || '',
+      cs_envelopejson: JSON.stringify({
+        templateId:   TEMPLATE_ID || (state.envelope && state.envelope.cs_templateid) || '',
+        templateName: document.getElementById('tplNameDisplay').textContent || '',
+        recipients:   collectRecipients()
+      })
+    };
+    if (statuscode !== undefined && statuscode !== null) {
+      payload.statuscode = statuscode;
+    }
+    return payload;
+  }
+
+  /* ── Save / Send ─────────────────────────────────────────────────────── */
+  function doSave(sendMode) {
+    if (!document.getElementById('envNameInput').value.trim()) {
+      setSaveStatus('error', 'Envelope name is required.', 'fa-exclamation-triangle');
+      document.getElementById('envNameInput').focus();
+      return;
+    }
+
+    if (sendMode) {
+      /* Validate all recipients before sending */
+      var errors = validateRecipients();
+      if (errors.length > 0) {
+        var vs = document.getElementById('validationSection');
+        var vb = document.getElementById('validationBody');
+        vb.innerHTML = '<ul class="small mrgn-bttm-0">' +
+          errors.map(function (e) { return '<li style="color:#856404;">' + esc(e) + '</li>'; }).join('') +
+          '</ul>';
+        vs.style.display = '';
+        vs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+      document.getElementById('validationSection').style.display = 'none';
+    }
+
+    var isCreate = !ENVELOPE_ID;
+    var statuscode = sendMode ? STATUSCODE_PREPARING : STATUSCODE_DRAFT;
+    var payload  = buildPayload(statuscode);
+    setSaveStatus('saving', sendMode ? 'Sending...' : 'Saving...', 'fa-spinner fa-spin');
+
+    var promise = isCreate
+      ? portalPost(API_ENV, payload)
+      : portalPatch(API_ENV + '(' + ENVELOPE_ID + ')', payload);
+
+    promise
+      .then(function (resp) {
+        state.dirty = false;
+
+        if (isCreate) {
+          var newId = resp && resp.cs_envelopeid ? resp.cs_envelopeid : null;
+          if (newId) {
+            ENVELOPE_ID = newId;
+            window.history.replaceState({ envelopeId: ENVELOPE_ID }, '',
+              window.location.pathname + '?id=' + ENVELOPE_ID);
+          }
+        }
+
+        if (sendMode) {
+          /* Redirect back to envelopes list with success banner */
+          var envName = (document.getElementById('envNameInput').value || '').trim();
+          window.location.href = BACK_URL + '?success=1&name=' + encodeURIComponent(envName);
+        } else {
+          setSaveStatus('saved', 'Draft saved', 'fa-cloud');
+          /* Update status display if editing */
+          if (!isCreate) {
+            document.getElementById('statusMetaRow').style.display = '';
+            document.getElementById('statusDisplay').textContent = 'Draft';
+          }
+        }
+      })
+      .catch(function (err) {
+        setSaveStatus('error', 'Save failed — ' + err.message, 'fa-exclamation-triangle');
+        console.error('ESIGN envelope save error:', err.message);
+      });
+  }
+
+  /* ── Load template ────────────────────────────────────────────────────── */
+  function loadTemplateData(templateId) {
+    return portalGet(API_TPL + '(' + templateId + ')')
+      .then(function (data) {
+        state.templateData = data;
+        /* Update template name display */
+        document.getElementById('tplNameDisplay').textContent = data.cs_name || templateId;
+        /* Render recipient rows from template signers */
+        try {
+          var json     = JSON.parse(data.cs_templatejson || '{}');
+          var signers  = json.signers || [];
+          var saved    = state.envelope
+            ? JSON.parse(state.envelope.cs_envelopejson || '{}').recipients || []
+            : [];
+          renderRecipients(signers, saved, state.isReadOnly);
+          /* Load PDF if available */
+          if (json.pdfBase64) {
+            loadPdf(json.pdfBase64);
+          } else {
+            document.getElementById('noDocDesc').textContent =
+              'No document is attached to this template. The PDF preview is unavailable.';
+          }
+        } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
+      })
+      .catch(function (err) {
+        document.getElementById('tplNameDisplay').textContent = 'Template not found';
+        console.warn('ESIGN: Could not load template:', err.message);
+      });
+  }
+
+  /* ── Load existing envelope ───────────────────────────────────────────── */
+  function loadEnvelope(id) {
+    setSaveStatus('saving', 'Loading...', 'fa-spinner fa-spin');
+    var url = API_ENV + '(' + id + ')' +
+              '?$select=cs_envelopeid,cs_name,statuscode,statecode,cs_templateid,cs_envelopejson,modifiedon';
+    return portalGet(url)
+      .then(function (data) {
+        state.envelope = data;
+        document.getElementById('envNameInput').value = data.cs_name || '';
+
+        /* Determine read-only based on statecode or preparing/sent/signed status */
+        var statusLabel = data['statuscode@OData.Community.Display.V1.FormattedValue'] || '';
+        var ro = data.statecode === 1 ||
+          statusLabel.toLowerCase().indexOf('preparing') >= 0 ||
+          statusLabel.toLowerCase().indexOf('sent')      >= 0 ||
+          statusLabel.toLowerCase().indexOf('signed')    >= 0;
+        state.isReadOnly = ro;
+
+        /* Update status display */
+        document.getElementById('statusMetaRow').style.display = '';
+        document.getElementById('statusDisplay').textContent   = statusLabel || 'Draft';
+
+        if (ro) {
+          document.getElementById('envNameInput').disabled = true;
+          document.getElementById('topbar-actions').style.display  = 'none';
+          document.getElementById('topbar-readonly').style.display = 'flex';
+        }
+
+        /* Restore TEMPLATE_ID for subsequent saves */
+        if (!TEMPLATE_ID && data.cs_templateid) {
+          TEMPLATE_ID = data.cs_templateid;
+        }
+
+        setSaveStatus('saved', ro ? 'View only' : 'Loaded', ro ? 'fa-eye' : 'fa-cloud-check');
+        state.dirty = false;
+        return data;
+      });
+  }
+
+  /* ── Dynamic height ────────────────────────────────────────────────────── */
+  function setEditorHeight() {
+    var shell = document.getElementById('editorShell');
+    if (!shell) return;
+    var avail = window.innerHeight - shell.getBoundingClientRect().top;
+    shell.style.height = Math.max(avail, 200) + 'px';
+  }
+
+  /* ── Panel collapse ──────────────────────────────────────────────────── */
+  function toggleSection(header) { header.parentElement.classList.toggle('collapsed'); }
+
+  /* ── Init ────────────────────────────────────────────────────────────── */
+  /* ── Inline template picker (no-params entry point) ─────────────────
+     Shown when user navigates directly to /envelopes/edit-envelope/
+     without a templateId or id in the URL.                            */
+  function showTemplatePicker() {
+    setSaveStatus('', 'Select a template to begin', 'fa-list');
+    /* Disable action buttons until template is selected */
+    document.getElementById('btnSaveDraft').disabled    = true;
+    document.getElementById('btnSendEnvelope').disabled = true;
+
+    var recSection = document.getElementById('recipientsList');
+    recSection.innerHTML =
+      '<div id="tpl-picker-wrap">' +
+        '<p class="small text-muted" style="margin-bottom:8px;">' +
+          'Choose a template to configure recipients.' +
+        '</p>' +
+        '<select id="tpl-picker-select" class="form-select form-select-sm" ' +
+                'style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:3px;font-size:0.82rem;margin-bottom:8px;">' +
+          '<option value="">— Loading templates... —</option>' +
+        '</select>' +
+        '<button id="tpl-picker-btn" type="button" ' +
+                'class="btn btn-sm" ' +
+                'style="width:100%;background:#26374A;color:#fff;border:none;border-radius:3px;padding:6px;font-size:0.82rem;" ' +
+                'disabled>' +
+          '<span class="fa fa-check mrgn-rght-xs"></span>Use This Template' +
+        '</button>' +
+      '</div>';
+
+    /* Load active templates into picker */
+    portalGet('/_api/cs_templates?$filter=cs_isactive eq true&$select=cs_templateid,cs_name&$orderby=cs_name asc')
+      .then(function (data) {
+        var sel = document.getElementById('tpl-picker-select');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">— Select a template —</option>';
+        if (data && data.value) {
+          data.value.forEach(function (t) {
+            var opt = document.createElement('option');
+            opt.value = t.cs_templateid; opt.textContent = t.cs_name || 'Untitled';
+            sel.appendChild(opt);
+          });
+        }
+        sel.disabled = false;
+        sel.addEventListener('change', function () {
+          var btn = document.getElementById('tpl-picker-btn');
+          if (btn) btn.disabled = !this.value;
+        });
+        var btn = document.getElementById('tpl-picker-btn');
+        if (btn) {
+          btn.addEventListener('click', function () {
+            var tplId = document.getElementById('tpl-picker-select').value;
+            if (!tplId) return;
+            TEMPLATE_ID = tplId;
+            /* Update URL so reload lands on same state */
+            window.history.replaceState(null, '', window.location.pathname + '?templateId=' + tplId);
+            /* Remove picker UI */
+            var wrap = document.getElementById('tpl-picker-wrap');
+            if (wrap) wrap.innerHTML = '<p class="small text-muted">Loading signer roles...</p>';
+            document.getElementById('btnSaveDraft').disabled    = false;
+            document.getElementById('btnSendEnvelope').disabled = false;
+            loadTemplateData(tplId).then(function () {
+              setSaveStatus('', 'New envelope — unsaved', 'fa-pencil');
+            });
+          });
+        }
+      })
+      .catch(function () {
+        var sel = document.getElementById('tpl-picker-select');
+        if (sel) sel.innerHTML = '<option value="">— Unable to load templates —</option>';
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(setEditorHeight, 0);
+    window.addEventListener('resize', setEditorHeight);
+
+    /* Bootstrap Icons CSS */
+    if (!document.querySelector('link[href*="bootstrap-icons"]')) {
+      var bl = document.createElement('link');
+      bl.rel = 'stylesheet';
+      bl.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css';
+      document.head.appendChild(bl);
+    }
+
+    /* PDF.js */
+    canvas = null; ctx = null;
+    var pdfScript  = document.createElement('script');
+    pdfScript.src  = '/js/pdf.min.js';
+    pdfScript.onload = function () {
+      if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.js';
+        canvas = document.getElementById('pdfCanvas');
+        ctx    = canvas ? canvas.getContext('2d') : null;
+        state.pdfJsReady = true;
+        if (state.pendingPdf) { loadPdf(state.pendingPdf); state.pendingPdf = null; }
+      }
+    };
+    pdfScript.onerror = function () {
+      console.warn('ESIGN: PDF.js not loaded. Upload /js/pdf.min.js as a web file.');
+    };
+    document.head.appendChild(pdfScript);
+
+    /* Set envelope name from URL param (create mode) */
+    if (INIT_NAME && !ENVELOPE_ID) {
+      document.getElementById('envNameInput').value = INIT_NAME;
+    }
+
+    /* Wire topbar buttons */
+    document.getElementById('btnSaveDraft').addEventListener('click',    function () { doSave(false); });
+    document.getElementById('btnSendEnvelope').addEventListener('click', function () { doSave(true);  });
+    document.getElementById('envNameInput').addEventListener('input', markDirty);
+
+    /* Wire PDF toolbar */
+    document.getElementById('btnPrevPage').addEventListener('click',  function () { if (state.pageNum > 1) { state.pageNum--; renderPdfPage(); } });
+    document.getElementById('btnNextPage').addEventListener('click',  function () { if (state.pageNum < state.pageCount) { state.pageNum++; renderPdfPage(); } });
+    document.getElementById('btnZoomIn').addEventListener('click',    function () { state.scale = Math.min(state.scale + 0.25, 3.0); renderPdfPage(); });
+    document.getElementById('btnZoomOut').addEventListener('click',   function () { state.scale = Math.max(state.scale - 0.25, 0.5); renderPdfPage(); });
+    document.getElementById('btnFitWidth').addEventListener('click',  fitWidth);
+
+    /* Panel headers */
+    ['detailsHeader','recipientsHeader'].forEach(function (hid) {
+      document.getElementById(hid).addEventListener('click', function () { toggleSection(this); });
+    });
+
+    /* Warn on unload if dirty */
+    window.addEventListener('beforeunload', function (e) {
+      if (state.dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    /* ── Boot sequence ────────────────────────────────────────────────── */
+    if (ENVELOPE_ID) {
+      /* Edit mode: load envelope first, then template */
+      loadEnvelope(ENVELOPE_ID).then(function () {
+        if (TEMPLATE_ID) { return loadTemplateData(TEMPLATE_ID); }
+      }).catch(function (err) {
+        setSaveStatus('error', 'Load failed: ' + err.message, 'fa-exclamation-triangle');
+      });
+    } else if (TEMPLATE_ID) {
+      /* Create mode from All Envelopes edit link: load template */
+      loadTemplateData(TEMPLATE_ID)
+        .then(function () {
+          setSaveStatus('', 'New envelope — unsaved', 'fa-pencil');
+          state.dirty = false;
+        });
+    } else {
+      /* No params — show inline template picker */
+      showTemplatePicker();
+    }
+  });
+
+})();
+</script>
+
+<!-- GCWeb Footer -->
+<footer id="wb-info" style="background:#26374A;padding:20px 0;flex-shrink:0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK1'] | default: 'Terms &amp; Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg"
+             alt="Symbol of the Government of Canada" style="height:24px;filter:brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% else %}
+<script>window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);</script>
+{% endif %}

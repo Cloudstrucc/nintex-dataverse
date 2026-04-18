@@ -600,7 +600,8 @@
     pdfDoc: null, pageNum: 1, pageCount: 0, scale: 1.0,
     signers: [], fields: [], selectedFieldId: null,
     dirty: false, nextFieldId: 1,
-    pdfBase64: null, pdfFilename: null
+    pdfBase64: null, pdfFilename: null,
+    nintexTemplateId: null, pageWidth: null, pageHeight: null
   };
 
   /* PDF.js readiness — set true once /js/pdf.min.js onload fires */
@@ -747,6 +748,12 @@
   function renderPdfPage() {
     if (!state.pdfDoc) return;
     state.pdfDoc.getPage(state.pageNum).then(function (page) {
+      /* Capture unscaled page dimensions for coordinate normalization */
+      if (!state.pageWidth || !state.pageHeight) {
+        var vpUnscaled = page.getViewport({ scale: 1.0 });
+        state.pageWidth  = vpUnscaled.width;
+        state.pageHeight = vpUnscaled.height;
+      }
       var vp = page.getViewport({ scale: state.scale });
       canvas.width  = vp.width;
       canvas.height = vp.height;
@@ -895,14 +902,16 @@
   function renderFieldOverlays() {
     var layer = document.getElementById('fieldLayer');
     layer.innerHTML = '';
+    var sc = state.scale || 1.0;
     state.fields.filter(function (f) { return f.page === state.pageNum; }).forEach(function (f) {
       var color = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
       var ft    = FIELD_TYPES[f.type] || FIELD_TYPES.text;
       var div   = document.createElement('div');
       div.className = 'te-field' + (f.id === state.selectedFieldId ? ' selected' : '');
       div.setAttribute('data-field-id', f.id);
+      /* Field x/y/w/h are stored at scale=1; multiply by current scale for display */
       div.style.cssText =
-        'left:' + f.x + 'px;top:' + f.y + 'px;width:' + f.w + 'px;height:' + f.h + 'px;' +
+        'left:' + (f.x * sc) + 'px;top:' + (f.y * sc) + 'px;width:' + (f.w * sc) + 'px;height:' + (f.h * sc) + 'px;' +
         'border-color:' + color.border + ';background:' + color.bg + ';color:' + color.text + ';';
       div.innerHTML =
         '<i class="fa ' + ft.icon + ' me-1" style="font-size:0.7rem;flex-shrink:0;"></i>' +
@@ -991,18 +1000,20 @@
     }
     if (fieldMove) {
       var f = getField(fieldMove.id); if (!f) { fieldMove = null; return; }
-      f.x = Math.max(0, fieldMove.origX + (clientX - fieldMove.startX));
-      f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY));
-      fieldMove.el.style.left = f.x + 'px';
-      fieldMove.el.style.top  = f.y + 'px';
+      var sc = state.scale || 1.0;
+      f.x = Math.max(0, fieldMove.origX + (clientX - fieldMove.startX) / sc);
+      f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY) / sc);
+      fieldMove.el.style.left = (f.x * sc) + 'px';
+      fieldMove.el.style.top  = (f.y * sc) + 'px';
       markDirty();
     }
     if (fieldResize) {
       var f = getField(fieldResize.id); if (!f) { fieldResize = null; return; }
-      f.w = Math.max(20, fieldResize.origW + (clientX - fieldResize.startX));
-      f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY));
-      fieldResize.el.style.width  = f.w + 'px';
-      fieldResize.el.style.height = f.h + 'px';
+      var sc = state.scale || 1.0;
+      f.w = Math.max(20, fieldResize.origW + (clientX - fieldResize.startX) / sc);
+      f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY) / sc);
+      fieldResize.el.style.width  = (f.w * sc) + 'px';
+      fieldResize.el.style.height = (f.h * sc) + 'px';
       markDirty();
     }
   }
@@ -1069,13 +1080,16 @@
 
     function placeField(type, x, y) {
     var ft = FIELD_TYPES[type] || FIELD_TYPES.text;
+    var sc = state.scale || 1.0;
+    /* Store at scale=1.0. Drop position arrives in rendered pixels; divide by scale.
+       Default size is defined in FIELD_TYPES at scale=1 already. */
     var f  = {
       id: state.nextFieldId++, type: type, label: ft.label,
       signerIndex: 0, required: true, page: state.pageNum,
-      x: x - ft.w * state.scale / 2,
-      y: y - ft.h * state.scale / 2,
-      w: ft.w * state.scale,
-      h: ft.h * state.scale
+      x: (x / sc) - ft.w / 2,
+      y: (y / sc) - ft.h / 2,
+      w: ft.w,
+      h: ft.h
     };
     state.fields.push(f);
     renderFieldOverlays(); selectField(f.id); updatePlacedFieldsList(); markDirty();
@@ -1184,6 +1198,11 @@
               state.nextFieldId = (json.nextFieldId || 0) + 1;
               updatePlacedFieldsList();
             }
+            /* Preserve nintexTemplateId so re-saving doesn't break the Nintex link */
+            if (json.nintexTemplateId) state.nintexTemplateId = json.nintexTemplateId;
+            /* Restore page dimensions (used by broker flow for coordinate normalization) */
+            if (json.pageWidth)  state.pageWidth  = json.pageWidth;
+            if (json.pageHeight) state.pageHeight = json.pageHeight;
             /* Restore PDF */
             if (json.pdfBase64) {
               state.pdfBase64   = json.pdfBase64;
@@ -1203,18 +1222,29 @@
 
   /* ── Save ────────────────────────────────────────────────── */
   function buildPayload() {
+    /* Fields are already stored at scale=1 (unscaled PDF points).
+       The broker flow divides x by pageWidth and y by pageHeight to produce
+       0-1 fractions for the Nintex API. */
+    var jsonObj = {
+      signers:     state.signers.map(function (s) { return { label: s.label }; }),
+      fields:      state.fields,
+      nextFieldId: state.nextFieldId,
+      pdfBase64:   state.pdfBase64,
+      pdfFilename: state.pdfFilename,
+      pageWidth:   state.pageWidth  || 612,
+      pageHeight:  state.pageHeight || 792
+    };
+    /* Preserve Nintex template link if it was set by the broker */
+    if (state.nintexTemplateId) {
+      jsonObj.nintexTemplateId = state.nintexTemplateId;
+    }
+
     return {
       cs_name:        (document.getElementById('tplNameInput').value || '').trim() || 'Untitled Template',
       cs_description: document.getElementById('tplDescInput').value.trim(),
       cs_category:    document.getElementById('tplCatInput').value.trim(),
       cs_isactive:    document.getElementById('tplActiveInput').checked,
-      cs_templatejson: JSON.stringify({
-        signers:     state.signers.map(function (s) { return { label: s.label }; }),
-        fields:      state.fields,
-        nextFieldId: state.nextFieldId,
-        pdfBase64:   state.pdfBase64,
-        pdfFilename: state.pdfFilename
-      })
+      cs_templatejson: JSON.stringify(jsonObj)
     };
   }
 
