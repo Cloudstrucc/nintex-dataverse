@@ -6,7 +6,7 @@
 
 
 <main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
-  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+  <div class="container mrgn-tp- mrgn-bttm-lg">
 
     <!-- ── Welcome ──────────────────────────────────────────────────────── -->
     <section class="row mrgn-bttm-md">
@@ -280,7 +280,15 @@
 
         elTbody.innerHTML +=
           '<tr>' +
-            '<td style="font-size:14px;vertical-align:middle;"><strong>' + esc(env.cs_name || 'Untitled') + '</strong></td>' +
+            '<td style="font-size:14px;vertical-align:middle;">' +
+              '<a href="#" class="esign-env-link" data-env-id="' + esc(env.cs_envelopeid) + '" ' +
+                 'data-env-name="' + esc(env.cs_name || 'Untitled') + '" ' +
+                 'data-env-status="' + esc(statusLabel) + '" ' +
+                 'data-env-created="' + esc(fmtDate(env.createdon)) + '" ' +
+                 'data-env-modified="' + esc(lastModified) + '" ' +
+                 'style="color:#26374A;text-decoration:none;">' +
+                 '<strong>' + esc(env.cs_name || 'Untitled') + '</strong></a>' +
+            '</td>' +
             '<td style="vertical-align:middle;">' +
               '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
               esc(statusLabel) + '</span>' +
@@ -296,6 +304,14 @@
             '</td>' +
           '</tr>';
       });
+
+      /* Wire envelope name links → show detail modal */
+      elTbody.querySelectorAll('.esign-env-link').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          showEnvelopeModal(this);
+        });
+      });
     })
     .catch(function () {
       elLoading.style.display = 'none';
@@ -303,14 +319,61 @@
     });
   }
 
+  /* ── Envelope detail modal ───────────────────────────────────────────── */
+  function showEnvelopeModal(linkEl) {
+    var envId    = linkEl.getAttribute('data-env-id');
+    var name     = linkEl.getAttribute('data-env-name');
+    var status   = linkEl.getAttribute('data-env-status');
+    var created  = linkEl.getAttribute('data-env-created');
+    var modified = linkEl.getAttribute('data-env-modified');
+
+    var isEditable = status && ['draft', 'ready to send', 'error'].indexOf(status.toLowerCase()) >= 0;
+    var viewLabel  = isEditable ? 'Edit Envelope' : 'View Envelope';
+    var viewIcon   = isEditable ? 'fa-pencil' : 'fa-eye';
+
+    var modal = document.getElementById('esignEnvModal');
+    var body  = document.getElementById('esignEnvModalBody');
+    body.innerHTML =
+      '<table class="table table-condensed" style="margin:0;">' +
+        '<tr><td style="font-weight:600;width:35%;padding:8px;">Envelope Name</td><td style="padding:8px;">' + esc(name) + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Status</td><td style="padding:8px;">' + esc(status) + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Created</td><td style="padding:8px;">' + esc(created) + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Last Modified</td><td style="padding:8px;">' + esc(modified) + '</td></tr>' +
+      '</table>' +
+      '<div style="padding:12px;text-align:right;border-top:1px solid #e0e0e0;margin-top:8px;">' +
+        '<a href="/envelopes/edit-envelope/?id=' + esc(envId) + '" class="btn btn-sm btn-default" style="border-color:#26374A;color:#26374A;border-radius:0;">' +
+          '<span class="fa ' + viewIcon + ' mrgn-rght-xs"></span>' + viewLabel + '</a>' +
+      '</div>';
+    document.getElementById('esignEnvModalTitle').textContent = name || 'Envelope Details';
+    modal.style.display = 'flex';
+  }
+
   /* ── Init ────────────────────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
     loadCounts();
     loadRecentEnvelopes();
+
+    /* Close modal on overlay or X click */
+    document.addEventListener('click', function (e) {
+      if (e.target.id === 'esignEnvModal' || e.target.classList.contains('esign-modal-close')) {
+        document.getElementById('esignEnvModal').style.display = 'none';
+      }
+    });
   });
 
 })();
 </script>
+
+<!-- Envelope Detail Modal (pure CSS/JS) -->
+<div id="esignEnvModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:4px;width:90%;max-width:480px;box-shadow:0 8px 30px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="background:#26374A;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+      <strong id="esignEnvModalTitle">Envelope Details</strong>
+      <button type="button" class="esign-modal-close" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px;">&times;</button>
+    </div>
+    <div id="esignEnvModalBody" style="padding:0;"></div>
+  </div>
+</div>
 
 
 {% else %}
