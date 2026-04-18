@@ -77,19 +77,27 @@
   z-index: 10;
   border-bottom: 3px solid var(--gc-red);
 }
-.te-title-input {
+.te-title-input,
+input.te-title-input,
+input.te-title-input[type="text"],
+#tplNameInput,
+#tplNameInput[type="text"] {
   background: transparent !important;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  color: #fff !important;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 3px 8px;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
   min-width: 280px;
+  -webkit-text-fill-color: #ffffff !important;
 }
-.te-title-input:hover  { border-color: rgba(255,255,255,0.35); }
-.te-title-input:focus  { border-color: rgba(255,255,255,0.65) !important; outline: none !important; background: rgba(255,255,255,0.12) !important; color: #fff !important; }
-.te-title-input::placeholder { color: rgba(255,255,255,0.55) !important; }
+.te-title-input:hover,
+#tplNameInput:hover { border-color: rgba(255,255,255,0.35) !important; }
+.te-title-input:focus,
+#tplNameInput:focus { border-color: rgba(255,255,255,0.65) !important; outline: none !important; background: rgba(255,255,255,0.12) !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+.te-title-input::placeholder,
+#tplNameInput::placeholder { color: rgba(255,255,255,0.55) !important; -webkit-text-fill-color: rgba(255,255,255,0.55) !important; }
 .te-save-status { font-size: 0.75rem; color: rgba(255,255,255,0.6); padding-left: 8px; display: block; }
 .te-save-status.saving { color: #ffc107; }
 .te-save-status.saved  { color: #4caf50; }
