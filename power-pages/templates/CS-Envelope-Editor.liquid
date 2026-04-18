@@ -55,13 +55,13 @@
   border-bottom: 3px solid var(--gc-red);
 }
 .te-title-input {
-  background: transparent; border: 1px solid transparent; border-radius: 4px;
-  color: #fff; font-size: 1rem; font-weight: 600; padding: 3px 8px; min-width: 280px;
+  background: transparent !important; border: 1px solid transparent; border-radius: 4px;
+  color: #fff !important; font-size: 1rem; font-weight: 600; padding: 3px 8px; min-width: 280px;
 }
 .te-title-input:hover  { border-color: rgba(255,255,255,0.35); }
-.te-title-input:focus  { border-color: rgba(255,255,255,0.65); outline: none; background: rgba(255,255,255,0.08); }
-.te-title-input::placeholder { color: rgba(255,255,255,0.45); }
-.te-title-input:disabled { opacity: 0.6; cursor: not-allowed; }
+.te-title-input:focus  { border-color: rgba(255,255,255,0.65) !important; outline: none !important; background: rgba(255,255,255,0.12) !important; color: #fff !important; }
+.te-title-input::placeholder { color: rgba(255,255,255,0.55) !important; }
+.te-title-input:disabled { opacity: 0.7; cursor: not-allowed; color: rgba(255,255,255,0.8) !important; }
 .te-save-status { font-size: 0.75rem; color: rgba(255,255,255,0.6); padding-left: 8px; display: block; }
 .te-save-status.saving { color: #ffc107; }
 .te-save-status.saved  { color: #4caf50; }
@@ -854,8 +854,9 @@
   document.addEventListener('DOMContentLoaded', function () {
     /* ── Compact header: replace lang toggle with hamburger menu ────── */
     (function compactHeader() {
+      /* Remove the application bar entirely */
       var appBar = document.querySelector('.application-bar');
-      if (appBar) appBar.style.display = 'none';
+      if (appBar) appBar.parentNode.removeChild(appBar);
       var lngSection = document.getElementById('wb-lng');
       if (lngSection) {
         var userName = '';

@@ -173,6 +173,7 @@
   var allRecords  = [];
   var filtered    = [];
   var currentPage = 1;
+  var tplNameCache = {}; /* { templateId: templateName } */
 
   /* ── DOM refs ────────────────────────────────────────────────────────── */
   var elLoading, elError, elTableWrap, elEmpty, elTbody,
@@ -275,7 +276,8 @@
       var viewIcon  = isEditable ? 'fa-pencil' : 'fa-eye';
       var viewTitle = isEditable ? 'Edit envelope' : 'View envelope';
       var viewLabel = isEditable ? 'Edit'          : 'View';
-      var tplDisplay = env.cs_templateid ? env.cs_templateid.substring(0, 8) + '…' : '--';
+      var tplInfo    = env.cs_templateid ? tplNameCache[env.cs_templateid] : null;
+      var tplDisplay = tplInfo ? tplInfo.cs_name : (env.cs_templateid ? env.cs_templateid.substring(0, 8) + '…' : '--');
 
       var cancelBtn = isCancellable
         ? '<button type="button" class="btn btn-xs btn-default env-cancel-btn" ' +
@@ -290,7 +292,11 @@
           '<td><strong>' + esc(env.cs_name || 'Untitled') + '</strong></td>' +
           '<td><span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
             esc(statusLabel) + '</span></td>' +
-          '<td class="env-hide-mobile"><span class="small text-muted">' + esc(tplDisplay) + '</span></td>' +
+          '<td class="env-hide-mobile">' +
+            (tplInfo
+              ? '<a href="#" class="esign-tpl-link" data-tpl-id="' + esc(env.cs_templateid) + '" style="color:#005a70;font-weight:500;">' + esc(tplDisplay) + '</a>'
+              : '<span class="small text-muted">' + esc(tplDisplay) + '</span>') +
+          '</td>' +
           '<td class="env-hide-mobile">' + fmtDate(env.modifiedon) + '</td>' +
           '<td class="text-center" style="white-space:nowrap;">' +
             /* Desktop: inline buttons */
@@ -352,6 +358,13 @@
         cancelEnvelope(this.getAttribute('data-id'), this.getAttribute('data-name'));
       });
     });
+    /* Wire template name links → show detail modal */
+    elTbody.querySelectorAll('.esign-tpl-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        showTemplateModal(this.getAttribute('data-tpl-id'));
+      });
+    });
   }
 
   /* ── Filter ──────────────────────────────────────────────────────────── */
@@ -368,10 +381,34 @@
   }
 
   /* ── Load envelopes ──────────────────────────────────────────────────── */
+  /* Fetch all template records once for display in the table */
+  function loadTemplateNames() {
+    return portalGet(API_TPL + '?$select=cs_templateid,cs_name,cs_description,cs_category,cs_templatejson')
+      .then(function (data) {
+        tplNameCache = {};
+        if (data && data.value) {
+          data.value.forEach(function (t) {
+            /* Parse nintexTemplateId from the JSON blob */
+            var nintexId = '';
+            try {
+              var json = JSON.parse(t.cs_templatejson || '{}');
+              nintexId = json.nintexTemplateId || '';
+            } catch (e) { /* ignore */ }
+            t._nintexTemplateId = nintexId;
+            tplNameCache[t.cs_templateid] = t;
+          });
+        }
+      })
+      .catch(function () { /* best effort */ });
+  }
+
   function loadEnvelopes() {
     hide(elError); hide(elTableWrap); hide(elEmpty);
     show(elLoading);
-    portalGet(API_ENV + '?$orderby=modifiedon desc&$select=' + SELECT_COLS)
+    /* Load templates first (for name lookup), then envelopes */
+    loadTemplateNames().then(function () {
+      return portalGet(API_ENV + '?$orderby=modifiedon desc&$select=' + SELECT_COLS);
+    })
       .then(function (data) {
         hide(elLoading);
         if (!data || !data.value) { show(elError); return; }
@@ -455,10 +492,52 @@
 
     checkSuccessBanner();
     loadEnvelopes();
+
+    /* Close modal on overlay or X click */
+    document.addEventListener('click', function (e) {
+      if (e.target.id === 'esignTplModal' || e.target.classList.contains('esign-modal-close')) {
+        document.getElementById('esignTplModal').style.display = 'none';
+      }
+    });
   });
+
+  /* ── Template detail modal ─────────────────────────────────────────── */
+  function showTemplateModal(tplId) {
+    var tpl = tplNameCache[tplId];
+    if (!tpl) return;
+    var modal = document.getElementById('esignTplModal');
+    var body  = document.getElementById('esignTplModalBody');
+    var nintexId = tpl._nintexTemplateId || 'Not synced';
+    body.innerHTML =
+      '<table class="table table-condensed" style="margin:0;">' +
+        '<tr><td style="font-weight:600;width:40%;padding:8px;">Template Name</td><td style="padding:8px;">' + esc(tpl.cs_name || 'Untitled') + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Description</td><td style="padding:8px;">' + esc(tpl.cs_description || '--') + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Category</td><td style="padding:8px;">' + esc(tpl.cs_category || '--') + '</td></tr>' +
+        '<tr><td style="font-weight:600;padding:8px;">Nintex Template ID</td><td style="padding:8px;font-family:monospace;font-size:12px;">' + esc(nintexId) + '</td></tr>' +
+      '</table>' +
+      '<div style="padding:12px;text-align:right;border-top:1px solid #e0e0e0;margin-top:8px;">' +
+        '<a href="/templates/edit-template/?id=' + esc(tplId) + '" class="btn btn-sm btn-default" style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:6px;">' +
+          '<span class="fa fa-pencil mrgn-rght-xs"></span>Edit Template</a>' +
+        '<a href="/envelopes/edit-envelope/?templateId=' + esc(tplId) + '" class="btn btn-sm btn-default" style="border-color:#26374A;color:#26374A;border-radius:0;">' +
+          '<span class="fa fa-paper-plane mrgn-rght-xs"></span>Use Template</a>' +
+      '</div>';
+    document.getElementById('esignTplModalTitle').textContent = tpl.cs_name || 'Template Details';
+    modal.style.display = 'flex';
+  }
 
 })();
 </script>
+
+<!-- Template Detail Modal (pure CSS/JS, no Bootstrap) -->
+<div id="esignTplModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:4px;width:90%;max-width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="background:#26374A;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+      <strong id="esignTplModalTitle">Template Details</strong>
+      <button type="button" class="esign-modal-close" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px;">&times;</button>
+    </div>
+    <div id="esignTplModalBody" style="padding:0;"></div>
+  </div>
+</div>
 
 <!-- GCWeb Footer -->
 <footer id="wb-info" style="background:#26374A;padding:20px 0;margin-top:40px;">
