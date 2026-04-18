@@ -162,28 +162,9 @@
                 }
               }
             },
-            "HTTP_Get_Template_Export": {
-              "runAfter": {
-                "HTTP_Get_Template_Detail": [
-                  "Succeeded"
-                ]
-              },
-              "metadata": {
-                "operationMetadataId": "a2b3c4d5-e6f7-8901-2345-678901abcdef"
-              },
-              "type": "Http",
-              "inputs": {
-                "method": "GET",
-                "uri": "@{variables('ApiBaseUrl')}/templates/@{items('Upsert_Each_Template')?['templateID']}/export",
-                "headers": {
-                  "Authorization": "@{variables('BearerToken')}",
-                  "X-AS-UserContext": "@{variables('UserContext')}"
-                }
-              }
-            },
             "Compose_TemplateJson": {
               "runAfter": {
-                "HTTP_Get_Template_Export": [
+                "HTTP_Get_Template_Detail": [
                   "Succeeded"
                 ]
               },
@@ -191,7 +172,7 @@
                 "operationMetadataId": "b3c4d5e6-f7a8-9012-3456-789012abcdef"
               },
               "type": "Compose",
-              "inputs": "@json(concat('{\"version\":1,\"nintexTemplateId\":\"', items('Upsert_Each_Template')?['templateID'], '\",\"signers\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['signers']), '[]'), ',\"fields\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['fields']), '[]'), ',\"steps\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['steps']), '[]'), ',\"nextFieldId\":', string(add(coalesce(length(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['fields']), 0), 1)), ',\"pdfBase64\":\"', base64(body('HTTP_Get_Template_Export')), '\",\"pdfFilename\":\"', coalesce(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['file']?['saved']?['fileName'], concat(items('Upsert_Each_Template')?['name'], '.pdf')), '\"}'))"
+              "inputs": "@json(concat('{\"version\":1,\"source\":\"nintex\",\"nintexTemplateId\":\"', items('Upsert_Each_Template')?['templateID'], '\",\"signers\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['signers']), '[]'), ',\"fields\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['fields']), '[]'), ',\"steps\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['steps']), '[]'), ',\"nextFieldId\":', string(add(coalesce(length(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['fields']), 0), 1)), ',\"pdfFilename\":\"', coalesce(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['file']?['saved']?['fileName'], concat(items('Upsert_Each_Template')?['name'], '.pdf')), '\",\"documentPages\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['content']?['documents']?[0]?['file']?['saved']?['pages']), '[]'), '}'))"
             },
             "Check_Template_Exists": {
               "runAfter": {
