@@ -578,7 +578,6 @@
                   "parameters": {
                     "entityName": "cs_templates",
                     "recordId": "@triggerOutputs()?['body/cs_templateid']",
-                    "item/cs_templateid": "@{body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID']}",
                     "item/cs_templatejson": "@{string(outputs('Compose_Updated_TemplateJson'))}",
                     "item/cs_isactive": true
                   },
