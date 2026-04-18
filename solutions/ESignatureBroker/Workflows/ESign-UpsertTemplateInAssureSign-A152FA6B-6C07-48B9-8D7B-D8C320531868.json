@@ -455,12 +455,12 @@
               "required": "@item()?['required']",
               "pageIndex": "@sub(item()?['page'], 1)",
               "position": {
-                "x": "@div(float(item()?['x']), 612)",
-                "y": "@div(float(item()?['y']), 792)"
+                "x": "@min(div(float(item()?['x']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.99)",
+                "y": "@min(div(float(item()?['y']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), 0.99)"
               },
               "size": {
-                "width": "@div(float(item()?['w']), 612)",
-                "height": "@div(float(item()?['h']), 792)"
+                "width": "@min(div(float(item()?['w']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.5)",
+                "height": "@min(div(float(item()?['h']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), 0.25)"
               },
               "signatureType": "@if(equals(item()?['type'], 'initials'), 'Initials', if(equals(item()?['type'], 'signature'), 'Signature', ''))"
             }
