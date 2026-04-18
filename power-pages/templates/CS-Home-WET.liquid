@@ -260,12 +260,22 @@
     var elEmpty    = document.getElementById('env-empty');
     var elTbody    = document.getElementById('env-tbody');
 
-    /* Same $select as the working All Envelopes page, plus $top=5.
-       cs_envelopejson excluded — not needed for summary view and can cause 400. */
-    portalGet(
-      API_ENV + '?$select=cs_envelopeid,cs_name,statuscode,statecode,createdon,modifiedon' +
-               '&$orderby=modifiedon desc&$top=5'
-    )
+    /* Fetch template records for Nintex ID lookup */
+    var tplCache = {};
+    portalGet(API_TPL + '?$select=cs_templateid,cs_name,cs_templatejson')
+    .then(function (tplData) {
+      if (tplData && tplData.value) {
+        tplData.value.forEach(function (t) {
+          var nintexId = '';
+          try { nintexId = JSON.parse(t.cs_templatejson || '{}').nintexTemplateId || ''; } catch(e) {}
+          tplCache[t.cs_templateid] = { name: t.cs_name, nintexId: nintexId };
+        });
+      }
+      return portalGet(
+        API_ENV + '?$select=cs_envelopeid,cs_name,statuscode,statecode,createdon,modifiedon,cs_templateid' +
+                 '&$orderby=modifiedon desc&$top=5'
+      );
+    })
     .then(function (d) {
       elLoading.style.display = 'none';
       if (!d || !d.value || d.value.length === 0) {
@@ -278,7 +288,11 @@
         var badge       = getStatusStyle(statusLabel);
         var lastModified = fmtDate(env.modifiedon);
 
-        elTbody.innerHTML +=
+        var tplInfo   = env.cs_templateid ? tplCache[env.cs_templateid] : null;
+      var tplName   = tplInfo ? tplInfo.name : '--';
+      var nintexId  = tplInfo ? tplInfo.nintexId : '';
+
+      elTbody.innerHTML +=
           '<tr>' +
             '<td style="font-size:14px;vertical-align:middle;">' +
               '<a href="#" class="esign-env-link" data-env-id="' + esc(env.cs_envelopeid) + '" ' +
@@ -286,6 +300,8 @@
                  'data-env-status="' + esc(statusLabel) + '" ' +
                  'data-env-created="' + esc(fmtDate(env.createdon)) + '" ' +
                  'data-env-modified="' + esc(lastModified) + '" ' +
+                 'data-env-tpl="' + esc(tplName) + '" ' +
+                 'data-env-nintex-id="' + esc(nintexId) + '" ' +
                  'style="color:#26374A;text-decoration:none;">' +
                  '<strong>' + esc(env.cs_name || 'Untitled') + '</strong></a>' +
             '</td>' +
@@ -326,22 +342,29 @@
     var status   = linkEl.getAttribute('data-env-status');
     var created  = linkEl.getAttribute('data-env-created');
     var modified = linkEl.getAttribute('data-env-modified');
+    var tplName  = linkEl.getAttribute('data-env-tpl') || '--';
+    var nintexId = linkEl.getAttribute('data-env-nintex-id') || '';
 
     var isEditable = status && ['draft', 'ready to send', 'error'].indexOf(status.toLowerCase()) >= 0;
     var viewLabel  = isEditable ? 'Edit Envelope' : 'View Envelope';
     var viewIcon   = isEditable ? 'fa-pencil' : 'fa-eye';
 
+    var tdL = 'font-weight:600;width:38%;padding:6px 8px;font-size:12px;color:#555;';
+    var tdR = 'padding:6px 8px;font-size:12px;';
+
     var modal = document.getElementById('esignEnvModal');
     var body  = document.getElementById('esignEnvModalBody');
     body.innerHTML =
       '<table class="table table-condensed" style="margin:0;">' +
-        '<tr><td style="font-weight:600;width:35%;padding:8px;">Envelope Name</td><td style="padding:8px;">' + esc(name) + '</td></tr>' +
-        '<tr><td style="font-weight:600;padding:8px;">Status</td><td style="padding:8px;">' + esc(status) + '</td></tr>' +
-        '<tr><td style="font-weight:600;padding:8px;">Created</td><td style="padding:8px;">' + esc(created) + '</td></tr>' +
-        '<tr><td style="font-weight:600;padding:8px;">Last Modified</td><td style="padding:8px;">' + esc(modified) + '</td></tr>' +
+        '<tr><td style="' + tdL + '">Envelope Name</td><td style="' + tdR + '">' + esc(name) + '</td></tr>' +
+        '<tr><td style="' + tdL + '">Status</td><td style="' + tdR + '">' + esc(status) + '</td></tr>' +
+        '<tr><td style="' + tdL + '">Template</td><td style="' + tdR + '">' + esc(tplName) + '</td></tr>' +
+        '<tr><td style="' + tdL + '">Nintex Template ID</td><td style="' + tdR + 'font-family:monospace;font-size:11px;">' + esc(nintexId || 'Not synced') + '</td></tr>' +
+        '<tr><td style="' + tdL + '">Created</td><td style="' + tdR + '">' + esc(created) + '</td></tr>' +
+        '<tr><td style="' + tdL + '">Last Modified</td><td style="' + tdR + '">' + esc(modified) + '</td></tr>' +
       '</table>' +
-      '<div style="padding:12px;text-align:right;border-top:1px solid #e0e0e0;margin-top:8px;">' +
-        '<a href="/envelopes/edit-envelope/?id=' + esc(envId) + '" class="btn btn-sm btn-default" style="border-color:#26374A;color:#26374A;border-radius:0;">' +
+      '<div style="padding:10px 12px;text-align:right;border-top:1px solid #e0e0e0;">' +
+        '<a href="/envelopes/edit-envelope/?id=' + esc(envId) + '" class="btn btn-sm btn-default" style="border-color:#26374A;color:#26374A;border-radius:0;font-size:12px;">' +
           '<span class="fa ' + viewIcon + ' mrgn-rght-xs"></span>' + viewLabel + '</a>' +
       '</div>';
     document.getElementById('esignEnvModalTitle').textContent = name || 'Envelope Details';
