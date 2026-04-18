@@ -566,6 +566,47 @@
     return payload;
   }
 
+  /* ── Create cs_signer records in Dataverse for each recipient ─────── */
+  var API_SIGNERS = '/_api/cs_signers';
+
+  function syncSignerRecords(envelopeId) {
+    var recipients = collectRecipients();
+    if (!recipients.length || !envelopeId) return Promise.resolve();
+
+    /* Delete existing signers for this envelope first (to handle re-saves cleanly) */
+    return portalGet(API_SIGNERS + '?$filter=_cs_envelopelookup_value eq ' + envelopeId + '&$select=cs_signerid')
+      .then(function (data) {
+        var existing = (data && data.value) ? data.value : [];
+        var deletes = existing.map(function (s) {
+          return new Promise(function (resolve, reject) {
+            safeAjax({
+              type: 'DELETE',
+              url: API_SIGNERS + '(' + s.cs_signerid + ')',
+              contentType: 'application/json'
+            }).done(resolve).fail(function () { resolve(); /* best effort */ });
+          });
+        });
+        return Promise.all(deletes);
+      })
+      .then(function () {
+        /* Create a signer record for each recipient */
+        var creates = recipients.map(function (r, idx) {
+          var signerPayload = {
+            cs_fullname: r.name,
+            cs_email: r.email,
+            cs_signerorder: idx + 1,
+            'cs_EnvelopeLookup@odata.bind': '/cs_envelopes(' + envelopeId + ')'
+          };
+          return portalPost(API_SIGNERS, signerPayload);
+        });
+        return Promise.all(creates);
+      })
+      .catch(function (err) {
+        console.error('ESIGN signer sync error:', err.message);
+        /* Non-fatal — envelope was saved, signers failed */
+      });
+  }
+
   /* ── Save / Send ─────────────────────────────────────────────────────── */
   function doSave(sendMode) {
     if (!document.getElementById('envNameInput').value.trim()) {
@@ -612,18 +653,22 @@
           }
         }
 
-        if (sendMode) {
-          /* Redirect back to envelopes list with success banner */
-          var envName = (document.getElementById('envNameInput').value || '').trim();
-          window.location.href = BACK_URL + '?success=1&name=' + encodeURIComponent(envName);
-        } else {
-          setSaveStatus('saved', 'Draft saved', 'fa-cloud');
-          /* Update status display if editing */
-          if (!isCreate) {
-            document.getElementById('statusMetaRow').style.display = '';
-            document.getElementById('statusDisplay').textContent = 'Draft';
+        /* Create/update cs_signer records so the Prepare Envelope flow can map
+           signer names and emails to Nintex template placeholders */
+        return syncSignerRecords(ENVELOPE_ID).then(function () {
+          if (sendMode) {
+            /* Redirect back to envelopes list with success banner */
+            var envName = (document.getElementById('envNameInput').value || '').trim();
+            window.location.href = BACK_URL + '?success=1&name=' + encodeURIComponent(envName);
+          } else {
+            setSaveStatus('saved', 'Draft saved', 'fa-cloud');
+            /* Update status display if editing */
+            if (!isCreate) {
+              document.getElementById('statusMetaRow').style.display = '';
+              document.getElementById('statusDisplay').textContent = 'Draft';
+            }
           }
-        }
+        });
       })
       .catch(function (err) {
         setSaveStatus('error', 'Save failed — ' + err.message, 'fa-exclamation-triangle');
