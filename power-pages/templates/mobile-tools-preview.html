@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Mobile Tools Panel Preview — Template Editor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #525659; color: #333; overflow: hidden; height: 100vh; height: 100dvh;
+}
+:root {
+  --gc-blue: #26374A; --gc-blue-light: #335075; --gc-red: #AF3C43;
+  --gc-green: #1B6C2A; --gc-gray: #E1E4E7; --gc-gray-dark: #333;
+  --panel-collapsed-h: 0px; /* headers only, no body visible */
+  --panel-min-h: 180px;
+  --panel-default-h: 40vh;
+  --panel-max-h: 75vh;
+}
+
+/* ── Simulated Editor Layout ──────────────────────────────────── */
+.sim-topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--gc-blue); color: #fff; padding: 8px 12px;
+  border-bottom: 3px solid var(--gc-red); flex-shrink: 0;
+}
+.sim-topbar .title { font-weight: 600; font-size: 0.95rem; }
+.sim-topbar .status { font-size: 0.7rem; color: #4caf50; }
+.sim-topbar button {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; padding: 4px 12px; border-radius: 3px; font-size: 0.8rem; cursor: pointer;
+}
+
+.sim-toolbar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  background: #333; color: #fff; padding: 6px 10px; font-size: 0.8rem; flex-shrink: 0;
+}
+.sim-toolbar button {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+  color: #fff; padding: 3px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer;
+}
+
+.sim-canvas {
+  flex: 1; overflow: auto; background: #525659; display: flex;
+  justify-content: center; align-items: flex-start; padding: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.sim-page {
+  background: #fff; width: 90%; max-width: 500px; min-height: 600px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4); padding: 30px; font-size: 0.85rem;
+}
+.sim-page h2 { font-size: 1.1rem; margin-bottom: 10px; color: var(--gc-blue); }
+.sim-page p { margin-bottom: 8px; color: #555; line-height: 1.5; }
+.sim-field {
+  position: absolute; border: 2px dashed var(--gc-red); border-radius: 3px;
+  background: rgba(175,60,67,0.12); display: flex; align-items: center;
+  justify-content: center; font-size: 0.6rem; color: var(--gc-red); font-weight: 600;
+}
+
+/* ── Bottom Tools Panel ───────────────────────────────────────── */
+.mobile-tools-panel {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: #fff; border-top: 1px solid #d0d0d0;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  z-index: 1000;
+  display: flex; flex-direction: column;
+  max-height: var(--panel-max-h);
+  transition: height 0.25s ease;
+  /* Default: collapsed — just headers visible */
+  height: var(--panel-collapsed-h);
+  overflow: hidden;
+}
+.mobile-tools-panel.expanded {
+  height: var(--panel-default-h);
+}
+
+/* ── Drag Handle ──────────────────────────────────────────────── */
+.panel-drag-handle {
+  display: flex; justify-content: center; align-items: center;
+  padding: 8px 0 4px; cursor: grab; flex-shrink: 0;
+  touch-action: none;
+}
+.panel-drag-handle:active { cursor: grabbing; }
+.panel-drag-bar {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: #ccc; transition: background 0.15s;
+}
+.panel-drag-handle:hover .panel-drag-bar,
+.panel-drag-handle:active .panel-drag-bar { background: #999; }
+
+/* ── Section Headers (always visible as collapsed tabs) ───────── */
+.panel-sections {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.panel-section { border-bottom: 1px solid #eee; }
+.panel-section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; font-weight: 600; font-size: 0.82rem;
+  color: #333; cursor: pointer; user-select: none; background: #fafafa;
+}
+.panel-section-header:active { background: #f0f0f0; }
+.panel-section-header .chevron {
+  transition: transform 0.2s; font-size: 0.7rem; color: #999;
+}
+.panel-section.open .chevron { transform: rotate(90deg); }
+.panel-section-body {
+  display: none; padding: 10px 14px;
+}
+.panel-section.open .panel-section-body { display: block; }
+
+/* ── Field Palette inside panel ───────────────────────────────── */
+.field-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+}
+.field-tile {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 10px 4px;
+  border: 1px solid #e0e0e0; border-radius: 6px;
+  font-size: 0.65rem; color: #555; text-align: center;
+  background: #fff; cursor: pointer; user-select: none;
+}
+.field-tile i { font-size: 1.1rem; margin-bottom: 3px; color: var(--gc-blue); }
+.field-tile:active { background: #e8f0fe; border-color: var(--gc-blue); }
+
+/* ── Signer rows ──────────────────────────────────────────────── */
+.signer-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px; border: 1px solid #e0e0e0; border-radius: 4px;
+  margin-bottom: 4px; background: #fff;
+}
+.signer-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.signer-label { flex: 1; font-size: 0.78rem; }
+.signer-order {
+  width: 18px; height: 18px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 0.6rem;
+  font-weight: 700; color: #fff; flex-shrink: 0;
+}
+
+/* ── Placed fields list ───────────────────────────────────────── */
+.placed-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 8px; border-radius: 4px; font-size: 0.75rem;
+  cursor: pointer; margin-bottom: 2px;
+}
+.placed-item:active { background: #e8f0fe; }
+.placed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Detail form fields ───────────────────────────────────────── */
+.detail-field { margin-bottom: 8px; }
+.detail-field label { font-size: 0.72rem; font-weight: 600; color: #555; display: block; margin-bottom: 2px; }
+.detail-field input, .detail-field textarea, .detail-field select {
+  width: 100%; padding: 5px 8px; border: 1px solid #d0d0d0; border-radius: 3px;
+  font-size: 0.8rem; font-family: inherit;
+}
+.detail-field textarea { resize: vertical; min-height: 50px; }
+
+/* ── Expand hint shown when collapsed ─────────────────────────── */
+.expand-hint {
+  display: none; text-align: center; padding: 6px;
+  font-size: 0.7rem; color: #999;
+}
+.mobile-tools-panel:not(.expanded) .expand-hint { display: block; }
+.mobile-tools-panel:not(.expanded) .panel-sections { display: none; }
+
+/* ── Full layout ──────────────────────────────────────────────── */
+.editor-layout {
+  display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+}
+
+/* Desktop: hide mobile panel */
+@media (min-width: 769px) {
+  .mobile-tools-panel { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="editor-layout">
+  <!-- Simulated Top Bar -->
+  <div class="sim-topbar">
+    <div>
+      <div class="title">IATO Form</div>
+      <div class="status"><i class="bi bi-cloud-check"></i> Saved</div>
+    </div>
+    <button>Save</button>
+  </div>
+
+  <!-- Simulated Toolbar -->
+  <div class="sim-toolbar">
+    <button><i class="bi bi-chevron-left"></i></button>
+    <span>Page 1 / 34</span>
+    <button><i class="bi bi-chevron-right"></i></button>
+    <span style="color:rgba(255,255,255,0.4);">|</span>
+    <button><i class="bi bi-zoom-out"></i></button>
+    <span>51%</span>
+    <button><i class="bi bi-zoom-in"></i></button>
+    <button><i class="bi bi-arrows-fullscreen"></i></button>
+  </div>
+
+  <!-- Simulated PDF Canvas -->
+  <div class="sim-canvas" id="simCanvas">
+    <div class="sim-page" style="position:relative;">
+      <h2>GOVERNMENT OF CANADA</h2>
+      <h2 style="background:var(--gc-blue);color:#fff;padding:10px;text-align:center;font-size:0.95rem;">
+        Interim Authority to Operate (iATO)
+      </h2>
+      <p><strong>System Name:</strong> ESign Elections Canada Broker Service</p>
+      <p><strong>Security Classification:</strong> PROTECTED B</p>
+      <p><strong>Security Profile:</strong> PBMM</p>
+      <p><strong>Assessed Date:</strong> 2026-03-04</p>
+      <p><strong>Expiry Date:</strong> 2026-06-12</p>
+      <br/>
+      <h2>Compliance Summary</h2>
+      <p><strong>Total Controls Assessed:</strong> 305</p>
+      <p><strong>Compliance Score:</strong> 3%</p>
+      <div style="height:8px;background:#e0e0e0;border-radius:4px;margin:8px 0;">
+        <div style="width:3%;height:100%;background:var(--gc-green);border-radius:4px;"></div>
+      </div>
+      <br/>
+      <p style="color:#999;font-size:0.75rem;">Scroll down to see more content...</p>
+      <br/><br/><br/>
+      <div style="border:1px solid #ccc;padding:20px;text-align:center;margin-top:20px;">
+        <p style="color:#999;">[Signature Field Area]</p>
+        <div style="border-bottom:2px solid #333;width:60%;margin:10px auto;"></div>
+      </div>
+      <br/><br/><br/>
+      <p>Additional terms and conditions follow on subsequent pages...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MOBILE TOOLS PANEL — pinned to bottom, drag-resizable
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mobile-tools-panel" id="toolsPanel">
+
+  <!-- Drag handle — user swipes up/down to resize -->
+  <div class="panel-drag-handle" id="dragHandle">
+    <div class="panel-drag-bar"></div>
+  </div>
+
+  <!-- Expand hint when collapsed -->
+  <div class="expand-hint"><i class="bi bi-chevron-up"></i> Swipe up for tools</div>
+
+  <!-- Scrollable sections -->
+  <div class="panel-sections" id="panelSections">
+
+    <!-- Details -->
+    <div class="panel-section" id="secDetails">
+      <div class="panel-section-header">
+        <span><i class="bi bi-info-circle me-2"></i>Details</span>
+        <i class="bi bi-chevron-right chevron"></i>
+      </div>
+      <div class="panel-section-body">
+        <div class="detail-field">
+          <label>Description</label>
+          <textarea placeholder="Brief description..."></textarea>
+        </div>
+        <div class="detail-field">
+          <label>Category</label>
+          <input type="text" placeholder="e.g. HR, Legal, Finance"/>
+        </div>
+        <div class="detail-field" style="display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="chkActive" checked/>
+          <label for="chkActive" style="margin:0;">Active</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signers -->
+    <div class="panel-section" id="secSigners">
+      <div class="panel-section-header">
+        <span><i class="bi bi-people me-2"></i>Signers</span>
+        <i class="bi bi-chevron-right chevron"></i>
+      </div>
+      <div class="panel-section-body">
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          <div style="flex:1;padding:5px 8px;border:1px solid var(--gc-blue);border-radius:4px;background:var(--gc-blue);color:#fff;font-size:0.72rem;text-align:center;font-weight:600;">Sequential</div>
+          <div style="flex:1;padding:5px 8px;border:1px solid #d0d0d0;border-radius:4px;font-size:0.72rem;text-align:center;color:#666;">All at once</div>
+        </div>
+        <div class="signer-row">
+          <div class="signer-order" style="background:#AF3C43;">1</div>
+          <div class="signer-dot" style="background:#AF3C43;"></div>
+          <div class="signer-label">Primary Signer</div>
+          <i class="bi bi-chevron-up" style="color:#bbb;font-size:0.7rem;"></i>
+          <i class="bi bi-chevron-down" style="color:#bbb;font-size:0.7rem;"></i>
+          <i class="bi bi-x" style="color:#c33;font-size:0.85rem;"></i>
+        </div>
+        <div class="signer-row">
+          <div class="signer-order" style="background:#1565C0;">2</div>
+          <div class="signer-dot" style="background:#1565C0;"></div>
+          <div class="signer-label">Counter-Signer</div>
+          <i class="bi bi-chevron-up" style="color:#bbb;font-size:0.7rem;"></i>
+          <i class="bi bi-chevron-down" style="color:#bbb;font-size:0.7rem;"></i>
+          <i class="bi bi-x" style="color:#c33;font-size:0.85rem;"></i>
+        </div>
+        <button style="width:100%;margin-top:6px;padding:6px;border:1px solid #d0d0d0;border-radius:4px;background:#fff;font-size:0.75rem;color:#555;cursor:pointer;">
+          <i class="bi bi-plus"></i> Add Signer
+        </button>
+      </div>
+    </div>
+
+    <!-- Fields -->
+    <div class="panel-section" id="secFields">
+      <div class="panel-section-header">
+        <span><i class="bi bi-puzzle me-2"></i>Fields</span>
+        <i class="bi bi-chevron-right chevron"></i>
+      </div>
+      <div class="panel-section-body">
+        <p style="font-size:0.7rem;color:#999;margin-bottom:6px;">Tap a field to place it on the document</p>
+        <div class="field-grid">
+          <div class="field-tile"><i class="bi bi-pen"></i><span>Signature</span></div>
+          <div class="field-tile"><i class="bi bi-type-italic"></i><span>Initials</span></div>
+          <div class="field-tile"><i class="bi bi-calendar-check"></i><span>Date Signed</span></div>
+          <div class="field-tile"><i class="bi bi-fonts"></i><span>Text</span></div>
+          <div class="field-tile"><i class="bi bi-check-square"></i><span>Checkbox</span></div>
+          <div class="field-tile"><i class="bi bi-person"></i><span>Full Name</span></div>
+          <div class="field-tile"><i class="bi bi-envelope-at"></i><span>Email</span></div>
+          <div class="field-tile"><i class="bi bi-building"></i><span>Company</span></div>
+          <div class="field-tile"><i class="bi bi-briefcase"></i><span>Title</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placed Fields -->
+    <div class="panel-section" id="secPlaced">
+      <div class="panel-section-header">
+        <span><i class="bi bi-list-check me-2"></i>Placed Fields <span style="background:#6c757d;color:#fff;border-radius:10px;padding:1px 7px;font-size:0.65rem;margin-left:4px;">2</span></span>
+        <i class="bi bi-chevron-right chevron"></i>
+      </div>
+      <div class="panel-section-body">
+        <div class="placed-item">
+          <div class="placed-dot" style="background:#AF3C43;"></div>
+          <span style="flex:1;">Signature</span>
+          <span style="color:#999;font-size:0.65rem;">P1</span>
+        </div>
+        <div class="placed-item">
+          <div class="placed-dot" style="background:#1565C0;"></div>
+          <span style="flex:1;">Date Signed</span>
+          <span style="color:#999;font-size:0.65rem;">P1</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-sections -->
+</div><!-- /mobile-tools-panel -->
+
+<script>
+(function () {
+  'use strict';
+
+  var panel     = document.getElementById('toolsPanel');
+  var handle    = document.getElementById('dragHandle');
+  var sections  = document.getElementById('panelSections');
+
+  /* ── Section accordion toggle ─────────────────────────────── */
+  document.querySelectorAll('.panel-section-header').forEach(function (hdr) {
+    hdr.addEventListener('click', function () {
+      var sec = this.parentElement;
+      /* If panel is collapsed, expand it first */
+      if (!panel.classList.contains('expanded')) {
+        panel.classList.add('expanded');
+        panel.style.height = 'var(--panel-default-h)';
+      }
+      sec.classList.toggle('open');
+    });
+  });
+
+  /* ── Drag-to-resize via handle ────────────────────────────── */
+  var isDragging = false;
+  var startY     = 0;
+  var startH     = 0;
+
+  function getHeight() {
+    return panel.getBoundingClientRect().height;
+  }
+
+  function setHeight(h) {
+    var minH = 60;  /* enough for drag bar + hint */
+    var maxH = window.innerHeight * 0.75;
+    h = Math.max(minH, Math.min(h, maxH));
+    panel.style.height = h + 'px';
+
+    /* Toggle expanded class based on whether panel is meaningfully open */
+    if (h > 100) {
+      panel.classList.add('expanded');
+    } else {
+      panel.classList.remove('expanded');
+    }
+  }
+
+  /* Touch events */
+  handle.addEventListener('touchstart', function (e) {
+    isDragging = true;
+    startY = e.touches[0].clientY;
+    startH = getHeight();
+    panel.style.transition = 'none';
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function (e) {
+    if (!isDragging) return;
+    var dy = startY - e.touches[0].clientY; /* positive = swipe up = grow */
+    setHeight(startH + dy);
+  }, { passive: true });
+
+  document.addEventListener('touchend', function () {
+    if (!isDragging) return;
+    isDragging = false;
+    panel.style.transition = '';
+
+    /* Snap: if very small, collapse; otherwise keep */
+    var h = getHeight();
+    if (h < 100) {
+      panel.classList.remove('expanded');
+      panel.style.height = '';
+    }
+  });
+
+  /* Mouse events (for desktop testing) */
+  handle.addEventListener('mousedown', function (e) {
+    isDragging = true;
+    startY = e.clientY;
+    startH = getHeight();
+    panel.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function (e) {
+    if (!isDragging) return;
+    var dy = startY - e.clientY;
+    setHeight(startH + dy);
+  });
+
+  document.addEventListener('mouseup', function () {
+    if (!isDragging) return;
+    isDragging = false;
+    panel.style.transition = '';
+    var h = getHeight();
+    if (h < 100) {
+      panel.classList.remove('expanded');
+      panel.style.height = '';
+    }
+  });
+
+  /* ── Adjust canvas bottom padding so content isn't hidden behind panel ── */
+  var canvas = document.getElementById('simCanvas');
+  var ro = new ResizeObserver(function () {
+    canvas.style.paddingBottom = getHeight() + 'px';
+  });
+  ro.observe(panel);
+
+  /* ── Initial state: collapsed with headers as tabs ─────────── */
+  /* Panel starts without .expanded — shows drag bar + "Swipe up" hint */
+
+})();
+</script>
+
+</body>
+</html>
