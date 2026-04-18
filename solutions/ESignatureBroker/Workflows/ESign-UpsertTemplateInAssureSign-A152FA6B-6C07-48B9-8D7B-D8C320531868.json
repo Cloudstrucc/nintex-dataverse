@@ -455,8 +455,8 @@
               "required": "@item()?['required']",
               "pageIndex": "@sub(item()?['page'], 1)",
               "position": {
-                "x": "@min(div(float(item()?['x']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.99)",
-                "y": "@min(div(float(item()?['y']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), 0.99)"
+                "x": "@min(div(float(item()?['x']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), sub(1.0, min(div(float(item()?['w']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.5)))",
+                "y": "@min(div(float(item()?['y']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), sub(1.0, min(div(float(item()?['h']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), 0.25)))"
               },
               "size": {
                 "width": "@min(div(float(item()?['w']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.5)",
