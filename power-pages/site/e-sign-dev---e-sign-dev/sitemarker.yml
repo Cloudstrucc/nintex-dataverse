@@ -4,6 +4,9 @@
 - adx_name: Home
   adx_pageid: 696f7f46-dd3a-48b6-a333-3e9b17859607
   adx_sitemarkerid: 1bac48b0-62b3-4521-b6c9-eff106c879e3
+- adx_name: QuickLink2
+  adx_pageid: 82f204cf-5de3-460d-8423-9ca2eea9544f
+  adx_sitemarkerid: 952fdf6b-463a-f111-88b5-7ced8da586db
 - adx_name: Page Not Found
   adx_pageid: 77d3561d-1827-4bf1-bb73-16cbef6cf3f2
   adx_sitemarkerid: 9a26fb21-9ffb-4f2a-a226-6b573305d796
@@ -13,3 +16,6 @@
 - adx_name: Access Denied
   adx_pageid: e9c4dab4-409e-491c-a9c8-9d76acb03353
   adx_sitemarkerid: f7963b31-4236-464e-95e3-e7747c30e2b0
+- adx_name: QuickLink1
+  adx_pageid: 248f3b2d-3f3a-f111-88b5-7ced8da586db
+  adx_sitemarkerid: fbd16859-463a-f111-88b5-7ced8da586db

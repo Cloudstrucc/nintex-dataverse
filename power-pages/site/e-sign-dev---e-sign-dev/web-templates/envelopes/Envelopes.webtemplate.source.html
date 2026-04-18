@@ -1,211 +1,465 @@
-<div class="container py-4">
-<nav class="gc-breadcrumb" aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active">Envelopes</li>
-    </ol>
-</nav>
+{% comment %}
+  Elections Canada – ESIGN
+  All Envelopes Web Template  (/envelopes)
+  NO inline on* handlers — CSP compliant.
+  Snippet namespace: ESIGN/ENVELOPES/*
+{% endcomment %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-envelope me-2"></i>Envelopes</h2>
-    <button class="btn btn-gc-primary" data-bs-toggle="modal" data-bs-target="#newEnvelopeModal">
-        <i class="bi bi-plus-circle me-1"></i>New Envelope
-    </button>
-</div>
+{% if user %}
 
-<!-- Filter Bar -->
-<div class="gc-card card mb-4">
-    <div class="card-body py-2">
-        <div class="row g-2 align-items-center">
-            <div class="col-md-4">
-                <input type="text" id="searchEnvelopes" class="form-control form-control-sm" placeholder="Search envelopes..."/>
-            </div>
-            <div class="col-md-3">
-                <select id="filterStatus" class="form-select form-select-sm">
-                    <option value="">All Statuses</option>
-                    <option value="Draft">Draft</option>
-                    <option value="ReadyToSend">Ready to Send</option>
-                    <option value="Sent">Sent</option>
-                    <option value="Signed">Signed</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-sm btn-outline-secondary w-100" onclick="loadEnvelopes()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                </button>
-            </div>
-        </div>
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+
+    <!-- ── Success banner (populated from ?success=1&name=... redirect) ── -->
+    <div id="env-success-banner" class="alert alert-success" style="display:none;" role="alert">
+      <button id="btn-dismiss-success" type="button" class="close" style="float:right;font-size:1.2rem;background:none;border:none;cursor:pointer;">&times;</button>
+      <span class="fa fa-check-circle mrgn-rght-sm"></span>
+      <strong id="env-success-title">Envelope submitted.</strong>
+      <p class="mrgn-bttm-0" id="env-success-body"></p>
     </div>
-</div>
 
-<!-- Envelopes Table -->
-<div class="gc-card card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-gc table-hover mb-0">
+    <!-- ── Page header ─────────────────────────────────────────────────── -->
+    <section class="row mrgn-bttm-md">
+      <div class="col-sm-8">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb" style="background:none;padding:0;margin-bottom:8px;font-size:13px;">
+            <li><a href="/">{{ snippets['ESIGN/BC/HOME'] | default: 'Home' }}</a></li>
+            <li class="active">{{ snippets['ESIGN/ENVELOPES/TITLE'] | default: 'Envelopes' }}</li>
+          </ol>
+        </nav>
+        <h1 class="h2 mrgn-tp-0">
+          <span class="fa fa-envelope mrgn-rght-sm" style="color:#26374A;"></span>
+          {{ snippets['ESIGN/ENVELOPES/TITLE'] | default: 'Envelopes' }}
+        </h1>
+        <p class="text-muted">{{ snippets['ESIGN/ENVELOPES/DESC'] | default: 'Create and manage electronic signature envelopes. Click <strong>New Envelope</strong> to start a signing workflow.' }}</p>
+      </div>
+      <div class="col-sm-4 text-right" style="padding-top:28px;">
+        <a href="/envelopes/edit-envelope/"
+           class="btn btn-default"
+           style="border-color:#26374A;color:#26374A;border-radius:0;font-weight:600;text-decoration:none;">
+          <span class="fa fa-plus mrgn-rght-sm"></span>
+          {{ snippets['ESIGN/ENVELOPES/NEW_BTN'] | default: 'New Envelope' }}
+        </a>
+      </div>
+    </section>
+
+    <!-- ── Filter bar ──────────────────────────────────────────────────── -->
+    <section class="row mrgn-bttm-md" style="display:flex;align-items:center;flex-wrap:wrap;">
+      <div class="col-md-6 col-sm-8">
+        <!-- Pure flex wrapper — avoids Bootstrap 3 input-group display:table -->
+        <div style="display:flex;align-items:stretch;width:100%;">
+          <input type="text" id="env-search" class="form-control"
+                 placeholder="{{ snippets['ESIGN/ENVELOPES/SEARCH_PH'] | default: 'Search envelopes...' }}"
+                 style="flex:1 1 auto;border-radius:0;border-color:#ccc;height:34px;min-width:0;">
+          <button id="env-search-btn" class="btn btn-default" type="button"
+                  style="flex-shrink:0;width:34px;height:34px;padding:0;border-radius:0;
+                         background:#26374A;color:#fff;border-color:#26374A;
+                         display:flex;align-items:center;justify-content:center;">
+            <span class="fa fa-search"></span>
+            <span class="wb-inv">Search</span>
+          </button>
+        </div>
+      </div>
+      <div class="col-md-3 col-md-offset-3 col-sm-4">
+        <select id="env-status-filter" class="form-control" style="border-radius:0;border-color:#ccc;">
+          <option value="">{{ snippets['ESIGN/ENVELOPES/ALL_STATUSES'] | default: 'All Statuses' }}</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ── Table panel ─────────────────────────────────────────────────── -->
+    <section class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background:#26374A;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h2 class="panel-title" style="font-weight:600;color:#fff;font-size:15px;">
+                <span class="fa fa-table mrgn-rght-sm"></span>
+                {{ snippets['ESIGN/ENVELOPES/TABLE_HEADING'] | default: 'Signature Envelopes' }}
+              </h2>
+              <span id="env-count"
+                    style="background:rgba(0,0,0,0.35);color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:3px;display:inline-block;white-space:nowrap;"></span>
+            </div>
+          </div>
+
+          <div id="env-loading" class="panel-body text-center" style="padding:40px;">
+            <span class="fa fa-spinner fa-spin" style="font-size:2rem;color:#26374A;display:block;margin-bottom:10px;"></span>
+            <p class="text-muted mrgn-bttm-0">{{ snippets['ESIGN/ENVELOPES/LOADING'] | default: 'Loading envelopes...' }}</p>
+          </div>
+
+          <div id="env-error" class="panel-body" style="display:none;">
+            <div class="alert alert-danger mrgn-bttm-0" role="alert">
+              <span class="fa fa-exclamation-triangle mrgn-rght-sm"></span>
+              <strong>{{ snippets['ESIGN/ENVELOPES/ERR_TITLE'] | default: 'Unable to load envelopes.' }}</strong>
+              <br><small id="env-error-detail" class="text-muted"></small>
+            </div>
+          </div>
+
+          <div id="env-table-wrap" class="panel-body" style="display:none;padding:0;">
+            <div class="table-responsive">
+              <table class="table table-hover mrgn-bttm-0" id="env-table">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Signers</th>
-                        <th>Documents</th>
-                        <th>Created</th>
-                        <th>Modified</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
+                  <tr style="background:#f5f5f5;">
+                    <th style="width:32%;">{{ snippets['ESIGN/ENVELOPES/COL_NAME']     | default: 'Envelope Name' }}</th>
+                    <th style="width:14%;">{{ snippets['ESIGN/ENVELOPES/COL_STATUS']   | default: 'Status' }}</th>
+                    <th style="width:20%;">{{ snippets['ESIGN/ENVELOPES/COL_TEMPLATE'] | default: 'Template' }}</th>
+                    <th style="width:14%;">{{ snippets['ESIGN/ENVELOPES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:20%;" class="text-center">{{ snippets['ESIGN/ENVELOPES/COL_ACTIONS'] | default: 'Actions' }}</th>
+                  </tr>
                 </thead>
-                <tbody id="envelopes-body">
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="spinner-border spinner-border-sm text-muted" role="status"></div>
-                            <span class="text-muted ms-2">Loading envelopes...</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- New Envelope Modal -->
-<div class="modal fade" id="newEnvelopeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background: var(--gc-blue); color: white;">
-                <h5 class="modal-title"><i class="bi bi-send me-2"></i>Create New Envelope</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <tbody id="env-tbody"></tbody>
+              </table>
             </div>
-            <div class="modal-body">
-                <form id="newEnvelopeForm">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Envelope Name</label>
-                        <input type="text" id="envName" class="form-control" required placeholder="e.g. Contract - John Smith"/>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Template (optional)</label>
-                        <select id="envTemplate" class="form-select">
-                            <option value="">No template - upload document</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="uploadSection">
-                        <label class="form-label fw-bold">Upload Document</label>
-                        <input type="file" id="envDocument" class="form-control" accept=".docx,.doc,.pdf"/>
-                        <div class="form-text">Supported formats: .docx, .doc, .pdf</div>
-                    </div>
+          </div>
 
-                    <hr/>
-                    <h6><i class="bi bi-people me-1"></i>Signers</h6>
-                    <div id="signersList" class="mb-3"></div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addSignerRow()">
-                        <i class="bi bi-plus me-1"></i>Add Signer
-                    </button>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-gc-primary" onclick="createEnvelope()">
-                    <i class="bi bi-send me-1"></i>Create Envelope
+          <div id="env-empty" class="panel-body text-center" style="display:none;padding:50px 20px;">
+            <span class="fa fa-inbox" style="font-size:3rem;color:#ccc;display:block;margin-bottom:15px;"></span>
+            <h3 class="h4" style="color:#555;">{{ snippets['ESIGN/ENVELOPES/EMPTY_TITLE'] | default: 'No envelopes found' }}</h3>
+            <p class="text-muted">{{ snippets['ESIGN/ENVELOPES/EMPTY_DESC'] | default: 'No envelopes match your search. Create your first envelope to start a signing workflow.' }}</p>
+            <a href="/envelopes/edit-envelope/"
+               class="btn btn-default"
+               style="border-color:#26374A;color:#26374A;border-radius:0;margin-top:10px;text-decoration:none;">
+              <span class="fa fa-plus mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/ENVELOPES/NEW_BTN'] | default: 'New Envelope' }}
+            </a>
+          </div>
+
+          <div id="env-pagination" class="panel-footer"
+               style="display:none;background:#f9f9f9;border-top:1px solid #ddd;padding:10px 15px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span id="env-page-info" class="small text-muted"></span>
+              <div>
+                <button id="env-prev" class="btn btn-xs btn-default" style="border-radius:0;" disabled>
+                  <span class="fa fa-chevron-left mrgn-rght-xs"></span>
+                  {{ snippets['ESIGN/TEMPLATES/PREV'] | default: 'Previous' }}
                 </button>
+                <button id="env-next" class="btn btn-xs btn-default" style="border-radius:0;margin-left:4px;" disabled>
+                  {{ snippets['ESIGN/TEMPLATES/NEXT'] | default: 'Next' }}
+                  <span class="fa fa-chevron-right mrgn-lft-xs"></span>
+                </button>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
+    </section>
 
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     NEW ENVELOPE MODAL — select template → name → Continue
+     ══════════════════════════════════════════════════════════════════════ -->
 <script>
-var signerCount = 0;
+(function () {
+  'use strict';
 
-function addSignerRow() {
-    signerCount++;
-    var html = '<div class="row g-2 mb-2 signer-row" id="signer-' + signerCount + '">' +
-        '<div class="col-md-4"><input type="text" class="form-control form-control-sm signer-name" placeholder="Full Name" required/></div>' +
-        '<div class="col-md-4"><input type="email" class="form-control form-control-sm signer-email" placeholder="Email" required/></div>' +
-        '<div class="col-md-2"><input type="number" class="form-control form-control-sm signer-order" placeholder="Order" value="' + signerCount + '" min="1"/></div>' +
-        '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.closest(\'.signer-row\').remove()"><i class="bi bi-trash"></i></button></div>' +
-        '</div>';
-    document.getElementById('signersList').innerHTML += html;
-}
+  /* ── Config ──────────────────────────────────────────────────────────── */
+  var PAGE_SIZE   = 15;
+  var API_ENV     = '/_api/cs_envelopes';
+  var API_TPL     = '/_api/cs_templates';
+  var EDITOR_URL  = '/envelopes/edit-envelope/';
+  /* Cancelled statuscode — standard Dataverse inactive.
+     Verify this matches your cs_envelope status choices in make.powerapps.com. */
+  var STATUSCODE_CANCELLED = 2;
 
-function createEnvelope() {
-    var name = document.getElementById('envName').value;
-    if (!name) { alert('Please enter an envelope name.'); return; }
+  var SELECT_COLS = [
+    'cs_envelopeid','cs_name','statuscode','statecode',
+    'modifiedon','createdon','cs_templateid'
+  ].join(',');
 
-    var signerRows = document.querySelectorAll('.signer-row');
-    if (signerRows.length === 0) { alert('Please add at least one signer.'); return; }
+  /* ── State ───────────────────────────────────────────────────────────── */
+  var allRecords  = [];
+  var filtered    = [];
+  var currentPage = 1;
 
-    var envelope = {
-        cs_name: name,
-        cs_status: 'Draft'
-    };
+  /* ── DOM refs ────────────────────────────────────────────────────────── */
+  var elLoading, elError, elTableWrap, elEmpty, elTbody,
+      elCount, elPagWrap, elPageInfo, elPrev, elNext,
+      elSearch, elStatusFilter;
 
-    // Create envelope via Dataverse Web API
-    shell.ajaxSafePost({
-        url: '/_api/cs_envelopes',
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  function show(el) { el.style.display = ''; }
+  function hide(el) { el.style.display = 'none'; }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '--';
+    return new Date(iso).toLocaleDateString('en-CA');
+  }
+
+  function getStatusStyle(label) {
+    var v = (label || '').toLowerCase();
+    if (v.indexOf('signed')    >= 0) return 'background:#1a5336;color:#fff;';
+    if (v.indexOf('sent')      >= 0) return 'background:#005a70;color:#fff;';
+    if (v.indexOf('preparing') >= 0) return 'background:#26374A;color:#fff;';
+    if (v.indexOf('cancel')    >= 0) return 'background:#922B31;color:#fff;';
+    if (v.indexOf('declined')  >= 0) return 'background:#d83b01;color:#fff;';
+    if (v.indexOf('void')      >= 0) return 'background:#d83b01;color:#fff;';
+    return 'background:#767676;color:#fff;'; /* Draft / unknown */
+  }
+
+  /* ── safeAjax (shell.getTokenDeferred) ──────────────────────────────── */
+  function safeAjax(opts) {
+    var d = $.Deferred();
+    shell.getTokenDeferred().done(function (token) {
+      if (!opts.headers) opts.headers = {};
+      opts.headers['__RequestVerificationToken'] = token;
+      $.ajax(opts).done(function (data, s, xhr) { d.resolve(data, s, xhr); })
+                  .fail(function (xhr, s, e)    { d.reject(xhr, s, e); });
+    }).fail(function () { d.rejectWith(this, arguments); });
+    return d.promise();
+  }
+
+  function portalGet(url) {
+    return new Promise(function (resolve, reject) {
+      $.ajax({ type: 'GET', url: url, headers: { 'Accept': 'application/json' } })
+       .done(resolve).fail(function (xhr) {
+         reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText));
+       });
+    });
+  }
+
+  function portalPatch(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'PATCH', url: url,
         contentType: 'application/json',
-        data: JSON.stringify(envelope),
-        success: function(data) {
-            var modal = bootstrap.Modal.getInstance(document.getElementById('newEnvelopeModal'));
-            modal.hide();
-            loadEnvelopes();
-            alert('Envelope created successfully!');
-        },
-        error: function(xhr) {
-            alert('Error creating envelope: ' + (xhr.responseText || 'Unknown error'));
-        }
+        data: JSON.stringify(payload),
+        headers: { 'Accept': 'application/json', 'If-Match': '*' }
+      }).done(function (data, s, xhr) { resolve(xhr.status === 204 ? null : data); })
+        .fail(function (xhr) { reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText)); });
     });
-}
+  }
 
-function loadEnvelopes() {
-    var filter = '';
-    var status = document.getElementById('filterStatus').value;
-    var search = document.getElementById('searchEnvelopes').value;
-
-    var url = '/_api/cs_envelopes?$orderby=createdon desc&$top=50';
-    if (status) url += "&$filter=cs_status eq '" + status + "'";
-
-    shell.ajaxSafeGet({
-        url: url,
-        success: function(data) {
-            var tbody = document.getElementById('envelopes-body');
-            if (!data || !data.value || data.value.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">' +
-                    '<i class="bi bi-inbox" style="font-size: 2rem;"></i>' +
-                    '<p class="mb-0 mt-2">No envelopes found.</p></td></tr>';
-                return;
-            }
-            tbody.innerHTML = '';
-            data.value.forEach(function(env) {
-                var statusClass = 'badge-draft';
-                var status = env.cs_status || 'Draft';
-                if (status === 'Signed') statusClass = 'badge-signed';
-                else if (status === 'Sent') statusClass = 'badge-sent';
-                else if (status === 'ReadyToSend') statusClass = 'badge-ready';
-                else if (status === 'Cancelled') statusClass = 'badge-cancelled';
-
-                var row = '<tr>' +
-                    '<td><a href="/document-viewer/?id=' + env.cs_envelopeid + '">' + (env.cs_name || 'Untitled') + '</a></td>' +
-                    '<td><span class="badge ' + statusClass + '">' + status + '</span></td>' +
-                    '<td>--</td><td>--</td>' +
-                    '<td>' + new Date(env.createdon).toLocaleDateString() + '</td>' +
-                    '<td>' + new Date(env.modifiedon).toLocaleDateString() + '</td>' +
-                    '<td class="text-end">' +
-                    '<a href="/document-viewer/?id=' + env.cs_envelopeid + '" class="btn btn-sm btn-gc-primary me-1" title="View"><i class="bi bi-eye"></i></a>' +
-                    '<button class="btn btn-sm btn-gc-danger" title="Cancel" onclick="cancelEnvelope(\'' + env.cs_envelopeid + '\')"><i class="bi bi-x-circle"></i></button>' +
-                    '</td></tr>';
-                tbody.innerHTML += row;
-            });
-        },
-        error: function() {
-            document.getElementById('envelopes-body').innerHTML =
-                '<tr><td colspan="7" class="text-center text-danger py-4">Error loading envelopes.</td></tr>';
-        }
+  /* ── Category / status filter ────────────────────────────────────────── */
+  function buildStatusFilter(records) {
+    var seen = {};
+    records.forEach(function (r) {
+      var label = r['statuscode@OData.Community.Display.V1.FormattedValue'] || '';
+      if (label && !seen[label]) {
+        seen[label] = true;
+        var opt = document.createElement('option');
+        opt.value = label; opt.textContent = label;
+        elStatusFilter.appendChild(opt);
+      }
     });
-}
+  }
 
-// Add first signer row and load envelopes on page load
-document.addEventListener('DOMContentLoaded', function() {
-    addSignerRow();
+  /* ── Render page ─────────────────────────────────────────────────────── */
+  function renderPage() {
+    var total = filtered.length;
+    var start = (currentPage - 1) * PAGE_SIZE;
+    var end   = Math.min(start + PAGE_SIZE, total);
+    var page  = filtered.slice(start, end);
+
+    elTbody.innerHTML = '';
+    if (total === 0) { hide(elTableWrap); hide(elPagWrap); show(elEmpty); elCount.textContent = '0 envelopes'; return; }
+    hide(elEmpty); show(elTableWrap);
+
+    page.forEach(function (env) {
+      var statusLabel = env['statuscode@OData.Community.Display.V1.FormattedValue'] || 'Draft';
+      var badge       = getStatusStyle(statusLabel);
+      var isEditable  = env.statecode === 0 && statusLabel.toLowerCase().indexOf('preparing') < 0
+                        && statusLabel.toLowerCase().indexOf('sent') < 0
+                        && statusLabel.toLowerCase().indexOf('signed') < 0;
+      var isCancellable = env.statecode === 0
+                          && statusLabel.toLowerCase().indexOf('cancel') < 0
+                          && statusLabel.toLowerCase().indexOf('signed') < 0;
+      var viewHref  = EDITOR_URL + '?id=' + esc(env.cs_envelopeid);
+      var viewIcon  = isEditable ? 'fa-pencil' : 'fa-eye';
+      var viewTitle = isEditable ? 'Edit envelope' : 'View envelope';
+      var viewLabel = isEditable ? 'Edit'          : 'View';
+      var tplDisplay = env.cs_templateid ? env.cs_templateid.substring(0, 8) + '…' : '--';
+
+      var cancelBtn = isCancellable
+        ? '<button type="button" class="btn btn-xs btn-default env-cancel-btn" ' +
+            'style="border-color:#922B31;color:#922B31;border-radius:0;" ' +
+            'data-id="' + esc(env.cs_envelopeid) + '" data-name="' + esc(env.cs_name || 'this envelope') + '" ' +
+            'title="Cancel envelope"><span class="fa fa-ban mrgn-rght-xs"></span>Cancel</button>'
+        : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" disabled title="Cannot cancel">' +
+            '<span class="fa fa-ban mrgn-rght-xs"></span>Cancel</button>';
+
+      elTbody.innerHTML +=
+        '<tr>' +
+          '<td><strong>' + esc(env.cs_name || 'Untitled') + '</strong></td>' +
+          '<td><span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
+            esc(statusLabel) + '</span></td>' +
+          '<td><span class="small text-muted">' + esc(tplDisplay) + '</span></td>' +
+          '<td>' + fmtDate(env.modifiedon) + '</td>' +
+          '<td class="text-center" style="white-space:nowrap;">' +
+            '<a href="' + viewHref + '" class="btn btn-xs btn-default" ' +
+               'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
+               'title="' + viewTitle + '">' +
+               '<span class="fa ' + viewIcon + ' mrgn-rght-xs"></span>' + viewLabel + '</a>' +
+            cancelBtn +
+          '</td>' +
+        '</tr>';
+    });
+
+    elCount.textContent = total + (total === 1 ? ' envelope' : ' envelopes');
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    elPageInfo.textContent = 'Showing ' + (start + 1) + '–' + end + ' of ' + total;
+    elPrev.disabled = (currentPage === 1);
+    elNext.disabled = (currentPage >= totalPages);
+    if (total > PAGE_SIZE) { show(elPagWrap); } else { hide(elPagWrap); }
+
+    /* Wire cancel buttons (no inline handlers) */
+    elTbody.querySelectorAll('.env-cancel-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        cancelEnvelope(this.getAttribute('data-id'), this.getAttribute('data-name'));
+      });
+    });
+  }
+
+  /* ── Filter ──────────────────────────────────────────────────────────── */
+  function applyFilters() {
+    var q   = (elSearch.value || '').toLowerCase().trim();
+    var st  = elStatusFilter.value;
+    currentPage = 1;
+    filtered = allRecords.filter(function (r) {
+      var nm = !q || (r.cs_name || '').toLowerCase().indexOf(q) >= 0;
+      var sm = !st || (r['statuscode@OData.Community.Display.V1.FormattedValue'] || '') === st;
+      return nm && sm;
+    });
+    renderPage();
+  }
+
+  /* ── Load envelopes ──────────────────────────────────────────────────── */
+  function loadEnvelopes() {
+    hide(elError); hide(elTableWrap); hide(elEmpty);
+    show(elLoading);
+    portalGet(API_ENV + '?$orderby=modifiedon desc&$select=' + SELECT_COLS)
+      .then(function (data) {
+        hide(elLoading);
+        if (!data || !data.value) { show(elError); return; }
+        allRecords = data.value;
+        filtered   = allRecords.slice();
+        buildStatusFilter(allRecords);
+        renderPage();
+      })
+      .catch(function (err) {
+        hide(elLoading);
+        var d = document.getElementById('env-error-detail');
+        if (d) { d.innerHTML = '<code style="font-size:11px;">' + esc(err.message) + '</code>'; }
+        show(elError);
+      });
+  }
+
+  /* ── Cancel envelope ─────────────────────────────────────────────────── */
+  function cancelEnvelope(id, name) {
+    if (!confirm('Cancel envelope "' + name + '"?\n\nThis cannot be undone. The envelope will be deactivated and signers will not be able to complete signing.')) {
+      return;
+    }
+    /* STATUSCODE_CANCELLED = 2 (standard Dataverse inactive).
+       If your cs_envelope table has a custom "Cancelled" choice value, replace 2 below. */
+    portalPatch(API_ENV + '(' + id + ')', { statecode: 1, statuscode: STATUSCODE_CANCELLED })
+      .then(function () { loadEnvelopes(); })
+      .catch(function (err) {
+        var d = document.getElementById('env-error-detail');
+        if (d) { d.textContent = 'Cancel failed: ' + err.message; }
+        show(elError);
+      });
+  }
+
+  /* ── Success banner ──────────────────────────────────────────────────── */
+  function checkSuccessBanner() {
+    var params  = new URLSearchParams(window.location.search);
+    if (!params.get('success')) return;
+    var name    = params.get('name') ? decodeURIComponent(params.get('name')) : 'The envelope';
+    var banner  = document.getElementById('env-success-banner');
+    var title   = document.getElementById('env-success-title');
+    var body    = document.getElementById('env-success-body');
+    title.textContent = 'Envelope submitted for processing.';
+    body.innerHTML =
+      '<strong>"' + esc(name) + '"</strong> has been queued in Nintex AssureSign. ' +
+      'Recipients will receive signature request emails shortly. ' +
+      'The envelope status will update to <em>Sent</em> once Nintex confirms delivery, ' +
+      'and to <em>Signed</em> once all parties have completed signing. ' +
+      'You can monitor progress in this table.';
+    show(banner);
+    /* Remove ?success params from URL without reloading */
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    elLoading     = document.getElementById('env-loading');
+    elError       = document.getElementById('env-error');
+    elTableWrap   = document.getElementById('env-table-wrap');
+    elEmpty       = document.getElementById('env-empty');
+    elTbody       = document.getElementById('env-tbody');
+    elCount       = document.getElementById('env-count');
+    elPagWrap     = document.getElementById('env-pagination');
+    elPageInfo    = document.getElementById('env-page-info');
+    elPrev        = document.getElementById('env-prev');
+    elNext        = document.getElementById('env-next');
+    elSearch      = document.getElementById('env-search');
+    elStatusFilter= document.getElementById('env-status-filter');
+
+    /* Search */
+    document.getElementById('env-search-btn').addEventListener('click', applyFilters);
+    elSearch.addEventListener('keyup', function (e) { if (e.key === 'Enter') applyFilters(); });
+    elStatusFilter.addEventListener('change', applyFilters);
+
+    /* Pagination */
+    elPrev.addEventListener('click', function () { if (currentPage > 1) { currentPage--; renderPage(); } });
+    elNext.addEventListener('click', function () {
+      if (currentPage < Math.ceil(filtered.length / PAGE_SIZE)) { currentPage++; renderPage(); }
+    });
+
+    /* Dismiss success banner */
+    document.getElementById('btn-dismiss-success').addEventListener('click', function () {
+      hide(document.getElementById('env-success-banner'));
+    });
+
+    checkSuccessBanner();
     loadEnvelopes();
-});
+  });
+
+})();
 </script>
-</div>
+
+<!-- GCWeb Footer -->
+<footer id="wb-info" style="background:#26374A;padding:20px 0;margin-top:40px;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK1'] | default: 'Terms &amp; Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg"
+             alt="Symbol of the Government of Canada" style="height:24px;filter:brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% else %}
+<script>window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);</script>
+{% endif %}
+
+<style>
+  .pepp-app  { background: #f9f9f9; min-height: calc(100vh - 200px); }
+  .panel     { border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  #env-table th { font-size: 13px; white-space: nowrap; }
+  #env-table td { vertical-align: middle; font-size: 14px; }
+  #env-table tbody tr:hover { background: #f0f4f8; }
+  .breadcrumb li + li::before { content: "/ "; }
+  /* Search bar — inline flex handles layout; CSS here as extra safety */
+  #env-search { height: 34px; flex: 1 1 auto; min-width: 0; }
+  #env-search-btn {
+    width: 34px !important; height: 34px !important;
+    padding: 0 !important; flex-shrink: 0;
+    display: flex !important; align-items: center; justify-content: center;
+  }
+</style>

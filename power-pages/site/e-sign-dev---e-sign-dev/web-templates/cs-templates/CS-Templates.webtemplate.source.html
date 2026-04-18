@@ -1,0 +1,254 @@
+<div class="container py-4">
+<nav class="gc-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Templates</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-text me-2"></i>Templates</h2>
+    <a href="/template-editor" class="btn btn-gc-primary">
+        <i class="bi bi-plus-circle me-1"></i>New Template
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="gc-card card mb-4">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <input type="text" id="searchTemplates" class="form-control form-control-sm" placeholder="Search templates..." oninput="filterTemplates()"/>
+            </div>
+            <div class="col-md-3">
+                <select id="filterCategory" class="form-select form-select-sm" onchange="filterTemplates()">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="filterStatus" class="form-select form-select-sm" onchange="filterTemplates()">
+                    <option value="">All Statuses</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadTemplates()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Templates Table -->
+<div class="gc-card card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-gc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"></th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Last Modified</th>
+                        <th class="text-end" style="width: 180px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="templates-body">
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-muted" role="status"></div>
+                            <span class="text-muted ms-2">Loading templates...</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-3" id="pagination-bar" style="display: none !important;">
+    <small class="text-muted" id="pagination-info"></small>
+    <nav>
+        <ul class="pagination pagination-sm mb-0" id="pagination-links"></ul>
+    </nav>
+</div>
+
+<style>
+.tpl-row { cursor: default; }
+.tpl-row:hover { background-color: #f8f9fa; }
+.tpl-icon { width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+.tpl-icon-doc { background: #e8f0fe; color: #1565C0; }
+.tpl-icon-nintex { background: #e8f5e9; color: #2E7D32; }
+.badge-active { background: var(--gc-green); color: #fff; }
+.badge-inactive { background: #6c757d; color: #fff; }
+.btn-use { background: var(--gc-green); color: #fff; border: none; }
+.btn-use:hover { background: #155722; color: #fff; }
+.tpl-name-link { color: var(--gc-blue); text-decoration: none; font-weight: 600; }
+.tpl-name-link:hover { text-decoration: underline; }
+.tpl-desc { color: #666; font-size: 0.85rem; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<script>
+var allTemplates = [];
+var currentPage = 1;
+var pageSize = 20;
+
+function loadTemplates() {
+    var tbody = document.getElementById('templates-body');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">' +
+        '<div class="spinner-border spinner-border-sm text-muted" role="status"></div>' +
+        '<span class="text-muted ms-2">Loading templates...</span></td></tr>';
+
+    shell.ajaxSafeGet({
+        url: '/_api/cs_templates?$orderby=modifiedon desc&$select=cs_name,cs_description,cs_templateid,cs_isactive,cs_category,cs_filename,createdon,modifiedon',
+        success: function(data) {
+            if (!data || !data.value) {
+                renderEmpty();
+                return;
+            }
+            allTemplates = data.value;
+            buildCategoryFilter();
+            currentPage = 1;
+            filterTemplates();
+        },
+        error: function() {
+            document.getElementById('templates-body').innerHTML =
+                '<tr><td colspan="7" class="text-center text-danger py-4">' +
+                '<i class="bi bi-exclamation-triangle me-2"></i>Error loading templates.</td></tr>';
+        }
+    });
+}
+
+function buildCategoryFilter() {
+    var cats = {};
+    allTemplates.forEach(function(t) {
+        if (t.cs_category) cats[t.cs_category] = true;
+    });
+    var sel = document.getElementById('filterCategory');
+    var val = sel.value;
+    sel.innerHTML = '<option value="">All Categories</option>';
+    Object.keys(cats).sort().forEach(function(c) {
+        sel.innerHTML += '<option value="' + c + '">' + c + '</option>';
+    });
+    sel.value = val;
+}
+
+function filterTemplates() {
+    var search = (document.getElementById('searchTemplates').value || '').toLowerCase();
+    var category = document.getElementById('filterCategory').value;
+    var status = document.getElementById('filterStatus').value;
+
+    var filtered = allTemplates.filter(function(t) {
+        if (search && (t.cs_name || '').toLowerCase().indexOf(search) === -1 &&
+            (t.cs_description || '').toLowerCase().indexOf(search) === -1) return false;
+        if (category && t.cs_category !== category) return false;
+        if (status !== '' && String(t.cs_isactive) !== status) return false;
+        return true;
+    });
+
+    renderTemplates(filtered);
+}
+
+function renderTemplates(list) {
+    var tbody = document.getElementById('templates-body');
+    var pagBar = document.getElementById('pagination-bar');
+
+    if (list.length === 0) {
+        renderEmpty();
+        pagBar.style.cssText = 'display:none!important';
+        return;
+    }
+
+    // Pagination
+    var totalPages = Math.ceil(list.length / pageSize);
+    if (currentPage > totalPages) currentPage = totalPages;
+    var start = (currentPage - 1) * pageSize;
+    var pageItems = list.slice(start, start + pageSize);
+
+    tbody.innerHTML = '';
+    pageItems.forEach(function(tpl) {
+        var isActive = tpl.cs_isactive !== false;
+        var isNintex = !tpl.cs_filename; // synced from Nintex = no uploaded file
+        var iconClass = isNintex ? 'tpl-icon-nintex' : 'tpl-icon-doc';
+        var iconSymbol = isNintex ? 'bi-cloud-check' : 'bi-file-earmark-pdf';
+        var statusBadge = isActive
+            ? '<span class="badge badge-active">Active</span>'
+            : '<span class="badge badge-inactive">Inactive</span>';
+        var modified = tpl.modifiedon ? new Date(tpl.modifiedon).toLocaleDateString('en-CA') : '--';
+
+        var row = '<tr class="tpl-row">' +
+            '<td><div class="tpl-icon ' + iconClass + '"><i class="bi ' + iconSymbol + '"></i></div></td>' +
+            '<td><a href="/template-editor?id=' + tpl.cs_templateid + '" class="tpl-name-link">' + escHtml(tpl.cs_name || 'Untitled') + '</a></td>' +
+            '<td><span class="tpl-desc" title="' + escAttr(tpl.cs_description || '') + '">' + escHtml(tpl.cs_description || '--') + '</span></td>' +
+            '<td>' + escHtml(tpl.cs_category || '--') + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td>' + modified + '</td>' +
+            '<td class="text-end">' +
+                '<a href="/template-editor?id=' + tpl.cs_templateid + '" class="btn btn-sm btn-gc-primary me-1" title="Edit template">' +
+                    '<i class="bi bi-pencil me-1"></i>Edit</a>' +
+                '<button class="btn btn-sm btn-use" title="Use this template to create an envelope" onclick="useTemplate(\'' + tpl.cs_templateid + '\', \'' + escAttr(tpl.cs_name || '') + '\')">' +
+                    '<i class="bi bi-send me-1"></i>Use</button>' +
+            '</td></tr>';
+        tbody.innerHTML += row;
+    });
+
+    // Pagination controls
+    if (totalPages > 1) {
+        pagBar.style.cssText = '';
+        document.getElementById('pagination-info').textContent =
+            'Showing ' + (start + 1) + '\u2013' + Math.min(start + pageSize, list.length) + ' of ' + list.length + ' templates';
+
+        var links = '';
+        links += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+            '<a class="page-link" href="#" onclick="goPage(' + (currentPage - 1) + ');return false;">&laquo;</a></li>';
+        for (var p = 1; p <= totalPages; p++) {
+            links += '<li class="page-item ' + (p === currentPage ? 'active' : '') + '">' +
+                '<a class="page-link" href="#" onclick="goPage(' + p + ');return false;">' + p + '</a></li>';
+        }
+        links += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
+            '<a class="page-link" href="#" onclick="goPage(' + (currentPage + 1) + ');return false;">&raquo;</a></li>';
+        document.getElementById('pagination-links').innerHTML = links;
+    } else {
+        pagBar.style.cssText = 'display:none!important';
+    }
+}
+
+function renderEmpty() {
+    document.getElementById('templates-body').innerHTML =
+        '<tr><td colspan="7" class="text-center py-5">' +
+        '<i class="bi bi-file-earmark-text" style="font-size: 3rem; color: var(--gc-gray);"></i>' +
+        '<p class="text-muted mt-2 mb-1">No templates found.</p>' +
+        '<a href="/template-editor" class="btn btn-sm btn-gc-primary mt-2"><i class="bi bi-plus-circle me-1"></i>Create your first template</a>' +
+        '</td></tr>';
+}
+
+function goPage(p) {
+    currentPage = p;
+    filterTemplates();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function useTemplate(templateId, templateName) {
+    window.location.href = '/envelopes?action=new&templateId=' + templateId + '&templateName=' + encodeURIComponent(templateName);
+}
+
+function escHtml(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+}
+
+function escAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadTemplates();
+});
+</script>
+</div>

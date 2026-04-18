@@ -97,12 +97,35 @@
             ]
           }
         },
+        "Initialize_ApiBaseUrl": {
+          "runAfter": {
+            "Initialize_UserContext": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d1a2b3c4-e5f6-7890-abcd-ef1234567890"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ApiBaseUrl",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
         "HTTP_List_Templates": {
           "runAfter": {
             "Set_BearerToken": [
               "Succeeded"
             ],
             "Set_UserContext": [
+              "Succeeded"
+            ],
+            "Set_ApiBaseUrl": [
               "Succeeded"
             ]
           },
@@ -112,7 +135,7 @@
           "type": "Http",
           "inputs": {
             "method": "GET",
-            "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/templates",
+            "uri": "@{variables('ApiBaseUrl')}/templates",
             "headers": {
               "Authorization": "@{variables('BearerToken')}",
               "X-AS-UserContext": "@{variables('UserContext')}",
@@ -123,8 +146,60 @@
         "Upsert_Each_Template": {
           "foreach": "@body('HTTP_List_Templates')?['result']?['templates']",
           "actions": {
-            "Check_Template_Exists": {
+            "HTTP_Get_Template_Detail": {
               "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "f1e2d3c4-b5a6-7890-1234-567890abcdef"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{variables('ApiBaseUrl')}/templates/@{items('Upsert_Each_Template')?['templateID']}",
+                "headers": {
+                  "Authorization": "@{variables('BearerToken')}",
+                  "X-AS-UserContext": "@{variables('UserContext')}",
+                  "accept": "application/json"
+                }
+              }
+            },
+            "HTTP_Get_Template_Document": {
+              "runAfter": {
+                "HTTP_Get_Template_Detail": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "a2b3c4d5-e6f7-8901-2345-678901abcdef"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{variables('ApiBaseUrl')}/templates/@{items('Upsert_Each_Template')?['templateID']}/content",
+                "headers": {
+                  "Authorization": "@{variables('BearerToken')}",
+                  "X-AS-UserContext": "@{variables('UserContext')}",
+                  "accept": "application/json"
+                }
+              }
+            },
+            "Compose_TemplateJson": {
+              "runAfter": {
+                "HTTP_Get_Template_Document": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b3c4d5e6-f7a8-9012-3456-789012abcdef"
+              },
+              "type": "Compose",
+              "inputs": "@json(concat('{\"version\":1,\"nintexTemplateId\":\"', items('Upsert_Each_Template')?['templateID'], '\",\"signers\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['template']?['steps']), '[]'), ',\"fields\":', coalesce(string(body('HTTP_Get_Template_Detail')?['result']?['template']?['jotBlocks']), '[]'), ',\"nextFieldId\":', string(add(coalesce(length(body('HTTP_Get_Template_Detail')?['result']?['template']?['jotBlocks']), 0), 1)), ',\"pdfBase64\":\"', coalesce(body('HTTP_Get_Template_Document')?['result']?['content'], ''), '\",\"pdfFilename\":\"', coalesce(body('HTTP_Get_Template_Document')?['result']?['fileName'], items('Upsert_Each_Template')?['name']), '.pdf\"}'))"
+            },
+            "Check_Template_Exists": {
+              "runAfter": {
+                "Compose_TemplateJson": [
+                  "Succeeded"
+                ]
+              },
               "metadata": {
                 "operationMetadataId": "4925e17d-ed04-4525-b55f-29446f1c1103"
               },
@@ -160,8 +235,10 @@
                     "parameters": {
                       "entityName": "cs_templates",
                       "recordId": "@{first(outputs('Check_Template_Exists')?['body/value'])?['cs_templateid']}",
+                      "item/cs_name": "@{items('Upsert_Each_Template')?['name']}",
                       "item/cs_description": "@{items('Upsert_Each_Template')?['description']}",
-                      "item/cs_name": "@{items('Upsert_Each_Template')?['name']}"
+                      "item/cs_category": "@{coalesce(items('Upsert_Each_Template')?['category'], '')}",
+                      "item/cs_templatejson": "@{string(outputs('Compose_TemplateJson'))}"
                     },
                     "authentication": "@parameters('$authentication')"
                   }
@@ -188,9 +265,12 @@
                       },
                       "parameters": {
                         "entityName": "cs_templates",
-                        "item/cs_description": "@{items('Upsert_Each_Template')?['description']}",
                         "item/cs_templateid": "@{items('Upsert_Each_Template')?['templateID']}",
-                        "item/cs_name": "@{items('Upsert_Each_Template')?['name']}"
+                        "item/cs_name": "@{items('Upsert_Each_Template')?['name']}",
+                        "item/cs_description": "@{items('Upsert_Each_Template')?['description']}",
+                        "item/cs_category": "@{coalesce(items('Upsert_Each_Template')?['category'], '')}",
+                        "item/cs_isactive": true,
+                        "item/cs_templatejson": "@{string(outputs('Compose_TemplateJson'))}"
                       },
                       "authentication": "@parameters('$authentication')"
                     }
@@ -241,7 +321,7 @@
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "Initialize_UserContext": [
+            "Initialize_ApiBaseUrl": [
               "Succeeded"
             ]
           }
@@ -264,7 +344,7 @@
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "Initialize_UserContext": [
+            "Initialize_ApiBaseUrl": [
               "Succeeded"
             ]
           }
@@ -287,7 +367,7 @@
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "Initialize_UserContext": [
+            "Initialize_ApiBaseUrl": [
               "Succeeded"
             ]
           }
@@ -310,7 +390,7 @@
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "Initialize_UserContext": [
+            "Initialize_ApiBaseUrl": [
               "Succeeded"
             ]
           }
@@ -333,7 +413,7 @@
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {
-            "Initialize_UserContext": [
+            "Initialize_ApiBaseUrl": [
               "Succeeded"
             ]
           }
@@ -391,6 +471,18 @@
           "inputs": {
             "name": "UserContext",
             "value": "@{coalesce(first(first(outputs('Get_ContextUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ContextUsername_Env')?['body/value'])?['defaultvalue'])}"
+          },
+          "runAfter": {
+            "HTTP_Authenticate_Nintex": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Set_ApiBaseUrl": {
+          "type": "SetVariable",
+          "inputs": {
+            "name": "ApiBaseUrl",
+            "value": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}"
           },
           "runAfter": {
             "HTTP_Authenticate_Nintex": [

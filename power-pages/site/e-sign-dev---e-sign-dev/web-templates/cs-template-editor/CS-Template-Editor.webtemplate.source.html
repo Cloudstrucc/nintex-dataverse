@@ -1,0 +1,1463 @@
+{% comment %}
+  Elections Canada – ESIGN
+  Create / Edit Template Web Template  (/create-template)
+  Full PDF field-placement editor matching preview.html UI.
+  Query string: ?id=<cs_templateid>  → edit mode
+  No query string                    → create mode
+  CDNs: Bootstrap Icons, PDF.js 3.11, interact.js 1.10
+  NO inline on* handlers — CSP compliant.
+{% endcomment %}
+
+{% if user %}
+
+<style>
+/* Bootstrap Icons loaded via JS below to avoid body <link> tag
+   shifting Power Pages CSP hash calculations for inline scripts */
+/* ── GC Tokens (same as portal) ───────────────────────────── */
+:root {
+  --gc-blue:       #26374A;
+  --gc-blue-light: #335075;
+  --gc-red:        #AF3C43;
+  --gc-red-dark:   #922B31;
+  --gc-green:      #1B6C2A;
+  --gc-gray:       #E1E4E7;
+  --gc-gray-dark:  #333333;
+}
+
+/* ── Editor shell — height set dynamically via JS after DOMContentLoaded ── */
+.esign-editor-shell {
+  display: flex;
+  flex-direction: column;
+  /* height injected by JS: window.innerHeight minus actual portal header bottom */
+  height: 600px; /* safe fallback before JS runs */
+  overflow: hidden;
+  background: #f4f4f4;
+  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+/* Prevent the portal page container adding extra padding around the editor */
+.pepp-app { background: #f4f4f4 !important; min-height: unset !important; }
+
+/* Top bar */
+.te-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--gc-blue);
+  color: #fff;
+  padding: 8px 16px;
+  flex-shrink: 0;
+  z-index: 10;
+  border-bottom: 3px solid var(--gc-red);
+}
+.te-title-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  min-width: 280px;
+}
+.te-title-input:hover  { border-color: rgba(255,255,255,0.35); }
+.te-title-input:focus  { border-color: rgba(255,255,255,0.65); outline: none; background: rgba(255,255,255,0.08); }
+.te-title-input::placeholder { color: rgba(255,255,255,0.45); }
+.te-save-status { font-size: 0.75rem; color: rgba(255,255,255,0.6); padding-left: 8px; display: block; }
+.te-save-status.saving { color: #ffc107; }
+.te-save-status.saved  { color: #4caf50; }
+.te-save-status.error  { color: #f44336; }
+
+/* Workspace */
+.te-workspace { display: flex; flex: 1; overflow: hidden; }
+.te-canvas-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* PDF toolbar */
+.te-pdf-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #333;
+  color: #fff;
+  padding: 6px 12px;
+  flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.te-pdf-toolbar .btn-outline-light { font-size: 0.78rem; padding: 3px 8px; }
+.te-page-info { font-size: 0.8rem; min-width: 80px; text-align: center; color: #ccc; }
+
+/* PDF viewport */
+.te-viewport {
+  flex: 1;
+  background: #525659;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+.te-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255,255,255,0.55);
+  padding: 60px 20px;
+  margin: auto;
+}
+.te-page-wrapper { position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.4); background: #fff; }
+.te-page-wrapper canvas { display: block; }
+.te-field-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+
+/* Right panel */
+.te-right-panel {
+  width: 280px;
+  min-width: 280px;
+  background: #fff;
+  border-left: 1px solid #e0e0e0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.te-panel-section { border-bottom: 1px solid #e0e0e0; }
+.te-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+  background: #fafafa;
+}
+.te-panel-header:hover { background: #f0f0f0; }
+.te-chevron { transition: transform 0.2s; font-size: 0.75rem; }
+.te-panel-section.collapsed .te-chevron { transform: rotate(-90deg); }
+.te-panel-section.collapsed .te-panel-body { display: none; }
+.te-panel-body { padding: 10px 14px; }
+
+/* Signer rows */
+.te-signer-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 6px; padding: 6px 8px;
+  border-radius: 4px; border: 1px solid #e0e0e0; background: #fff;
+}
+.te-signer-color { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.te-signer-row input {
+  flex: 1; border: none; font-size: 0.8rem;
+  padding: 2px 4px; background: transparent; outline: none; min-width: 0;
+}
+.te-signer-row input:focus { background: #f8f8f8; border-radius: 2px; }
+
+/* Field palette */
+.te-field-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.te-palette-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 10px 4px; border: 1px solid #e0e0e0; border-radius: 6px;
+  cursor: grab; font-size: 0.7rem; color: #555; text-align: center;
+  background: #fff; transition: all 0.15s; user-select: none; touch-action: none;
+}
+.te-palette-item i { font-size: 1.1rem; margin-bottom: 4px; color: var(--gc-blue); display: block; }
+.te-palette-item:hover  { background: #f0f4ff; border-color: var(--gc-blue); }
+.te-palette-item:active { cursor: grabbing; }
+
+/* Fields on PDF */
+.te-field {
+  position: absolute; pointer-events: all;
+  border: 2px dashed; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 600;
+  cursor: move; user-select: none; touch-action: none;
+  opacity: 0.85; transition: opacity 0.15s, box-shadow 0.15s;
+  box-sizing: border-box; overflow: hidden;
+}
+.te-field:hover { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.te-field.selected { opacity: 1; border-style: solid; box-shadow: 0 0 0 2px rgba(13,110,253,0.5), 0 2px 8px rgba(0,0,0,0.2); }
+.te-field .te-field-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+.te-field .te-resize-handle {
+  position: absolute; bottom: 0; right: 0;
+  width: 10px; height: 10px; cursor: nwse-resize;
+  background: rgba(0,0,0,0.15); border-radius: 2px 0;
+}
+
+/* Placed fields list */
+.te-placed-field-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 8px; border-radius: 4px;
+  font-size: 0.78rem; cursor: pointer; margin-bottom: 3px;
+}
+.te-placed-field-item:hover  { background: #f0f0f0; }
+.te-placed-field-item.active { background: #e8f0fe; }
+.te-pf-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.te-pf-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.te-pf-page  { color: #999; font-size: 0.7rem; }
+
+/* Drag clone */
+.te-drag-clone {
+  padding: 6px 12px; background: var(--gc-blue); color: #fff;
+  border-radius: 4px; font-size: 0.75rem; font-weight: 600;
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999;
+}
+
+/* Meta fields (description / category / status) */
+.te-meta-row { margin-bottom: 10px; }
+.te-meta-row label { font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 3px; display: block; }
+.te-meta-row input,
+.te-meta-row textarea,
+.te-meta-row select { font-size: 0.82rem; width: 100%; padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; }
+.te-meta-row textarea { resize: vertical; min-height: 52px; }
+
+@media (max-width: 768px) {
+  .te-right-panel { width: 100%; min-width: 100%; border-left: none; border-top: 1px solid #e0e0e0; max-height: 280px; }
+  .te-workspace { flex-direction: column; }
+  .esign-editor-shell { height: auto !important; min-height: 80vh; }
+}
+
+/* ── Option 1 — flush the GCWeb banner to the full-width editor ─────────
+   The editor is full-viewport-width so the Bootstrap .container on
+   #wb-bnr leaves the logo indented relative to the editor's left edge.
+   We expand the banner to full-width on this page only, keeping the same
+   15px gutter so the logo doesn't touch the viewport edge.               */
+#wb-bnr.container,
+#wb-bnr {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+/* Keep application-bar (profile bar) consistently full-width too */
+.application-bar .container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+/* ── WET-BOEW defensive CSS ─────────────────────────────────────────
+   Power Pages has a platform-level "wb is not defined" race condition
+   on some pages that prevents WET JS from running. The CSS below
+   replicates what WET JS would have set up so the header renders
+   correctly regardless of whether wb initialises.                      */
+
+/* Visually-hidden utility (WET's .wb-inv pattern) */
+.wb-inv {
+  clip: rect(1px,1px,1px,1px) !important;
+  height: 1px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  width: 1px !important;
+}
+
+/* Skip-to links: only surface on keyboard focus, never on page load */
+#wb-tphp { margin: 0; padding: 0; }
+#wb-tphp li { list-style: none; }
+#wb-tphp li a,
+#wb-tphp li a:visited {
+  position: absolute !important;
+  top: -100em !important;
+  left: -100em !important;
+  overflow: hidden !important;
+  height: 1px !important;
+  width: 1px !important;
+  clip: rect(1px,1px,1px,1px) !important;
+  white-space: nowrap !important;
+}
+#wb-tphp li a:focus,
+#wb-tphp li a:active {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  overflow: visible !important;
+  height: auto !important;
+  width: auto !important;
+  clip: auto !important;
+  white-space: normal !important;
+  background: #26374A;
+  color: #fff;
+  padding: 6px 12px;
+  display: inline-block;
+  z-index: 9999;
+}
+
+/* Language section heading is always screen-reader-only */
+#wb-lng h2 {
+  clip: rect(1px,1px,1px,1px) !important;
+  height: 1px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  width: 1px !important;
+}
+
+/* GCWeb brand header layout guard */
+#wb-bnr { display: block !important; }
+#wb-bnr .row { display: flex !important; align-items: flex-start !important; flex-wrap: wrap !important; }
+#wb-bnr .brand { order: 1; }
+#wb-lng { order: 2; }
+
+/* ── Bootstrap 3 responsive utilities (WET depends on these) ────────
+   Power Pages loads BS5 which does not define .visible-xs / .hidden-xs.
+   If the layout for this page omits WET/BS3 CSS, the language toggle
+   abbr (.visible-xs) will show full-size on desktop instead of hiding. */
+.visible-xs                         { display: none !important; }
+.visible-sm, .visible-md, .visible-lg { display: none !important; }
+
+@media (max-width: 767px) {
+  .hidden-xs                        { display: none !important; }
+  .visible-xs                       { display: block  !important; }
+  .visible-xs.inline,
+  abbr.visible-xs, span.visible-xs  { display: inline !important; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .hidden-sm   { display: none  !important; }
+  .visible-sm  { display: block !important; }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .hidden-md   { display: none  !important; }
+  .visible-md  { display: block !important; }
+}
+@media (min-width: 1200px) {
+  .hidden-lg   { display: none  !important; }
+  .visible-lg  { display: block !important; }
+}
+
+/* WET margin/text utilities used in the header */
+.mrgn-tp-sm   { margin-top:    5px !important; }
+.mrgn-bttm-0  { margin-bottom: 0   !important; }
+.text-right   { text-align: right  !important; }
+.text-uppercase { text-transform: uppercase !important; }
+
+/* The language abbr is an h3 in the markup — normalise its size on desktop */
+#wb-lng abbr { font-size: inherit !important; font-weight: normal !important; }
+
+/* Application bar stays full-width below the GCWeb banner */
+.application-bar {
+  display: block !important;
+  background-color: #38414d;
+  color: #fff;
+}
+</style>
+
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement" style="padding:0;background:#f4f4f4;">
+<div class="esign-editor-shell" id="editorShell">
+
+  <!-- ── Top Bar ─────────────────────────────────────────────── -->
+  <div class="te-topbar" id="teTopbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="/all-templates" class="btn btn-sm btn-outline-light" id="btnBack" title="Back to Templates">
+        <i class="fa fa-arrow-left"></i>
+      </a>
+      <div>
+        <input type="text" id="tplNameInput" class="te-title-input"
+               placeholder="{{ snippets['ESIGN/EDITOR/NAME_PH'] | default: 'Untitled Template' }}">
+        <small class="te-save-status" id="saveStatus">
+          <i class="fa fa-cloud me-1"></i>{{ snippets['ESIGN/EDITOR/NO_CHANGES'] | default: 'No changes' }}
+        </small>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button id="btnSave" class="btn btn-sm btn-outline-light" title="{{ snippets['ESIGN/EDITOR/SAVE'] | default: 'Save' }}">
+        <i class="fa fa-floppy-o me-1"></i>{{ snippets['ESIGN/EDITOR/SAVE'] | default: 'Save' }}
+      </button>
+      <button id="btnSaveClose" class="btn btn-sm btn-outline-light" title="{{ snippets['ESIGN/EDITOR/SAVE_CLOSE'] | default: 'Save &amp; Close' }}">
+        <i class="fa fa-check-circle me-1"></i>{{ snippets['ESIGN/EDITOR/SAVE_CLOSE'] | default: 'Save &amp; Close' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Workspace ───────────────────────────────────────────── -->
+  <div class="te-workspace">
+
+    <!-- PDF canvas area -->
+    <div class="te-canvas-area" id="canvasArea">
+      <div class="te-pdf-toolbar">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button id="btnPrevPage" class="btn btn-sm btn-outline-light" title="Previous page"><i class="fa fa-chevron-left"></i></button>
+          <span id="pageInfo" class="te-page-info">Page 0 / 0</span>
+          <button id="btnNextPage" class="btn btn-sm btn-outline-light" title="Next page"><i class="fa fa-chevron-right"></i></button>
+          <span style="color:rgba(255,255,255,0.3);">|</span>
+          <button id="btnZoomOut" class="btn btn-sm btn-outline-light" title="Zoom out"><i class="fa fa-search-minus"></i></button>
+          <span id="zoomLevel" class="te-page-info">100%</span>
+          <button id="btnZoomIn"  class="btn btn-sm btn-outline-light" title="Zoom in"><i class="fa fa-search-plus"></i></button>
+          <button id="btnFitWidth" class="btn btn-sm btn-outline-light" title="Fit width"><i class="fa fa-expand"></i></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="file" id="fileUpload" accept=".pdf" style="display:none;">
+          <button id="btnUploadPdf" class="btn btn-sm btn-outline-light">
+            <i class="fa fa-upload me-1"></i>{{ snippets['ESIGN/EDITOR/UPLOAD_PDF'] | default: 'Upload PDF' }}
+          </button>
+          <button id="btnSamplePdf" class="btn btn-sm btn-outline-warning">
+            <i class="fa fa-plus-square me-1"></i>{{ snippets['ESIGN/EDITOR/SAMPLE_PDF'] | default: 'Load Sample PDF' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="te-viewport" id="viewport">
+        <div class="te-empty-state" id="emptyState">
+          <i class="fa fa-file-pdf-o" style="font-size:4rem;opacity:0.3;"></i>
+          <h5 style="margin-top:16px;margin-bottom:8px;color:rgba(255,255,255,0.7);">
+            {{ snippets['ESIGN/EDITOR/NO_DOC'] | default: 'No document loaded' }}
+          </h5>
+          <p style="color:rgba(255,255,255,0.5);max-width:400px;">
+            {{ snippets['ESIGN/EDITOR/NO_DOC_DESC'] | default: 'Upload a PDF or click Load Sample PDF to start placing signature fields.' }}
+          </p>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center;">
+            <button id="btnUploadPdf2" class="btn btn-outline-light">
+              <i class="fa fa-upload me-1"></i>{{ snippets['ESIGN/EDITOR/UPLOAD_PDF'] | default: 'Upload PDF' }}
+            </button>
+            <button id="btnSamplePdf2" class="btn btn-warning">
+              <i class="fa fa-plus-square me-1"></i>{{ snippets['ESIGN/EDITOR/SAMPLE_PDF'] | default: 'Load Sample PDF' }}
+            </button>
+          </div>
+          <div id="pdfSetupHint" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(255,200,0,0.12);border:1px solid rgba(255,200,0,0.4);border-radius:4px;max-width:460px;text-align:left;">
+            <strong style="color:#ffc107;font-size:0.85rem;"><i class="fa fa-exclamation-triangle me-1"></i>PDF viewer setup required</strong><br>
+            <span style="font-size:0.78rem;color:rgba(255,255,255,0.78);line-height:1.6;">
+              Power Pages CSP blocks CDN scripts. To enable PDF rendering:<br>
+              1. Download <code style="font-size:0.75rem;">pdf.min.js</code> &amp; <code style="font-size:0.75rem;">pdf.worker.min.js</code>
+                 from <code style="font-size:0.75rem;">cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/</code><br>
+              2. Upload both as Power Pages <strong>web files</strong> with partial URLs
+                 <code style="font-size:0.75rem;">/js/pdf.min.js</code> and <code style="font-size:0.75rem;">/js/pdf.worker.min.js</code><br>
+              3. Reload this page.
+            </span>
+          </div>
+        </div>
+        <div class="te-page-wrapper" id="pageWrapper" style="display:none;">
+          <canvas id="pdfCanvas"></canvas>
+          <div class="te-field-layer" id="fieldLayer"></div>
+        </div>
+      </div>
+    </div><!-- /canvas-area -->
+
+    <!-- Right panel -->
+    <div class="te-right-panel" id="rightPanel">
+
+      <!-- Template meta -->
+      <div class="te-panel-section" id="metaSection">
+        <div class="te-panel-header" id="metaHeader">
+          <span><i class="fa fa-info-circle me-2"></i>{{ snippets['ESIGN/EDITOR/META_TITLE'] | default: 'Details' }}</span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <div class="te-meta-row">
+            <label>{{ snippets['ESIGN/EDITOR/FIELD_DESC'] | default: 'Description' }}</label>
+            <textarea id="tplDescInput" rows="2" placeholder="{{ snippets['ESIGN/EDITOR/FIELD_DESC_PH'] | default: 'Brief description...' }}"></textarea>
+          </div>
+          <div class="te-meta-row">
+            <label>{{ snippets['ESIGN/EDITOR/FIELD_CAT'] | default: 'Category' }}</label>
+            <input type="text" id="tplCatInput" placeholder="{{ snippets['ESIGN/EDITOR/FIELD_CAT_PH'] | default: 'e.g. HR, Legal, Finance' }}">
+          </div>
+          <div class="te-meta-row" style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="tplActiveInput" style="width:auto;" checked>
+            <label style="margin-bottom:0;font-size:0.82rem;">{{ snippets['ESIGN/EDITOR/FIELD_ACTIVE'] | default: 'Active' }}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signers -->
+      <div class="te-panel-section" id="signersSection">
+        <div class="te-panel-header" id="signersHeader">
+          <span><i class="fa fa-users me-2"></i>{{ snippets['ESIGN/EDITOR/SIGNERS'] | default: 'Signers' }}</span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <div id="signersList"></div>
+          <button id="btnAddSigner" class="btn btn-sm btn-outline-secondary w-100" style="margin-top:8px;">
+            <i class="fa fa-plus me-1"></i>{{ snippets['ESIGN/EDITOR/ADD_SIGNER'] | default: 'Add Signer' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Field palette -->
+      <div class="te-panel-section" id="paletteSection">
+        <div class="te-panel-header" id="paletteHeader">
+          <span><i class="fa fa-puzzle-piece me-2"></i>{{ snippets['ESIGN/EDITOR/FIELDS'] | default: 'Fields' }}</span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <p class="text-muted small" style="margin-bottom:8px;">
+            {{ snippets['ESIGN/EDITOR/DRAG_HINT'] | default: 'Drag fields onto the document' }}
+          </p>
+          <div class="te-field-grid" id="fieldPalette">
+            <div class="te-palette-item" data-field-type="signature">  <i class="fa fa-pencil"></i>          <span>Signature</span></div>
+            <div class="te-palette-item" data-field-type="initials">   <i class="fa fa-italic"></i>  <span>Initials</span></div>
+            <div class="te-palette-item" data-field-type="date_signed"><i class="fa fa-calendar-check-o"></i><span>Date Signed</span></div>
+            <div class="te-palette-item" data-field-type="text">       <i class="fa fa-font"></i>        <span>Text</span></div>
+            <div class="te-palette-item" data-field-type="checkbox">   <i class="fa fa-check-square-o"></i> <span>Checkbox</span></div>
+            <div class="te-palette-item" data-field-type="name">       <i class="fa fa-user"></i>       <span>Full Name</span></div>
+            <div class="te-palette-item" data-field-type="email">      <i class="fa fa-envelope-o"></i>  <span>Email</span></div>
+            <div class="te-palette-item" data-field-type="company">    <i class="fa fa-building-o"></i>     <span>Company</span></div>
+            <div class="te-palette-item" data-field-type="title">      <i class="fa fa-briefcase"></i>    <span>Title</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placed fields list -->
+      <div class="te-panel-section" id="placedSection">
+        <div class="te-panel-header" id="placedHeader">
+          <span>
+            <i class="fa fa-list me-2"></i>
+            {{ snippets['ESIGN/EDITOR/PLACED'] | default: 'Placed Fields' }}
+            <span id="fieldCount" style="background:#6c757d;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;margin-left:4px;">0</span>
+          </span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <div id="placedFieldsList">
+            <p class="text-muted small" style="margin-bottom:0;">{{ snippets['ESIGN/EDITOR/NO_FIELDS'] | default: 'No fields placed yet.' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Field properties -->
+      <div class="te-panel-section" id="propsSection" style="display:none;">
+        <div class="te-panel-header">
+          <span><i class="fa fa-cog me-2"></i>{{ snippets['ESIGN/EDITOR/PROPS'] | default: 'Field Properties' }}</span>
+          <button id="btnDeselectField" class="btn btn-sm p-0 border-0" title="Close">
+            <i class="fa fa-times" style="color:#666;"></i>
+          </button>
+        </div>
+        <div class="te-panel-body">
+          <div style="margin-bottom:8px;">
+            <label class="form-label small fw-bold" style="margin-bottom:2px;">{{ snippets['ESIGN/EDITOR/PROP_TYPE'] | default: 'Type' }}</label>
+            <div id="propType" class="form-control-plaintext small"></div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label class="form-label small fw-bold" style="margin-bottom:2px;">{{ snippets['ESIGN/EDITOR/PROP_LABEL'] | default: 'Label' }}</label>
+            <input type="text" id="propLabel" class="form-control form-control-sm">
+          </div>
+          <div style="margin-bottom:8px;">
+            <label class="form-label small fw-bold" style="margin-bottom:2px;">{{ snippets['ESIGN/EDITOR/PROP_SIGNER'] | default: 'Assigned Signer' }}</label>
+            <select id="propSigner" class="form-select form-select-sm"></select>
+          </div>
+          <div style="margin-bottom:8px;">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="propRequired">
+              <label class="form-check-label small" for="propRequired">{{ snippets['ESIGN/EDITOR/PROP_REQUIRED'] | default: 'Required' }}</label>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label class="form-label small fw-bold" style="margin-bottom:2px;">{{ snippets['ESIGN/EDITOR/PROP_PAGE'] | default: 'Page' }}</label>
+            <div id="propPage" class="form-control-plaintext small"></div>
+          </div>
+          <hr>
+          <button id="btnDeleteField" class="btn btn-sm btn-outline-danger w-100">
+            <i class="fa fa-trash me-1"></i>{{ snippets['ESIGN/EDITOR/DELETE_FIELD'] | default: 'Delete Field' }}
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /right-panel -->
+  </div><!-- /workspace -->
+</div><!-- /editor-shell -->
+</main>
+
+<!-- Bootstrap Icons + PDF.js loaded via JS inside DOMContentLoaded below -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Config ──────────────────────────────────────────────── */
+  var API_BASE     = '/_api/cs_templates';
+  var BACK_URL     = '/templates/';  /* Navigates back to the Available Templates page */
+  var ENVELOPE_URL = '/new-envelope';
+
+  /* Read template ID from query string */
+  var TEMPLATE_ID  = (function () {
+    var m = window.location.search.match(/[?&]id=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  })();
+
+  /* ── Constants ───────────────────────────────────────────── */
+  var SIGNER_COLORS = [
+    { bg: 'rgba(175,60,67,0.15)',   border: '#AF3C43', text: '#AF3C43' },
+    { bg: 'rgba(21,101,192,0.15)',  border: '#1565C0', text: '#1565C0' },
+    { bg: 'rgba(46,125,50,0.15)',   border: '#2E7D32', text: '#2E7D32' },
+    { bg: 'rgba(230,81,0,0.15)',    border: '#E65100', text: '#E65100' },
+    { bg: 'rgba(106,27,154,0.15)',  border: '#6A1B9A', text: '#6A1B9A' },
+    { bg: 'rgba(0,131,143,0.15)',   border: '#00838F', text: '#00838F' }
+  ];
+
+  var FIELD_TYPES = {
+    signature:   { label: 'Signature',   icon: 'fa-pencil',             w: 200, h: 50 },
+    initials:    { label: 'Initials',    icon: 'fa-italic',     w: 80,  h: 40 },
+    date_signed: { label: 'Date Signed', icon: 'fa-calendar-check-o',  w: 140, h: 28 },
+    text:        { label: 'Text',        icon: 'fa-font',           w: 160, h: 28 },
+    checkbox:    { label: 'Checkbox',    icon: 'fa-check-square-o',    w: 24,  h: 24 },
+    name:        { label: 'Full Name',   icon: 'fa-user',          w: 160, h: 28 },
+    email:       { label: 'Email',       icon: 'fa-envelope-o',     w: 180, h: 28 },
+    company:     { label: 'Company',     icon: 'fa-building-o',        w: 160, h: 28 },
+    title:       { label: 'Title',       icon: 'fa-briefcase',       w: 140, h: 28 }
+  };
+
+  /* ── State ───────────────────────────────────────────────── */
+  var state = {
+    pdfDoc: null, pageNum: 1, pageCount: 0, scale: 1.0,
+    signers: [], fields: [], selectedFieldId: null,
+    dirty: false, nextFieldId: 1,
+    pdfBase64: null, pdfFilename: null
+  };
+
+  /* PDF.js readiness — set true once /js/pdf.min.js onload fires */
+  var pdfJsReady    = false;
+  var pendingPdfData = null;
+
+  /* ── DOM refs ────────────────────────────────────────────── */
+  var canvas, ctx;
+
+  /* ── Helpers ─────────────────────────────────────────────── */
+  function esc(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s || ''));
+    return d.innerHTML;
+  }
+  function escA(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+                    .replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ── Portal Web API helpers (Power Pages BS5) ───────────────────────
+     shell.getTokenDeferred() is the officially documented method for
+     obtaining the antiforgery token on Power Pages Bootstrap 5 portals.
+     Reference: learn.microsoft.com/en-us/power-pages/configure/web-api-http-requests-handle-errors
+     It returns a jQuery Deferred that resolves with the token string.
+     We wrap it in a safeAjax helper and promisify for consistent usage. */
+
+  function safeAjax(ajaxOptions) {
+    var deferred = $.Deferred();
+    shell.getTokenDeferred().done(function (token) {
+      if (!ajaxOptions.headers) {
+        ajaxOptions.headers = {};
+      }
+      ajaxOptions.headers['__RequestVerificationToken'] = token;
+      $.ajax(ajaxOptions)
+        .done(function (data, status, xhr) { deferred.resolve(data, status, xhr); })
+        .fail(function (xhr, status, err) { deferred.reject(xhr, status, err); });
+    }).fail(function () {
+      deferred.rejectWith(this, arguments);
+    });
+    return deferred.promise();
+  }
+
+  /* Promisified wrappers matching our existing portalGet/Post/Patch call sites */
+  function portalGet(url) {
+    return new Promise(function (resolve, reject) {
+      $.ajax({
+        type: 'GET',
+        url: url,
+        headers: { 'Accept': 'application/json' }
+      })
+      .done(function (data) { resolve(data); })
+      .fail(function (xhr) {
+        reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText));
+      });
+    });
+  }
+
+  function portalPost(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'POST',
+        url: url,
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        headers: {
+          'Accept': 'application/json',
+          /* Ask the portal to return the created record in the body.
+             OData Prefer header — supported by Power Pages Web API.
+             If honoured → 201 + JSON body containing cs_templateid.
+             If ignored  → 204 + OData-EntityId header (we parse that). */
+          'Prefer': 'return=representation'
+        }
+      })
+      .done(function (data, status, xhr) {
+        /* Path A — body contains the new record (201 with Prefer: return=representation) */
+        if (data && typeof data === 'object') {
+          return resolve(data);
+        }
+        /* Path B — 204, extract GUID from OData-EntityId response header
+           Header value looks like: https://host/_api/cs_templates(guid-here) */
+        var entityIdHeader = xhr.getResponseHeader('OData-EntityId');
+        if (entityIdHeader) {
+          var m = entityIdHeader.match(/\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/i);
+          if (m) { return resolve({ cs_templateid: m[1] }); }
+        }
+        /* Path C — no ID recoverable from this response */
+        resolve(null);
+      })
+      .fail(function (xhr) {
+        reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText));
+      });
+    });
+  }
+
+  function portalPatch(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'PATCH',
+        url: url,
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        headers: { 'Accept': 'application/json', 'If-Match': '*' }
+      })
+      .done(function (data, status, xhr) {
+        resolve(xhr.status === 204 ? null : data);
+      })
+      .fail(function (xhr) {
+        reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText));
+      });
+    });
+  }
+
+    /* ── Save status ─────────────────────────────────────────── */
+  function setSaveStatus(cls, text, icon) {
+    var el = document.getElementById('saveStatus');
+    el.className = 'te-save-status' + (cls ? ' ' + cls : '');
+    el.innerHTML = '<i class="fa ' + (icon || 'fa-pencil') + ' me-1"></i>' + text;
+  }
+  function markDirty() { state.dirty = true; setSaveStatus('', 'Unsaved changes', 'fa-pencil'); }
+
+  /* ── PDF rendering ───────────────────────────────────────── */
+  function loadPdf(data) {
+    if (!pdfJsReady) {
+      /* PDF.js still loading — queue the data and process when ready */
+      pendingPdfData = data;
+      setSaveStatus('saving', 'Loading PDF viewer…', 'fa-spinner fa-spin');
+      return;
+    }
+    pdfjsLib.getDocument({ data: data }).promise.then(function (pdf) {
+      state.pdfDoc    = pdf;
+      state.pageCount = pdf.numPages;
+      state.pageNum   = 1;
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('pageWrapper').style.display = '';
+      fitWidth();
+      setEditorHeight();
+    }).catch(function (err) {
+      console.error('ESIGN: Error loading PDF:', err.message);
+      setSaveStatus('error', 'PDF load failed: ' + err.message, 'fa-exclamation-triangle');
+    });
+  }
+
+  function renderPdfPage() {
+    if (!state.pdfDoc) return;
+    state.pdfDoc.getPage(state.pageNum).then(function (page) {
+      var vp = page.getViewport({ scale: state.scale });
+      canvas.width  = vp.width;
+      canvas.height = vp.height;
+      var wrapper = document.getElementById('pageWrapper');
+      wrapper.style.width  = vp.width  + 'px';
+      wrapper.style.height = vp.height + 'px';
+      page.render({ canvasContext: ctx, viewport: vp }).promise.then(renderFieldOverlays);
+      document.getElementById('pageInfo').textContent  = 'Page ' + state.pageNum + ' / ' + state.pageCount;
+      document.getElementById('zoomLevel').textContent = Math.round(state.scale * 100) + '%';
+    });
+  }
+
+  function prevPage()  { if (state.pageNum > 1) { state.pageNum--; renderPdfPage(); } }
+  function nextPage()  { if (state.pageNum < state.pageCount) { state.pageNum++; renderPdfPage(); } }
+  function zoomIn()    { state.scale = Math.min(state.scale + 0.25, 3.0);  renderPdfPage(); }
+  function zoomOut()   { state.scale = Math.max(state.scale - 0.25, 0.5);  renderPdfPage(); }
+
+  function fitWidth() {
+    if (!state.pdfDoc) return;
+    state.pdfDoc.getPage(state.pageNum).then(function (page) {
+      var cw = document.getElementById('canvasArea').clientWidth - 60;
+      state.scale = cw / page.getViewport({ scale: 1.0 }).width;
+      renderPdfPage();
+    });
+  }
+
+  function handleUpload(input) {
+    if (!input || !input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var buf = e.target.result;
+      /* Store base64 for saving */
+      var b64reader = new FileReader();
+      b64reader.onload = function (e2) {
+        state.pdfBase64   = e2.target.result.split(',')[1];
+        state.pdfFilename = file.name;
+      };
+      b64reader.readAsDataURL(new Blob([buf]));
+      loadPdf(buf);
+      markDirty();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function loadSamplePdf() {
+    var pdfContent =
+      '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n' +
+      '2 0 obj<</Type/Pages/Kids[3 0 R 6 0 R]/Count 2>>endobj\n' +
+      '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n' +
+      '5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n' +
+      '4 0 obj<</Length 430>>\nstream\n' +
+      'BT\n/F1 24 Tf\n72 720 Td\n(NON-DISCLOSURE AGREEMENT) Tj\n' +
+      '/F1 11 Tf\n0 -40 Td\n(This Agreement is entered into as of the date of last signature.) Tj\n' +
+      '0 -30 Td\n/F1 13 Tf\n(Party A \\(Disclosing Party\\):) Tj\n/F1 11 Tf\n' +
+      '0 -20 Td\n(Name: ________________________________________) Tj\n' +
+      '0 -18 Td\n(Title: ________________________________________) Tj\n' +
+      '0 -18 Td\n(Company: _____________________________________) Tj\n' +
+      '0 -30 Td\n/F1 13 Tf\n(Party B \\(Receiving Party\\):) Tj\n/F1 11 Tf\n' +
+      '0 -20 Td\n(Name: ________________________________________) Tj\n' +
+      '0 -18 Td\n(Title: ________________________________________) Tj\n' +
+      '0 -18 Td\n(Company: _____________________________________) Tj\n' +
+      '0 -50 Td\n/F1 13 Tf\n(SIGNATURES) Tj\n/F1 11 Tf\n' +
+      '0 -30 Td\n(Signature: ____________________________  Date: ___________) Tj\n' +
+      '0 -18 Td\n(Printed Name: _________________________) Tj\nET\n' +
+      'endstream\nendobj\n' +
+      '6 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 7 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n' +
+      '7 0 obj<</Length 200>>\nstream\n' +
+      'BT\n/F1 13 Tf\n72 720 Td\n(2. Obligations) Tj\n/F1 11 Tf\n' +
+      '0 -22 Td\n(The Receiving Party agrees to hold all Confidential Information in) Tj\n' +
+      '0 -16 Td\n(strict confidence.) Tj\nET\nendstream\nendobj\n' +
+      'xref\n0 8\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n' +
+      '0000000115 00000 n \n0000000310 00000 n \n0000000266 00000 n \n' +
+      '0000000792 00000 n \n0000000900 00000 n \n' +
+      'trailer<</Size 8/Root 1 0 R>>\nstartxref\n1200\n%%EOF';
+    var bytes = new Uint8Array(pdfContent.length);
+    for (var i = 0; i < pdfContent.length; i++) bytes[i] = pdfContent.charCodeAt(i);
+    state.pdfFilename = 'sample.pdf';
+    loadPdf(bytes.buffer);
+  }
+
+  /* ── Signers ─────────────────────────────────────────────── */
+  function addSigner(label) {
+    var idx = state.signers.length;
+    state.signers.push({ label: label || 'Signer ' + (idx + 1), color: SIGNER_COLORS[idx % SIGNER_COLORS.length] });
+    renderSigners();
+    updateSignerDropdowns();
+    markDirty();
+  }
+
+  function removeSigner(idx) {
+    if (state.signers.length <= 1) {
+      setSaveStatus('error', 'At least one signer is required.', 'fa-exclamation-triangle');
+      setTimeout(function(){ if(!state.dirty) setSaveStatus('','No changes','fa-cloud'); }, 2500);
+      return;
+    }
+    state.signers.splice(idx, 1);
+    state.fields.forEach(function (f) {
+      if (f.signerIndex === idx) f.signerIndex = 0;
+      else if (f.signerIndex > idx) f.signerIndex--;
+    });
+    renderSigners(); updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+  }
+
+  function updateSignerLabel(idx, val) {
+    state.signers[idx].label = val;
+    updateSignerDropdowns(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+  }
+
+  function renderSigners() {
+    var c = document.getElementById('signersList');
+    c.innerHTML = '';
+    state.signers.forEach(function (s, i) {
+      var row = document.createElement('div');
+      row.className = 'te-signer-row';
+      row.innerHTML =
+        '<span class="te-signer-color" style="background:' + s.color.border + ';"></span>' +
+        '<input type="text" value="' + escA(s.label) + '" placeholder="Signer name" data-signer-idx="' + i + '">' +
+        '<button class="btn btn-sm p-0 border-0 btn-remove-signer" data-signer-idx="' + i + '" title="Remove">' +
+          '<i class="fa fa-times" style="color:#999;"></i>' +
+        '</button>';
+      /* wire events without inline handlers */
+      row.querySelector('input').addEventListener('input', function () {
+        updateSignerLabel(parseInt(this.getAttribute('data-signer-idx')), this.value);
+      });
+      row.querySelector('.btn-remove-signer').addEventListener('click', function () {
+        removeSigner(parseInt(this.getAttribute('data-signer-idx')));
+      });
+      c.appendChild(row);
+    });
+  }
+
+  function updateSignerDropdowns() {
+    var sel = document.getElementById('propSigner');
+    var val = sel.value;
+    sel.innerHTML = '';
+    state.signers.forEach(function (s, i) {
+      var opt = document.createElement('option');
+      opt.value = i; opt.textContent = s.label;
+      sel.appendChild(opt);
+    });
+    sel.value = val;
+  }
+
+  /* ── Field overlays ──────────────────────────────────────── */
+  function renderFieldOverlays() {
+    var layer = document.getElementById('fieldLayer');
+    layer.innerHTML = '';
+    state.fields.filter(function (f) { return f.page === state.pageNum; }).forEach(function (f) {
+      var color = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
+      var ft    = FIELD_TYPES[f.type] || FIELD_TYPES.text;
+      var div   = document.createElement('div');
+      div.className = 'te-field' + (f.id === state.selectedFieldId ? ' selected' : '');
+      div.setAttribute('data-field-id', f.id);
+      div.style.cssText =
+        'left:' + f.x + 'px;top:' + f.y + 'px;width:' + f.w + 'px;height:' + f.h + 'px;' +
+        'border-color:' + color.border + ';background:' + color.bg + ';color:' + color.text + ';';
+      div.innerHTML =
+        '<i class="fa ' + ft.icon + ' me-1" style="font-size:0.7rem;flex-shrink:0;"></i>' +
+        '<span class="te-field-label">' + esc(f.label) + '</span>' +
+        '<div class="te-resize-handle"></div>';
+      /* Mouse drag/resize */
+      div.addEventListener('mousedown', function (e) {
+        if (e.target.classList.contains('te-resize-handle')) {
+          e.preventDefault(); e.stopPropagation();
+          fieldResize = { id: f.id, startX: e.clientX, startY: e.clientY,
+                          origW: f.w, origH: f.h, el: div };
+          return;
+        }
+        e.preventDefault(); e.stopPropagation();
+        selectField(f.id);
+        fieldMove = { id: f.id, startX: e.clientX, startY: e.clientY,
+                      origX: f.x, origY: f.y, el: div };
+      });
+      /* Touch drag/resize — mirrors mousedown logic */
+      div.addEventListener('touchstart', function (e) {
+        var t = e.touches[0];
+        if (e.target.classList.contains('te-resize-handle')) {
+          e.preventDefault(); e.stopPropagation();
+          fieldResize = { id: f.id, startX: t.clientX, startY: t.clientY,
+                          origW: f.w, origH: f.h, el: div };
+          return;
+        }
+        e.preventDefault(); e.stopPropagation();
+        selectField(f.id);
+        fieldMove = { id: f.id, startX: t.clientX, startY: t.clientY,
+                      origX: f.x, origY: f.y, el: div };
+      }, { passive: false });
+      layer.appendChild(div);
+    });
+    document.getElementById('fieldCount').textContent = state.fields.length;
+  }
+
+
+
+
+
+  /* ── Native drag-drop (no external CDN — interact.js blocked by CSP) ── */
+  var paletteGrab = null; /* { type }                                        */
+  var fieldMove   = null; /* { id, startX, startY, origX, origY, el }        */
+  var fieldResize = null; /* { id, startX, startY, origW, origH, el }        */
+
+  /* ── Shared helper: start a palette drag from any input (mouse or touch) ── */
+  function startPaletteGrab(type, clientX, clientY) {
+    paletteGrab = { type: type };
+    var ft = FIELD_TYPES[type] || FIELD_TYPES.text;
+    var clone = document.createElement('div');
+    clone.className = 'te-drag-clone';
+    clone.id = 'dragClone';
+    clone.textContent = ft.label;
+    clone.style.cssText =
+      'position:fixed;pointer-events:none;z-index:9999;' +
+      'left:' + clientX + 'px;top:' + clientY + 'px;transform:translate(-50%,-50%);';
+    document.body.appendChild(clone);
+  }
+
+  function setupPaletteDrag() {
+    document.getElementById('fieldPalette').querySelectorAll('.te-palette-item').forEach(function (item) {
+      var type = item.getAttribute('data-field-type');
+
+      /* ── Mouse ── */
+      item.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        startPaletteGrab(type, e.clientX, e.clientY);
+      });
+
+      /* ── Touch ── */
+      item.addEventListener('touchstart', function (e) {
+        e.preventDefault(); /* prevent scroll while dragging a palette item */
+        var t = e.touches[0];
+        startPaletteGrab(type, t.clientX, t.clientY);
+      }, { passive: false });
+    });
+  }
+
+  /* ── Shared helpers: process move/end from any pointer type ─────────── */
+  function handlePointerMove(clientX, clientY) {
+    if (paletteGrab) {
+      var c = document.getElementById('dragClone');
+      if (c) { c.style.left = clientX + 'px'; c.style.top = clientY + 'px'; }
+    }
+    if (fieldMove) {
+      var f = getField(fieldMove.id); if (!f) { fieldMove = null; return; }
+      f.x = Math.max(0, fieldMove.origX + (clientX - fieldMove.startX));
+      f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY));
+      fieldMove.el.style.left = f.x + 'px';
+      fieldMove.el.style.top  = f.y + 'px';
+      markDirty();
+    }
+    if (fieldResize) {
+      var f = getField(fieldResize.id); if (!f) { fieldResize = null; return; }
+      f.w = Math.max(20, fieldResize.origW + (clientX - fieldResize.startX));
+      f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY));
+      fieldResize.el.style.width  = f.w + 'px';
+      fieldResize.el.style.height = f.h + 'px';
+      markDirty();
+    }
+  }
+
+  function handlePointerEnd(clientX, clientY) {
+    if (paletteGrab) {
+      var c = document.getElementById('dragClone'); if (c) c.remove();
+      if (state.pdfDoc) {
+        var layer = document.getElementById('fieldLayer');
+        var rect  = layer.getBoundingClientRect();
+        var x = clientX - rect.left, y = clientY - rect.top;
+        if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
+          placeField(paletteGrab.type, x, y);
+        }
+      }
+      paletteGrab = null;
+    }
+    if (fieldMove)   { updatePlacedFieldsList(); fieldMove   = null; }
+    if (fieldResize) { updatePlacedFieldsList(); fieldResize = null; }
+  }
+
+  function setupFieldInteractions() {
+    /* ── Mouse events ── */
+    document.addEventListener('mousemove', function (e) {
+      handlePointerMove(e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseup', function (e) {
+      handlePointerEnd(e.clientX, e.clientY);
+    });
+
+    /* ── Touch events — enable finger drag on palette → canvas ── */
+    document.addEventListener('touchmove', function (e) {
+      if (paletteGrab || fieldMove || fieldResize) {
+        e.preventDefault(); /* prevent page scroll while dragging */
+        var t = e.touches[0];
+        handlePointerMove(t.clientX, t.clientY);
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function (e) {
+      if (paletteGrab || fieldMove || fieldResize) {
+        var t = e.changedTouches[0];
+        handlePointerEnd(t.clientX, t.clientY);
+      }
+    });
+
+    document.addEventListener('touchcancel', function () {
+      var c = document.getElementById('dragClone'); if (c) c.remove();
+      paletteGrab = null; fieldMove = null; fieldResize = null;
+    });
+
+    /* Click/tap on empty canvas area deselects any selected field */
+    document.getElementById('viewport').addEventListener('mousedown', function (e) {
+      if (e.target.id === 'viewport' || e.target.id === 'pdfCanvas' || e.target.id === 'fieldLayer') {
+        deselectField();
+      }
+    });
+    document.getElementById('viewport').addEventListener('touchstart', function (e) {
+      if (e.target.id === 'viewport' || e.target.id === 'pdfCanvas' || e.target.id === 'fieldLayer') {
+        deselectField();
+      }
+    });
+  }
+
+    function placeField(type, x, y) {
+    var ft = FIELD_TYPES[type] || FIELD_TYPES.text;
+    var f  = {
+      id: state.nextFieldId++, type: type, label: ft.label,
+      signerIndex: 0, required: true, page: state.pageNum,
+      x: x - ft.w * state.scale / 2,
+      y: y - ft.h * state.scale / 2,
+      w: ft.w * state.scale,
+      h: ft.h * state.scale
+    };
+    state.fields.push(f);
+    renderFieldOverlays(); selectField(f.id); updatePlacedFieldsList(); markDirty();
+  }
+
+  /* ── Selection ───────────────────────────────────────────── */
+  function selectField(id) {
+    state.selectedFieldId = id;
+    var f = getField(id); if (!f) return;
+    document.querySelectorAll('.te-field').forEach(function (el) {
+      el.classList.toggle('selected', parseInt(el.getAttribute('data-field-id')) === id);
+    });
+    document.getElementById('propsSection').style.display = '';
+    document.getElementById('propType').textContent      = (FIELD_TYPES[f.type] || {}).label || f.type;
+    document.getElementById('propLabel').value           = f.label;
+    document.getElementById('propSigner').value          = f.signerIndex;
+    document.getElementById('propRequired').checked      = f.required;
+    document.getElementById('propPage').textContent      = 'Page ' + f.page;
+    document.querySelectorAll('.te-placed-field-item').forEach(function (el) {
+      el.classList.toggle('active', parseInt(el.getAttribute('data-field-id')) === id);
+    });
+  }
+
+  function deselectField() {
+    state.selectedFieldId = null;
+    document.querySelectorAll('.te-field').forEach(function (el) { el.classList.remove('selected'); });
+    document.getElementById('propsSection').style.display = 'none';
+    document.querySelectorAll('.te-placed-field-item').forEach(function (el) { el.classList.remove('active'); });
+  }
+
+  function updateFieldProp(prop, value) {
+    var f = getField(state.selectedFieldId); if (!f) return;
+    f[prop] = value;
+    renderFieldOverlays();
+    if (state.selectedFieldId) selectField(state.selectedFieldId);
+    updatePlacedFieldsList(); markDirty();
+  }
+
+  function deleteSelectedField() {
+    if (!state.selectedFieldId) return;
+    state.fields = state.fields.filter(function (f) { return f.id !== state.selectedFieldId; });
+    deselectField(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+  }
+
+  function updatePlacedFieldsList() {
+    var c = document.getElementById('placedFieldsList');
+    if (state.fields.length === 0) {
+      c.innerHTML = '<p class="text-muted small" style="margin-bottom:0;">No fields placed yet.</p>';
+      document.getElementById('fieldCount').textContent = '0';
+      return;
+    }
+    c.innerHTML = '';
+    state.fields.forEach(function (f) {
+      var color = SIGNER_COLORS[f.signerIndex % SIGNER_COLORS.length];
+      var div   = document.createElement('div');
+      div.className = 'te-placed-field-item' + (f.id === state.selectedFieldId ? ' active' : '');
+      div.setAttribute('data-field-id', f.id);
+      div.innerHTML =
+        '<span class="te-pf-color" style="background:' + color.border + ';"></span>' +
+        '<span class="te-pf-label">' + esc(f.label) + '</span>' +
+        '<span class="te-pf-page">P' + f.page + '</span>';
+      div.addEventListener('click', function () {
+        if (f.page !== state.pageNum) { state.pageNum = f.page; renderPdfPage(); }
+        selectField(f.id);
+      });
+      c.appendChild(div);
+    });
+    document.getElementById('fieldCount').textContent = state.fields.length;
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────── */
+  function getField(id) {
+    for (var i = 0; i < state.fields.length; i++) { if (state.fields[i].id === id) return state.fields[i]; }
+    return null;
+  }
+
+  /* ── Load existing template ──────────────────────────────── */
+  function loadTemplate(id) {
+    setSaveStatus('saving', 'Loading...', 'fa-spinner fa-spin');
+    portalGet(API_BASE + '(' + id + ')')
+      .then(function (data) {
+        document.getElementById('tplNameInput').value  = data.cs_name        || '';
+        document.getElementById('tplDescInput').value  = data.cs_description || '';
+        document.getElementById('tplCatInput').value   = data.cs_category    || '';
+        document.getElementById('tplActiveInput').checked = data.cs_isactive !== false;
+
+        if (data.cs_templatejson) {
+          try {
+            var json = JSON.parse(data.cs_templatejson);
+            /* Restore signers — always replace defaults with saved data */
+            state.signers = [];
+            var savedSigners = json.signers && json.signers.length ? json.signers : [];
+            if (savedSigners.length === 0) {
+              /* Fallback: template was saved without signers — add one default */
+              savedSigners = [{ label: 'Primary Signer' }];
+            }
+            savedSigners.forEach(function (s) {
+              var idx = state.signers.length;
+              state.signers.push({ label: s.label || ('Signer ' + (idx + 1)),
+                                   color: SIGNER_COLORS[idx % SIGNER_COLORS.length] });
+            });
+            renderSigners(); updateSignerDropdowns();
+            /* Restore fields */
+            if (json.fields) {
+              state.fields      = json.fields;
+              state.nextFieldId = (json.nextFieldId || 0) + 1;
+              updatePlacedFieldsList();
+            }
+            /* Restore PDF */
+            if (json.pdfBase64) {
+              state.pdfBase64   = json.pdfBase64;
+              state.pdfFilename = json.pdfFilename || 'document.pdf';
+              var binary  = atob(json.pdfBase64);
+              var bytes   = new Uint8Array(binary.length);
+              for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+              loadPdf(bytes.buffer);
+            }
+          } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
+        }
+        setSaveStatus('saved', 'Loaded', 'fa-cloud');
+        state.dirty = false;
+      })
+      .catch(function (err) { setSaveStatus('error', 'Load failed: ' + err.message, 'fa-exclamation-triangle'); });
+  }
+
+  /* ── Save ────────────────────────────────────────────────── */
+  function buildPayload() {
+    return {
+      cs_name:        (document.getElementById('tplNameInput').value || '').trim() || 'Untitled Template',
+      cs_description: document.getElementById('tplDescInput').value.trim(),
+      cs_category:    document.getElementById('tplCatInput').value.trim(),
+      cs_isactive:    document.getElementById('tplActiveInput').checked,
+      cs_templatejson: JSON.stringify({
+        signers:     state.signers.map(function (s) { return { label: s.label }; }),
+        fields:      state.fields,
+        nextFieldId: state.nextFieldId,
+        pdfBase64:   state.pdfBase64,
+        pdfFilename: state.pdfFilename
+      })
+    };
+  }
+
+  /* ── doSave — create-once, update-always logic ────────────────────────
+     Decision tree:
+       ┌─ TEMPLATE_ID is null? ──YES──► POST  (create new record)
+       │                                  └─► on success: capture new GUID into
+       │                                       TEMPLATE_ID + update browser URL
+       │                                       so back button / reload land on edit
+       └─ TEMPLATE_ID is set?  ──YES──► PATCH (update existing record by GUID)
+
+     TEMPLATE_ID is set in three ways:
+       1. Page loaded with ?id=GUID  (edit mode from All Templates)
+       2. First save in create mode  (POST response carries the new GUID)
+       3. loadTemplate() was called  (restore from Dataverse on edit page load)
+
+     Once TEMPLATE_ID is set it never reverts to null in this session,
+     so every subsequent Save / Save & Close is always a PATCH.           */
+  function doSave(closeAfter) {
+    setSaveStatus('saving', 'Saving...', 'fa-spinner fa-spin');
+
+    var payload  = buildPayload();
+    var isCreate = !TEMPLATE_ID;
+    var promise  = isCreate
+      ? portalPost(API_BASE, payload)
+      : portalPatch(API_BASE + '(' + TEMPLATE_ID + ')', payload);
+
+    promise
+      .then(function (resp) {
+        state.dirty = false;
+
+        if (isCreate) {
+          /* Extract the new GUID from the POST response.
+             portalPost returns { cs_templateid: '...' } from either the
+             response body (201) or the OData-EntityId header (204).      */
+          var newId = resp && resp.cs_templateid ? resp.cs_templateid : null;
+
+          if (newId) {
+            TEMPLATE_ID = newId;
+            /* Replace the URL so the browser address bar + history entry
+               reflect the edit URL. Back-button and page-reload now land
+               in edit mode rather than re-creating a blank record.        */
+            window.history.replaceState(
+              { templateId: TEMPLATE_ID },
+              '',
+              window.location.pathname + '?id=' + TEMPLATE_ID
+            );
+            console.info('ESIGN: Template created, GUID =', TEMPLATE_ID);
+          } else {
+            /* POST succeeded but we couldn't extract an ID.
+               Warn the developer; subsequent saves will still POST
+               (creating duplicates) until the page is reloaded with ?id=. */
+            console.warn('ESIGN: Created OK but no cs_templateid in response. ' +
+                         'Check portalPost / OData-EntityId header.');
+          }
+        }
+
+        setSaveStatus('saved', isCreate ? 'Template created' : 'Saved', 'fa-cloud');
+        if (closeAfter) { window.location.href = BACK_URL; }
+      })
+      .catch(function (err) {
+        setSaveStatus('error', 'Save failed — ' + err.message, 'fa-exclamation-triangle');
+        console.error('ESIGN save error:', err.message);
+      });
+  }
+
+  /* ── Panel collapse toggle ───────────────────────────────── */
+  function toggleSection(header) {
+    header.parentElement.classList.toggle('collapsed');
+  }
+
+  /* ── Init ────────────────────────────────────────────────── */
+  /* ── Dynamic height calculation ─────────────────────────────────────
+     Measures where the portal chrome ends (bottom of the last element
+     that precedes #editorShell) so the editor fills exactly the
+     remaining viewport without clipping or scroll.                    */
+  function setEditorHeight() {
+    var shell = document.getElementById('editorShell');
+    if (!shell) return;
+    var rect  = shell.getBoundingClientRect();
+    var avail = window.innerHeight - rect.top;
+    shell.style.height = Math.max(avail, 200) + 'px';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    /* Run after full layout pass so portal chrome is measured correctly */
+    setTimeout(setEditorHeight, 0);
+    window.addEventListener('resize', setEditorHeight);
+
+    /* ── PDF.js: load from self-hosted web file, gate buttons until ready ──
+       The script is appended to <head> dynamically. PDF buttons are disabled
+       until onload fires so no "PDF.js not loaded" race can occur.           */
+    canvas = null; ctx = null;
+
+    function enablePdfButtons(on) {
+      ['btnUploadPdf','btnUploadPdf2','btnSamplePdf','btnSamplePdf2'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.disabled = !on;
+        el.style.opacity = on ? '' : '0.5';
+        el.title = on ? '' : 'Waiting for PDF viewer to load…';
+      });
+    }
+
+    function onPdfJsReady() {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.js';
+      canvas = document.getElementById('pdfCanvas');
+      ctx    = canvas ? canvas.getContext('2d') : null;
+      pdfJsReady = true;
+      enablePdfButtons(true);
+      /* flush any queued load */
+      if (pendingPdfData) { loadPdf(pendingPdfData); pendingPdfData = null; }
+    }
+
+    function onPdfJsError() {
+      console.warn('ESIGN: /js/pdf.min.js failed to load. Upload it as a Power Pages web file.');
+      var hint = document.getElementById('pdfSetupHint');
+      if (hint) hint.style.display = '';
+      canvas = document.getElementById('pdfCanvas');
+      ctx    = canvas ? canvas.getContext('2d') : null;
+    }
+
+    /* Disable PDF buttons immediately; re-enable in onload */
+    enablePdfButtons(false);
+
+    var pdfScript    = document.createElement('script');
+    pdfScript.src    = '/js/pdf.min.js';
+    pdfScript.onload = function () {
+      if (typeof pdfjsLib !== 'undefined') {
+        onPdfJsReady();
+      } else {
+        /* Some PDF.js builds expose window.pdfjsLib, others pdfjs-dist */
+        var lib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
+        if (lib) { window.pdfjsLib = lib; onPdfJsReady(); }
+        else      { onPdfJsError(); }
+      }
+    };
+    pdfScript.onerror = onPdfJsError;
+    document.head.appendChild(pdfScript);
+
+    /* Add default signers only for a new template.
+       In edit mode (TEMPLATE_ID set), loadTemplate() will restore
+       the saved signers — no need to pre-populate defaults.           */
+    if (!TEMPLATE_ID) {
+      addSigner('Primary Signer');
+      addSigner('Counter-Signer');
+    }
+    state.dirty = false;
+
+    setupPaletteDrag();
+    setupFieldInteractions();
+
+    /* Load existing template when ?id= query param is present */
+    if (TEMPLATE_ID) { loadTemplate(TEMPLATE_ID); }
+
+    /* ── Wire all events via addEventListener ── */
+
+    /* PDF toolbar */
+    document.getElementById('btnPrevPage').addEventListener('click', prevPage);
+    document.getElementById('btnNextPage').addEventListener('click', nextPage);
+    document.getElementById('btnZoomIn').addEventListener('click', zoomIn);
+    document.getElementById('btnZoomOut').addEventListener('click', zoomOut);
+    document.getElementById('btnFitWidth').addEventListener('click', fitWidth);
+    document.getElementById('btnUploadPdf').addEventListener('click', function () {
+      document.getElementById('fileUpload').click();
+    });
+    document.getElementById('btnUploadPdf2').addEventListener('click', function () {
+      document.getElementById('fileUpload').click();
+    });
+    document.getElementById('btnSamplePdf').addEventListener('click', loadSamplePdf);
+    document.getElementById('btnSamplePdf2').addEventListener('click', loadSamplePdf);
+    document.getElementById('fileUpload').addEventListener('change', function () { handleUpload(this); });
+
+    /* Top bar */
+    document.getElementById('btnSave').addEventListener('click', function () { doSave(false); });
+    document.getElementById('btnSaveClose').addEventListener('click', function () { doSave(true); });
+    document.getElementById('tplNameInput').addEventListener('input', markDirty);
+    document.getElementById('tplDescInput').addEventListener('input', markDirty);
+    document.getElementById('tplCatInput').addEventListener('input', markDirty);
+    document.getElementById('tplActiveInput').addEventListener('change', markDirty);
+
+    /* Signers panel */
+    document.getElementById('btnAddSigner').addEventListener('click', function () { addSigner(); });
+
+    /* Field properties panel */
+    document.getElementById('btnDeselectField').addEventListener('click', deselectField);
+    document.getElementById('btnDeleteField').addEventListener('click', deleteSelectedField);
+    document.getElementById('propLabel').addEventListener('change', function () {
+      updateFieldProp('label', this.value);
+    });
+    document.getElementById('propSigner').addEventListener('change', function () {
+      updateFieldProp('signerIndex', parseInt(this.value));
+    });
+    document.getElementById('propRequired').addEventListener('change', function () {
+      updateFieldProp('required', this.checked);
+    });
+
+    /* Panel collapse headers */
+    ['metaHeader','signersHeader','paletteHeader','placedHeader'].forEach(function (hid) {
+      document.getElementById(hid).addEventListener('click', function () { toggleSection(this); });
+    });
+
+    /* Keyboard: Delete key removes selected field */
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') &&
+          state.selectedFieldId &&
+          document.activeElement.tagName !== 'INPUT' &&
+          document.activeElement.tagName !== 'TEXTAREA') {
+        deleteSelectedField();
+      }
+    });
+
+    /* Warn on unload if dirty */
+    window.addEventListener('beforeunload', function (e) {
+      if (state.dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
+  });
+
+})();
+</script>
+
+
+<!-- GCWeb Footer (matches CS-Home-WET.liquid pattern) -->
+<footer id="wb-info" style="background:#26374A;padding:20px 0;flex-shrink:0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK1'] | default: 'Terms &amp; Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg"
+             alt="Symbol of the Government of Canada"
+             style="height:24px;filter:brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% else %}
+<script>window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);</script>
+{% endif %}

@@ -1,0 +1,596 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_sharecommondataserviceforapps"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_template_created_or_updated": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "subscriptionRequest/message": 4,
+              "subscriptionRequest/entityname": "cs_template",
+              "subscriptionRequest/scope": 4,
+              "subscriptionRequest/filteringattributes": "cs_name,cs_templatejson",
+              "subscriptionRequest/filterexpression": ""
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Initialize_BearerToken": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "10a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "BearerToken",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Initialize_UserContext": {
+          "runAfter": {
+            "Initialize_BearerToken": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "20a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "UserContext",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Initialize_ApiBaseUrl": {
+          "runAfter": {
+            "Initialize_UserContext": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "30a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ApiBaseUrl",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Initialize_NintexTemplateId": {
+          "runAfter": {
+            "Initialize_ApiBaseUrl": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "40a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "NintexTemplateId",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Get_Template_Record": {
+          "runAfter": {
+            "Initialize_NintexTemplateId": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "50a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_templates",
+              "recordId": "@triggerOutputs()?['body/cs_templateid']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Parse_TemplateJson": {
+          "runAfter": {
+            "Get_Template_Record": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "60a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@outputs('Get_Template_Record')?['body/cs_templatejson']",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "version": {
+                  "type": "integer"
+                },
+                "nintexTemplateId": {
+                  "type": "string"
+                },
+                "signers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "signerIndex": {
+                        "type": "integer"
+                      },
+                      "required": {
+                        "type": "boolean"
+                      },
+                      "page": {
+                        "type": "integer"
+                      },
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "w": {
+                        "type": "number"
+                      },
+                      "h": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "nextFieldId": {
+                  "type": "integer"
+                },
+                "pdfBase64": {
+                  "type": "string"
+                },
+                "pdfFilename": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Set_NintexTemplateId": {
+          "runAfter": {
+            "Parse_TemplateJson": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "70a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "NintexTemplateId",
+            "value": "@{coalesce(body('Parse_TemplateJson')?['nintexTemplateId'], '')}"
+          }
+        },
+        "Get_ApiUsername_Env": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "environmentvariabledefinitions",
+              "$filter": "schemaname eq 'cs_NintexApiUsername'",
+              "$select": "defaultvalue",
+              "$top": 1,
+              "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_ApiKey_Env": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "environmentvariabledefinitions",
+              "$filter": "schemaname eq 'cs_NintexApiKey'",
+              "$select": "defaultvalue",
+              "$top": 1,
+              "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_ContextUsername_Env": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "environmentvariabledefinitions",
+              "$filter": "schemaname eq 'cs_NintexContextUsername'",
+              "$select": "defaultvalue",
+              "$top": 1,
+              "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_AuthUrl_Env": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "environmentvariabledefinitions",
+              "$filter": "schemaname eq 'cs_NintexAuthUrl'",
+              "$select": "defaultvalue",
+              "$top": 1,
+              "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_ApiBaseUrl_Env": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "environmentvariabledefinitions",
+              "$filter": "schemaname eq 'cs_NintexApiBaseUrl'",
+              "$select": "defaultvalue",
+              "$top": 1,
+              "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          }
+        },
+        "HTTP_Authenticate_Nintex": {
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{coalesce(first(first(outputs('Get_AuthUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_AuthUrl_Env')?['body/value'])?['defaultvalue'])}/authentication/apiUser",
+            "headers": {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            "body": {
+              "request": {
+                "apiUsername": "@{coalesce(first(first(outputs('Get_ApiUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiUsername_Env')?['body/value'])?['defaultvalue'])}",
+                "key": "@{coalesce(first(first(outputs('Get_ApiKey_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiKey_Env')?['body/value'])?['defaultvalue'])}",
+                "contextUsername": "@{coalesce(first(first(outputs('Get_ContextUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ContextUsername_Env')?['body/value'])?['defaultvalue'])}",
+                "sessionLengthInMinutes": 1440
+              }
+            }
+          },
+          "runAfter": {
+            "Get_ApiUsername_Env": [
+              "Succeeded"
+            ],
+            "Get_ApiKey_Env": [
+              "Succeeded"
+            ],
+            "Get_ContextUsername_Env": [
+              "Succeeded"
+            ],
+            "Get_AuthUrl_Env": [
+              "Succeeded"
+            ],
+            "Get_ApiBaseUrl_Env": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Set_BearerToken": {
+          "type": "SetVariable",
+          "inputs": {
+            "name": "BearerToken",
+            "value": "@{concat('bearer ', body('HTTP_Authenticate_Nintex')?['result']?['token'])}"
+          },
+          "runAfter": {
+            "HTTP_Authenticate_Nintex": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Set_UserContext": {
+          "type": "SetVariable",
+          "inputs": {
+            "name": "UserContext",
+            "value": "@{coalesce(first(first(outputs('Get_ContextUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ContextUsername_Env')?['body/value'])?['defaultvalue'])}"
+          },
+          "runAfter": {
+            "HTTP_Authenticate_Nintex": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Set_ApiBaseUrl": {
+          "type": "SetVariable",
+          "inputs": {
+            "name": "ApiBaseUrl",
+            "value": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}"
+          },
+          "runAfter": {
+            "HTTP_Authenticate_Nintex": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Build_Template_Payload": {
+          "runAfter": {
+            "Set_BearerToken": [
+              "Succeeded"
+            ],
+            "Set_UserContext": [
+              "Succeeded"
+            ],
+            "Set_ApiBaseUrl": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "80a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "Compose",
+          "inputs": {
+            "request": {
+              "templateName": "@{outputs('Get_Template_Record')?['body/cs_name']}",
+              "templateDescription": "@{coalesce(outputs('Get_Template_Record')?['body/cs_description'], '')}",
+              "documents": [
+                {
+                  "documentName": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}",
+                  "documentContent": "@{coalesce(body('Parse_TemplateJson')?['pdfBase64'], '')}",
+                  "documentContentType": "application/pdf"
+                }
+              ],
+              "steps": "@body('Parse_TemplateJson')?['signers']",
+              "jotBlocks": "@body('Parse_TemplateJson')?['fields']"
+            }
+          }
+        },
+        "Check_Is_Update_Or_Create": {
+          "runAfter": {
+            "Build_Template_Payload": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "90a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "not": {
+                  "equals": [
+                    "@variables('NintexTemplateId')",
+                    ""
+                  ]
+                }
+              }
+            ]
+          },
+          "actions": {
+            "HTTP_Update_Template_In_AssureSign": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "PUT",
+                "uri": "@{variables('ApiBaseUrl')}/templates/@{variables('NintexTemplateId')}",
+                "headers": {
+                  "Authorization": "@{variables('BearerToken')}",
+                  "X-AS-UserContext": "@{variables('UserContext')}",
+                  "Content-Type": "application/json",
+                  "Accept": "application/json"
+                },
+                "body": "@outputs('Build_Template_Payload')"
+              }
+            },
+            "Update_Dataverse_After_AssureSign_Update": {
+              "runAfter": {
+                "HTTP_Update_Template_In_AssureSign": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "cs_templates",
+                  "recordId": "@triggerOutputs()?['body/cs_templateid']",
+                  "item/cs_isactive": true
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "HTTP_Create_Template_In_AssureSign": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "c0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+                },
+                "type": "Http",
+                "inputs": {
+                  "method": "POST",
+                  "uri": "@{variables('ApiBaseUrl')}/templates",
+                  "headers": {
+                    "Authorization": "@{variables('BearerToken')}",
+                    "X-AS-UserContext": "@{variables('UserContext')}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                  },
+                  "body": "@outputs('Build_Template_Payload')"
+                }
+              },
+              "Compose_Updated_TemplateJson": {
+                "runAfter": {
+                  "HTTP_Create_Template_In_AssureSign": [
+                    "Succeeded"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "d0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+                },
+                "type": "Compose",
+                "inputs": "@setProperty(json(outputs('Get_Template_Record')?['body/cs_templatejson']), 'nintexTemplateId', body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID'])"
+              },
+              "Update_Dataverse_With_NintexId": {
+                "runAfter": {
+                  "Compose_Updated_TemplateJson": [
+                    "Succeeded"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "e0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "UpdateRecord",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "cs_templates",
+                    "recordId": "@triggerOutputs()?['body/cs_templateid']",
+                    "item/cs_templateid": "@{body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID']}",
+                    "item/cs_templatejson": "@{string(outputs('Compose_Updated_TemplateJson'))}",
+                    "item/cs_isactive": true
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

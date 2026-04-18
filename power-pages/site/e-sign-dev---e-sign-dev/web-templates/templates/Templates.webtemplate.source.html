@@ -1,187 +1,537 @@
-<div class="container py-4">
-<nav class="gc-breadcrumb" aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active">Templates</li>
-    </ol>
-</nav>
+{% comment %}
+  Elections Canada – Electronic Signature Service (ESIGN)
+  All Templates Web Template  (/all-templates)
+  NO inline onclick/onX handlers — all listeners attached via addEventListener
+  to satisfy Power Pages CSP (script-src nonce injection only covers <script> blocks).
+  Snippet namespace: ESIGN/*
+{% endcomment %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-file-earmark-text me-2"></i>Templates</h2>
-    <button class="btn btn-gc-primary" data-bs-toggle="modal" data-bs-target="#newTemplateModal">
-        <i class="bi bi-plus-circle me-1"></i>Create Template
-    </button>
-</div>
+{% if user %}
 
-<!-- Templates Grid -->
-<div class="row g-4" id="templates-grid">
-    <div class="col-12 text-center py-4">
-        <div class="spinner-border spinner-border-sm text-muted" role="status"></div>
-        <span class="text-muted ms-2">Loading templates...</span>
-    </div>
-</div>
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
 
-<!-- Create Template Modal -->
-<div class="modal fade" id="newTemplateModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background: var(--gc-blue); color: white;">
-                <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>Create New Template</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="newTemplateForm">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Template Name</label>
-                        <input type="text" id="tplName" class="form-control" required placeholder="e.g. Standard NDA"/>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Description</label>
-                        <textarea id="tplDescription" class="form-control" rows="2" placeholder="Brief description of this template..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Upload Document</label>
-                        <input type="file" id="tplDocument" class="form-control" accept=".docx,.doc,.pdf"/>
-                        <div class="form-text">Upload a Word document with Nintex eSign field tags (e.g. from the Word Field Palette add-in).</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Document Preview</label>
-                        <div id="tplPreview" class="border rounded p-3 text-center text-muted" style="min-height: 200px; background: #f0f0f0;">
-                            <i class="bi bi-file-earmark-pdf" style="font-size: 3rem;"></i>
-                            <p class="mt-2 mb-0">Upload a document to see preview</p>
-                        </div>
-                    </div>
+    <!-- Page header -->
+    <section class="row mrgn-bttm-md">
+      <div class="col-sm-8">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb" style="background:none;padding:0;margin-bottom:8px;font-size:13px;">
+            <li><a href="/">{{ snippets['ESIGN/BC/HOME'] | default: 'Home' }}</a></li>
+            <li class="active">{{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Available Templates' }}</li>
+          </ol>
+        </nav>
+        <h1 class="h2 mrgn-tp-0">
+          <span class="fa fa-files-o mrgn-rght-sm" style="color:#26374A;"></span>
+          {{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Available Templates' }}
+        </h1>
+        <p class="text-muted">{{ snippets['ESIGN/TEMPLATES/DESC'] | default: 'Browse approved signature templates. Click <strong>Use</strong> to send a new envelope, or <strong>Download</strong> to save the source document.' }}</p>
+      </div>
+      <div class="col-sm-4 text-right" style="padding-top:28px;">
+        <!-- Triggers WET lightbox / Bootstrap 3 modal — no inline handler -->
+        <a href="/templates/edit-template"
+           class="btn btn-default"
+           style="border-color:#26374A;color:#26374A;border-radius:0;font-weight:600;">
+          <span class="fa fa-plus mrgn-rght-sm"></span>
+          {{ snippets['ESIGN/TEMPLATES/CREATE_BTN'] | default: 'Create Template' }}
+        </a>
+      </div>
+    </section>
 
-                    <hr/>
-                    <h6><i class="bi bi-people me-1"></i>Signer Roles</h6>
-                    <p class="text-muted small">Define the signer roles for this template. When using the template, actual signer details will be provided.</p>
-                    <div id="tplSignersList" class="mb-3"></div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addTplSignerRow()">
-                        <i class="bi bi-plus me-1"></i>Add Signer Role
-                    </button>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-gc-primary" onclick="createTemplate()">
-                    <i class="bi bi-check-circle me-1"></i>Create Template
-                </button>
-            </div>
+    <!-- Search / filter bar: search left, category dropdown right-aligned -->
+    <section class="row mrgn-bttm-md" style="display:flex;align-items:center;flex-wrap:wrap;gap:0;">
+      <div class="col-md-6 col-sm-8">
+        <div class="input-group">
+          <input type="text" id="tpl-search" class="form-control"
+                 placeholder="{{ snippets['ESIGN/TEMPLATES/SEARCH_PH'] | default: 'Search templates...' }}"
+                 style="border-radius:0;border-color:#ccc;">
+          <span class="input-group-btn">
+            <button id="tpl-search-btn" class="btn btn-default" type="button"
+                    style="border-radius:0;background:#26374A;color:#fff;border-color:#26374A;">
+              <span class="fa fa-search"></span>
+              <span class="wb-inv">Search</span>
+            </button>
+          </span>
         </div>
-    </div>
-</div>
+      </div>
+      <!-- col-md-3 col-md-offset-3 pushes the dropdown to the far right on md+ screens -->
+      <div class="col-md-3 col-md-offset-3 col-sm-4">
+        <select id="tpl-category" class="form-control" style="border-radius:0;border-color:#ccc;">
+          <option value="">{{ snippets['ESIGN/TEMPLATES/ALL_CATS'] | default: 'All Categories' }}</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Templates table panel -->
+    <section class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background:#26374A;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h2 class="panel-title" style="font-weight:600;color:#fff;font-size:15px;">
+                <span class="fa fa-table mrgn-rght-sm"></span>
+                {{ snippets['ESIGN/TEMPLATES/TABLE_HEADING'] | default: 'Signature Templates' }}
+              </h2>
+<span id="tpl-count"
+                    style="background:rgba(0,0,0,0.35);color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:3px;display:inline-block;white-space:nowrap;"></span>
+            </div>
+          </div>
+
+          <div id="tpl-loading" class="panel-body text-center" style="padding:40px;">
+            <span class="fa fa-spinner fa-spin" style="font-size:2rem;color:#26374A;display:block;margin-bottom:10px;"></span>
+            <p class="text-muted mrgn-bttm-0">{{ snippets['ESIGN/TEMPLATES/LOADING'] | default: 'Loading templates...' }}</p>
+          </div>
+
+          <div id="tpl-error" class="panel-body" style="display:none;">
+            <div class="alert alert-danger mrgn-bttm-0" role="alert">
+              <span class="fa fa-exclamation-triangle mrgn-rght-sm"></span>
+              <strong>{{ snippets['ESIGN/TEMPLATES/ERR_TITLE'] | default: 'Unable to load templates.' }}</strong>
+              {{ snippets['ESIGN/TEMPLATES/ERR_DESC'] | default: 'Please refresh the page or contact support.' }}
+            <br><small id="tpl-error-detail" class="text-muted"></small>
+            </div>
+          </div>
+
+          <div id="tpl-table-wrap" class="panel-body" style="display:none;padding:0;">
+            <div class="table-responsive">
+              <table class="table table-hover mrgn-bttm-0" id="tpl-table">
+                <thead>
+                  <tr style="background:#f5f5f5;">
+                    <th style="width:38%;">{{ snippets['ESIGN/TEMPLATES/COL_NAME']     | default: 'Template Name' }}</th>
+                    <th style="width:18%;">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
+                    <th style="width:15%;">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:11%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
+                    <th style="width:18%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_ACTIONS'] | default: 'Actions' }}</th>
+                  </tr>
+                </thead>
+                <tbody id="tpl-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="tpl-empty" class="panel-body text-center" style="display:none;padding:50px 20px;">
+            <span class="fa fa-inbox" style="font-size:3rem;color:#ccc;display:block;margin-bottom:15px;"></span>
+            <h3 class="h4" style="color:#555;">{{ snippets['ESIGN/TEMPLATES/EMPTY_TITLE'] | default: 'No templates found' }}</h3>
+            <p class="text-muted">{{ snippets['ESIGN/TEMPLATES/EMPTY_DESC'] | default: 'No templates match your search. Try adjusting your filters or create a new template.' }}</p>
+            <a href="/templates/edit-template"
+               class="btn btn-default"
+               style="border-color:#26374A;color:#26374A;border-radius:0;margin-top:10px;">
+              <span class="fa fa-plus mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/TEMPLATES/CREATE_BTN'] | default: 'Create Template' }}
+            </a>
+          </div>
+
+          <div id="tpl-pagination" class="panel-footer"
+               style="display:none;background:#f9f9f9;border-top:1px solid #ddd;padding:10px 15px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span id="tpl-page-info" class="small text-muted"></span>
+              <div>
+                <button id="tpl-prev" class="btn btn-xs btn-default" style="border-radius:0;" disabled>
+                  <span class="fa fa-chevron-left mrgn-rght-xs"></span>
+                  {{ snippets['ESIGN/TEMPLATES/PREV'] | default: 'Previous' }}
+                </button>
+                <button id="tpl-next" class="btn btn-xs btn-default" style="border-radius:0;margin-left:4px;" disabled>
+                  {{ snippets['ESIGN/TEMPLATES/NEXT'] | default: 'Next' }}
+                  <span class="fa fa-chevron-right mrgn-lft-xs"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
 
 <script>
-var tplSignerCount = 0;
+(function () {
+  'use strict';
 
-function addTplSignerRow() {
-    tplSignerCount++;
-    var html = '<div class="row g-2 mb-2 tpl-signer-row" id="tpl-signer-' + tplSignerCount + '">' +
-        '<div class="col-md-5"><input type="text" class="form-control form-control-sm tpl-signer-label" placeholder="Role Label (e.g. Primary Signer)" required/></div>' +
-        '<div class="col-md-5"><input type="text" class="form-control form-control-sm tpl-signer-email" placeholder="Default Email (optional)"/></div>' +
-        '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.closest(\'.tpl-signer-row\').remove()"><i class="bi bi-trash"></i></button></div>' +
-        '</div>';
-    document.getElementById('tplSignersList').innerHTML += html;
-}
+  /* ── Config ──────────────────────────────────────────────────────────── */
+  var PAGE_SIZE  = 10;
+  var API_BASE   = '/_api/cs_templates';
+  var USE_URL    = '/new-envelope';
+  var PARAM_TPL  = 'templateId';
 
-function createTemplate() {
-    var name = document.getElementById('tplName').value;
-    if (!name) { alert('Please enter a template name.'); return; }
+  /* ── State ───────────────────────────────────────────────────────────── */
+  var allRecords  = [];
+  var filtered    = [];
+  var currentPage = 1;
+  var signerCount = 0;
 
-    var template = {
-        cs_name: name,
-        cs_description: document.getElementById('tplDescription').value || ''
-    };
+  /* ── DOM refs (all resolved after DOMContentLoaded) ──────────────────── */
+  var elLoading, elError, elTableWrap, elEmpty, elTbody,
+      elCount, elPagWrap, elPageInfo, elPrev, elNext,
+      elSearch, elCategory, elSignersList,
+      elName, elDesc, elCatInput, elFileInput, elPreview,
+      elCreateSuccess, elCreateError, elCreateErrorMsg,
+      elSubmitBtn;
 
-    // Upload document as base64 if provided
-    var fileInput = document.getElementById('tplDocument');
-    if (fileInput.files.length > 0) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            template.cs_filecontent = e.target.result.split(',')[1]; // base64 without prefix
-            template.cs_filename = fileInput.files[0].name;
-            submitTemplate(template);
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        submitTemplate(template);
-    }
-}
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  function show(el)  { el.style.display = ''; }
+  function hide(el)  { el.style.display = 'none'; }
 
-function submitTemplate(template) {
-    shell.ajaxSafePost({
-        url: '/_api/cs_templates',
-        contentType: 'application/json',
-        data: JSON.stringify(template),
-        success: function(data) {
-            var modal = bootstrap.Modal.getInstance(document.getElementById('newTemplateModal'));
-            modal.hide();
-            loadTemplates();
-            alert('Template created successfully!');
-        },
-        error: function(xhr) {
-            alert('Error creating template: ' + (xhr.responseText || 'Unknown error'));
-        }
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '--';
+    return new Date(iso).toLocaleDateString('en-CA');
+  }
+
+  var STATUS_STYLE = {
+    'Active':   'background:#1a5336;color:#fff;',
+    'Inactive': 'background:#767676;color:#fff;',
+    'Archived': 'background:#d83b01;color:#fff;'
+  };
+
+  /* ── Category dropdown ───────────────────────────────────────────────── */
+  function buildCategoryFilter(records) {
+    var seen = {};
+    records.forEach(function (r) {
+      var cat = r.cs_category || '';
+      if (cat && !seen[cat]) {
+        seen[cat] = true;
+        var opt = document.createElement('option');
+        opt.value       = cat;
+        opt.textContent = cat;
+        elCategory.appendChild(opt);
+      }
     });
-}
+  }
 
-function loadTemplates() {
-    shell.ajaxSafeGet({
-        url: '/_api/cs_templates?$orderby=createdon desc&$select=cs_name,cs_description,cs_templateid,cs_filename,createdon',
-        success: function(data) {
-            var grid = document.getElementById('templates-grid');
-            if (!data || !data.value || data.value.length === 0) {
-                grid.innerHTML = '<div class="col-12 text-center py-5">' +
-                    '<i class="bi bi-file-earmark-text" style="font-size: 3rem; color: var(--gc-gray);"></i>' +
-                    '<p class="text-muted mt-2">No templates yet. Create your first template to get started.</p>' +
-                    '</div>';
-                return;
-            }
-            grid.innerHTML = '';
-            data.value.forEach(function(tpl) {
-                var card = '<div class="col-md-4">' +
-                    '<div class="gc-card card h-100">' +
-                    '<div class="card-body">' +
-                    '<h5 class="card-title"><i class="bi bi-file-earmark-text me-2" style="color: var(--gc-blue);"></i>' + (tpl.cs_name || 'Untitled') + '</h5>' +
-                    '<p class="card-text text-muted small">' + (tpl.cs_description || 'No description') + '</p>' +
-                    '<div class="d-flex justify-content-between align-items-center">' +
-                    '<small class="text-muted">' + new Date(tpl.createdon).toLocaleDateString() + '</small>' +
-                    '<div>' +
-                    '<a href="/document-viewer/?template=' + tpl.cs_templateid + '" class="btn btn-sm btn-gc-primary me-1" title="Preview"><i class="bi bi-eye"></i></a>' +
-                    '<button class="btn btn-sm btn-gc-success" title="Download" onclick="downloadTemplate(\'' + tpl.cs_templateid + '\')"><i class="bi bi-download"></i></button>' +
-                    '</div></div></div></div></div>';
-                grid.innerHTML += card;
-            });
-        },
-        error: function() {
-            document.getElementById('templates-grid').innerHTML =
-                '<div class="col-12 text-center text-danger py-4">Error loading templates.</div>';
-        }
-    });
-}
+  /* ── Render current page ─────────────────────────────────────────────── */
+  function renderPage() {
+    var total = filtered.length;
+    var start = (currentPage - 1) * PAGE_SIZE;
+    var end   = Math.min(start + PAGE_SIZE, total);
+    var page  = filtered.slice(start, end);
 
-function downloadTemplate(templateId) {
-    window.location.href = '/_api/cs_templates(' + templateId + ')/cs_filecontent/$value';
-}
+    elTbody.innerHTML = '';
 
-// Preview uploaded file
-document.getElementById('tplDocument').addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var preview = document.getElementById('tplPreview');
-    if (file.type === 'application/pdf') {
-        var url = URL.createObjectURL(file);
-        preview.innerHTML = '<iframe src="' + url + '" style="width:100%;height:400px;border:none;"></iframe>';
-    } else {
-        preview.innerHTML = '<i class="bi bi-file-earmark-word" style="font-size: 3rem; color: var(--gc-blue);"></i>' +
-            '<p class="mt-2 mb-0"><strong>' + file.name + '</strong> (' + (file.size / 1024).toFixed(1) + ' KB)</p>' +
-            '<p class="text-muted small">Word documents will be converted to PDF for preview after upload.</p>';
+    if (total === 0) {
+      hide(elTableWrap);
+      hide(elPagWrap);
+      show(elEmpty);
+      elCount.textContent = '0 templates';
+      return;
     }
-});
 
-document.addEventListener('DOMContentLoaded', function() {
-    addTplSignerRow();
+    hide(elEmpty);
+    show(elTableWrap);
+
+    page.forEach(function (tpl) {
+      var isActive   = tpl.cs_isactive !== false;
+      var status     = isActive ? 'Active' : 'Inactive';
+      var badge      = STATUS_STYLE[status] || STATUS_STYLE['Inactive'];
+      var useHref    = USE_URL + '?' + PARAM_TPL + '=' + esc(tpl.cs_templateid);
+      var hasJson    = !!tpl.cs_templatejson;
+
+      /* Download: fetch the template's pdfBase64 from cs_templatejson and
+         trigger a client-side blob download. The button calls downloadTplPdf(id). */
+      var dlBtn = hasJson
+        ? '<button type="button" class="btn btn-xs btn-default tpl-dl-btn" ' +
+            'style="border-radius:0;" title="Download PDF" ' +
+            'data-id="' + esc(tpl.cs_templateid) + '" data-name="' + esc(tpl.cs_name || 'template') + '">' +
+            '<span class="fa fa-download"></span></button>'
+        : '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" ' +
+            'disabled title="No document attached"><span class="fa fa-download"></span></button>';
+
+      elTbody.innerHTML +=
+        '<tr>' +
+          '<td>' +
+            '<strong>' + esc(tpl.cs_name || 'Untitled') + '</strong>' +
+            (tpl.cs_description ? '<br><span class="small text-muted">' + esc(tpl.cs_description) + '</span>' : '') +
+          '</td>' +
+          '<td>' + esc(tpl.cs_category || '--') + '</td>' +
+          '<td>' + fmtDate(tpl.modifiedon) + '</td>' +
+          '<td class="text-center">' +
+            '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
+              esc(status) +
+            '</span>' +
+          '</td>' +
+          '<td class="text-center" style="white-space:nowrap;">' +
+            '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+               'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
+               'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
+            '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+               'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
+               'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
+            dlBtn +
+          '</td>' +
+        '</tr>';
+    });
+
+    /* Wire download buttons — fetch templatejson, extract pdfBase64, blob-download */
+    elTbody.querySelectorAll('.tpl-dl-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id   = this.getAttribute('data-id');
+        var name = this.getAttribute('data-name');
+        downloadTplPdf(id, name, this);
+      });
+    });
+
+    elCount.textContent = total + (total === 1 ? ' template' : ' templates');
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    elPageInfo.textContent = 'Showing ' + (start + 1) + '–' + end + ' of ' + total;
+    elPrev.disabled = (currentPage === 1);
+    elNext.disabled = (currentPage >= totalPages);
+    if (total > PAGE_SIZE) { show(elPagWrap); } else { hide(elPagWrap); }
+  }
+
+  /* ── Filter ──────────────────────────────────────────────────────────── */
+  function applyFilters() {
+    var q   = (elSearch.value || '').toLowerCase().trim();
+    var cat = elCategory.value;
+    currentPage = 1;
+    filtered = allRecords.filter(function (r) {
+      var nm = !q ||
+        (r.cs_name        || '').toLowerCase().indexOf(q) >= 0 ||
+        (r.cs_description || '').toLowerCase().indexOf(q) >= 0 ||
+        (r.cs_category    || '').toLowerCase().indexOf(q) >= 0 ||
+        false;
+      var cm = !cat || (r.cs_category || '') === cat;
+      return nm && cm;
+    });
+    renderPage();
+  }
+
+  /* ── Portal fetch helpers (Power Pages Bootstrap 5) ────────────────────
+     Power Pages Web API lives at /_api/<entitysetname>
+     - Do NOT send OData-Version headers — the portal proxy rejects them
+     - GET requests need only Accept: application/json
+     - POST/PATCH need the __RequestVerificationToken from the page's
+       hidden input (Power Pages injects this on every authenticated page)
+     - On error, parse the JSON body so we can surface the OData error code  */
+
+  function safeAjax(ajaxOptions) {
+    var deferred = $.Deferred();
+    shell.getTokenDeferred().done(function (token) {
+      if (!ajaxOptions.headers) { ajaxOptions.headers = {}; }
+      ajaxOptions.headers['__RequestVerificationToken'] = token;
+      $.ajax(ajaxOptions)
+        .done(function (data, status, xhr) { deferred.resolve(data, status, xhr); })
+        .fail(function (xhr, status, err)  { deferred.reject(xhr, status, err); });
+    }).fail(function () { deferred.rejectWith(this, arguments); });
+    return deferred.promise();
+  }
+
+    function portalGet(url) {
+    return fetch(url, {
+      method: 'GET', credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    }).then(function (r) {
+      if (!r.ok) { return parseErrorBody(r).then(function (e) { throw e; }); }
+      return r.json();
+    });
+  }
+
+  function portalPost(url, payload) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'POST', url: url, contentType: 'application/json',
+        data: JSON.stringify(payload), headers: { 'Accept': 'application/json' }
+      })
+      .done(function (data, status, xhr) { resolve(xhr.status === 204 ? null : data); })
+      .fail(function (xhr) { reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText)); });
+    });
+  }
+
+  /* ── Load templates ──────────────────────────────────────────────────── */
+  /* Column list — remove any that don't exist in your Dataverse table yet  */
+  /* Columns confirmed from /_api/cs_templates?$top=1 response */
+  var SELECT_COLS = [
+    'cs_templateid',
+    'cs_name',
+    'cs_description',
+    'cs_category',
+    'cs_isactive',
+    'cs_templatejson',
+    'statecode',
+    'statuscode',
+    'modifiedon',
+    'createdon',
+  ].join(',');
+
+  function loadTemplates() {
+    hide(elError);
+    hide(elTableWrap);
+    hide(elEmpty);
+    show(elLoading);
+
+    /* Phase 1 — minimal probe: just $top=1, no $select, no $orderby.
+       Failure modes:
+         400 / 9004010A → Table Permission missing or portal cache stale
+         403            → Web Role not assigned to Table Permission
+         404            → Entity set name wrong (not "cs_templates")
+         200            → table reachable; Phase 2 runs full query          */
+    portalGet(API_BASE + '?$top=1')
+      .then(function () {
+        /* Phase 2 — full query with $select */
+        return portalGet(
+          API_BASE + '?$orderby=cs_name asc&$select=' + SELECT_COLS
+        );
+      })
+      .then(function (data) {
+        hide(elLoading);
+        if (!data || !data.value) { show(elError); return; }
+        allRecords = data.value;
+        filtered   = allRecords.slice();
+        buildCategoryFilter(allRecords);
+        renderPage();
+      })
+      .catch(function (err) {
+        console.error('ESIGN loadTemplates:', err.message);
+        hide(elLoading);
+        var detail = document.getElementById('tpl-error-detail');
+        if (detail) {
+          var msg = err.message || '';
+          var hint = '';
+          if (msg.indexOf('9004010A') >= 0 || msg.indexOf('400') >= 0) {
+            hint =
+              'Site Settings are present — the likely causes are: ' +
+              '(1) Portal cache not cleared after adding Site Settings ' +
+              '— go to /_services/about and click Restart, or use PAC CLI: ' +
+              'pac paportal clear-cache; ' +
+              '(2) Table Permission record missing — in Portal Management, ' +
+              'create a Table Permission for cs_template with scope=Global, ' +
+              'privilege=Read+Write, and assign it to the Authenticated Users web role. ';
+          } else if (msg.indexOf('403') >= 0) {
+            hint = 'Access denied — Table Permission exists but is not linked to the correct Web Role. ' +
+                   'Open the Table Permission record and add Authenticated Users to Web Roles. ';
+          } else if (msg.indexOf('404') >= 0) {
+            hint = 'Table not found — verify the Dataverse table entity set name. ' +
+                   'Try opening /_api/ in browser to list available entity sets. ';
+          } else if (msg.indexOf('SELECT') >= 0 || msg.indexOf('column') >= 0) {
+            hint = 'A column in the $select list does not exist on the table. ' +
+                   'Remove custom columns from SELECT_COLS one by one to isolate. ';
+          }
+          detail.innerHTML = hint +
+            '<br><code style="font-size:11px;word-break:break-all;">' + msg + '</code>';
+        }
+        show(elError);
+      });
+  }
+
+
+
+
+
+  /* ── Download template PDF ──────────────────────────────────────────── */
+  function downloadTplPdf(templateId, templateName, btnEl) {
+    if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<span class="fa fa-spinner fa-spin"></span>'; }
+    portalGet('/_api/cs_templates(' + templateId + ')?$select=cs_templatejson,cs_name')
+      .then(function (data) {
+        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+        if (!data || !data.cs_templatejson) {
+          alert('No document is attached to this template.');
+          return;
+        }
+        var json = JSON.parse(data.cs_templatejson);
+        if (!json.pdfBase64) {
+          alert('This template has no PDF document attached. Open the template editor to upload one.');
+          return;
+        }
+        /* Decode base64 → Uint8Array → Blob → object URL → auto-click download */
+        var binary  = atob(json.pdfBase64);
+        var bytes   = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+        var blob    = new Blob([bytes], { type: 'application/pdf' });
+        var url     = URL.createObjectURL(blob);
+        var anchor  = document.createElement('a');
+        anchor.href = url;
+        anchor.download = (json.pdfFilename || templateName || 'template') + '.pdf';
+        anchor.download = anchor.download.replace(/\.pdf\.pdf$/, '.pdf'); /* avoid double ext */
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+      })
+      .catch(function (err) {
+        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+        console.error('ESIGN: download failed:', err.message);
+        alert('Download failed: ' + err.message);
+      });
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+
+    /* Resolve DOM refs */
+    elLoading       = document.getElementById('tpl-loading');
+    elError         = document.getElementById('tpl-error');
+    elTableWrap     = document.getElementById('tpl-table-wrap');
+    elEmpty         = document.getElementById('tpl-empty');
+    elTbody         = document.getElementById('tpl-tbody');
+    elCount         = document.getElementById('tpl-count');
+    elPagWrap       = document.getElementById('tpl-pagination');
+    elPageInfo      = document.getElementById('tpl-page-info');
+    elPrev          = document.getElementById('tpl-prev');
+    elNext          = document.getElementById('tpl-next');
+    elSearch        = document.getElementById('tpl-search');
+    elCategory      = document.getElementById('tpl-category');
+
+    /* Table events */
+    document.getElementById('tpl-search-btn').addEventListener('click', applyFilters);
+    elSearch.addEventListener('keyup', function (e) { if (e.key === 'Enter') applyFilters(); });
+    elCategory.addEventListener('change', applyFilters);
+    elPrev.addEventListener('click', function () { if (currentPage > 1) { currentPage--; renderPage(); } });
+    elNext.addEventListener('click', function () {
+      if (currentPage < Math.ceil(filtered.length / PAGE_SIZE)) { currentPage++; renderPage(); }
+    });
+
+    /* Kick off data load */
     loadTemplates();
-});
+  });
+
+})();
 </script>
-</div>
+
+
+<!-- GCWeb Footer (matches CS-Home-WET.liquid pattern) -->
+<footer id="wb-info" style="background:#26374A;padding:20px 0;margin-top:40px;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK1'] | default: 'Terms &amp; Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color:rgba(255,255,255,0.8);">{{ snippets['ESIGN/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg"
+             alt="Symbol of the Government of Canada"
+             style="height:24px;filter:brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% else %}
+<script>window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);</script>
+{% endif %}
+
+<style>
+  .pepp-app { background: #f9f9f9; min-height: calc(100vh - 200px); }
+  .panel    { border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  #tpl-table th { font-size: 13px; white-space: nowrap; }
+  #tpl-table td { vertical-align: middle; font-size: 14px; }
+  #tpl-table tbody tr:hover { background: #f0f4f8; }
+  .breadcrumb li + li::before { content: "/ "; }
+  /* Search input-group: same height, button is a perfect square */
+  #tpl-search { height: 34px; }
+  #tpl-search-btn {
+    width: 34px; height: 34px;
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .input-group { display: flex; align-items: stretch; }
+  .input-group .form-control { flex: 1 1 auto; }
+  .input-group-btn { display: flex; align-items: stretch; flex-shrink: 0; }
+</style>

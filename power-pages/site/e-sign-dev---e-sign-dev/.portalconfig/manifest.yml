@@ -1,3 +1,12 @@
+adx_webpage:
+- RecordId: 63d5aabe-70d2-425c-b695-8aee28dcc843
+  DisplayName: Envelopes
+  CheckSum: 
+  IsDeleted: true
+- RecordId: a0056b14-e740-4cdc-adc9-2f9e4361e95c
+  DisplayName: Envelopes
+  CheckSum: 
+  IsDeleted: true
 annotation:
 - RecordId: 3020826d-3b1c-f111-8342-7ced8da58400
   DisplayName: portalbasictheme.css

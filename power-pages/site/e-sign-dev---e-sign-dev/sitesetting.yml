@@ -1,3 +1,7 @@
+- adx_name: HTTP/Access-Control-Allow-Origin
+  adx_sitesettingid: 0027fae8-ce39-f111-88b5-7ced8da586db
+  adx_source: 0
+  adx_value: true
 - adx_description: A true or false value. If set to true, the portal will display the terms and conditions of the site. Users must agree to the terms and conditions before they are considered authenticated and can use the site.
   adx_name: Authentication/Registration/TermsAgreementEnabled
   adx_sitesettingid: 07a3b907-4454-42ed-b2a2-e2cc89f5add7
@@ -21,9 +25,14 @@
   adx_name: Authentication/Registration/LocalLoginDeprecated
   adx_sitesettingid: 13a15e8f-a065-4bda-a54e-42c3effcd97b
   adx_value: false
-- adx_name: Webapi/cs_templates/enabled
+- adx_name: Webapi/cs_template/enabled
   adx_sitesettingid: 15d3b4b3-a785-4e76-a780-45d6e2ec168c
+  adx_source: 0
   adx_value: true
+- adx_name: Webapi/antiforgery/enabled
+  adx_sitesettingid: 17f7e4e7-2b3a-f111-88b5-7ced8da586db
+  adx_source: 0
+  adx_value: True
 - adx_name: Authentication/OpenAuth/Microsoft/ClientSecret
   adx_sitesettingid: 1a3cf81b-6bd6-410c-85ff-5412680a0b0e
 - adx_description: Specifies the default value for the SameSite attribute on HTTP cookies set by the portal.
@@ -40,8 +49,9 @@
   adx_name: KnowledgeManagement/DisplayNotes
   adx_sitesettingid: 2628429f-c894-4aaa-bc32-5cbaffedb0df
   adx_value: false
-- adx_name: Webapi/cs_envelopes/enabled
+- adx_name: Webapi/cs_envelope/enabled
   adx_sitesettingid: 26af12ff-7392-4639-a848-681b768ca584
+  adx_source: 0
   adx_value: true
 - adx_description: Site setting that controls the depth of the webpage hierarchy that’s cloned in a newly-added supported language. Web link sets and content snippets are cloned in the newly-added language when webpages are cloned.
   adx_name: MultiLanguage/MaximumDepthToClone
@@ -74,14 +84,17 @@
 - adx_name: Webapi/error/innererror
   adx_sitesettingid: 4e47a9aa-e7c1-4e24-91db-b60cdd3b4fb3
   adx_value: true
-- adx_name: Webapi/cs_signers/enabled
+- adx_name: Webapi/cs_signer/enabled
   adx_sitesettingid: 4f1a9933-3916-4264-b331-e44b7b412fe1
+  adx_source: 0
   adx_value: true
-- adx_name: Webapi/cs_envelopes/fields
+- adx_name: Webapi/cs_envelope/fields
   adx_sitesettingid: 57127edb-db77-4935-a3ff-e210e1fa679f
+  adx_source: 0
   adx_value: '*'
-- adx_name: Webapi/cs_documents/fields
+- adx_name: Webapi/cs_document/fields
   adx_sitesettingid: 5938bae2-adde-466b-855b-5dee77de7c82
+  adx_source: 0
   adx_value: '*'
 - adx_name: Header/ShowAllProfileNavigationLinks
   adx_sitesettingid: 5cc44f71-5a86-4735-8955-cc18c391a107
@@ -132,8 +145,9 @@
 - adx_name: Site/BootstrapV5Enabled
   adx_sitesettingid: 97548fb1-5006-46b3-95d0-9a832ae86a85
   adx_value: true
-- adx_name: Webapi/cs_documents/enabled
+- adx_name: Webapi/cs_document/enabled
   adx_sitesettingid: 9c60d8d9-7ad4-4812-a2ca-93532edefb55
+  adx_source: 0
   adx_value: true
 - adx_name: OnlineDomains
   adx_sitesettingid: a16c1d23-b5f8-470c-9a61-1742a56cd296
@@ -184,15 +198,17 @@
   adx_name: Authentication/Registration/ProfileRedirectEnabled
   adx_sitesettingid: d024eb22-7983-40e9-8910-e529555bed7d
   adx_value: true
-- adx_name: Webapi/cs_signers/fields
+- adx_name: Webapi/cs_signer/fields
   adx_sitesettingid: d5ad8d76-8d9c-4280-ad1d-15d4d640deba
+  adx_source: 0
   adx_value: '*'
 - adx_description: Set whether the footer web template is output cached.
   adx_name: Footer/OutputCache/Enabled
   adx_sitesettingid: dd7f2106-b704-4079-934a-c82439a8b596
   adx_value: true
-- adx_name: Webapi/cs_templates/fields
+- adx_name: Webapi/cs_template/fields
   adx_sitesettingid: ead79853-80f8-4bc2-b534-2e7a0d43cdb7
+  adx_source: 0
   adx_value: '*'
 - adx_name: Profile/ForceSignUp
   adx_sitesettingid: ebe80db4-b42e-4eaf-b978-de254730b5c5

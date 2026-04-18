@@ -1,0 +1,13 @@
+adx_append: true
+adx_appendto: true
+adx_create: true
+adx_delete: true
+adx_entitylogicalname: cs_envelope
+adx_entityname: cs_envelope
+adx_entitypermission_webrole:
+- cc291ece-e88e-4ddf-9668-7c06d00d2b5f
+- f88e7e1f-a280-41ae-bf36-0ac0a418c6dc
+adx_entitypermissionid: 13db47c9-c639-f111-88b5-7ced8da586db
+adx_read: true
+adx_scope: 756150000
+adx_write: true
