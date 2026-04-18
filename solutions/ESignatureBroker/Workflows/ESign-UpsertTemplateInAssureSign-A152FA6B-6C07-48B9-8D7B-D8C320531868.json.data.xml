@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Workflow WorkflowId="{a1b2c3d4-e5f6-7890-abcd-ef1234567890}" Name="ESign - Upsert Template in AssureSign" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <JsonFileName>/Workflows/ESign-UpsertTemplateInAssureSign-A1B2C3D4-E5F6-7890-ABCD-EF1234567890.json</JsonFileName>
+<Workflow WorkflowId="{a152fa6b-6c07-48b9-8d7b-d8c320531868}" Name="ESign - Upsert Template in AssureSign" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <JsonFileName>/Workflows/ESign-UpsertTemplateInAssureSign-A152FA6B-6C07-48B9-8D7B-D8C320531868.json</JsonFileName>
   <Type>1</Type>
   <Subprocess>0</Subprocess>
   <Category>5</Category>
