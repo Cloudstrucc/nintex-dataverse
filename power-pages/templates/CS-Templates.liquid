@@ -246,31 +246,56 @@
             '<strong>' + esc(tpl.cs_name || 'Untitled') + '</strong>' +
             (tpl.cs_description ? '<br><span class="small text-muted">' + esc(tpl.cs_description) + '</span>' : '') +
           '</td>' +
-          '<td>' + esc(tpl.cs_category || '--') + '</td>' +
-          '<td>' + fmtDate(tpl.modifiedon) + '</td>' +
-          '<td class="text-center">' +
+          '<td class="tpl-col-cat">' + esc(tpl.cs_category || '--') + '</td>' +
+          '<td class="tpl-col-date">' + fmtDate(tpl.modifiedon) + '</td>' +
+          '<td class="text-center tpl-col-ver">' +
             '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
               esc(status) +
             '</span>' +
           '</td>' +
-          '<td class="text-center" style="white-space:nowrap;">' +
-            '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
-               'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
-               'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
-            '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
-               'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
-               'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
-            dlBtn +
+          '<td class="text-center tpl-col-actions" style="white-space:nowrap;">' +
+            /* Desktop: inline buttons */
+            '<span class="tpl-actions-desktop">' +
+              '<a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+                 'style="border-color:#005a70;color:#005a70;border-radius:0;margin-right:4px;" ' +
+                 'title="Edit template"><span class="fa fa-pencil mrgn-rght-xs"></span>Edit</a>' +
+              '<a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '" class="btn btn-xs btn-default" ' +
+                 'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
+                 'title="Create an envelope using this template"><span class="fa fa-paper-plane mrgn-rght-xs"></span>Use</a>' +
+              dlBtn +
+            '</span>' +
+            /* Mobile: dropdown */
+            '<span class="tpl-actions-mobile">' +
+              '<span class="dropdown">' +
+                '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" data-toggle="dropdown" aria-expanded="false">' +
+                  '<span class="fa fa-ellipsis-v"></span>' +
+                '</button>' +
+                '<ul class="dropdown-menu dropdown-menu-right" style="min-width:140px;">' +
+                  '<li><a href="/templates/edit-template/?id=' + esc(tpl.cs_templateid) + '"><span class="fa fa-pencil mrgn-rght-sm"></span>Edit</a></li>' +
+                  '<li><a href="/envelopes/edit-envelope/?templateId=' + esc(tpl.cs_templateid) + '"><span class="fa fa-paper-plane mrgn-rght-sm"></span>Use</a></li>' +
+                  (hasJson
+                    ? '<li><a href="#" class="tpl-dl-btn-m" data-id="' + esc(tpl.cs_templateid) + '" data-name="' + esc(tpl.cs_name || 'template') + '"><span class="fa fa-download mrgn-rght-sm"></span>Download</a></li>'
+                    : '<li class="disabled"><a href="#" style="color:#999;"><span class="fa fa-download mrgn-rght-sm"></span>Download</a></li>') +
+                '</ul>' +
+              '</span>' +
+            '</span>' +
           '</td>' +
         '</tr>';
     });
 
-    /* Wire download buttons — fetch templatejson, extract pdfBase64, blob-download */
+    /* Wire download buttons — desktop */
     elTbody.querySelectorAll('.tpl-dl-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var id   = this.getAttribute('data-id');
         var name = this.getAttribute('data-name');
         downloadTplPdf(id, name, this);
+      });
+    });
+    /* Wire download buttons — mobile dropdown */
+    elTbody.querySelectorAll('.tpl-dl-btn-m').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        downloadTplPdf(this.getAttribute('data-id'), this.getAttribute('data-name'), this);
       });
     });
 
@@ -523,7 +548,6 @@
   #tpl-table td { vertical-align: middle; font-size: 14px; }
   #tpl-table tbody tr:hover { background: #f0f4f8; }
   .breadcrumb li + li::before { content: "/ "; }
-  /* Search input-group: same height, button is a perfect square */
   #tpl-search { height: 34px; }
   #tpl-search-btn {
     width: 34px; height: 34px;
@@ -534,4 +558,22 @@
   .input-group { display: flex; align-items: stretch; }
   .input-group .form-control { flex: 1 1 auto; }
   .input-group-btn { display: flex; align-items: stretch; flex-shrink: 0; }
+  /* Responsive: hide mobile actions on desktop */
+  .tpl-actions-mobile { display: none; }
+  .tpl-actions-desktop { display: inline; }
+
+  @media (max-width: 768px) {
+    /* Hide category, date, version columns on mobile */
+    .tpl-col-cat, .tpl-col-date, .tpl-col-ver,
+    #tpl-table thead th:nth-child(2),
+    #tpl-table thead th:nth-child(3),
+    #tpl-table thead th:nth-child(4) { display: none; }
+    /* Swap action buttons for dropdown */
+    .tpl-actions-desktop { display: none !important; }
+    .tpl-actions-mobile { display: inline !important; }
+    /* Adjust column widths */
+    #tpl-table th, #tpl-table td { font-size: 13px; padding: 8px 6px; }
+    #tpl-table th:first-child { width: 70%; }
+    .tpl-col-actions { width: 30%; }
+  }
 </style>

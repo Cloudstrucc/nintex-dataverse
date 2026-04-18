@@ -290,14 +290,31 @@
           '<td><strong>' + esc(env.cs_name || 'Untitled') + '</strong></td>' +
           '<td><span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
             esc(statusLabel) + '</span></td>' +
-          '<td><span class="small text-muted">' + esc(tplDisplay) + '</span></td>' +
-          '<td>' + fmtDate(env.modifiedon) + '</td>' +
-          '<td class="text-center" style="white-space:nowrap;">' +
-            '<a href="' + viewHref + '" class="btn btn-xs btn-default" ' +
-               'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
-               'title="' + viewTitle + '">' +
-               '<span class="fa ' + viewIcon + ' mrgn-rght-xs"></span>' + viewLabel + '</a>' +
-            cancelBtn +
+          '<td class="env-col-tpl"><span class="small text-muted">' + esc(tplDisplay) + '</span></td>' +
+          '<td class="env-col-date">' + fmtDate(env.modifiedon) + '</td>' +
+          '<td class="text-center env-col-actions" style="white-space:nowrap;">' +
+            /* Desktop: inline buttons */
+            '<span class="env-actions-desktop">' +
+              '<a href="' + viewHref + '" class="btn btn-xs btn-default" ' +
+                 'style="border-color:#26374A;color:#26374A;border-radius:0;margin-right:4px;" ' +
+                 'title="' + viewTitle + '">' +
+                 '<span class="fa ' + viewIcon + ' mrgn-rght-xs"></span>' + viewLabel + '</a>' +
+              cancelBtn +
+            '</span>' +
+            /* Mobile: dropdown */
+            '<span class="env-actions-mobile">' +
+              '<span class="dropdown">' +
+                '<button type="button" class="btn btn-xs btn-default" style="border-radius:0;" data-toggle="dropdown" aria-expanded="false">' +
+                  '<span class="fa fa-ellipsis-v"></span>' +
+                '</button>' +
+                '<ul class="dropdown-menu dropdown-menu-right" style="min-width:140px;">' +
+                  '<li><a href="' + viewHref + '"><span class="fa ' + viewIcon + ' mrgn-rght-sm"></span>' + viewLabel + '</a></li>' +
+                  (isCancellable
+                    ? '<li><a href="#" class="env-cancel-btn-m" data-id="' + esc(env.cs_envelopeid) + '" data-name="' + esc(env.cs_name || 'this envelope') + '" style="color:#922B31;"><span class="fa fa-ban mrgn-rght-sm"></span>Cancel</a></li>'
+                    : '<li class="disabled"><a href="#" style="color:#999;"><span class="fa fa-ban mrgn-rght-sm"></span>Cancel</a></li>') +
+                '</ul>' +
+              '</span>' +
+            '</span>' +
           '</td>' +
         '</tr>';
     });
@@ -309,9 +326,16 @@
     elNext.disabled = (currentPage >= totalPages);
     if (total > PAGE_SIZE) { show(elPagWrap); } else { hide(elPagWrap); }
 
-    /* Wire cancel buttons (no inline handlers) */
+    /* Wire cancel buttons — desktop (no inline handlers) */
     elTbody.querySelectorAll('.env-cancel-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        cancelEnvelope(this.getAttribute('data-id'), this.getAttribute('data-name'));
+      });
+    });
+    /* Wire cancel buttons — mobile dropdown */
+    elTbody.querySelectorAll('.env-cancel-btn-m').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
         cancelEnvelope(this.getAttribute('data-id'), this.getAttribute('data-name'));
       });
     });
@@ -454,11 +478,28 @@
   #env-table td { vertical-align: middle; font-size: 14px; }
   #env-table tbody tr:hover { background: #f0f4f8; }
   .breadcrumb li + li::before { content: "/ "; }
-  /* Search bar — inline flex handles layout; CSS here as extra safety */
   #env-search { height: 34px; flex: 1 1 auto; min-width: 0; }
   #env-search-btn {
     width: 34px !important; height: 34px !important;
     padding: 0 !important; flex-shrink: 0;
     display: flex !important; align-items: center; justify-content: center;
+  }
+  /* Responsive: hide mobile actions on desktop, show on mobile */
+  .env-actions-mobile { display: none; }
+  .env-actions-desktop { display: inline; }
+
+  @media (max-width: 768px) {
+    /* Hide template and date columns on mobile */
+    .env-col-tpl, .env-col-date,
+    #env-table thead th:nth-child(3),
+    #env-table thead th:nth-child(4) { display: none; }
+    /* Swap action buttons for dropdown */
+    .env-actions-desktop { display: none !important; }
+    .env-actions-mobile { display: inline !important; }
+    /* Adjust column widths */
+    #env-table th, #env-table td { font-size: 13px; padding: 8px 6px; }
+    #env-table th:first-child { width: 50%; }
+    #env-table th:nth-child(2) { width: 25%; }
+    .env-col-actions { width: 25%; }
   }
 </style>
