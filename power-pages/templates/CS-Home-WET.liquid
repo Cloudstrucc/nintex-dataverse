@@ -1,0 +1,461 @@
+{% comment %}
+  Elections Canada – ESIGN Portal Home Page
+{% endcomment %}
+
+{% if user %}
+
+
+<main class="pepp-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+
+    <!-- ── Welcome ──────────────────────────────────────────────────────── -->
+    <section class="row mrgn-bttm-md">
+      <div class="col-md-12">
+        <h1 class="h2 mrgn-tp-0">
+          {{ snippets['ESIGN/HOME/WELCOME'] | default: 'Welcome' }}{% if user %}, <strong>{{ user.firstname }}</strong>{% endif %}
+        </h1>
+        <p class="text-muted">{{ snippets['ESIGN/HOME/DESC'] | default: 'Create envelopes, manage signature templates, and track signing status — all within the Elections Canada Secure portal.' }}</p>
+      </div>
+    </section>
+
+    <!-- ── Overview stat tiles (counts loaded via Web API) ──────────────── -->
+    <section class="row mrgn-bttm-lg">
+      <div class="col-md-12">
+        <h2 class="h3 mrgn-tp-0 mrgn-bttm-md">{{ snippets['ESIGN/HOME/OVERVIEW'] | default: 'Overview' }}</h2>
+      </div>
+
+      <!-- Available Templates (clickable → /templates/) -->
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <a href="/templates/" class="pepp-card" style="display:block;text-decoration:none;">
+          <div class="panel panel-default text-center" style="border-top:3px solid #d83b01;transition:box-shadow 0.2s;">
+            <div class="panel-body" style="padding:20px;">
+              <span class="fa fa-files-o" style="font-size:2rem;color:#d83b01;display:block;margin-bottom:8px;"></span>
+              <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-templates" style="color:#d83b01;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT1/LABEL'] | default: 'Available Templates' }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Total Envelopes -->
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <div class="panel panel-default text-center" style="border-top:3px solid #26374A;">
+          <div class="panel-body" style="padding:20px;">
+            <span class="fa fa-envelope" style="font-size:2rem;color:#26374A;display:block;margin-bottom:8px;"></span>
+            <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-total" style="color:#26374A;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT2/LABEL'] | default: 'Total Envelopes' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signed -->
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <div class="panel panel-default text-center" style="border-top:3px solid #1a5336;">
+          <div class="panel-body" style="padding:20px;">
+            <span class="fa fa-check-circle" style="font-size:2rem;color:#1a5336;display:block;margin-bottom:8px;"></span>
+            <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-signed" style="color:#1a5336;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT3/LABEL'] | default: 'Signed' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Signatures -->
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <div class="panel panel-default text-center" style="border-top:3px solid #005a70;">
+          <div class="panel-body" style="padding:20px;">
+            <span class="fa fa-hourglass-half" style="font-size:2rem;color:#005a70;display:block;margin-bottom:8px;"></span>
+            <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-pending" style="color:#005a70;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT4/LABEL'] | default: 'Pending Signatures' }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Recent Envelopes + Quick Links ───────────────────────────────── -->
+    <section class="row">
+
+      <!-- Recent Envelopes table -->
+      <div class="col-md-8 mrgn-bttm-md">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background:#26374A;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h3 class="panel-title" style="color:#fff;font-weight:600;font-size:15px;">
+                <span class="fa fa-envelope mrgn-rght-sm"></span>
+                {{ snippets['ESIGN/HOME/RECENT_TITLE'] | default: 'Recent Envelopes' }}
+              </h3>
+              <!-- View All button: solid white background for strong contrast on dark header -->
+              <a href="/envelopes/"
+                 style="background:#fff;color:#26374A;border:none;border-radius:3px;
+                        padding:4px 12px;font-size:12px;font-weight:600;text-decoration:none;
+                        display:inline-block;line-height:1.5;">
+                {{ snippets['ESIGN/HOME/VIEW_ALL'] | default: 'View All' }}
+                <span class="fa fa-arrow-right mrgn-lft-xs" style="font-size:10px;"></span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div id="env-loading" class="panel-body text-center" style="padding:30px;">
+            <span class="fa fa-spinner fa-spin" style="color:#26374A;font-size:1.5rem;display:block;margin-bottom:8px;"></span>
+            <p class="text-muted mrgn-bttm-0 small">Loading...</p>
+          </div>
+
+          <!-- Error -->
+          <div id="env-error" class="panel-body" style="display:none;">
+            <p class="text-danger mrgn-bttm-0 small">
+              <span class="fa fa-exclamation-triangle mrgn-rght-xs"></span>
+              Unable to load envelopes. <a href="/envelopes/">Go to Envelopes page</a> to try again.
+            </p>
+          </div>
+
+          <!-- Table -->
+          <div id="env-table-wrap" style="display:none;padding:0;">
+            <div class="table-responsive">
+              <table class="table table-hover mrgn-bttm-0">
+                <thead>
+                  <tr style="background:#f5f5f5;">
+                    <th style="font-size:13px;width:35%;">{{ snippets['ESIGN/HOME/COL_NAME']       | default: 'Envelope Name' }}</th>
+                    <th style="font-size:13px;width:17%;">{{ snippets['ESIGN/HOME/COL_STATUS']   | default: 'Status' }}</th>
+                    <th style="font-size:13px;width:16%;">{{ snippets['ESIGN/HOME/COL_CREATED']  | default: 'Created' }}</th>
+                    <th style="font-size:13px;width:17%;">{{ snippets['ESIGN/HOME/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="font-size:13px;width:15%;" class="text-center">{{ snippets['ESIGN/HOME/COL_ACTIONS'] | default: 'Actions' }}</th>
+                  </tr>
+                </thead>
+                <tbody id="env-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empty -->
+          <div id="env-empty" class="panel-body text-center" style="display:none;padding:40px 20px;">
+            <span class="fa fa-inbox" style="font-size:2.5rem;color:#ccc;display:block;margin-bottom:12px;"></span>
+            <p class="text-muted mrgn-bttm-sm">{{ snippets['ESIGN/HOME/ENV_EMPTY'] | default: 'No envelopes yet. Send your first envelope to get started.' }}</p>
+            <a href="/envelopes/" class="btn btn-default btn-sm" style="border-color:#26374A;color:#26374A;border-radius:0;">
+              <span class="fa fa-plus mrgn-rght-xs"></span>
+              {{ snippets['ESIGN/HOME/NEW_ENV_BTN'] | default: 'New Envelope' }}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links sidebar -->
+      <div class="col-md-4 mrgn-bttm-md">
+        <div class="panel panel-default" style="border-top:3px solid #26374A;">
+          <div class="panel-heading" style="background:#f5f5f5;border-bottom:1px solid #ddd;">
+            <h3 class="panel-title" style="font-weight:600;">
+              <span class="fa fa-link mrgn-rght-sm"></span>
+              {{ snippets['ESIGN/HOME/QUICKLINKS_TITLE'] | default: 'Quick Links' }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <ul class="list-unstyled mrgn-bttm-0">
+              {% if sitemarkers['QuickLink1'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink1'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK1'] | default: 'Nintex AssureSign User Guide' }}</a></li>{% endif %}
+              {% if sitemarkers['QuickLink2'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink2'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK2'] | default: 'Template Field Mapping Guide' }}</a></li>{% endif %}
+              {% if sitemarkers['QuickLink3'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink3'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK3'] | default: 'IT Security &amp; Privacy Policy' }}</a></li>{% endif %}
+              {% if sitemarkers['QuickLink4'] %}           <li><a href="{{ sitemarkers['QuickLink4'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK4'] | default: 'Contact Support' }}</a></li>{% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Important Notice panel -->
+        <div class="panel panel-default mrgn-tp-md" style="border-top:3px solid #d83b01;">
+          <div class="panel-heading" style="background:#f5f5f5;border-bottom:1px solid #ddd;">
+            <h3 class="panel-title" style="font-weight:600;">
+              <span class="fa fa-info-circle mrgn-rght-sm" style="color:#d83b01;"></span>
+              {{ snippets['ESIGN/HOME/NOTICE_TITLE'] | default: 'Important Notice' }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/HOME/NOTICE_BODY'] | default: 'Ensure all recipient email addresses are correct before sending an envelope. Sent envelopes cannot be recalled.' }}</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Config ──────────────────────────────────────────────────────────── */
+  var API_TPL = '/_api/cs_templates';
+  var API_ENV = '/_api/cs_envelopes';
+
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(iso) {
+    if (!iso) return '--';
+    return new Date(iso).toLocaleDateString('en-CA');
+  }
+  function setStat(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var spinner = el.querySelector('.stat-spinner');
+    var valEl   = el.querySelector('.stat-value');
+    var display = (val === null || val === undefined) ? '--' : String(val);
+    if (spinner) spinner.style.display = 'none';
+    if (valEl)   { valEl.textContent = display; valEl.style.display = ''; }
+    else         { el.textContent = display; }  /* fallback */
+  }
+  function getStatusStyle(label) {
+    var v = (label || '').toLowerCase();
+    if (v.indexOf('signed')    >= 0) return 'background:#1a5336;color:#fff;';
+    if (v.indexOf('sent')      >= 0) return 'background:#005a70;color:#fff;';
+    if (v.indexOf('preparing') >= 0) return 'background:#26374A;color:#fff;';
+    if (v.indexOf('cancel')    >= 0) return 'background:#922B31;color:#fff;';
+    if (v.indexOf('declined')  >= 0) return 'background:#d83b01;color:#fff;';
+    return 'background:#767676;color:#fff;';
+  }
+
+  /* ── portalGet (same $.ajax pattern as all other templates) ─────────── */
+  function portalGet(url) {
+    return new Promise(function (resolve, reject) {
+      $.ajax({ type: 'GET', url: url, headers: { 'Accept': 'application/json' } })
+       .done(resolve)
+       .fail(function (xhr) {
+         reject(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText));
+       });
+    });
+  }
+
+  /* ── Load counts ────────────────────────────────────────────────────── */
+  function loadCounts() {
+    /* Available Templates: active templates only */
+    portalGet(API_TPL + '?$filter=cs_isactive eq true&$select=cs_templateid')
+      .then(function (d) { setStat('stat-templates', d && d.value ? d.value.length : 0); })
+      .catch(function () { setStat('stat-templates', '?'); });
+
+    /* Envelopes: one call populates all three envelope stats */
+    portalGet(API_ENV + '?$select=cs_envelopeid,statuscode')
+      .then(function (d) {
+        if (!d || !d.value) { setStat('stat-total',0); setStat('stat-signed',0); setStat('stat-pending',0); return; }
+        var all     = d.value;
+        var signed  = all.filter(function (e) {
+          var lbl = (e['statuscode@OData.Community.Display.V1.FormattedValue'] || '').toLowerCase();
+          return lbl.indexOf('signed') >= 0;
+        });
+        var pending = all.filter(function (e) {
+          var lbl = (e['statuscode@OData.Community.Display.V1.FormattedValue'] || '').toLowerCase();
+          return lbl.indexOf('signed') < 0 && lbl.indexOf('cancel') < 0
+              && lbl.indexOf('void')   < 0 && lbl.indexOf('declined') < 0;
+        });
+        setStat('stat-total',   all.length);
+        setStat('stat-signed',  signed.length);
+        setStat('stat-pending', pending.length);
+      })
+      .catch(function () { setStat('stat-total','?'); setStat('stat-signed','?'); setStat('stat-pending','?'); });
+  }
+
+  /* ── Load recent envelopes table ────────────────────────────────────── */
+  function loadRecentEnvelopes() {
+    var elLoading  = document.getElementById('env-loading');
+    var elError    = document.getElementById('env-error');
+    var elWrap     = document.getElementById('env-table-wrap');
+    var elEmpty    = document.getElementById('env-empty');
+    var elTbody    = document.getElementById('env-tbody');
+
+    /* Same $select as the working All Envelopes page, plus $top=5.
+       cs_envelopejson excluded — not needed for summary view and can cause 400. */
+    portalGet(
+      API_ENV + '?$select=cs_envelopeid,cs_name,statuscode,statecode,createdon,modifiedon' +
+               '&$orderby=modifiedon desc&$top=5'
+    )
+    .then(function (d) {
+      elLoading.style.display = 'none';
+      if (!d || !d.value || d.value.length === 0) {
+        elEmpty.style.display = '';
+        return;
+      }
+      elWrap.style.display = '';
+      d.value.forEach(function (env) {
+        var statusLabel = env['statuscode@OData.Community.Display.V1.FormattedValue'] || 'Draft';
+        var badge       = getStatusStyle(statusLabel);
+        var lastModified = fmtDate(env.modifiedon);
+
+        elTbody.innerHTML +=
+          '<tr>' +
+            '<td style="font-size:14px;vertical-align:middle;"><strong>' + esc(env.cs_name || 'Untitled') + '</strong></td>' +
+            '<td style="vertical-align:middle;">' +
+              '<span style="display:inline-block;' + badge + 'padding:2px 8px;border-radius:3px;font-size:11px;">' +
+              esc(statusLabel) + '</span>' +
+            '</td>' +
+            '<td style="font-size:13px;vertical-align:middle;color:#555;">' + fmtDate(env.createdon) + '</td>' +
+            '<td style="font-size:13px;vertical-align:middle;color:#555;">' + lastModified + '</td>' +
+            '<td style="vertical-align:middle;text-align:center;">' +
+              '<a href="/envelopes/edit-envelope/?id=' + esc(env.cs_envelopeid) + '" ' +
+                 'class="btn btn-xs btn-default" ' +
+                 'style="border-color:#26374A;color:#26374A;border-radius:0;" ' +
+                 'title="View envelope">' +
+                 '<span class="fa fa-eye mrgn-rght-xs"></span>View</a>' +
+            '</td>' +
+          '</tr>';
+      });
+    })
+    .catch(function () {
+      elLoading.style.display = 'none';
+      elError.style.display   = '';
+    });
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    loadCounts();
+    loadRecentEnvelopes();
+  });
+
+})();
+</script>
+
+
+{% else %}
+
+<!-- Anonymous User View -->
+<main class="pepp-app pepp-anon" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  
+  <!-- Hero Banner with Background Image - extends to top for overlay header -->
+  <div class="pepp-hero" style="background-image: url('/landscape.png'); background-size: 400px auto; background-repeat: repeat; background-position: center; padding: 120px 0 80px 0;">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+          <h1 style="color: #fff; border-bottom: 3px solid #fff; display: inline-block; padding-bottom: 10px; margin-bottom: 15px;">{{ snippets['PEPP/HOME/TITLE'] | default: 'Political Entities Service Centre' }}</h1>
+          <p class="lead" style="color: #fff; font-size: 1.8rem; margin-bottom: 15px;">{{ snippets['PEPP/HOME/SUBTITLE'] | default: 'PEPP Portal' }}</p>
+          <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 25px;">{{ snippets['PEPP/HOME/DESC'] | default: 'Securely manage your political entity filings, financial reports, and compliance requirements online.' }}</p>
+          <a href="/Account/Login" class="btn btn-light" style="background-color: #fff; color: #26374A; border-radius: 0; padding: 10px 25px; margin-right: 10px; font-weight: 600;">Register</a>
+          <a href="/Account/Login" class="btn btn-outline-light" style="color: #fff; border-color: #fff; border-radius: 0; padding: 10px 25px;">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+    
+    <!-- Getting Started -->
+    <section class="row">
+      <div class="col-md-8">
+        <h2 class="mrgn-tp-0">{{ snippets['PEPP/ANON/TITLE'] | default: 'Getting Started' }}</h2>
+        <p>{{ snippets['PEPP/ANON/DESC'] | default: 'The Political Entities Service Centre (PEPP) provides a secure platform for political entities to submit required filings and manage compliance obligations.' }}</p>
+        
+        <div class="row mrgn-tp-lg">
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #26374A; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['PEPP/FEATURE1/TITLE'] | default: 'Online Filing' }}</h3>
+              <p class="small text-muted">{{ snippets['PEPP/FEATURE1/DESC'] | default: 'Submit filings and reports electronically with guided forms.' }}</p>
+            </div>
+          </div>
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #005a70; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['PEPP/FEATURE2/TITLE'] | default: 'Status Tracking' }}</h3>
+              <p class="small text-muted">{{ snippets['PEPP/FEATURE2/DESC'] | default: 'Track the status of your submissions in real-time.' }}</p>
+            </div>
+          </div>
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #d83b01; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['PEPP/FEATURE3/TITLE'] | default: 'Document Management' }}</h3>
+              <p class="small text-muted">{{ snippets['PEPP/FEATURE3/DESC'] | default: 'Securely store and access your documents online.' }}</p>
+            </div>
+          </div>
+          <div class="col-sm-6 mrgn-bttm-md">
+            <div style="border-left: 3px solid #1a5336; padding-left: 15px;">
+              <h3 class="h5 mrgn-tp-0">{{ snippets['PEPP/FEATURE4/TITLE'] | default: 'Notifications' }}</h3>
+              <p class="small text-muted">{{ snippets['PEPP/FEATURE4/DESC'] | default: 'Receive alerts for deadlines and submission confirmations.' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="panel panel-default" style="border-top: 4px solid #26374A;">
+          <div class="panel-body">
+            <h3 class="h5 mrgn-tp-0">Need Assistance?</h3>
+            <p class="small">{{ snippets['PEPP/SUPPORT/DESC'] | default: 'Contact our support team for help with registration or technical issues.' }}</p>
+            <hr>
+            <p class="small mrgn-bttm-0">
+              <span class="fa fa-envelope mrgn-rght-sm"></span> {{ snippets['PEPP/SUPPORT/EMAIL'] | default: 'support@elections.ca' }}<br>
+              <span class="fa fa-phone mrgn-rght-sm"></span> {{ snippets['PEPP/SUPPORT/PHONE'] | default: '1-800-XXX-XXXX' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- <section class="pagedetails container">
+    <h2 class="wb-inv">Page details</h2>
+    <dl id="wb-dtmd">
+      <dt>Date modified:</dt>
+      <dd><time property="dateModified">{{ page.adx_contentmodifiedon | date: "%Y-%m-%d" }}</time></dd>
+    </dl>
+  </section> -->
+</main>
+
+{% endif %}
+
+<!-- Minimal Footer -->
+<footer id="wb-info" style="background: #26374A; padding: 20px 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-8">
+        <ul class="list-inline mrgn-bttm-0">
+          {% if sitemarkers['FooterLink1'] %}<li><a href="{{ sitemarkers['FooterLink1'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['PEPP/FOOTER/LINK1'] | default: 'Terms & Conditions' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink2'] %}<li><a href="{{ sitemarkers['FooterLink2'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['PEPP/FOOTER/LINK2'] | default: 'Privacy' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink3'] %}<li><a href="{{ sitemarkers['FooterLink3'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['PEPP/FOOTER/LINK3'] | default: 'Accessibility' }}</a></li>{% endif %}
+          {% if sitemarkers['FooterLink4'] %}<li><a href="{{ sitemarkers['FooterLink4'].url }}" style="color: rgba(255,255,255,0.8);">{{ snippets['PEPP/FOOTER/LINK4'] | default: 'Contact' }}</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-sm-4 text-right">
+        <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg" alt="Symbol of the Government of Canada" style="height: 24px; filter: brightness(0) invert(1);">
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* PEPP App Styles */
+  .pepp-app {
+    background: #f9f9f9;
+    min-height: calc(100vh - 200px);
+  }
+  
+  .pepp-app.pepp-anon {
+    min-height: 100vh;
+  }
+  
+  .pepp-hero {
+    position: relative;
+  }
+  
+  .pepp-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(38, 55, 74, 0.6);
+  }
+  
+  .pepp-hero .container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .pepp-card .panel:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .panel {
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* Stat tile loading spinner — occupies same space as the count number */
+  .stat-tile-num { min-height: 1.4em; display: flex; align-items: center; justify-content: center; }
+  .stat-spinner  { font-size: 1.6rem; opacity: 0.45; animation: fa-spin 1s infinite linear; }
+</style>
