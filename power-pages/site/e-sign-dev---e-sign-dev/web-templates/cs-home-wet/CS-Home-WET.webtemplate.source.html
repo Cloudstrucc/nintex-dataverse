@@ -26,12 +26,12 @@
 
       <!-- Available Templates (clickable → /templates/) -->
       <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
-        <a href="/templates/" class="pepp-card" style="display:block;text-decoration:none;">
+        <a href="/templates" class="pepp-card" style="display:block;text-decoration:none;">
           <div class="panel panel-default text-center" style="border-top:3px solid #d83b01;transition:box-shadow 0.2s;">
             <div class="panel-body" style="padding:20px;">
               <span class="fa fa-file-text" style="font-size:2.5rem;color:#222;display:block;margin-bottom:8px;"></span>
               <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-templates" style="color:#d83b01;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
-              <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT1/LABEL'] | default: 'Available Templates' }}</p>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT1/LABEL'] | default: 'Available Forms' }}</p>
             </div>
           </div>
         </a>
@@ -149,10 +149,10 @@
           </div>
           <div class="panel-body">
             <ul class="list-unstyled mrgn-bttm-0">
-              {% if sitemarkers['QuickLink1'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink1'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK1'] | default: 'Nintex AssureSign User Guide' }}</a></li>{% endif %}
-              {% if sitemarkers['QuickLink2'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink2'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK2'] | default: 'Template Field Mapping Guide' }}</a></li>{% endif %}
+              {% if sitemarkers['QuickLink1'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink1'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK1'] | default: 'All envelopes' }}</a></li>{% endif %}
+              {% if sitemarkers['QuickLink2'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink2'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK2'] | default: 'Available forms' }}</a></li>{% endif %}
               {% if sitemarkers['QuickLink3'] %}<li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink3'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK3'] | default: 'IT Security &amp; Privacy Policy' }}</a></li>{% endif %}
-              {% if sitemarkers['QuickLink4'] %}           <li><a href="{{ sitemarkers['QuickLink4'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK4'] | default: 'Contact Support' }}</a></li>{% endif %}
+              {% if sitemarkers['QuickLink4'] %}<li><a href="{{ sitemarkers['QuickLink4'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['ESIGN/QUICKLINK4'] | default: 'Contact Support' }}</a></li>{% endif %}
             </ul>
           </div>
         </div>
