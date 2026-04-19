@@ -29,6 +29,7 @@ source "$ENV_FILE"
 set +a
 
 # ── Required variables (must be present in .env) ───────────────────────────
+: "${EC_ENVIRONMENT_URL:?EC_ENVIRONMENT_URL is not set in .env}"
 : "${EC_TENANT_ID:?EC_TENANT_ID is not set in .env}"
 : "${EC_CLIENT_ID:?EC_CLIENT_ID is not set in .env}"
 : "${EC_CLIENT_SECRET:?EC_CLIENT_SECRET is not set in .env}"
@@ -36,8 +37,7 @@ set +a
 TENANT_ID="$EC_TENANT_ID"
 CLIENT_ID="$EC_CLIENT_ID"
 CLIENT_SECRET="$EC_CLIENT_SECRET"
-
-ENVIRONMENT="https://dev-ec-esign-01.crm3.dynamics.com"
+ENVIRONMENT_URL="$EC_ENVIRONMENT_URL"
 
 # Optional: TARGET_WEBSITE_ID for Power Pages upload (can be set in .env)
 TARGET_WEBSITE_ID="${EC_WEBSITE_ID:-}"
@@ -128,12 +128,12 @@ pac auth create \
   --kind DATAVERSE
 
 # ── 2. Schema solution (tables & columns) ─────────────────────────────────
-# echo ""
-# echo "[2/$TOTAL_STEPS] Importing schema solution (tables & columns)..."
-# pac solution import \
-#   --path "schema/nintex_1_0_0_2${ZIP_SUFFIX}.zip" \
-#   --publish-changes \
-#   --activate-plugins
+echo ""
+echo "[2/$TOTAL_STEPS] Importing schema solution (tables & columns)..."
+pac solution import \
+  --path "schema/nintex_1_0_0_2${ZIP_SUFFIX}.zip" \
+  --publish-changes \
+  --activate-plugins
 
 # ── 3. Config solution (environment variables) ────────────────────────────
 echo ""
@@ -151,7 +151,15 @@ pac solution import \
   --publish-changes \
   --activate-plugins
 
-# ── 5. Deploy Power Pages site (if selected) ─────────────────────────────
+# ── 5. Client solution (cloud flows) ────────────────────────────────────
+echo ""
+echo "[4/$TOTAL_STEPS] Importing client solution (cloud flows)..."
+pac solution import \
+  --path "client/ESignatureClient_1_0_0_15${ZIP_SUFFIX}.zip" \
+  --publish-changes \
+  --activate-plugins
+
+# ── 6. Deploy Power Pages site (if selected) ─────────────────────────────
 if [[ "$DEPLOY_PORTAL" == true ]]; then
   echo ""
   echo "[5/$TOTAL_STEPS] Uploading Power Pages site (enhanced data model)..."
