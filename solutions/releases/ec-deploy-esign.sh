@@ -40,7 +40,7 @@ CLIENT_SECRET="$EC_CLIENT_SECRET"
 ENVIRONMENT="https://dev-ec-esign-01.crm3.dynamics.com"
 
 # Optional: TARGET_WEBSITE_ID for Power Pages upload (can be set in .env)
-TARGET_WEBSITE_ID="${TARGET_WEBSITE_ID:-}"
+TARGET_WEBSITE_ID="${EC_WEBSITE_ID:-}"
 
 # ── Prompt: managed or unmanaged ──────────────────────────────────────────
 echo ""
@@ -128,12 +128,12 @@ pac auth create \
   --kind DATAVERSE
 
 # ── 2. Schema solution (tables & columns) ─────────────────────────────────
-echo ""
-echo "[2/$TOTAL_STEPS] Importing schema solution (tables & columns)..."
-pac solution import \
-  --path "schema/nintex_1_0_0_2${ZIP_SUFFIX}.zip" \
-  --publish-changes \
-  --activate-plugins
+# echo ""
+# echo "[2/$TOTAL_STEPS] Importing schema solution (tables & columns)..."
+# pac solution import \
+#   --path "schema/nintex_1_0_0_2${ZIP_SUFFIX}.zip" \
+#   --publish-changes \
+#   --activate-plugins
 
 # ── 3. Config solution (environment variables) ────────────────────────────
 echo ""
@@ -157,9 +157,9 @@ if [[ "$DEPLOY_PORTAL" == true ]]; then
   echo "[5/$TOTAL_STEPS] Uploading Power Pages site (enhanced data model)..."
   pac powerpages upload \
     --path "$SITE_DIR" \
-    --websiteId "$TARGET_WEBSITE_ID" \
+    --environment "$ENVIRONMENT" \
     --modelVersion 2 \
-    --forceOverwrite true
+    --forceUploadAll
 fi
 
 # ── Final. Verify ─────────────────────────────────────────────────────────
