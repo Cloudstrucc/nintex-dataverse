@@ -1412,7 +1412,7 @@ adx_sitesetting:
   IsDeleted: false
 - RecordId: d024eb22-7983-40e9-8910-e529555bed7d
   DisplayName: Authentication/Registration/ProfileRedirectEnabled
-  CheckSum: a91aa4fdb2812936193f2bdb401c80d08c5e18dbc014cb245be12cd688f04015
+  CheckSum: 8f0e2942ba3cafb74aa3d0a5e62ed4dfb60707eed0df81127c83837a50503c59
   IsDeleted: false
 - RecordId: d5ad8d76-8d9c-4280-ad1d-15d4d640deba
   DisplayName: Webapi/cs_signer/fields

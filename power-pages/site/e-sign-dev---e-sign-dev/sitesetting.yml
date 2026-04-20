@@ -197,7 +197,8 @@
 - adx_description: Sets whether or not the portal can redirect the user to the profile page after successful sign-in. By default, it is set to true.
   adx_name: Authentication/Registration/ProfileRedirectEnabled
   adx_sitesettingid: d024eb22-7983-40e9-8910-e529555bed7d
-  adx_value: true
+  adx_source: 0
+  adx_value: false
 - adx_name: Webapi/cs_signer/fields
   adx_sitesettingid: d5ad8d76-8d9c-4280-ad1d-15d4d640deba
   adx_source: 0
