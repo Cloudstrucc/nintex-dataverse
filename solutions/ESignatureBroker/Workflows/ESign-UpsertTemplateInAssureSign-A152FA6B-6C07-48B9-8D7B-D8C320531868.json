@@ -242,6 +242,30 @@
             "value": "@{coalesce(body('Parse_TemplateJson')?['nintexTemplateId'], '')}"
           }
         },
+        "Get_Template_Pdf": {
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "81a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetFileOrImageContent",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "cs_templates",
+              "recordId": "@triggerOutputs()?['body/cs_templateid']",
+              "fileImageFieldName": "cs_templatepdf"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
         "Get_ApiUsername_Env": {
           "type": "OpenApiConnection",
           "inputs": {
@@ -549,6 +573,10 @@
           "runAfter": {
             "Build_Steps_Array": [
               "Succeeded"
+            ],
+            "Get_Template_Pdf": [
+              "Succeeded",
+              "Failed"
             ]
           },
           "metadata": {
@@ -565,7 +593,7 @@
                     "name": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}",
                     "file": {
                       "fileToUpload": {
-                        "data": "@{coalesce(body('Parse_TemplateJson')?['pdfBase64'], '')}",
+                        "data": "@{if(equals(outputs('Get_Template_Pdf')?['statusCode'], 200), base64(body('Get_Template_Pdf')?['$content']), coalesce(body('Parse_TemplateJson')?['pdfBase64'], ''))}",
                         "fileName": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}"
                       },
                       "extension": "pdf"

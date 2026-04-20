@@ -739,7 +739,7 @@ input.te-title-input[type="text"],
     pdfDoc: null, pageNum: 1, pageCount: 0, scale: 1.0,
     signers: [], fields: [], selectedFieldId: null,
     dirty: false, nextFieldId: 1,
-    pdfBase64: null, pdfFilename: null,
+    pdfArrayBuffer: null, pdfFilename: null, pdfDirty: false,
     nintexTemplateId: null, pageWidth: null, pageHeight: null,
     signingOrder: 'sequential'
   };
@@ -926,13 +926,10 @@ input.te-title-input[type="text"],
     var reader = new FileReader();
     reader.onload = function (e) {
       var buf = e.target.result;
-      /* Store base64 for saving */
-      var b64reader = new FileReader();
-      b64reader.onload = function (e2) {
-        state.pdfBase64   = e2.target.result.split(',')[1];
-        state.pdfFilename = file.name;
-      };
-      b64reader.readAsDataURL(new Blob([buf]));
+      /* Store raw binary for File column upload (no more base64 in JSON) */
+      state.pdfArrayBuffer = buf;
+      state.pdfFilename    = file.name;
+      state.pdfDirty       = true;  /* flag: needs upload to File column */
       loadPdf(buf);
       markDirty();
     };
@@ -1429,16 +1426,38 @@ input.te-title-input[type="text"],
             if (json.pageWidth)  state.pageWidth  = json.pageWidth;
             if (json.pageHeight) state.pageHeight = json.pageHeight;
             /* Restore PDF */
+            /* Legacy support: if pdfBase64 exists in JSON, use it (old records) */
             if (json.pdfBase64) {
-              state.pdfBase64   = json.pdfBase64;
               state.pdfFilename = json.pdfFilename || 'document.pdf';
               var binary  = atob(json.pdfBase64);
               var bytes   = new Uint8Array(binary.length);
               for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+              state.pdfArrayBuffer = bytes.buffer;
               loadPdf(bytes.buffer);
+            } else {
+              state.pdfFilename = json.pdfFilename || 'document.pdf';
             }
           } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
         }
+
+        /* Load PDF from File column (cs_templatepdf) — preferred over JSON base64 */
+        if (TEMPLATE_ID) {
+          fetch('/_api/cs_templates(' + TEMPLATE_ID + ')/cs_templatepdf/$value', {
+            headers: { 'Accept': 'application/octet-stream' }
+          })
+          .then(function (resp) {
+            if (resp.ok) return resp.arrayBuffer();
+            return null; /* no file uploaded yet */
+          })
+          .then(function (buf) {
+            if (buf && buf.byteLength > 0) {
+              state.pdfArrayBuffer = buf;
+              loadPdf(buf);
+            }
+          })
+          .catch(function () { /* File column empty — use legacy pdfBase64 if available */ });
+        }
+
         setSaveStatus('saved', 'Loaded', 'fa-cloud');
         state.dirty = false;
       })
@@ -1455,11 +1474,13 @@ input.te-title-input[type="text"],
       signingOrder: state.signingOrder || 'sequential',
       fields:       state.fields,
       nextFieldId:  state.nextFieldId,
-      pdfBase64:    state.pdfBase64,
       pdfFilename:  state.pdfFilename,
       pageWidth:    state.pageWidth  || 612,
       pageHeight:   state.pageHeight || 792
     };
+    /* NOTE: pdfBase64 is NO LONGER stored in cs_templatejson.
+       The PDF binary is stored in the cs_templatepdf File column instead,
+       uploaded separately after the record is saved. */
     /* Preserve Nintex template link if it was set by the broker */
     if (state.nintexTemplateId) {
       jsonObj.nintexTemplateId = state.nintexTemplateId;
@@ -1489,6 +1510,28 @@ input.te-title-input[type="text"],
 
      Once TEMPLATE_ID is set it never reverts to null in this session,
      so every subsequent Save / Save & Close is always a PATCH.           */
+  /* Upload PDF binary to the cs_templatepdf File column via Dataverse Web API.
+     Uses the Power Pages safeAjax wrapper for CSRF token handling. */
+  function uploadPdfToFileColumn(templateId, arrayBuffer, filename) {
+    return new Promise(function (resolve, reject) {
+      safeAjax({
+        type: 'PATCH',
+        url: '/_api/cs_templates(' + templateId + ')/cs_templatepdf',
+        contentType: 'application/octet-stream',
+        data: arrayBuffer,
+        processData: false,
+        headers: {
+          'x-ms-file-name': encodeURIComponent(filename || 'template.pdf')
+        }
+      })
+      .done(function () { resolve(); })
+      .fail(function (xhr) {
+        console.error('ESIGN: PDF upload failed:', xhr.status, xhr.responseText);
+        reject(new Error('PDF upload failed: HTTP ' + xhr.status));
+      });
+    });
+  }
+
   function doSave(closeAfter) {
     setSaveStatus('saving', 'Saving...', 'fa-spinner fa-spin');
 
@@ -1526,6 +1569,17 @@ input.te-title-input[type="text"],
             console.warn('ESIGN: Created OK but no cs_templateid in response. ' +
                          'Check portalPost / OData-EntityId header.');
           }
+        }
+
+        /* Upload PDF to File column if changed */
+        if (state.pdfDirty && state.pdfArrayBuffer && TEMPLATE_ID) {
+          setSaveStatus('saving', 'Uploading PDF...', 'fa-spinner fa-spin');
+          return uploadPdfToFileColumn(TEMPLATE_ID, state.pdfArrayBuffer, state.pdfFilename)
+            .then(function () {
+              state.pdfDirty = false;
+              setSaveStatus('saved', isCreate ? 'Template created' : 'Saved', 'fa-cloud');
+              if (closeAfter) { window.location.href = BACK_URL; }
+            });
         }
 
         setSaveStatus('saved', isCreate ? 'Template created' : 'Saved', 'fa-cloud');

@@ -769,13 +769,35 @@ input.te-title-input[type="text"],
             ? JSON.parse(state.envelope.cs_envelopejson || '{}').recipients || []
             : [];
           renderRecipients(signers, saved, state.isReadOnly);
-          /* Load PDF if available */
-          if (json.pdfBase64) {
-            loadPdf(json.pdfBase64);
-          } else {
-            document.getElementById('noDocDesc').textContent =
-              'No document is attached to this template. The PDF preview is unavailable.';
-          }
+          /* Load PDF from File column (cs_templatepdf) — preferred.
+             Falls back to legacy pdfBase64 in JSON for old records. */
+          var tplId = data.cs_templateid;
+          fetch('/_api/cs_templates(' + tplId + ')/cs_templatepdf/$value', {
+            headers: { 'Accept': 'application/octet-stream' }
+          })
+          .then(function (resp) {
+            if (resp.ok) return resp.arrayBuffer();
+            return null;
+          })
+          .then(function (buf) {
+            if (buf && buf.byteLength > 0) {
+              loadPdf(buf);
+            } else if (json.pdfBase64) {
+              /* Legacy fallback: load from JSON base64 */
+              loadPdf(json.pdfBase64);
+            } else {
+              document.getElementById('noDocDesc').textContent =
+                'No document is attached to this template. The PDF preview is unavailable.';
+            }
+          })
+          .catch(function () {
+            /* File column fetch failed — try legacy */
+            if (json.pdfBase64) { loadPdf(json.pdfBase64); }
+            else {
+              document.getElementById('noDocDesc').textContent =
+                'No document is attached to this template. The PDF preview is unavailable.';
+            }
+          });
         } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
       })
       .catch(function (err) {
