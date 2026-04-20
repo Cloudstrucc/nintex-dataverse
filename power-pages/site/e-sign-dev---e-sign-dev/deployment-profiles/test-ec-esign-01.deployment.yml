@@ -1,0 +1,7 @@
+# Deployment profile for Elections Canada TEST environment
+# Used with: pac powerpages upload --deploymentProfile test-ec-esign-01
+# Overrides site settings that differ between source (goc-wetv14) and target (test-ec-esign-01)
+
+adx_sitesetting:
+  - adx_name: Authentication/Registration/LoginButtonAuthenticationType
+    adx_value: https://login.windows.net/48e6af5c-487d-48c3-af5b-3ca22beea188/
