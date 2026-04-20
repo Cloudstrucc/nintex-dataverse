@@ -469,38 +469,68 @@
   /* ── Download template PDF ──────────────────────────────────────────── */
   function downloadTplPdf(templateId, templateName, btnEl) {
     if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<span class="fa fa-spinner fa-spin"></span>'; }
-    portalGet('/_api/cs_templates(' + templateId + ')?$select=cs_templatejson,cs_name')
-      .then(function (data) {
-        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
-        if (!data || !data.cs_templatejson) {
-          alert('No document is attached to this template.');
-          return;
-        }
-        var json = JSON.parse(data.cs_templatejson);
-        if (!json.pdfBase64) {
-          alert('This template has no PDF document attached. Open the template editor to upload one.');
-          return;
-        }
-        /* Decode base64 → Uint8Array → Blob → object URL → auto-click download */
-        var binary  = atob(json.pdfBase64);
-        var bytes   = new Uint8Array(binary.length);
-        for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
-        var blob    = new Blob([bytes], { type: 'application/pdf' });
-        var url     = URL.createObjectURL(blob);
-        var anchor  = document.createElement('a');
-        anchor.href = url;
-        anchor.download = (json.pdfFilename || templateName || 'template') + '.pdf';
-        anchor.download = anchor.download.replace(/\.pdf\.pdf$/, '.pdf'); /* avoid double ext */
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-      })
-      .catch(function (err) {
-        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
-        console.error('ESIGN: download failed:', err.message);
-        alert('Download failed: ' + err.message);
-      });
+
+    /* Try annotation first, fall back to legacy pdfBase64 in cs_templatejson */
+    $.ajax({
+      type: 'GET',
+      url: '/_api/annotations?$filter=_objectid_value eq ' + templateId +
+           ' and subject eq \'TemplateSourcePDF\'&$select=documentbody,filename&$top=1',
+      headers: { 'Accept': 'application/json' }
+    })
+    .done(function (noteData) {
+      var b64 = null, filename = templateName || 'template';
+
+      if (noteData && noteData.value && noteData.value.length > 0 && noteData.value[0].documentbody) {
+        /* Found PDF in annotation */
+        b64 = noteData.value[0].documentbody;
+        filename = noteData.value[0].filename || filename;
+      }
+
+      if (b64) {
+        triggerPdfDownload(b64, filename, btnEl);
+      } else {
+        /* Fallback: check legacy pdfBase64 in cs_templatejson */
+        portalGet('/_api/cs_templates(' + templateId + ')?$select=cs_templatejson,cs_name')
+          .then(function (data) {
+            if (data && data.cs_templatejson) {
+              try {
+                var json = JSON.parse(data.cs_templatejson);
+                if (json.pdfBase64) {
+                  triggerPdfDownload(json.pdfBase64, json.pdfFilename || filename, btnEl);
+                  return;
+                }
+              } catch (e) { /* parse error */ }
+            }
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+            alert('No PDF document found. Open the template editor to upload one.');
+          })
+          .catch(function () {
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+            alert('Failed to check template for PDF.');
+          });
+      }
+    })
+    .fail(function () {
+      if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+      alert('Failed to fetch PDF. Check table permissions for annotations.');
+    });
+  }
+
+  function triggerPdfDownload(b64, filename, btnEl) {
+    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<span class="fa fa-download"></span>'; }
+    var binary = atob(b64);
+    var bytes  = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+    var blob   = new Blob([bytes], { type: 'application/pdf' });
+    var url    = URL.createObjectURL(blob);
+    var anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = (filename || 'template') + (filename.endsWith('.pdf') ? '' : '.pdf');
+    anchor.download = anchor.download.replace(/\.pdf\.pdf$/, '.pdf');
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
   }
 
   /* ── Init ────────────────────────────────────────────────────────────── */
