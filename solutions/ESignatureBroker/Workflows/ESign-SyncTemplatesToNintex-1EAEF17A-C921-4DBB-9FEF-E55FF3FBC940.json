@@ -253,11 +253,6 @@
                 }
               }
             },
-            "Build_Steps_Nintex": {
-              "runAfter": { "Build_Signer_Labels": ["Succeeded"] },
-              "type": "Compose",
-              "inputs": "@if(equals(coalesce(outputs('Parse_Template_Json')?['signingOrder'], 'sequential'), 'parallel'), createArray(json(concat('{\"name\":\"Step 1\",\"signers\":', string(body('Build_Signer_Labels')), '}'))), json(concat('[', join(body('Build_Signer_Labels'), '],['), ']')))"
-            },
             "Build_Steps_Sequential_Select": {
               "runAfter": { "Build_Signer_Labels": ["Succeeded"] },
               "type": "Select",
@@ -310,19 +305,32 @@
                 }
               }
             },
-            "Check_Has_NintexId": {
+            "Skip_If_No_Pdf": {
               "runAfter": { "Build_Payload": ["Succeeded"] },
               "type": "If",
               "expression": {
                 "and": [{
-                  "not": {
-                    "equals": [
-                      "@coalesce(outputs('Parse_Template_Json')?['nintexTemplateId'], '')",
-                      ""
-                    ]
-                  }
+                  "greater": [
+                    "@length(coalesce(first(outputs('Get_Pdf_Annotation')?['body/value'])?['documentbody'], ''))",
+                    0
+                  ]
                 }]
               },
+              "else": { "actions": {} },
+              "actions": {
+                "Check_Has_NintexId": {
+                  "runAfter": {},
+                  "type": "If",
+                  "expression": {
+                    "and": [{
+                      "not": {
+                        "equals": [
+                          "@coalesce(outputs('Parse_Template_Json')?['nintexTemplateId'], '')",
+                          ""
+                        ]
+                      }
+                    }]
+                  },
               "actions": {
                 "HTTP_Update_In_Nintex": {
                   "runAfter": {},
@@ -377,6 +385,8 @@
                   }
                 }
               }
+            }
+          }
             }
           },
           "runAfter": { "List_All_Templates": ["Succeeded"] },
