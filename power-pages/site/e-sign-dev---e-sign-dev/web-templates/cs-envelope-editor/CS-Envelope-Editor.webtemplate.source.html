@@ -769,13 +769,36 @@ input.te-title-input[type="text"],
             ? JSON.parse(state.envelope.cs_envelopejson || '{}').recipients || []
             : [];
           renderRecipients(signers, saved, state.isReadOnly);
-          /* Load PDF if available */
-          if (json.pdfBase64) {
-            loadPdf(json.pdfBase64);
-          } else {
-            document.getElementById('noDocDesc').textContent =
-              'No document is attached to this template. The PDF preview is unavailable.';
-          }
+          /* Load PDF from annotation (Note) attachment — preferred.
+             Falls back to legacy pdfBase64 in JSON for old records. */
+          var tplId = data.cs_templateid;
+          $.ajax({
+            type: 'GET',
+            url: '/_api/annotations?$filter=_objectid_value eq ' + tplId +
+                 ' and subject eq \'TemplateSourcePDF\'&$select=documentbody,filename&$top=1',
+            headers: { 'Accept': 'application/json' }
+          })
+          .done(function (noteData) {
+            if (noteData && noteData.value && noteData.value.length > 0 && noteData.value[0].documentbody) {
+              var b64  = noteData.value[0].documentbody;
+              var bin  = atob(b64);
+              var bytes = new Uint8Array(bin.length);
+              for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+              loadPdf(bytes.buffer);
+            } else if (json.pdfBase64) {
+              loadPdf(json.pdfBase64);
+            } else {
+              document.getElementById('noDocDesc').textContent =
+                'No document is attached to this template. The PDF preview is unavailable.';
+            }
+          })
+          .fail(function () {
+            if (json.pdfBase64) { loadPdf(json.pdfBase64); }
+            else {
+              document.getElementById('noDocDesc').textContent =
+                'No document is attached to this template. The PDF preview is unavailable.';
+            }
+          });
         } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
       })
       .catch(function (err) {

@@ -216,3 +216,11 @@
 - adx_name: Search/IndexNotesAttachments
   adx_sitesettingid: ee795644-672c-4f73-b9dd-435bcfaa0ac2
   adx_value: false
+- adx_name: Webapi/annotation/enabled
+  adx_sitesettingid: f479172d-cf3c-f111-88b5-7ced8da58400
+  adx_source: 0
+  adx_value: true
+- adx_name: Webapi/annotation/fields
+  adx_sitesettingid: f979172d-cf3c-f111-88b5-7ced8da58400
+  adx_source: 0
+  adx_value: '*'
