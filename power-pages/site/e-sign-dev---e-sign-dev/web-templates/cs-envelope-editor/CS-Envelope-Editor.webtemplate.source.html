@@ -497,12 +497,22 @@ input.te-title-input[type="text"],
   }
 
   /* ── PDF rendering (read-only) ────────────────────────────────────────── */
-  function loadPdf(base64) {
-    if (!state.pdfJsReady) { state.pendingPdf = base64; return; }
-    var binary = atob(base64);
-    var bytes  = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    pdfjsLib.getDocument({ data: bytes.buffer }).promise.then(function (pdf) {
+  function loadPdf(input) {
+    if (!state.pdfJsReady) { state.pendingPdf = input; return; }
+    /* Accept both base64 string and ArrayBuffer */
+    var data;
+    if (input instanceof ArrayBuffer) {
+      data = input;
+    } else if (typeof input === 'string') {
+      var binary = atob(input);
+      var bytes  = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      data = bytes.buffer;
+    } else {
+      console.warn('ESIGN: loadPdf received unexpected type:', typeof input);
+      return;
+    }
+    pdfjsLib.getDocument({ data: data }).promise.then(function (pdf) {
       state.pdfDoc    = pdf;
       state.pageCount = pdf.numPages;
       state.pageNum   = 1;
