@@ -3800,7 +3800,7 @@ adx_webtemplate:
   IsDeleted: true
 - RecordId: 278d6f78-c239-f111-88b5-7ced8da586db
   DisplayName: CS Templates
-  CheckSum: 260d25f719ecf5f3fd6465fe6c7bc779d63b932394fceb52a5e49514286a79b0
+  CheckSum: 14c36b7042de01f624e397978175388a0e127583a22f860c793368d86045776d
   IsDeleted: false
 - RecordId: 362f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-footer
@@ -3812,7 +3812,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: 3ecb30b4-19c2-4c52-8f56-c2a1e0e5894f
   DisplayName: Templates
-  CheckSum: 08e1732b3828f9a4478a344be3b21b20cb04999ada0a22b07f6861c3afb6f062
+  CheckSum: 921004052486e6acaa906760ccb5f989bee1fd97ff977b2f6dc1e140feb5b14a
   IsDeleted: false
 - RecordId: 3f2f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-header-bak
