@@ -288,7 +288,7 @@
                       "name": "@{coalesce(outputs('Parse_Template_Json')?['pdfFilename'], concat(items('Process_Each_Template')?['cs_name'], '.pdf'))}",
                       "file": {
                         "fileToUpload": {
-                          "data": "@{coalesce(first(outputs('Get_Pdf_Annotation')?['body/value'])?['documentbody'], '')}",
+                          "data": "@{coalesce(first(outputs('Get_Pdf_Annotation')?['body/value'])?['documentbody'], outputs('Parse_Template_Json')?['pdfBase64'], '')}",
                           "fileName": "@{coalesce(outputs('Parse_Template_Json')?['pdfFilename'], concat(items('Process_Each_Template')?['cs_name'], '.pdf'))}"
                         },
                         "extension": "pdf"
@@ -309,9 +309,15 @@
               "runAfter": { "Build_Payload": ["Succeeded"] },
               "type": "If",
               "expression": {
-                "and": [{
+                "or": [{
                   "greater": [
                     "@length(coalesce(first(outputs('Get_Pdf_Annotation')?['body/value'])?['documentbody'], ''))",
+                    0
+                  ]
+                },
+                {
+                  "greater": [
+                    "@length(coalesce(outputs('Parse_Template_Json')?['pdfBase64'], ''))",
                     0
                   ]
                 }]
