@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Workflow WorkflowId="{1eaef17a-c921-4dbb-9fef-e55ff3fbc940}" Name="ESign - Sync Templates from Dataverse to Nintex" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <JsonFileName>/Workflows/ESign-SyncTemplatesToNintex-1EAEF17A-C921-4DBB-9FEF-E55FF3FBC940.json</JsonFileName>
+  <JsonFileName>/Workflows/ESign-SyncTemplatesfromDataversetoNintex-1EAEF17A-C921-4DBB-9FEF-E55FF3FBC940.json</JsonFileName>
   <Type>1</Type>
   <Subprocess>0</Subprocess>
   <Category>5</Category>
