@@ -238,7 +238,7 @@
                   "fieldType": "@if(equals(item()?['type'], 'initials'), 'signature', if(equals(item()?['type'], 'checkbox'), 'checkbox', if(equals(item()?['type'], 'signature'), 'signature', 'text')))",
                   "inputType": "signer",
                   "name": "@item()?['label']",
-                  "signer": "@if(equals(item()?['signerIndex'], 0), coalesce(first(outputs('Parse_Template_Json')?['signers'])?['label'], 'Signer 1'), if(equals(item()?['signerIndex'], 1), coalesce(outputs('Parse_Template_Json')?['signers']?[1]?['label'], 'Signer 2'), if(equals(item()?['signerIndex'], 2), coalesce(outputs('Parse_Template_Json')?['signers']?[2]?['label'], 'Signer 3'), concat('Signer ', string(add(item()?['signerIndex'], 1))))))",
+                  "signer": "@if(or(equals(coalesce(item()?['signerIndex'], 0), 0), empty(item()?['signerIndex'])), coalesce(first(outputs('Parse_Template_Json')?['signers'])?['label'], 'Signer 1'), if(equals(item()?['signerIndex'], 1), coalesce(outputs('Parse_Template_Json')?['signers']?[1]?['label'], 'Signer 2'), if(equals(item()?['signerIndex'], 2), coalesce(outputs('Parse_Template_Json')?['signers']?[2]?['label'], 'Signer 3'), concat('Signer ', string(add(coalesce(item()?['signerIndex'], 0), 1))))))",
                   "required": "@item()?['required']",
                   "pageIndex": "@sub(coalesce(item()?['page'], 1), 1)",
                   "position": {
