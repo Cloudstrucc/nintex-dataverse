@@ -1440,22 +1440,27 @@ input.te-title-input[type="text"],
           } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
         }
 
-        /* Load PDF from File column (cs_templatepdf) — preferred over JSON base64 */
+        /* Load PDF from annotation (Note) attachment — preferred over JSON base64 */
         if (TEMPLATE_ID) {
-          fetch('/_api/cs_templates(' + TEMPLATE_ID + ')/cs_templatepdf/$value', {
-            headers: { 'Accept': 'application/octet-stream' }
+          $.ajax({
+            type: 'GET',
+            url: '/_api/annotations?$filter=_objectid_value eq ' + TEMPLATE_ID +
+                 ' and subject eq \'TemplateSourcePDF\'&$select=documentbody,filename&$top=1',
+            headers: { 'Accept': 'application/json' }
           })
-          .then(function (resp) {
-            if (resp.ok) return resp.arrayBuffer();
-            return null; /* no file uploaded yet */
-          })
-          .then(function (buf) {
-            if (buf && buf.byteLength > 0) {
-              state.pdfArrayBuffer = buf;
-              loadPdf(buf);
+          .done(function (data) {
+            if (data && data.value && data.value.length > 0 && data.value[0].documentbody) {
+              var b64  = data.value[0].documentbody;
+              state.pdfFilename = data.value[0].filename || state.pdfFilename || 'document.pdf';
+              var bin  = atob(b64);
+              var bytes = new Uint8Array(bin.length);
+              for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+              state.pdfArrayBuffer = bytes.buffer;
+              loadPdf(bytes.buffer);
             }
+            /* else: no annotation found — legacy pdfBase64 was already handled above */
           })
-          .catch(function () { /* File column empty — use legacy pdfBase64 if available */ });
+          .fail(function () { /* annotation lookup failed — legacy pdfBase64 used if available */ });
         }
 
         setSaveStatus('saved', 'Loaded', 'fa-cloud');
@@ -1510,24 +1515,76 @@ input.te-title-input[type="text"],
 
      Once TEMPLATE_ID is set it never reverts to null in this session,
      so every subsequent Save / Save & Close is always a PATCH.           */
-  /* Upload PDF binary to the cs_templatepdf File column via Dataverse Web API.
-     Uses the Power Pages safeAjax wrapper for CSRF token handling. */
+  /* Upload PDF to the cs_templatepdf File column via chunked upload.
+     Power Pages Web API supports file column upload using:
+     - Small files (< 4MB): single PATCH with binary body
+     - Large files: chunked upload via InitializeFileBlocksUpload / UploadBlock / CommitFileBlocksUpload
+     We use the annotation (Notes) approach as a reliable alternative since
+     Power Pages /_api/ has full support for annotation file attachments. */
   function uploadPdfToFileColumn(templateId, arrayBuffer, filename) {
     return new Promise(function (resolve, reject) {
-      safeAjax({
-        type: 'PATCH',
-        url: '/_api/cs_templates(' + templateId + ')/cs_templatepdf',
-        contentType: 'application/octet-stream',
-        data: arrayBuffer,
-        processData: false,
-        headers: {
-          'x-ms-file-name': encodeURIComponent(filename || 'template.pdf')
+      /* Convert ArrayBuffer to base64 for annotation storage */
+      var bytes = new Uint8Array(arrayBuffer);
+      var binary = '';
+      var chunkSize = 8192;
+      for (var i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, bytes.length)));
+      }
+      var b64 = btoa(binary);
+
+      /* Strategy: Store PDF as a Note (annotation) attachment on the template record.
+         This supports files up to 128 MB and works reliably with Power Pages Web API. */
+      var annotationUrl = '/_api/annotations';
+
+      /* First, check if there's an existing PDF annotation to update */
+      $.ajax({
+        type: 'GET',
+        url: annotationUrl + '?$filter=_objectid_value eq ' + templateId +
+             ' and subject eq \'TemplateSourcePDF\'&$select=annotationid&$top=1',
+        headers: { 'Accept': 'application/json' }
+      })
+      .done(function (data) {
+        var existingId = (data && data.value && data.value.length > 0) ? data.value[0].annotationid : null;
+        var notePayload = {
+          subject: 'TemplateSourcePDF',
+          filename: filename || 'template.pdf',
+          mimetype: 'application/pdf',
+          documentbody: b64,
+          'objectid_cs_template@odata.bind': '/cs_templates(' + templateId + ')'
+        };
+
+        if (existingId) {
+          /* Update existing annotation */
+          safeAjax({
+            type: 'PATCH',
+            url: annotationUrl + '(' + existingId + ')',
+            contentType: 'application/json',
+            data: JSON.stringify({ documentbody: b64, filename: filename || 'template.pdf' }),
+            headers: { 'If-Match': '*' }
+          })
+          .done(function () { resolve(); })
+          .fail(function (xhr) {
+            console.error('ESIGN: PDF annotation update failed:', xhr.status, xhr.responseText);
+            reject(new Error('PDF upload failed: HTTP ' + xhr.status));
+          });
+        } else {
+          /* Create new annotation */
+          safeAjax({
+            type: 'POST',
+            url: annotationUrl,
+            contentType: 'application/json',
+            data: JSON.stringify(notePayload)
+          })
+          .done(function () { resolve(); })
+          .fail(function (xhr) {
+            console.error('ESIGN: PDF annotation create failed:', xhr.status, xhr.responseText);
+            reject(new Error('PDF upload failed: HTTP ' + xhr.status));
+          });
         }
       })
-      .done(function () { resolve(); })
       .fail(function (xhr) {
-        console.error('ESIGN: PDF upload failed:', xhr.status, xhr.responseText);
-        reject(new Error('PDF upload failed: HTTP ' + xhr.status));
+        console.error('ESIGN: Annotation lookup failed:', xhr.status);
+        reject(new Error('PDF upload failed: annotation lookup HTTP ' + xhr.status));
       });
     });
   }

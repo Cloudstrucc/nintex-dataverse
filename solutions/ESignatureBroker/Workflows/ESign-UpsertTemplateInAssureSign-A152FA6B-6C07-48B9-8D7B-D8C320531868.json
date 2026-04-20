@@ -242,7 +242,7 @@
             "value": "@{coalesce(body('Parse_TemplateJson')?['nintexTemplateId'], '')}"
           }
         },
-        "Get_Template_Pdf": {
+        "Get_Template_Pdf_Note": {
           "runAfter": {
             "Set_NintexTemplateId": [
               "Succeeded"
@@ -255,13 +255,14 @@
           "inputs": {
             "host": {
               "connectionName": "shared_commondataserviceforapps",
-              "operationId": "GetFileOrImageContent",
+              "operationId": "ListRecords",
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
             },
             "parameters": {
-              "entityName": "cs_templates",
-              "recordId": "@triggerOutputs()?['body/cs_templateid']",
-              "fileImageFieldName": "cs_templatepdf"
+              "entityName": "annotations",
+              "$filter": "_objectid_value eq @{triggerOutputs()?['body/cs_templateid']} and subject eq 'TemplateSourcePDF'",
+              "$select": "documentbody,filename",
+              "$top": 1
             },
             "authentication": "@parameters('$authentication')"
           }
@@ -574,9 +575,8 @@
             "Build_Steps_Array": [
               "Succeeded"
             ],
-            "Get_Template_Pdf": [
-              "Succeeded",
-              "Failed"
+            "Get_Template_Pdf_Note": [
+              "Succeeded"
             ]
           },
           "metadata": {
@@ -593,7 +593,7 @@
                     "name": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}",
                     "file": {
                       "fileToUpload": {
-                        "data": "@{if(equals(outputs('Get_Template_Pdf')?['statusCode'], 200), base64(body('Get_Template_Pdf')?['$content']), coalesce(body('Parse_TemplateJson')?['pdfBase64'], ''))}",
+                        "data": "@{coalesce(first(outputs('Get_Template_Pdf_Note')?['body/value'])?['documentbody'], body('Parse_TemplateJson')?['pdfBase64'], '')}",
                         "fileName": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}"
                       },
                       "extension": "pdf"
