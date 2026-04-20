@@ -926,10 +926,11 @@ input.te-title-input[type="text"],
     var reader = new FileReader();
     reader.onload = function (e) {
       var buf = e.target.result;
-      /* Store raw binary for File column upload (no more base64 in JSON) */
-      state.pdfArrayBuffer = buf;
+      /* Store a COPY of the ArrayBuffer — PDF.js may detach the original
+         when it transfers it to its web worker. */
+      state.pdfArrayBuffer = buf.slice(0);
       state.pdfFilename    = file.name;
-      state.pdfDirty       = true;  /* flag: needs upload to File column */
+      state.pdfDirty       = true;
       loadPdf(buf);
       markDirty();
     };
@@ -1432,7 +1433,7 @@ input.te-title-input[type="text"],
               var binary  = atob(json.pdfBase64);
               var bytes   = new Uint8Array(binary.length);
               for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-              state.pdfArrayBuffer = bytes.buffer;
+              state.pdfArrayBuffer = bytes.buffer.slice(0);
               loadPdf(bytes.buffer);
             } else {
               state.pdfFilename = json.pdfFilename || 'document.pdf';
@@ -1455,7 +1456,7 @@ input.te-title-input[type="text"],
               var bin  = atob(b64);
               var bytes = new Uint8Array(bin.length);
               for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-              state.pdfArrayBuffer = bytes.buffer;
+              state.pdfArrayBuffer = bytes.buffer.slice(0);
               loadPdf(bytes.buffer);
             }
             /* else: no annotation found — legacy pdfBase64 was already handled above */
