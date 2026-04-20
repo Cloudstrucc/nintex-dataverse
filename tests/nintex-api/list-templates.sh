@@ -100,7 +100,7 @@ name_w = max(max(len(t.get('name', '')) for t in templates), 4)
 name_w = min(name_w, 40)  # cap at 40
 
 # Header
-hdr = f\"{'Name':<{name_w}}  {'Created':<20}  {'Last Modified':<20}\"
+hdr = f\"{'Name':<{name_w}}  {'Template ID':<38}  {'Created':<20}  {'Last Modified':<20}\"
 sep = '─' * len(hdr)
 print(f'  {hdr}')
 print(f'  {sep}')
@@ -108,9 +108,10 @@ print(f'  {sep}')
 # Rows
 for t in templates:
     name = t.get('name', 'Untitled')[:name_w]
+    tid = t.get('templateID', '—')
     created = t.get('created', '—')[:19].replace('T', ' ')
     updated = t.get('updated', '—')[:19].replace('T', ' ')
-    print(f'  {name:<{name_w}}  {created:<20}  {updated:<20}')
+    print(f'  {name:<{name_w}}  {tid:<38}  {created:<20}  {updated:<20}')
 
 print()
 print(f'  Total: {len(templates)} templates')
