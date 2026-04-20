@@ -37,7 +37,7 @@
               "subscriptionRequest/message": 4,
               "subscriptionRequest/entityname": "cs_template",
               "subscriptionRequest/scope": 4,
-              "subscriptionRequest/filteringattributes": "cs_name,cs_templatejson",
+              "subscriptionRequest/filteringattributes": "cs_name",
               "subscriptionRequest/filterexpression": ""
             },
             "authentication": "@parameters('$authentication')"
@@ -221,6 +221,15 @@
                   "type": "string"
                 },
                 "pdfFilename": {
+                  "type": "string"
+                },
+                "pageWidth": {
+                  "type": "number"
+                },
+                "pageHeight": {
+                  "type": "number"
+                },
+                "signingOrder": {
                   "type": "string"
                 }
               }
@@ -473,19 +482,19 @@
           "inputs": {
             "from": "@coalesce(body('Parse_TemplateJson')?['fields'], json('[]'))",
             "select": {
-              "fieldType": "@if(equals(item()?['type'], 'date_signed'), 'text', if(equals(item()?['type'], 'name'), 'text', if(equals(item()?['type'], 'email'), 'text', if(equals(item()?['type'], 'company'), 'text', if(equals(item()?['type'], 'title'), 'text', if(equals(item()?['type'], 'checkbox'), 'checkbox', item()?['type']))))))",
+              "fieldType": "@if(equals(item()?['type'], 'signature'), 'signature', if(equals(item()?['type'], 'initials'), 'signature', if(equals(item()?['type'], 'checkbox'), 'checkbox', 'text')))",
               "inputType": "signer",
-              "name": "@item()?['label']",
-              "signer": "@{coalesce(body('Parse_TemplateJson')?['signers']?[item()?['signerIndex']]?['label'], 'Signer 1')}",
-              "required": "@item()?['required']",
-              "pageIndex": "@sub(item()?['page'], 1)",
+              "name": "@coalesce(item()?['label'], 'Field')",
+              "signer": "@coalesce(first(body('Parse_TemplateJson')?['signers'])?['label'], 'Signer 1')",
+              "required": "@coalesce(item()?['required'], true)",
+              "pageIndex": "@sub(coalesce(item()?['page'], 1), 1)",
               "position": {
-                "x": "@min(div(float(item()?['x']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), sub(1.0, min(div(float(item()?['w']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.5)))",
-                "y": "@min(div(float(item()?['y']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), sub(1.0, min(div(float(item()?['h']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), 0.25)))"
+                "x": "@div(float(coalesce(item()?['x'], 100)), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612)))",
+                "y": "@div(float(coalesce(item()?['y'], 100)), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792)))"
               },
               "size": {
-                "width": "@min(div(float(item()?['w']), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612))), 0.5)",
-                "height": "@min(div(float(item()?['h']), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792))), 0.25)"
+                "width": "@div(float(coalesce(item()?['w'], 100)), float(coalesce(body('Parse_TemplateJson')?['pageWidth'], 612)))",
+                "height": "@div(float(coalesce(item()?['h'], 30)), float(coalesce(body('Parse_TemplateJson')?['pageHeight'], 792)))"
               },
               "signatureType": "@if(equals(item()?['type'], 'initials'), 'Initials', if(equals(item()?['type'], 'signature'), 'Signature', ''))"
             }
