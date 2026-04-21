@@ -76,7 +76,9 @@ echo ""
 echo "[2/5] Fetching '$TEMPLATE_NAME' from source..."
 
 # powerpagecomponent type 8 = web template source HTML
-SRC_DATA=$(curl -s "$SRC_URL/api/data/v9.2/powerpagecomponents?\$filter=name eq '$TEMPLATE_NAME' and powerpagecomponenttype eq 8&\$select=name,content,powerpagecomponentid&\$top=1" \
+ENCODED_NAME=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${TEMPLATE_NAME}'))" 2>/dev/null)
+SRC_FILTER="\$filter=name%20eq%20'${ENCODED_NAME}'%20and%20powerpagecomponenttype%20eq%208&\$select=name,content,powerpagecomponentid&\$top=1"
+SRC_DATA=$(curl -s "${SRC_URL}/api/data/v9.2/powerpagecomponents?${SRC_FILTER}" \
   -H "Authorization: Bearer $SRC_TOKEN" \
   -H "Accept: application/json" \
   -H "OData-MaxVersion: 4.0")
@@ -124,7 +126,8 @@ echo "  ✓ Authenticated"
 echo ""
 echo "[4/5] Finding '$TEMPLATE_NAME' in target..."
 
-TGT_ID=$(curl -s "$TGT_URL/api/data/v9.2/powerpagecomponents?\$filter=name eq '$TEMPLATE_NAME' and powerpagecomponenttype eq 8&\$select=powerpagecomponentid&\$top=1" \
+TGT_FILTER="\$filter=name%20eq%20'${ENCODED_NAME}'%20and%20powerpagecomponenttype%20eq%208&\$select=powerpagecomponentid&\$top=1"
+TGT_ID=$(curl -s "${TGT_URL}/api/data/v9.2/powerpagecomponents?${TGT_FILTER}" \
   -H "Authorization: Bearer $TGT_TOKEN" \
   -H "Accept: application/json" | python3 -c "
 import sys, json
