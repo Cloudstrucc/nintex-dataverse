@@ -205,6 +205,35 @@ input.te-title-input[type="text"],
   background: rgba(255,255,255,0.12) !important;
   border-color: rgba(255,255,255,0.8) !important;
 }
+/* Mobile topbar action menu */
+.te-topbar-mobile-actions { display: none; position: relative; }
+.te-topbar-mobile-actions .te-topbar-menu-btn {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
+  color: #fff; padding: 6px 10px; border-radius: 4px; cursor: pointer;
+  font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+}
+.te-topbar-mobile-actions .te-topbar-menu-btn:hover { background: rgba(255,255,255,0.25); }
+.te-topbar-action-dropdown {
+  display: none; position: absolute; right: 0; top: 100%; margin-top: 6px;
+  background: #fff; border: 1px solid #ddd; border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2); min-width: 180px; z-index: 9999;
+  overflow: hidden;
+}
+.te-topbar-action-dropdown.open { display: block; }
+.te-topbar-action-dropdown button {
+  display: block; width: 100%; text-align: left; padding: 12px 16px;
+  border: none; background: #fff; font-size: 0.85rem; color: #333;
+  cursor: pointer; border-bottom: 1px solid #f0f0f0;
+}
+.te-topbar-action-dropdown button:last-child { border-bottom: none; }
+.te-topbar-action-dropdown button:hover { background: #f5f5f5; }
+.te-topbar-action-dropdown button.send-action { color: #1B6C2A; font-weight: 600; }
+
+@media (max-width: 768px) {
+  #topbar-actions { display: none !important; }
+  .te-topbar-mobile-actions { display: block; }
+}
+
 /* Send Envelope: keep its distinct green style */
 .te-topbar #btnSendEnvelope {
   background: #1B6C2A !important;
@@ -276,6 +305,16 @@ input.te-title-input[type="text"],
               style="background:#1B6C2A;color:#fff;border-color:#1B6C2A;border-radius:4px;">
         <i class="fa fa-send me-1"></i>{{ snippets['ESIGN/ENV_EDITOR/SEND'] | default: 'Send Envelope' }}
       </button>
+    </div>
+    <!-- Mobile action menu (shown only on small screens) -->
+    <div class="te-topbar-mobile-actions" id="topbarMobileActions">
+      <button type="button" class="te-topbar-menu-btn" id="topbarMenuBtn">
+        <i class="fa fa-bars"></i> Actions
+      </button>
+      <div class="te-topbar-action-dropdown" id="topbarMenuDrop">
+        <button type="button" id="btnSaveDraftMobile"><i class="fa fa-floppy-o" style="margin-right:8px;"></i>Save Draft</button>
+        <button type="button" id="btnSendEnvelopeMobile" class="send-action"><i class="fa fa-send" style="margin-right:8px;"></i>Send Envelope</button>
+      </div>
     </div>
     <div id="topbar-readonly" style="display:none;align-items:center;gap:8px;">
       <span style="background:rgba(255,200,0,0.2);color:#ffc107;padding:4px 12px;border-radius:4px;font-size:0.82rem;">
@@ -1013,6 +1052,24 @@ input.te-title-input[type="text"],
     /* Wire topbar buttons */
     document.getElementById('btnSaveDraft').addEventListener('click',    function () { doSave(false); });
     document.getElementById('btnSendEnvelope').addEventListener('click', function () { doSave(true);  });
+
+    /* Mobile action menu */
+    document.getElementById('btnSaveDraftMobile').addEventListener('click', function () {
+      document.getElementById('topbarMenuDrop').classList.remove('open');
+      doSave(false);
+    });
+    document.getElementById('btnSendEnvelopeMobile').addEventListener('click', function () {
+      document.getElementById('topbarMenuDrop').classList.remove('open');
+      doSave(true);
+    });
+    document.getElementById('topbarMenuBtn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      document.getElementById('topbarMenuDrop').classList.toggle('open');
+    });
+    document.addEventListener('click', function () {
+      var d = document.getElementById('topbarMenuDrop');
+      if (d) d.classList.remove('open');
+    });
     document.getElementById('envNameInput').addEventListener('input', markDirty);
 
     /* Wire PDF toolbar */
