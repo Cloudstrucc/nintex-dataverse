@@ -894,10 +894,12 @@ input.te-title-input[type="text"],
         state.envelope = data;
         document.getElementById('envNameInput').value = data.cs_name || '';
 
-        /* Determine read-only: only Draft(1), Preparing(717640001), Ready to Send(717640002|3) are editable */
+        /* Determine read-only based on statecode or preparing/sent/signed status */
         var statusLabel = data['statuscode@OData.Community.Display.V1.FormattedValue'] || '';
-        var editableStatuses = [1, 717640001, 717640002, 3];
-        var ro = editableStatuses.indexOf(data.statuscode) === -1;
+        var ro = data.statecode === 1 ||
+          statusLabel.toLowerCase().indexOf('preparing') >= 0 ||
+          statusLabel.toLowerCase().indexOf('sent')      >= 0 ||
+          statusLabel.toLowerCase().indexOf('signed')    >= 0;
         state.isReadOnly = ro;
 
         /* Update status display */
@@ -908,9 +910,6 @@ input.te-title-input[type="text"],
           document.getElementById('envNameInput').disabled = true;
           document.getElementById('topbar-actions').style.display  = 'none';
           document.getElementById('topbar-readonly').style.display = 'flex';
-          /* Hide mobile action menu too */
-          var mobileActions = document.getElementById('topbarMobileActions');
-          if (mobileActions) mobileActions.style.display = 'none';
         }
 
         /* Restore TEMPLATE_ID for subsequent saves */
