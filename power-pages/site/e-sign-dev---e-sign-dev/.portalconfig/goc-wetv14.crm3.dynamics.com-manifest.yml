@@ -3800,7 +3800,7 @@ adx_webtemplate:
   IsDeleted: true
 - RecordId: 278d6f78-c239-f111-88b5-7ced8da586db
   DisplayName: CS Templates
-  CheckSum: 14c36b7042de01f624e397978175388a0e127583a22f860c793368d86045776d
+  CheckSum: 2ed1018b22fcfadf05334b9d55ba02f1fe83441590ca818f5cf1c667fc3e8e9b
   IsDeleted: false
 - RecordId: 362f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-footer
@@ -3812,7 +3812,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: 3ecb30b4-19c2-4c52-8f56-c2a1e0e5894f
   DisplayName: Templates
-  CheckSum: 921004052486e6acaa906760ccb5f989bee1fd97ff977b2f6dc1e140feb5b14a
+  CheckSum: 7977a7cbc3e63b5a0660546ada81b6d24d5b508935ce53e9aae0a718e82bd121
   IsDeleted: false
 - RecordId: 3f2f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-header-bak
@@ -3824,7 +3824,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: 4456046c-cc39-f111-88b4-7c1e52541891
   DisplayName: CS Template Editor
-  CheckSum: b000262e003f0c3fda60fe90cf7f0dac7506931331652952b701aeb25a9a0034
+  CheckSum: aa6c3eef48cc5620656bd12c386355da25c51102e0bca8a3fd8b263af13ae963
   IsDeleted: false
 - RecordId: 462f4cf6-d627-f111-88b4-70a8a50a2c8b
   DisplayName: CS-header
@@ -3908,7 +3908,7 @@ adx_webtemplate:
   IsDeleted: false
 - RecordId: fdcb47d8-3e3a-f111-88b5-7ced8da586db
   DisplayName: CS-Envelopes
-  CheckSum: ea91d14762a55c2c8b12502569387de8b03ec2d1358e5f426a8c9a0cb604e390
+  CheckSum: 4035ba355d3b7b1a828d5ec55898bf90e4468da4ae6453148889116041b87783
   IsDeleted: false
 annotation:
 - RecordId: 003a9e19-0f28-f111-88b5-7ced8da58400

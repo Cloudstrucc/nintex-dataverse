@@ -101,10 +101,10 @@
               <table class="table table-hover mrgn-bttm-0" id="env-table">
                 <thead>
                   <tr style="background:#f5f5f5;">
-                    <th style="width:32%;">{{ snippets['ESIGN/ENVELOPES/COL_NAME']     | default: 'Envelope Name' }}</th>
-                    <th style="width:14%;">{{ snippets['ESIGN/ENVELOPES/COL_STATUS']   | default: 'Status' }}</th>
+                    <th style="width:32%;cursor:pointer;" data-sort="cs_name">{{ snippets['ESIGN/ENVELOPES/COL_NAME'] | default: 'Envelope Name' }} <span class="sort-icon"></span></th>
+                    <th style="width:14%;cursor:pointer;" data-sort="statuscode@OData.Community.Display.V1.FormattedValue">{{ snippets['ESIGN/ENVELOPES/COL_STATUS'] | default: 'Status' }} <span class="sort-icon"></span></th>
                     <th style="width:20%;" class="env-hide-mobile">{{ snippets['ESIGN/ENVELOPES/COL_TEMPLATE'] | default: 'Template' }}</th>
-                    <th style="width:14%;" class="env-hide-mobile">{{ snippets['ESIGN/ENVELOPES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:14%;cursor:pointer;" class="env-hide-mobile" data-sort="modifiedon">{{ snippets['ESIGN/ENVELOPES/COL_MODIFIED'] | default: 'Last Modified' }} <span class="sort-icon"></span></th>
                     <th style="width:20%;" class="text-center">{{ snippets['ESIGN/ENVELOPES/COL_ACTIONS'] | default: 'Actions' }}</th>
                   </tr>
                 </thead>
@@ -174,6 +174,8 @@
   var filtered    = [];
   var currentPage = 1;
   var tplNameCache = {}; /* { templateId: templateName } */
+  var sortCol     = 'modifiedon';
+  var sortDir     = 'desc';
 
   /* ── DOM refs ────────────────────────────────────────────────────────── */
   var elLoading, elError, elTableWrap, elEmpty, elTbody,
@@ -248,6 +250,40 @@
         var opt = document.createElement('option');
         opt.value = label; opt.textContent = label;
         elStatusFilter.appendChild(opt);
+      }
+    });
+  }
+
+  /* ── Sort ────────────────────────────────────────────────────────────── */
+  function sortFiltered() {
+    filtered.sort(function (a, b) {
+      var av = (a[sortCol] || '').toString().toLowerCase();
+      var bv = (b[sortCol] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function toggleSort(col) {
+    if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+    else { sortCol = col; sortDir = col === 'modifiedon' ? 'desc' : 'asc'; }
+    currentPage = 1;
+    updateSortIcons();
+    sortFiltered();
+    renderPage();
+  }
+
+  function updateSortIcons() {
+    document.querySelectorAll('#env-table-wrap th[data-sort]').forEach(function (th) {
+      var icon = th.querySelector('.sort-icon');
+      if (!icon) return;
+      if (th.getAttribute('data-sort') === sortCol) {
+        icon.textContent = sortDir === 'asc' ? ' \u25B2' : ' \u25BC';
+        icon.style.opacity = '1';
+      } else {
+        icon.textContent = ' \u25B4';
+        icon.style.opacity = '0.3';
       }
     });
   }
@@ -336,13 +372,21 @@
         e.stopPropagation();
         var menu = this.nextElementSibling;
         document.querySelectorAll('.esign-action-menu.open').forEach(function (m) {
-          if (m !== menu) m.classList.remove('open');
+          if (m !== menu) { m.classList.remove('open'); m.classList.remove('flip-up'); }
         });
+        /* Check if menu would overflow viewport bottom — flip upward if so */
+        menu.classList.remove('flip-up');
         menu.classList.toggle('open');
+        if (menu.classList.contains('open')) {
+          var rect = menu.getBoundingClientRect();
+          if (rect.bottom > window.innerHeight - 10) {
+            menu.classList.add('flip-up');
+          }
+        }
       });
     });
     document.addEventListener('click', function () {
-      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); });
+      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); m.classList.remove('flip-up'); });
     });
 
     /* Wire cancel buttons — desktop (no inline handlers) */
@@ -377,6 +421,7 @@
       var sm = !st || (r['statuscode@OData.Community.Display.V1.FormattedValue'] || '') === st;
       return nm && sm;
     });
+    sortFiltered();
     renderPage();
   }
 
@@ -415,6 +460,7 @@
         allRecords = data.value;
         filtered   = allRecords.slice();
         buildStatusFilter(allRecords);
+        sortFiltered();
         renderPage();
       })
       .catch(function (err) {
@@ -478,6 +524,12 @@
     document.getElementById('env-search-btn').addEventListener('click', applyFilters);
     elSearch.addEventListener('keyup', function (e) { if (e.key === 'Enter') applyFilters(); });
     elStatusFilter.addEventListener('change', applyFilters);
+
+    /* Column sorting */
+    document.querySelectorAll('#env-table-wrap th[data-sort]').forEach(function (th) {
+      th.addEventListener('click', function () { toggleSort(this.getAttribute('data-sort')); });
+    });
+    updateSortIcons();
 
     /* Pagination */
     elPrev.addEventListener('click', function () { if (currentPage > 1) { currentPage--; renderPage(); } });
@@ -567,6 +619,9 @@
   .pepp-app  { background: #f9f9f9; min-height: calc(100vh - 200px); }
   .panel     { border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   #env-table th { font-size: 13px; white-space: nowrap; }
+  #env-table th[data-sort] { user-select: none; cursor: pointer; }
+  #env-table th[data-sort]:hover { background: #e8e8e8; }
+  .sort-icon { font-size: 10px; color: #666; }
   #env-table td { vertical-align: middle; font-size: 14px; }
   #env-table tbody tr:hover { background: #f0f4f8; }
   .breadcrumb li + li::before { content: "/ "; }
@@ -580,10 +635,17 @@
   /* Action menu (pure JS, no Bootstrap dropdown) */
   .env-actions-mobile { display: none; }
   .env-actions-desktop { display: inline; }
+  /* Allow action menus to overflow the table wrapper */
+  .table-responsive { overflow: visible !important; }
+  .panel-body { overflow: visible !important; }
   .esign-action-menu {
     display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
     background: #fff; border: 1px solid #ddd; border-radius: 4px;
     box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 150px; z-index: 999;
+  }
+  /* Flip upward when near bottom of viewport */
+  .esign-action-menu.flip-up {
+    top: auto; bottom: 100%; margin-top: 0; margin-bottom: 4px;
   }
   .esign-action-menu.open { display: block; }
   .esign-action-menu a {

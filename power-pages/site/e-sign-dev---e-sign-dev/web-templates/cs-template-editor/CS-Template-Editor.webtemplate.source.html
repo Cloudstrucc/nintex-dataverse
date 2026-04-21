@@ -1629,12 +1629,21 @@ input.te-title-input[type="text"],
           }
         }
 
-        /* Upload PDF to File column if changed */
+        /* Upload PDF to annotation, then touch cs_name to re-trigger the
+           Upsert Template flow. The flow skips on the first trigger (no
+           annotation yet) but succeeds on the second (annotation exists). */
         if (state.pdfDirty && state.pdfArrayBuffer && TEMPLATE_ID) {
           setSaveStatus('saving', 'Uploading PDF...', 'fa-spinner fa-spin');
           return uploadPdfToFileColumn(TEMPLATE_ID, state.pdfArrayBuffer, state.pdfFilename)
             .then(function () {
               state.pdfDirty = false;
+              /* Touch cs_name to re-trigger the Upsert flow now that the
+                 annotation exists. This is a no-op data-wise but fires
+                 the webhook since cs_name is in filteringattributes. */
+              var currentName = (document.getElementById('tplNameInput').value || '').trim() || 'Untitled Template';
+              return portalPatch('/_api/cs_templates(' + TEMPLATE_ID + ')', { cs_name: currentName });
+            })
+            .then(function () {
               setSaveStatus('saved', isCreate ? 'Template created' : 'Saved', 'fa-cloud');
               if (closeAfter) { window.location.href = BACK_URL; }
             });
