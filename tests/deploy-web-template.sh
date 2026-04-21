@@ -4,12 +4,14 @@
 # Copies a specific web template from one Dataverse environment
 # to another using the Web API — without touching site settings.
 #
-# Usage: ./deploy-web-template.sh <template-name>
-# Example: ./deploy-web-template.sh CS-Envelope-Editor
-#          ./deploy-web-template.sh CS-Template-Editor
-#          ./deploy-web-template.sh CS-Templates
-#          ./deploy-web-template.sh CS-Envelopes
-#          ./deploy-web-template.sh CS-Home-WET
+# Usage: ./deploy-web-template.sh <template-name> [target]
+#   target: dev (default) | test
+#
+# Examples:
+#   ./deploy-web-template.sh CS-Envelope-Editor          # → EC DEV
+#   ./deploy-web-template.sh CS-Envelope-Editor dev      # → EC DEV
+#   ./deploy-web-template.sh CS-Envelope-Editor test     # → EC TEST
+#   ./deploy-web-template.sh "CS Template Editor" test   # → EC TEST
 #
 # .env file: root/.env (one level up)
 # ============================================================
@@ -23,11 +25,17 @@ if [[ ! -f "$ENV_FILE" ]]; then echo "ERROR: .env not found at $ENV_FILE"; exit 
 
 set -a; source "$ENV_FILE"; set +a
 
-# ── Template name from argument ───────────────────────────────
+# ── Arguments ─────────────────────────────────────────────────
 TEMPLATE_NAME="${1:-}"
+TARGET_ENV="${2:-dev}"
+
 if [[ -z "$TEMPLATE_NAME" ]]; then
-  echo "Usage: $0 <template-name>"
-  echo "Example: $0 CS-Envelope-Editor"
+  echo "Usage: $0 <template-name> [dev|test]"
+  echo ""
+  echo "Examples:"
+  echo "  $0 CS-Envelope-Editor          # → EC DEV"
+  echo "  $0 CS-Envelope-Editor test     # → EC TEST"
+  echo "  $0 \"CS Template Editor\" test   # → EC TEST"
   exit 1
 fi
 
@@ -39,17 +47,23 @@ fi
 
 SRC_URL="$DATAVERSE_ENVIRONMENT_URL"
 
-# ── Target environment (EC DEV) ──────────────────────────────
-: "${EC_ENVIRONMENT_URL:?EC_ENVIRONMENT_URL not set}"
+# ── Target environment (resolved from argument) ──────────────
 : "${EC_TENANT_ID:?EC_TENANT_ID not set}"
 : "${EC_CLIENT_ID:?EC_CLIENT_ID not set}"
 : "${EC_CLIENT_SECRET:?EC_CLIENT_SECRET not set}"
 
-# Strip quotes from EC vars
-TGT_URL="${EC_ENVIRONMENT_URL//\"/}"
 TGT_TENANT="${EC_TENANT_ID//\"/}"
 TGT_CLIENT="${EC_CLIENT_ID//\"/}"
 TGT_SECRET="${EC_CLIENT_SECRET//\"/}"
+
+case "$TARGET_ENV" in
+  dev)  TGT_URL="https://dev-ec-esign-01.crm3.dynamics.com" ;;
+  test) TGT_URL="https://test-ec-esign-01.crm3.dynamics.com" ;;
+  *)
+    echo "ERROR: Unknown target '$TARGET_ENV'. Use 'dev' or 'test'."
+    exit 1
+    ;;
+esac
 
 echo ""
 echo "========================================"
