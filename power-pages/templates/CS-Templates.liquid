@@ -95,9 +95,9 @@
               <table class="table table-hover mrgn-bttm-0" id="tpl-table">
                 <thead>
                   <tr style="background:#f5f5f5;">
-                    <th style="width:38%;">{{ snippets['ESIGN/TEMPLATES/COL_NAME']     | default: 'Template Name' }}</th>
-                    <th style="width:18%;" class="tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_CAT']      | default: 'Category' }}</th>
-                    <th style="width:15%;" class="tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }}</th>
+                    <th style="width:38%;cursor:pointer;" data-sort="cs_name">{{ snippets['ESIGN/TEMPLATES/COL_NAME'] | default: 'Template Name' }} <span class="sort-icon"></span></th>
+                    <th style="width:18%;cursor:pointer;" class="tpl-hide-mobile" data-sort="cs_category">{{ snippets['ESIGN/TEMPLATES/COL_CAT'] | default: 'Category' }} <span class="sort-icon"></span></th>
+                    <th style="width:15%;cursor:pointer;" class="tpl-hide-mobile" data-sort="modifiedon">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Last Modified' }} <span class="sort-icon"></span></th>
                     <th style="width:11%;" class="text-center tpl-hide-mobile">{{ snippets['ESIGN/TEMPLATES/COL_VERSION'] | default: 'Version' }}</th>
                     <th style="width:18%;" class="text-center">{{ snippets['ESIGN/TEMPLATES/COL_ACTIONS'] | default: 'Actions' }}</th>
                   </tr>
@@ -158,6 +158,8 @@
   var filtered    = [];
   var currentPage = 1;
   var signerCount = 0;
+  var sortCol     = 'modifiedon';
+  var sortDir     = 'desc';
 
   /* ── DOM refs (all resolved after DOMContentLoaded) ──────────────────── */
   var elLoading, elError, elTableWrap, elEmpty, elTbody,
@@ -199,6 +201,40 @@
         opt.value       = cat;
         opt.textContent = cat;
         elCategory.appendChild(opt);
+      }
+    });
+  }
+
+  /* ── Sort ────────────────────────────────────────────────────────────── */
+  function sortFiltered() {
+    filtered.sort(function (a, b) {
+      var av = (a[sortCol] || '').toString().toLowerCase();
+      var bv = (b[sortCol] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function toggleSort(col) {
+    if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+    else { sortCol = col; sortDir = col === 'modifiedon' ? 'desc' : 'asc'; }
+    currentPage = 1;
+    updateSortIcons();
+    sortFiltered();
+    renderPage();
+  }
+
+  function updateSortIcons() {
+    document.querySelectorAll('#tpl-table-wrap th[data-sort]').forEach(function (th) {
+      var icon = th.querySelector('.sort-icon');
+      if (!icon) return;
+      if (th.getAttribute('data-sort') === sortCol) {
+        icon.textContent = sortDir === 'asc' ? ' \u25B2' : ' \u25BC';
+        icon.style.opacity = '1';
+      } else {
+        icon.textContent = ' \u25B4';
+        icon.style.opacity = '0.3';
       }
     });
   }
@@ -342,6 +378,7 @@
       var cm = !cat || (r.cs_category || '') === cat;
       return nm && cm;
     });
+    sortFiltered();
     renderPage();
   }
 
@@ -427,6 +464,7 @@
         allRecords = data.value;
         filtered   = allRecords.slice();
         buildCategoryFilter(allRecords);
+        sortFiltered();
         renderPage();
       })
       .catch(function (err) {
@@ -554,6 +592,12 @@
     document.getElementById('tpl-search-btn').addEventListener('click', applyFilters);
     elSearch.addEventListener('keyup', function (e) { if (e.key === 'Enter') applyFilters(); });
     elCategory.addEventListener('change', applyFilters);
+
+    /* Column sorting */
+    document.querySelectorAll('#tpl-table-wrap th[data-sort]').forEach(function (th) {
+      th.addEventListener('click', function () { toggleSort(this.getAttribute('data-sort')); });
+    });
+    updateSortIcons();
     elPrev.addEventListener('click', function () { if (currentPage > 1) { currentPage--; renderPage(); } });
     elNext.addEventListener('click', function () {
       if (currentPage < Math.ceil(filtered.length / PAGE_SIZE)) { currentPage++; renderPage(); }
@@ -647,6 +691,9 @@
   .pepp-app { background: #f9f9f9; min-height: calc(100vh - 200px); }
   .panel    { border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   #tpl-table th { font-size: 13px; white-space: nowrap; }
+  #tpl-table th[data-sort] { user-select: none; }
+  #tpl-table th[data-sort]:hover { background: #e8e8e8; }
+  .sort-icon { font-size: 10px; color: #666; }
   #tpl-table td { vertical-align: middle; font-size: 14px; }
   #tpl-table tbody tr:hover { background: #f0f4f8; }
   .breadcrumb li + li::before { content: "/ "; }
