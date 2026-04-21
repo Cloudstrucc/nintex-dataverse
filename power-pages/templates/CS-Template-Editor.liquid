@@ -72,10 +72,12 @@
   align-items: center;
   background: var(--gc-blue);
   color: #fff;
-  padding: 8px 16px;
+  padding: 8px 12px;
   flex-shrink: 0;
   z-index: 10;
   border-bottom: 3px solid var(--gc-red);
+  overflow: visible;
+  max-width: 100vw;
 }
 .te-title-input,
 input.te-title-input,
@@ -281,17 +283,18 @@ input.te-title-input[type="text"],
 .te-meta-row textarea { resize: vertical; min-height: 52px; }
 
 /* Mobile topbar action menu */
-.te-topbar-mobile-actions { display: none; position: relative; }
+.te-topbar-mobile-actions { display: none; position: relative; flex-shrink: 0; }
 .te-topbar-mobile-actions .te-topbar-menu-btn {
   background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
   color: #fff; padding: 6px 10px; border-radius: 4px; cursor: pointer;
-  font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+  font-size: 0.8rem; display: flex; align-items: center; gap: 4px; white-space: nowrap;
 }
 .te-topbar-mobile-actions .te-topbar-menu-btn:hover { background: rgba(255,255,255,0.25); }
 .te-topbar-action-dropdown {
-  display: none; position: absolute; right: 0; top: 100%; margin-top: 6px;
+  display: none; position: fixed; right: 8px; margin-top: 6px;
   background: #fff; border: 1px solid #ddd; border-radius: 6px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2); min-width: 180px; z-index: 9999; overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2); min-width: 180px; max-width: calc(100vw - 16px);
+  z-index: 9999; overflow: hidden;
 }
 .te-topbar-action-dropdown.open { display: block; }
 .te-topbar-action-dropdown button {
@@ -1862,7 +1865,12 @@ input.te-title-input[type="text"],
     });
     document.getElementById('topbarMenuBtn').addEventListener('click', function (e) {
       e.stopPropagation();
-      document.getElementById('topbarMenuDrop').classList.toggle('open');
+      var drop = document.getElementById('topbarMenuDrop');
+      drop.classList.toggle('open');
+      if (drop.classList.contains('open')) {
+        var btnRect = this.getBoundingClientRect();
+        drop.style.top = (btnRect.bottom + 4) + 'px';
+      }
     });
     document.addEventListener('click', function () {
       var d = document.getElementById('topbarMenuDrop');
