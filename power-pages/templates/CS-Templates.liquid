@@ -322,15 +322,21 @@
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         var menu = this.nextElementSibling;
-        /* Close any other open menus first */
         document.querySelectorAll('.esign-action-menu.open').forEach(function (m) {
-          if (m !== menu) m.classList.remove('open');
+          if (m !== menu) { m.classList.remove('open'); m.classList.remove('flip-up'); }
         });
+        menu.classList.remove('flip-up');
         menu.classList.toggle('open');
+        if (menu.classList.contains('open')) {
+          var rect = menu.getBoundingClientRect();
+          if (rect.bottom > window.innerHeight - 10) {
+            menu.classList.add('flip-up');
+          }
+        }
       });
     });
     document.addEventListener('click', function () {
-      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); });
+      document.querySelectorAll('.esign-action-menu.open').forEach(function (m) { m.classList.remove('open'); m.classList.remove('flip-up'); });
     });
 
     /* Wire download buttons — desktop */
@@ -709,10 +715,16 @@
   /* Action menu (pure JS, no Bootstrap dropdown) */
   .tpl-actions-mobile { display: none; }
   .tpl-actions-desktop { display: inline; }
+  /* Allow action menus to overflow the table wrapper */
+  .table-responsive { overflow: visible !important; }
+  .panel-body { overflow: visible !important; }
   .esign-action-menu {
     display: none; position: absolute; right: 0; top: 100%; margin-top: 4px;
     background: #fff; border: 1px solid #ddd; border-radius: 4px;
     box-shadow: 0 6px 16px rgba(0,0,0,0.15); min-width: 150px; z-index: 999;
+  }
+  .esign-action-menu.flip-up {
+    top: auto; bottom: 100%; margin-top: 0; margin-bottom: 4px;
   }
   .esign-action-menu.open { display: block; }
   .esign-action-menu a {
