@@ -539,7 +539,7 @@
                           ]
                         },
                         "type": "Compose",
-                        "inputs": "@setProperty(if(empty(items('Process_Each_Template')?['cs_templatejson']), json('{}'), json(items('Process_Each_Template')?['cs_templatejson'])), 'nintexTemplateId', body('HTTP_Create_In_Nintex')?['result']?['templateID'])"
+                        "inputs": "@setProperty(removeProperty(if(empty(items('Process_Each_Template')?['cs_templatejson']), json('{}'), json(items('Process_Each_Template')?['cs_templatejson'])), 'pdfBase64'), 'nintexTemplateId', body('HTTP_Create_In_Nintex')?['result']?['templateID'])"
                       },
                       "Update_Dataverse_With_NintexId": {
                         "runAfter": {

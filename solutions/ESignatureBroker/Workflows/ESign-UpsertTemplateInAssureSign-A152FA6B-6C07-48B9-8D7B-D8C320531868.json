@@ -716,7 +716,7 @@
                   "operationMetadataId": "d0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
                 },
                 "type": "Compose",
-                "inputs": "@setProperty(json(outputs('Get_Template_Record')?['body/cs_templatejson']), 'nintexTemplateId', body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID'])"
+                "inputs": "@setProperty(removeProperty(json(outputs('Get_Template_Record')?['body/cs_templatejson']), 'pdfBase64'), 'nintexTemplateId', body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID'])"
               },
               "Update_Dataverse_With_NintexId": {
                 "runAfter": {
