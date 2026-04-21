@@ -37,17 +37,6 @@
         </a>
       </div>
 
-      <!-- Total Envelopes -->
-      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
-        <div class="panel panel-default text-center" style="border-top:3px solid #26374A;">
-          <div class="panel-body" style="padding:20px;">
-            <span class="fa fa-envelope" style="font-size:2rem;color:#26374A;display:block;margin-bottom:8px;"></span>
-            <div class="h2 mrgn-tp-0 mrgn-bttm-xs stat-tile-num" id="stat-total" style="color:#26374A;"><span class="stat-spinner fa fa-spinner fa-spin"></span><span class="stat-value" style="display:none;">--</span></div>
-            <p class="small text-muted mrgn-bttm-0">{{ snippets['ESIGN/STAT2/LABEL'] | default: 'Total Envelopes' }}</p>
-          </div>
-        </div>
-      </div>
-
       <!-- Completed -->
       <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
         <div class="panel panel-default text-center" style="border-top:3px solid #1a5336;">
@@ -245,7 +234,7 @@
     /* Envelopes: one call populates all envelope stats */
     portalGet(API_ENV + '?$select=cs_envelopeid,statuscode')
       .then(function (d) {
-        if (!d || !d.value) { setStat('stat-total',0); setStat('stat-completed',0); setStat('stat-inprogress',0); setStat('stat-errors',0); return; }
+        if (!d || !d.value) { setStat('stat-completed',0); setStat('stat-inprogress',0); setStat('stat-errors',0); return; }
         var all = d.value;
         var completed = all.filter(function (e) {
           var lbl = (e['statuscode@OData.Community.Display.V1.FormattedValue'] || '').toLowerCase();
@@ -259,12 +248,11 @@
           var lbl = (e['statuscode@OData.Community.Display.V1.FormattedValue'] || '').toLowerCase();
           return lbl.indexOf('error') >= 0;
         });
-        setStat('stat-total',      all.length);
         setStat('stat-completed',  completed.length);
         setStat('stat-inprogress', inProgress.length);
         setStat('stat-errors',     errors.length);
       })
-      .catch(function () { setStat('stat-total','?'); setStat('stat-completed','?'); setStat('stat-inprogress','?'); setStat('stat-errors','?'); });
+      .catch(function () { setStat('stat-completed','?'); setStat('stat-inprogress','?'); setStat('stat-errors','?'); });
   }
 
   /* ── Load recent envelopes table ────────────────────────────────────── */
