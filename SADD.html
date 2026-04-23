@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SADD — ESign Elections Canada</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --gc-blue: #26374A;
+      --gc-blue-light: #335075;
+      --gc-red: #AF3C43;
+      --gc-red-dark: #922B31;
+      --gc-green: #1B6C2A;
+      --gc-gray-light: #F8F8F8;
+      --gc-gray: #E1E4E7;
+      --gc-gray-dark: #333333;
+      --gc-white: #FFFFFF;
+    }
+
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--gc-gray-dark);
+      background: var(--gc-white);
+    }
+
+    /* Print styles */
+    @page {
+      size: letter;
+      margin: 25mm 20mm 25mm 20mm;
+      @top-center {
+        content: "ESign Elections Canada — SADD v2.0";
+        font-size: 8pt;
+        color: #335075;
+        font-family: 'Noto Sans', sans-serif;
+      }
+      @bottom-center {
+        content: "Page " counter(page);
+        font-size: 8pt;
+        color: #335075;
+        font-family: 'Noto Sans', sans-serif;
+      }
+    }
+
+    @media print {
+      body {
+        font-size: 10pt;
+        line-height: 1.5;
+        color: #000;
+      }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+      .page-break-after { page-break-after: always; }
+      .avoid-break { page-break-inside: avoid; }
+      table { page-break-inside: avoid; }
+      figure { page-break-inside: avoid; }
+      h1, h2, h3 { page-break-after: avoid; }
+      .title-page { page-break-after: always; }
+      .toc-page { page-break-after: always; }
+      .lof-page { page-break-after: always; }
+      a { color: #000 !important; text-decoration: none !important; }
+      .classification-banner { background: var(--gc-red) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; }
+      svg { max-width: 100% !important; }
+    }
+
+    /* Screen container */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Title Page */
+    .title-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      padding: 60px 40px;
+    }
+    .title-page .gc-wordmark {
+      width: 300px;
+      margin-bottom: 40px;
+    }
+    .title-page .doc-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gc-blue);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .title-page .doc-subtitle {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--gc-blue-light);
+      margin-bottom: 40px;
+    }
+    .title-page .doc-meta {
+      font-size: 14px;
+      color: var(--gc-gray-dark);
+      margin-bottom: 5px;
+    }
+    .title-page .doc-meta strong {
+      color: var(--gc-blue);
+    }
+    .classification-banner {
+      background: var(--gc-red);
+      color: var(--gc-white);
+      padding: 8px 30px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border-radius: 4px;
+      margin-top: 30px;
+    }
+    .title-page .department {
+      font-size: 13px;
+      color: var(--gc-blue-light);
+      margin-top: 20px;
+      font-style: italic;
+    }
+    .title-page .red-stripe {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gc-red);
+    }
+
+    /* Headings */
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--gc-blue);
+      margin: 40px 0 10px 0;
+      padding-bottom: 8px;
+      border-bottom: 3px solid var(--gc-red);
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gc-blue);
+      margin: 30px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--gc-gray);
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gc-blue-light);
+      margin: 20px 0 8px 0;
+    }
+    h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gc-blue-light);
+      margin: 15px 0 6px 0;
+    }
+
+    /* Paragraphs */
+    p {
+      margin: 8px 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px 0;
+      font-size: 13px;
+    }
+    thead th {
+      background: var(--gc-blue);
+      color: var(--gc-white);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    tbody td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--gc-gray);
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) {
+      background: var(--gc-gray-light);
+    }
+    tbody tr:hover {
+      background: #eef1f5;
+    }
+
+    /* Code blocks */
+    code {
+      background: var(--gc-gray-light);
+      border: 1px solid var(--gc-gray);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+    }
+    pre {
+      background: var(--gc-gray-light);
+      border: 1px solid var(--gc-gray);
+      border-left: 3px solid var(--gc-blue-light);
+      padding: 12px 15px;
+      border-radius: 3px;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 10px 0 15px 0;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    /* Figures */
+    figure {
+      margin: 20px 0;
+      text-align: center;
+    }
+    figcaption {
+      font-size: 12px;
+      color: var(--gc-blue-light);
+      font-weight: 600;
+      margin-top: 8px;
+      padding: 5px 0;
+      border-top: 1px solid var(--gc-gray);
+    }
+
+    /* Lists */
+    ul, ol {
+      margin: 8px 0 8px 25px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* TOC */
+    .toc-page {
+      min-height: 100vh;
+      padding: 40px 0;
+    }
+    .toc-page a {
+      color: var(--gc-blue-light);
+      text-decoration: none;
+    }
+    .toc-page a:hover {
+      color: var(--gc-red);
+      text-decoration: underline;
+    }
+    .toc-part {
+      font-weight: 700;
+      color: var(--gc-blue);
+      font-size: 15px;
+      margin: 18px 0 6px 0;
+    }
+    .toc-section {
+      margin: 4px 0 4px 20px;
+      font-size: 14px;
+    }
+    .toc-subsection {
+      margin: 2px 0 2px 40px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    /* LOF */
+    .lof-page {
+      min-height: 80vh;
+      padding: 40px 0;
+    }
+
+    /* Notes/Blockquotes */
+    blockquote {
+      border-left: 4px solid var(--gc-blue-light);
+      background: var(--gc-gray-light);
+      padding: 10px 15px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+
+    /* Document control table */
+    .doc-control-table {
+      max-width: 700px;
+    }
+
+    /* SVG styling */
+    svg text {
+      font-family: 'Noto Sans', sans-serif;
+    }
+
+    /* Section spacing */
+    .section {
+      margin-bottom: 30px;
+    }
+
+    /* Strong labels in body text */
+    .label-bold {
+      font-weight: 700;
+      color: var(--gc-blue);
+    }
+
+    /* Glossary */
+    .glossary-table td:first-child {
+      font-weight: 600;
+      white-space: nowrap;
+      width: 100px;
+    }
+
+    /* Separator */
+    hr {
+      border: none;
+      border-top: 1px solid var(--gc-gray);
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- TITLE PAGE -->
+<!-- ============================================================ -->
+<div class="title-page page-break-after">
+  <img class="gc-wordmark" src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/sig-blk-en.svg" alt="Government of Canada Wordmark">
+  <div class="doc-title">E-Signature Elections Canada</div>
+  <div class="doc-title" style="font-size:22px; margin-bottom:5px;">Solution Architecture &amp; Design Document</div>
+  <div class="doc-subtitle">Broker Service, Power Pages Portal, &amp; Client Integration</div>
+
+  <div class="doc-meta"><strong>Version:</strong> 2.0</div>
+  <div class="doc-meta"><strong>Date:</strong> April 2026</div>
+  <div class="doc-meta"><strong>Author:</strong> Frederick Pearson</div>
+  <div class="doc-meta"><strong>Status:</strong> Draft for Review</div>
+
+  <div class="classification-banner">Protected B</div>
+
+  <div class="department">Elections Canada — Platform Engineering Team</div>
+
+  <div class="red-stripe"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DOCUMENT CONTROL -->
+<!-- ============================================================ -->
+<div class="container page-break-after">
+  <h2 style="margin-top:30px;">Document Control</h2>
+  <table class="doc-control-table">
+    <thead>
+      <tr><th>Version</th><th>Date</th><th>Author</th><th>Changes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1.0</td><td>February 2026</td><td>Frederick Pearson</td><td>Initial release — Core broker service architecture</td></tr>
+      <tr><td>2.0</td><td>April 2026</td><td>Frederick Pearson</td><td>Major update: Power Pages Portal architecture; three-solution design; updated data model with actual statuscode values; Canadian-region Nintex API; deployment tooling</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<div class="container toc-page page-break-after">
+  <h1 id="toc" style="border-bottom:3px solid var(--gc-red);">Table of Contents</h1>
+
+  <div class="toc-part">Part 1 — Executive Summary &amp; Architecture Overview</div>
+  <div class="toc-section"><a href="#sec1">1. Executive Summary</a></div>
+  <div class="toc-subsection"><a href="#sec1-1">1.1 Purpose</a></div>
+  <div class="toc-subsection"><a href="#sec1-2">1.2 Scope</a></div>
+  <div class="toc-subsection"><a href="#sec1-3">1.3 Key Architectural Principles</a></div>
+  <div class="toc-subsection"><a href="#sec1-4">1.4 High-Level Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec1-5">1.5 Technology Stack</a></div>
+  <div class="toc-subsection"><a href="#sec1-6">1.6 Three-Solution Design</a></div>
+  <div class="toc-section"><a href="#sec2">2. Architecture Overview</a></div>
+  <div class="toc-subsection"><a href="#sec2-1">2.1 Architectural Patterns</a></div>
+  <div class="toc-subsection"><a href="#sec2-2">2.2 Dataverse as Integration Platform</a></div>
+  <div class="toc-section"><a href="#sec3">3. Access Control &amp; Identity Management</a></div>
+  <div class="toc-subsection"><a href="#sec3-1">3.1 Authentication Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec3-2">3.2 Authentication Methods</a></div>
+  <div class="toc-subsection"><a href="#sec3-3">3.3 Authorization Model</a></div>
+  <div class="toc-subsection"><a href="#sec3-4">3.4 Security Roles Configuration</a></div>
+  <div class="toc-subsection"><a href="#sec3-5">3.5 Conditional Access Policies</a></div>
+
+  <div class="toc-part">Part 2 — Data &amp; Integration Architecture</div>
+  <div class="toc-section"><a href="#sec4">4. Data Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec4-1">4.1 Entity Relationship Diagram</a></div>
+  <div class="toc-subsection"><a href="#sec4-2">4.2 Data Model Details</a></div>
+  <div class="toc-subsection"><a href="#sec4-3">4.3 Row-Level Security Implementation</a></div>
+  <div class="toc-subsection"><a href="#sec4-4">4.4 Column-Level Security</a></div>
+  <div class="toc-subsection"><a href="#sec4-5">4.5 Data Encryption</a></div>
+  <div class="toc-section"><a href="#sec5">5. Integration Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec5-1">5.1 Integration Layers</a></div>
+  <div class="toc-subsection"><a href="#sec5-2">5.2 Custom Connector Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec5-3">5.3 OData Endpoint Integration</a></div>
+  <div class="toc-subsection"><a href="#sec5-4">5.4 Nintex AssureSign API Integration</a></div>
+  <div class="toc-subsection"><a href="#sec5-5">5.5 Broker Orchestration Flows</a></div>
+  <div class="toc-subsection"><a href="#sec5-6">5.6 Error Handling Strategy</a></div>
+  <div class="toc-section"><a href="#sec6">6. Power Pages Portal Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec6-1">6.1 Overview</a></div>
+  <div class="toc-subsection"><a href="#sec6-2">6.2 Enhanced Data Model</a></div>
+  <div class="toc-subsection"><a href="#sec6-3">6.3 Web Templates</a></div>
+  <div class="toc-subsection"><a href="#sec6-4">6.4 PDF Storage via Annotations</a></div>
+  <div class="toc-subsection"><a href="#sec6-5">6.5 Responsive Design</a></div>
+  <div class="toc-subsection"><a href="#sec6-6">6.6 Portal Authentication Configuration</a></div>
+  <div class="toc-subsection"><a href="#sec6-7">6.7 Portal Table Permissions</a></div>
+  <div class="toc-subsection"><a href="#sec6-8">6.8 Portal Deployment</a></div>
+
+  <div class="toc-part">Part 3 — Security &amp; Monitoring</div>
+  <div class="toc-section"><a href="#sec7">7. Security Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec7-1">7.1 Defence in Depth</a></div>
+  <div class="toc-subsection"><a href="#sec7-2">7.2 Threat Model — STRIDE Analysis</a></div>
+  <div class="toc-subsection"><a href="#sec7-3">7.3 Data Classification</a></div>
+  <div class="toc-subsection"><a href="#sec7-4">7.4 PII Management</a></div>
+  <div class="toc-subsection"><a href="#sec7-5">7.5 Portal Security Controls</a></div>
+  <div class="toc-section"><a href="#sec8">8. Monitoring, Logging &amp; Audit</a></div>
+  <div class="toc-subsection"><a href="#sec8-1">8.1 Monitoring Architecture</a></div>
+  <div class="toc-subsection"><a href="#sec8-2">8.2 Logging Strategy</a></div>
+  <div class="toc-subsection"><a href="#sec8-3">8.3 Alerting Rules</a></div>
+  <div class="toc-subsection"><a href="#sec8-4">8.4 Audit Trail Requirements</a></div>
+  <div class="toc-subsection"><a href="#sec8-5">8.5 Log Retention</a></div>
+
+  <div class="toc-part">Part 4 — Operations &amp; Compliance</div>
+  <div class="toc-section"><a href="#sec9">9. Data Retention &amp; Disposition</a></div>
+  <div class="toc-section"><a href="#sec10">10. Client Onboarding Process</a></div>
+  <div class="toc-section"><a href="#sec11">11. Environment Strategy</a></div>
+  <div class="toc-section"><a href="#sec12">12. Network Architecture</a></div>
+  <div class="toc-section"><a href="#sec13">13. Disaster Recovery &amp; Business Continuity</a></div>
+  <div class="toc-section"><a href="#sec14">14. Compliance &amp; Governance (ITSG-33)</a></div>
+
+  <div class="toc-part">Part 5 — Annexes</div>
+  <div class="toc-section"><a href="#annexA">Annex A: Environment Configuration</a></div>
+  <div class="toc-section"><a href="#annexB">Annex B: API Specifications</a></div>
+  <div class="toc-section"><a href="#annexC">Annex C: Troubleshooting Guide</a></div>
+  <div class="toc-section"><a href="#glossary">Glossary of Acronyms</a></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- LIST OF FIGURES -->
+<!-- ============================================================ -->
+<div class="container lof-page page-break-after">
+  <h1 id="lof" style="border-bottom:3px solid var(--gc-red);">List of Figures</h1>
+  <table>
+    <thead>
+      <tr><th>Figure</th><th>Title</th><th>Section</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><a href="#fig1">Figure 1</a></td><td>High-Level Architecture</td><td>1.4</td></tr>
+      <tr><td><a href="#fig2">Figure 2</a></td><td>Broker Pattern Sequence Flow</td><td>2.1</td></tr>
+      <tr><td><a href="#fig3">Figure 3</a></td><td>Portal Architecture</td><td>6.1</td></tr>
+      <tr><td><a href="#fig4">Figure 4</a></td><td>Broker Flows Architecture</td><td>5.5</td></tr>
+      <tr><td><a href="#fig5">Figure 5</a></td><td>Client Integration Architecture</td><td>2.1</td></tr>
+      <tr><td><a href="#fig6">Figure 6</a></td><td>Data Model (ERD)</td><td>4.1</td></tr>
+      <tr><td><a href="#fig7">Figure 7</a></td><td>Security Defence in Depth</td><td>7.1</td></tr>
+      <tr><td><a href="#fig8">Figure 8</a></td><td>Envelope Lifecycle State Machine</td><td>4.2</td></tr>
+      <tr><td><a href="#fig9">Figure 9</a></td><td>Environment Architecture</td><td>11.1</td></tr>
+      <tr><td><a href="#fig10">Figure 10</a></td><td>Network &amp; Data Flow</td><td>12.1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- PART 1: EXECUTIVE SUMMARY & ARCHITECTURE OVERVIEW -->
+<!-- ============================================================ -->
+<div class="container page-break">
+  <h1 id="part1">Part 1: Executive Summary &amp; Architecture Overview</h1>
+
+  <!-- Section 1 -->
+  <h2 id="sec1">1. Executive Summary</h2>
+
+  <h3 id="sec1-1">1.1 Purpose</h3>
+  <p>This document describes the solution architecture for the <strong>ESign Elections Canada Broker Service</strong>, a digital signature platform that provides Elections Canada (EC) with secure, compliant, and auditable electronic signature capabilities via Nintex AssureSign.</p>
+  <p>Version 2.0 is a major update that incorporates the <strong>Power Pages Portal</strong> as a full component of the architecture. The portal provides EC staff with a self-service web interface for creating signature templates, composing envelopes, and tracking signing status — all within a Government of Canada-compliant (GCWeb/WET) responsive interface.</p>
+
+  <h3 id="sec1-2">1.2 Scope</h3>
+  <p>The architecture encompasses the following functional domains:</p>
+  <p><strong>Broker Service Layer</strong> — Microsoft Power Platform (Dataverse + Power Automate) acting as API gateway and middleware between all clients and Nintex AssureSign. Implemented as three Dataverse solutions: Nintex Schema, E-Signature Config, and E-Signature Broker.</p>
+  <p><strong>Power Pages Portal Layer</strong> <em>(major addition in v2.0)</em> — A GCWeb-themed web portal allowing authenticated EC staff to create and manage signature templates with visual PDF field placement, compose and send envelopes, and monitor signing progress through a dashboard interface.</p>
+  <p><strong>Client Integration Layer</strong> — The E-Signature Client solution provides reference Power Automate flows for programmatic client consumption from separate Dataverse environments.</p>
+  <p><strong>External Integration</strong> — Nintex AssureSign API v3.7 integration (Canadian region) for digital signature delivery and lifecycle management.</p>
+  <p><strong>Security &amp; Compliance</strong> — Protected B controls, ITSG-33 alignment, audit logging, PII management, and Privacy Impact Assessment coverage.</p>
+  <p><strong>Operations</strong> — Monitoring, logging, backup, disaster recovery, deployment tooling, and client onboarding procedures.</p>
+
+  <h3 id="sec1-3">1.3 Key Architectural Principles</h3>
+  <table>
+    <thead>
+      <tr><th>Principle</th><th>Description</th><th>Implementation</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Support for Multiple Business Units</td><td>Logical isolation between client applications and services</td><td>Row-level security (RLS) in Dataverse; business units and security roles for API access governance</td></tr>
+      <tr><td>API-First</td><td>OData/REST endpoints as primary integration method</td><td>Dataverse Web API and Custom Connectors</td></tr>
+      <tr><td>Zero Trust</td><td>Never trust, always verify</td><td>OAuth 2.0, service principals, conditional access</td></tr>
+      <tr><td>Defence in Depth</td><td>Layered security controls</td><td>Network, identity, application, and data encryption layers</td></tr>
+      <tr><td>Audit Everything</td><td>Complete audit trail</td><td>Dataverse audit logs and Azure Monitor</td></tr>
+      <tr><td>Least Privilege</td><td>Minimal necessary permissions</td><td>Custom security roles and Entra ID RBAC</td></tr>
+      <tr><td>Self-Service</td><td>Reduced IT dependency for routine signature workflows</td><td>Power Pages portal with guided envelope creation and template management</td></tr>
+      <tr><td>Solution Modularity</td><td>Independent deployment of schema, config, and logic</td><td>Three-solution design with explicit import ordering</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec1-4">1.4 High-Level Architecture</h3>
+  <p>The platform architecture consists of four primary interaction layers:</p>
+
+  <!-- FIGURE 1: High-Level Architecture -->
+  <figure id="fig1" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 520" width="780" height="520">
+      <!-- Legend -->
+      <rect x="560" y="10" width="210" height="110" rx="6" fill="#fff" stroke="#E1E4E7" stroke-width="1"/>
+      <text x="575" y="30" font-size="11" font-weight="700" fill="#26374A">Legend</text>
+      <rect x="575" y="40" width="14" height="14" rx="2" fill="#d4e4f7"/>
+      <text x="595" y="52" font-size="10" fill="#333">Client Layer</text>
+      <rect x="575" y="60" width="14" height="14" rx="2" fill="#E1E4E7"/>
+      <text x="595" y="72" font-size="10" fill="#333">Authentication Layer</text>
+      <rect x="575" y="80" width="14" height="14" rx="2" fill="#26374A"/>
+      <text x="595" y="92" font-size="10" fill="#333">Broker Service Layer</text>
+      <rect x="575" y="100" width="14" height="14" rx="2" fill="#AF3C43"/>
+      <text x="595" y="112" font-size="10" fill="#333">External SaaS Layer</text>
+
+      <!-- Client Layer -->
+      <rect x="20" y="20" width="520" height="100" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="30" y="42" font-size="13" font-weight="700" fill="#26374A">CLIENT LAYER</text>
+      <rect x="40" y="55" width="140" height="50" rx="6" fill="#fff" stroke="#335075" stroke-width="1"/>
+      <text x="55" y="76" font-size="11" fill="#26374A" font-weight="600">Power Automate</text>
+      <text x="65" y="92" font-size="10" fill="#555">Client Flows</text>
+      <rect x="200" y="55" width="140" height="50" rx="6" fill="#fff" stroke="#335075" stroke-width="1"/>
+      <text x="220" y="76" font-size="11" fill="#26374A" font-weight="600">Custom Apps</text>
+      <text x="215" y="92" font-size="10" fill="#555">(.NET / Python)</text>
+      <rect x="360" y="55" width="160" height="50" rx="6" fill="#fff" stroke="#335075" stroke-width="1"/>
+      <text x="370" y="76" font-size="11" fill="#26374A" font-weight="600">Power Pages Portal</text>
+      <text x="380" y="92" font-size="10" fill="#555">(GCWeb/WET Theme)</text>
+
+      <!-- Arrows down -->
+      <line x1="110" y1="120" x2="110" y2="155" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <line x1="270" y1="120" x2="270" y2="155" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <line x1="440" y1="120" x2="440" y2="155" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+      <!-- Auth Layer -->
+      <rect x="20" y="155" width="520" height="60" rx="8" fill="#E1E4E7" stroke="#999" stroke-width="1.5"/>
+      <text x="30" y="178" font-size="13" font-weight="700" fill="#26374A">AUTHENTICATION LAYER</text>
+      <text x="30" y="198" font-size="11" fill="#555">Microsoft Entra ID — OAuth 2.0 / OpenID Connect / MFA</text>
+
+      <!-- Arrows down -->
+      <line x1="110" y1="215" x2="110" y2="250" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <line x1="270" y1="215" x2="270" y2="250" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <line x1="440" y1="215" x2="440" y2="250" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+      <!-- Broker Service Layer -->
+      <rect x="20" y="250" width="520" height="130" rx="8" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="30" y="275" font-size="13" font-weight="700" fill="#fff">BROKER SERVICE LAYER</text>
+      <text x="30" y="295" font-size="11" fill="#ccc">Dataverse (Canada Central)</text>
+      <rect x="40" y="305" width="150" height="55" rx="6" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="55" y="325" font-size="10" fill="#fff" font-weight="600">Nintex Schema</text>
+      <text x="60" y="347" font-size="9" fill="#ccc">16 custom tables</text>
+      <rect x="205" y="305" width="150" height="55" rx="6" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="215" y="325" font-size="10" fill="#fff" font-weight="600">E-Signature Config</text>
+      <text x="235" y="347" font-size="9" fill="#ccc">5 env vars</text>
+      <rect x="370" y="305" width="150" height="55" rx="6" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="380" y="325" font-size="10" fill="#fff" font-weight="600">E-Signature Broker</text>
+      <text x="400" y="347" font-size="9" fill="#ccc">10+ flows</text>
+
+      <!-- Arrow down to Nintex -->
+      <line x1="280" y1="380" x2="280" y2="420" stroke="#AF3C43" stroke-width="2" marker-end="url(#arrowRed)"/>
+      <text x="290" y="405" font-size="9" fill="#AF3C43" font-weight="600">HTTPS / REST</text>
+
+      <!-- External SaaS Layer -->
+      <rect x="20" y="420" width="520" height="70" rx="8" fill="#fdf0f0" stroke="#AF3C43" stroke-width="2"/>
+      <text x="30" y="448" font-size="13" font-weight="700" fill="#AF3C43">EXTERNAL SAAS LAYER</text>
+      <text x="30" y="468" font-size="11" fill="#555">Nintex AssureSign API v3.7 — ca1.assuresign.net (Canada Region)</text>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#335075"/>
+        </marker>
+        <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#AF3C43"/>
+        </marker>
+        <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#1B6C2A"/>
+        </marker>
+        <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+        </marker>
+        <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#D4760A"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>Figure 1: High-Level Architecture — Four-layer platform showing client, authentication, broker service, and external SaaS layers</figcaption>
+  </figure>
+
+  <p><strong>Client Layer</strong> — Internal applications and services interact with the broker through the Dataverse Web API (OData) or the Custom Connector. Authenticated EC staff interact through the Power Pages portal.</p>
+  <p><strong>Authentication Layer</strong> — Entra ID provides OAuth 2.0 tokens for programmatic clients (service principals) and OpenID Connect SSO for portal users. Conditional Access policies enforce MFA and device compliance.</p>
+  <p><strong>Broker Service Layer</strong> — Dataverse serves as the central orchestration hub, managing envelope lifecycle, row-level security, Power Automate workflow execution, and all integration with Nintex. The three solutions (Schema, Config, Broker) are deployed in dependency order.</p>
+  <p><strong>External SaaS</strong> — Nintex AssureSign (Canadian region at <code>ca1.assuresign.net</code>) is the underlying digital signature platform, accessed exclusively via the broker's Power Automate orchestration flows.</p>
+
+  <h3 id="sec1-5">1.5 Technology Stack</h3>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Platform</td><td>Microsoft Power Platform</td><td>Latest</td><td>Broker service host</td></tr>
+      <tr><td>Database</td><td>Dataverse</td><td>9.2+</td><td>Data store and API</td></tr>
+      <tr><td>Orchestration</td><td>Power Automate</td><td>N/A</td><td>Workflow automation (10 cloud flows)</td></tr>
+      <tr><td>Portal</td><td>Power Pages</td><td>Latest</td><td>Self-service web portal (GCWeb/WET theme)</td></tr>
+      <tr><td>Identity</td><td>Microsoft Entra ID</td><td>Latest</td><td>Authentication and authorization</td></tr>
+      <tr><td>Secrets</td><td>Azure Key Vault</td><td>Latest</td><td>Credential management</td></tr>
+      <tr><td>Monitoring</td><td>Azure Monitor</td><td>Latest</td><td>Logging and alerting</td></tr>
+      <tr><td>API Gateway</td><td>Dataverse Web API</td><td>9.2+</td><td>OData endpoints</td></tr>
+      <tr><td>External SaaS</td><td>Nintex AssureSign</td><td>3.7</td><td>Digital signature platform (Canadian region)</td></tr>
+      <tr><td>PDF Rendering</td><td>PDF.js</td><td>3.11</td><td>Client-side PDF rendering in portal</td></tr>
+      <tr><td>Field Editing</td><td>interact.js</td><td>1.10</td><td>Drag-and-drop field placement in portal</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec1-6">1.6 Three-Solution Design</h3>
+  <p>The broker is split into three Dataverse solutions, all using publisher prefix <code>cs</code> (CustomizationOptionValuePrefix: <code>71764</code>):</p>
+  <table>
+    <thead>
+      <tr><th>Solution</th><th>Unique Name</th><th>Version</th><th>Purpose</th><th>Contents</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Nintex Schema</strong></td><td><code>nintex</code></td><td>Latest</td><td>Entity definitions</td><td>16 custom tables, columns, relationships, statuscode values</td></tr>
+      <tr><td><strong>E-Signature Config</strong></td><td><code>ESignatureConfig</code></td><td>Latest</td><td>Environment variables</td><td>5 environment variables for Nintex API</td></tr>
+      <tr><td><strong>E-Signature Broker</strong></td><td><code>ESignatureBroker</code></td><td>1.0.0.73</td><td>Automation</td><td>10+ Power Automate cloud flows</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Import order matters:</strong> Schema &rarr; Config &rarr; Broker (each depends on the previous).</p>
+  <p>The <strong>E-Signature Client</strong> solution (<code>ESignatureClient</code>) is distributed separately to client environments. It contains reference Power Automate flows that connect to the broker environment's Dataverse tables via a cross-environment connection reference. The client solution contains no tables.</p>
+
+  <hr>
+
+  <!-- Section 2 -->
+  <h2 id="sec2">2. Architecture Overview</h2>
+
+  <h3 id="sec2-1">2.1 Architectural Patterns</h3>
+
+  <h4>2.1.1 Broker Pattern</h4>
+  <p>The solution implements a broker architectural pattern in which:</p>
+  <ol>
+    <li>Client services and the Power Pages portal interact with the broker via the standard OData API (Dataverse Web API).</li>
+    <li>The broker manages complexity, envelope lifecycle, integration layer governance, and all Nintex API interactions.</li>
+    <li>Nintex AssureSign provides the underlying digital signature capabilities.</li>
+  </ol>
+  <p>The key purposes served by this pattern are centralized Nintex license management, consistent security controls across all client types, simplified client integration, and a unified audit and compliance trail.</p>
+
+  <h4>2.1.2 Broker Pattern Sequence Flow</h4>
+
+  <!-- FIGURE 2: Broker Pattern Sequence Flow -->
+  <figure id="fig2" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 620" width="780" height="620">
+      <!-- Swim lane headers -->
+      <rect x="30" y="10" width="200" height="40" rx="6" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="75" y="35" font-size="12" font-weight="700" fill="#26374A">Client / Portal</text>
+      <rect x="290" y="10" width="200" height="40" rx="6" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="315" y="35" font-size="12" font-weight="700" fill="#fff">Broker (Dataverse)</text>
+      <rect x="550" y="10" width="200" height="40" rx="6" fill="#fdf0f0" stroke="#AF3C43" stroke-width="1.5"/>
+      <text x="580" y="35" font-size="12" font-weight="700" fill="#AF3C43">Nintex AssureSign</text>
+
+      <!-- Vertical lifelines -->
+      <line x1="130" y1="50" x2="130" y2="600" stroke="#335075" stroke-width="1" stroke-dasharray="5,5"/>
+      <line x1="390" y1="50" x2="390" y2="600" stroke="#26374A" stroke-width="1" stroke-dasharray="5,5"/>
+      <line x1="650" y1="50" x2="650" y2="600" stroke="#AF3C43" stroke-width="1" stroke-dasharray="5,5"/>
+
+      <!-- Step 1 -->
+      <line x1="130" y1="80" x2="385" y2="80" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <rect x="165" y="65" width="195" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="172" y="78" font-size="10" fill="#335075" font-weight="600">1. Create Envelope (Draft)</text>
+
+      <!-- Step 2 -->
+      <line x1="130" y1="120" x2="385" y2="120" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <rect x="165" y="105" width="195" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="170" y="118" font-size="10" fill="#335075" font-weight="600">2. Add Signers + Documents</text>
+
+      <!-- Step 3 -->
+      <line x1="130" y1="160" x2="385" y2="160" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <rect x="165" y="145" width="195" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="170" y="158" font-size="10" fill="#335075" font-weight="600">3. Set status = Preparing</text>
+
+      <!-- Step 4 -->
+      <line x1="395" y1="195" x2="645" y2="195" stroke="#AF3C43" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+      <rect x="440" y="180" width="170" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="447" y="193" font-size="10" fill="#AF3C43" font-weight="600">4. Prepare envelope</text>
+
+      <!-- Step 5 -->
+      <line x1="645" y1="225" x2="395" y2="225" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <rect x="440" y="210" width="170" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="447" y="223" font-size="10" fill="#1B6C2A" font-weight="600">5. Return prepared ID</text>
+
+      <!-- Status note -->
+      <rect x="395" y="243" width="185" height="18" rx="3" fill="#e8f5e9" stroke="#1B6C2A" stroke-width="0.5"/>
+      <text x="405" y="256" font-size="9" fill="#1B6C2A" font-weight="600">status = Ready to Send</text>
+
+      <!-- Step 6 -->
+      <line x1="395" y1="280" x2="645" y2="280" stroke="#AF3C43" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+      <rect x="440" y="265" width="170" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="447" y="278" font-size="10" fill="#AF3C43" font-weight="600">6. Submit to Nintex</text>
+
+      <!-- Step 7 -->
+      <line x1="645" y1="310" x2="395" y2="310" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <rect x="440" y="295" width="170" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="447" y="308" font-size="10" fill="#1B6C2A" font-weight="600">7. Nintex envelope ID</text>
+
+      <!-- Status note -->
+      <rect x="395" y="328" width="150" height="18" rx="3" fill="#e8f5e9" stroke="#1B6C2A" stroke-width="0.5"/>
+      <text x="405" y="341" font-size="9" fill="#1B6C2A" font-weight="600">status = In Process</text>
+
+      <!-- Step 8 -->
+      <line x1="395" y1="365" x2="645" y2="365" stroke="#AF3C43" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+      <rect x="440" y="350" width="170" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="447" y="363" font-size="10" fill="#AF3C43" font-weight="600">8. Get signing links</text>
+
+      <!-- Step 9 -->
+      <line x1="645" y1="395" x2="395" y2="395" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <rect x="440" y="380" width="170" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="447" y="393" font-size="10" fill="#1B6C2A" font-weight="600">9. Per-signer URLs</text>
+
+      <!-- Step 10 -->
+      <line x1="395" y1="435" x2="645" y2="435" stroke="#AF3C43" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+      <rect x="425" y="420" width="195" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="432" y="433" font-size="10" fill="#AF3C43" font-weight="600">10. Status sync (30 min poll)</text>
+
+      <!-- Step 11 -->
+      <line x1="645" y1="465" x2="395" y2="465" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <rect x="430" y="450" width="190" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="437" y="463" font-size="10" fill="#1B6C2A" font-weight="600">11. Updated signer status</text>
+
+      <!-- Status note -->
+      <rect x="395" y="483" width="150" height="18" rx="3" fill="#e8f5e9" stroke="#1B6C2A" stroke-width="0.5"/>
+      <text x="405" y="496" font-size="9" fill="#1B6C2A" font-weight="600">status = Completed</text>
+
+      <!-- Step 12 -->
+      <line x1="385" y1="520" x2="135" y2="520" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <rect x="175" y="505" width="185" height="18" rx="3" fill="#fff" stroke="none"/>
+      <text x="182" y="518" font-size="10" fill="#335075" font-weight="600">12. Query status / results</text>
+    </svg>
+    <figcaption>Figure 2: Broker Pattern Sequence Flow — Envelope lifecycle from creation through completion across three swim lanes</figcaption>
+  </figure>
+
+  <h4>2.1.3 Client Service to Broker Service Architecture</h4>
+  <p>Each client application or service is assigned a unique Service Principal in Entra ID. This principal is mapped to a Dataverse Application User, which is assigned the <strong>E-Signature Broker User</strong> security role. Dataverse enforces Row-Level Security via the <code>ownerid</code> field, ensuring that each client can only read and write their own records.</p>
+  <p>The portal introduces a parallel authentication model: authenticated EC staff users (human identities) interact with the broker through Power Pages, with their Dataverse Contact record serving as the owner of envelopes created through that channel.</p>
+
+  <!-- FIGURE 5: Client Integration Architecture -->
+  <figure id="fig5" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 400" width="780" height="400">
+      <!-- Client Apps -->
+      <rect x="20" y="20" width="150" height="60" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="42" y="46" font-size="11" font-weight="600" fill="#26374A">Client App A</text>
+      <text x="45" y="63" font-size="9" fill="#555">Service Principal A</text>
+
+      <rect x="20" y="100" width="150" height="60" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="42" y="126" font-size="11" font-weight="600" fill="#26374A">Client App B</text>
+      <text x="45" y="143" font-size="9" fill="#555">Service Principal B</text>
+
+      <rect x="20" y="180" width="150" height="60" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="32" y="206" font-size="11" font-weight="600" fill="#26374A">Portal User (EC)</text>
+      <text x="42" y="223" font-size="9" fill="#555">Entra ID SSO</text>
+
+      <rect x="20" y="260" width="150" height="60" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="42" y="286" font-size="11" font-weight="600" fill="#26374A">Client App N</text>
+      <text x="45" y="303" font-size="9" fill="#555">Service Principal N</text>
+
+      <!-- Entra ID -->
+      <rect x="230" y="100" width="140" height="140" rx="8" fill="#E1E4E7" stroke="#999" stroke-width="1.5"/>
+      <text x="258" y="130" font-size="12" font-weight="700" fill="#26374A">Entra ID</text>
+      <text x="252" y="155" font-size="10" fill="#555">OAuth 2.0</text>
+      <text x="260" y="172" font-size="10" fill="#555">MFA / CA</text>
+      <text x="248" y="189" font-size="10" fill="#555">Token Issuer</text>
+      <text x="245" y="206" font-size="9" fill="#555">Conditional Access</text>
+
+      <!-- Arrows to Entra -->
+      <line x1="170" y1="50" x2="228" y2="140" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="170" y1="130" x2="228" y2="160" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="170" y1="210" x2="228" y2="185" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="170" y1="290" x2="228" y2="210" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Broker / Dataverse -->
+      <rect x="430" y="60" width="180" height="220" rx="8" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="455" y="90" font-size="13" font-weight="700" fill="#fff">Broker (Dataverse)</text>
+      <text x="462" y="115" font-size="10" fill="#ccc">OData Web API</text>
+
+      <!-- RLS partitions inside -->
+      <rect x="450" y="130" width="140" height="30" rx="4" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="464" y="150" font-size="9" fill="#fff">Client A Data (RLS)</text>
+      <rect x="450" y="168" width="140" height="30" rx="4" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="464" y="188" font-size="9" fill="#fff">Client B Data (RLS)</text>
+      <rect x="450" y="206" width="140" height="30" rx="4" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="461" y="226" font-size="9" fill="#fff">Portal User Data (RLS)</text>
+      <rect x="450" y="244" width="140" height="22" rx="4" fill="#335075" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="487" y="260" font-size="9" fill="#fff">Client N ...</text>
+
+      <!-- Arrows Entra to Broker -->
+      <line x1="370" y1="170" x2="428" y2="170" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <text x="378" y="162" font-size="9" fill="#335075" font-weight="600">Token</text>
+
+      <!-- Nintex -->
+      <rect x="670" y="120" width="100" height="100" rx="8" fill="#fdf0f0" stroke="#AF3C43" stroke-width="1.5"/>
+      <text x="690" y="155" font-size="11" font-weight="700" fill="#AF3C43">Nintex</text>
+      <text x="680" y="175" font-size="9" fill="#555">AssureSign</text>
+      <text x="693" y="195" font-size="9" fill="#555">API v3.7</text>
+
+      <!-- Arrow Broker to Nintex -->
+      <line x1="610" y1="170" x2="668" y2="170" stroke="#AF3C43" stroke-width="2" marker-end="url(#arrowRed)"/>
+    </svg>
+    <figcaption>Figure 5: Client Integration Architecture — Multiple clients authenticated via service principals with RLS data isolation</figcaption>
+  </figure>
+
+  <h4>Isolation Mechanisms Summary</h4>
+  <table>
+    <thead>
+      <tr><th>Mechanism</th><th>Implementation</th><th>Security Level</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Identity (programmatic clients)</td><td>Unique service principal per client</td><td>Entra ID tenant-level</td></tr>
+      <tr><td>Identity (portal users)</td><td>Entra ID SSO mapped to Dataverse Contact</td><td>Entra ID tenant-level</td></tr>
+      <tr><td>Data</td><td>Owner-based RLS in Dataverse</td><td>Row-level</td></tr>
+      <tr><td>Network</td><td>Shared PaaS with optional IP restrictions</td><td>Tenant-level</td></tr>
+      <tr><td>Logging</td><td>Separate Log Analytics workspaces per client</td><td>Subscription-level</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec2-2">2.2 Dataverse as Integration Platform</h3>
+  <p>Dataverse is the core integration hub for the broker service:</p>
+  <p><strong>OData Protocol Support</strong> — Industry-standard REST API supporting <code>$filter</code>, <code>$select</code>, <code>$expand</code>, standardized OAuth 2.0 authentication, native pagination, and batch operations.</p>
+  <p><strong>Web API Capabilities</strong> — Full RESTful CRUD operations, webhooks for real-time integration, and SDK support across C#, JavaScript, and Python.</p>
+  <p><strong>Built-in Security</strong> — Row-level security, column-level security, native audit logging, and AES-256 data encryption at rest and in transit via TLS 1.2+.</p>
+  <p><strong>Power Platform Integration</strong> — Native Power Automate triggers, Power Apps data source support, custom connector compatibility, and Power Pages portal data access via the Portal Web API (<code>/_api/</code>).</p>
+
+  <hr>
+
+  <!-- Section 3 -->
+  <h2 id="sec3">3. Access Control &amp; Identity Management</h2>
+
+  <h3 id="sec3-1">3.1 Authentication Architecture</h3>
+  <p>The broker employs a multi-step token-based authentication model:</p>
+  <ol>
+    <li>The client application or portal requests a token from the Entra ID token endpoint.</li>
+    <li>Entra ID authenticates the requestor (service principal credentials for programmatic clients; user credentials plus MFA for portal users) and generates an OAuth 2.0 access token.</li>
+    <li>The client presents the token with every API call to Dataverse.</li>
+    <li>Dataverse validates the token, maps the caller to the corresponding Application User or Contact record, checks security role permissions, and applies Row-Level Security filters automatically.</li>
+  </ol>
+
+  <h3 id="sec3-2">3.2 Authentication Methods</h3>
+
+  <h4>3.2.1 Service Principal (Recommended for Programmatic Clients)</h4>
+  <p>This method is used for Power Automate flows, custom applications, and scheduled jobs. Each onboarded client receives a dedicated App Registration in Entra ID, a corresponding Service Principal, a client secret stored in Azure Key Vault, and Dataverse API permissions granted with admin consent. Tokens are acquired using the OAuth 2.0 client credentials grant and must target the broker Dataverse environment as the resource scope.</p>
+
+  <h4>3.2.2 Managed Identity (For Azure-Hosted Applications)</h4>
+  <p>Azure Functions, Logic Apps, and Virtual Machines can authenticate using system-assigned managed identities, eliminating the need to manage client secrets in code. The managed identity principal is granted the Dynamics 365 User role and acquires tokens via the Azure Instance Metadata Service endpoint.</p>
+
+  <h4>3.2.3 Power Pages Portal SSO (For Human Users)</h4>
+  <p>EC staff accessing the portal authenticate via OpenID Connect against the Elections Canada Entra ID tenant. If a valid browser session already exists (the user is already signed in to their EC account), authentication is silent with no re-prompt. Upon first authentication, a Dataverse Contact record is automatically created or looked up and linked to the portal session. All envelopes created via the portal are owned by the authenticated Contact, and RLS is enforced identically to programmatic clients.</p>
+
+  <h3 id="sec3-3">3.3 Authorization Model</h3>
+  <p>Entra ID permissions are mapped to Dataverse Application Users, who are assigned security roles. Security roles grant specific privileges on each Dataverse table. Owner-based Row-Level Security then filters data access so each caller sees only records they own.</p>
+
+  <h3 id="sec3-4">3.4 Security Roles Configuration</h3>
+  <p><strong>E-Signature Broker User</strong> — Grants CRUD on broker tables only. Assigned to app users or Entra users in the broker environment.</p>
+  <table>
+    <thead>
+      <tr><th>Privilege</th><th>cs_envelope</th><th>cs_signer</th><th>cs_document</th><th>cs_field</th><th>cs_template</th><th>cs_apirequest</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Create</td><td>Organization</td><td>Organization</td><td>Organization</td><td>Organization</td><td>None</td><td>Organization</td></tr>
+      <tr><td>Read</td><td>Organization</td><td>Organization</td><td>Organization</td><td>Organization</td><td>Organization</td><td>Organization</td></tr>
+      <tr><td>Write</td><td>Organization</td><td>Organization</td><td>Organization</td><td>Organization</td><td>None</td><td>None</td></tr>
+      <tr><td>Delete</td><td>Organization</td><td>Organization</td><td>Organization</td><td>Organization</td><td>None</td><td>None</td></tr>
+    </tbody>
+  </table>
+  <p><em>Organization-level privileges are required due to Dataverse API behavior; RLS via <code>ownerid</code> restricts actual data visibility to the caller's own records.</em></p>
+  <p><strong>Broker Administrator Role</strong> — Grants full access across all tables for platform administration and support purposes.</p>
+  <p><strong>Portal Template User Role</strong> — Assigned to Power Pages Contact records. Grants the ability to create and manage envelopes, documents, signers, and fields owned by the Contact, and read-only access to public templates from the template library.</p>
+
+  <h3 id="sec3-5">3.5 Conditional Access Policies</h3>
+  <table>
+    <thead>
+      <tr><th>Policy Name</th><th>Conditions</th><th>Controls</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Require MFA for Admins</td><td>User role = Admin</td><td>Require MFA</td></tr>
+      <tr><td>Block Legacy Auth</td><td>Client apps = Legacy</td><td>Block access</td></tr>
+      <tr><td>Require Compliant Device</td><td>Device state = Not compliant</td><td>Block access</td></tr>
+      <tr><td>IP Restriction (Optional)</td><td>IP address not in GC range</td><td>Block access</td></tr>
+      <tr><td>Session Controls</td><td>All users</td><td>Sign-in frequency = 8 hours</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- PART 2: DATA & INTEGRATION ARCHITECTURE -->
+<!-- ============================================================ -->
+<div class="container page-break">
+  <h1 id="part2">Part 2: Data &amp; Integration Architecture</h1>
+
+  <!-- Section 4 -->
+  <h2 id="sec4">4. Data Architecture</h2>
+
+  <h3 id="sec4-1">4.1 Entity Relationship Diagram</h3>
+  <p>The data model is built around the <code>cs_envelope</code> entity as the hub record, with related entities for signers, documents, templates, access links, envelope histories, and API audit logs.</p>
+
+  <!-- FIGURE 6: Data Model (ERD) -->
+  <figure id="fig6" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 520" width="780" height="520">
+      <!-- Legend -->
+      <rect x="570" y="10" width="200" height="80" rx="6" fill="#fff" stroke="#E1E4E7" stroke-width="1"/>
+      <text x="585" y="28" font-size="10" font-weight="700" fill="#26374A">Legend</text>
+      <rect x="585" y="36" width="12" height="12" rx="2" fill="#335075"/>
+      <text x="603" y="47" font-size="9" fill="#333">Core Entities</text>
+      <rect x="585" y="53" width="12" height="12" rx="2" fill="#1B6C2A"/>
+      <text x="603" y="64" font-size="9" fill="#333">Reference Entities</text>
+      <rect x="585" y="70" width="12" height="12" rx="2" fill="#D4760A"/>
+      <text x="603" y="81" font-size="9" fill="#333">Audit Entities</text>
+
+      <!-- cs_envelope (central hub) -->
+      <rect x="270" y="170" width="190" height="185" rx="8" fill="#26374A" stroke="#1a2a3a" stroke-width="2"/>
+      <text x="305" y="195" font-size="13" font-weight="700" fill="#fff">cs_envelope</text>
+      <text x="285" y="214" font-size="9" fill="#ccc">cs_envelopeid (PK)</text>
+      <text x="285" y="228" font-size="9" fill="#ccc">cs_name</text>
+      <text x="285" y="242" font-size="9" fill="#ccc">cs_subject</text>
+      <text x="285" y="256" font-size="9" fill="#ccc">cs_message</text>
+      <text x="285" y="270" font-size="9" fill="#ccc">cs_templateid</text>
+      <text x="285" y="284" font-size="9" fill="#ccc">cs_preparedenvelopeid</text>
+      <text x="285" y="298" font-size="9" fill="#ccc">cs_iscancelled</text>
+      <text x="285" y="312" font-size="9" fill="#ccc">cs_sentdate</text>
+      <text x="285" y="326" font-size="9" fill="#ccc">cs_completeddate</text>
+      <text x="285" y="340" font-size="9" fill="#ccc">statuscode</text>
+
+      <!-- cs_signer -->
+      <rect x="20" y="120" width="180" height="155" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="65" y="145" font-size="12" font-weight="700" fill="#fff">cs_signer</text>
+      <text x="35" y="163" font-size="9" fill="#ccc">cs_signerid (PK)</text>
+      <text x="35" y="177" font-size="9" fill="#ccc">cs_fullname</text>
+      <text x="35" y="191" font-size="9" fill="#ccc">cs_email</text>
+      <text x="35" y="205" font-size="9" fill="#ccc">cs_signerorder</text>
+      <text x="35" y="219" font-size="9" fill="#ccc">cs_signerstatus</text>
+      <text x="35" y="233" font-size="9" fill="#ccc">cs_signinglink</text>
+      <text x="35" y="247" font-size="9" fill="#ccc">cs_signeddate</text>
+      <text x="35" y="261" font-size="9" fill="#ccc">cs_envelopelookup</text>
+
+      <!-- cs_document -->
+      <rect x="530" y="170" width="180" height="135" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="565" y="195" font-size="12" font-weight="700" fill="#fff">cs_document</text>
+      <text x="545" y="213" font-size="9" fill="#ccc">cs_documentid (PK)</text>
+      <text x="545" y="227" font-size="9" fill="#ccc">cs_filename</text>
+      <text x="545" y="241" font-size="9" fill="#ccc">cs_filecontent</text>
+      <text x="545" y="255" font-size="9" fill="#ccc">cs_signedcontent</text>
+      <text x="545" y="269" font-size="9" fill="#ccc">cs_documentorder</text>
+      <text x="545" y="283" font-size="9" fill="#ccc">cs_requestsignedcopy</text>
+      <text x="545" y="297" font-size="9" fill="#ccc">cs_envelopelookup</text>
+
+      <!-- cs_template -->
+      <rect x="280" y="20" width="170" height="115" rx="8" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="310" y="45" font-size="12" font-weight="700" fill="#fff">cs_template</text>
+      <text x="295" y="63" font-size="9" fill="#ddd">cs_templateid (PK)</text>
+      <text x="295" y="77" font-size="9" fill="#ddd">cs_name</text>
+      <text x="295" y="91" font-size="9" fill="#ddd">cs_description</text>
+      <text x="295" y="105" font-size="9" fill="#ddd">cs_templatejson</text>
+      <text x="295" y="119" font-size="9" fill="#ddd">cs_isactive</text>
+
+      <!-- cs_field -->
+      <rect x="80" y="20" width="160" height="75" rx="8" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="125" y="45" font-size="12" font-weight="700" fill="#fff">cs_field</text>
+      <text x="95" y="63" font-size="9" fill="#ddd">cs_fieldid (PK)</text>
+      <text x="95" y="77" font-size="9" fill="#ddd">cs_envelopelookup</text>
+      <text x="95" y="91" font-size="9" fill="#ddd">Field definitions</text>
+
+      <!-- cs_accesslink -->
+      <rect x="530" y="340" width="180" height="105" rx="8" fill="#D4760A" stroke="#b06308" stroke-width="1.5"/>
+      <text x="560" y="365" font-size="12" font-weight="700" fill="#fff">cs_accesslink</text>
+      <text x="545" y="383" font-size="9" fill="#fff">cs_accesslinkid (PK)</text>
+      <text x="545" y="397" font-size="9" fill="#fff">cs_linkurl</text>
+      <text x="545" y="411" font-size="9" fill="#fff">cs_linktype</text>
+      <text x="545" y="425" font-size="9" fill="#fff">cs_expiresat</text>
+      <text x="545" y="439" font-size="9" fill="#fff">cs_envelopelookup</text>
+
+      <!-- cs_envelopehistory -->
+      <rect x="20" y="310" width="180" height="120" rx="8" fill="#D4760A" stroke="#b06308" stroke-width="1.5"/>
+      <text x="32" y="335" font-size="11" font-weight="700" fill="#fff">cs_envelopehistory</text>
+      <text x="35" y="353" font-size="9" fill="#fff">cs_envelopehistoryid (PK)</text>
+      <text x="35" y="367" font-size="9" fill="#fff">cs_eventtype</text>
+      <text x="35" y="381" font-size="9" fill="#fff">cs_eventdate</text>
+      <text x="35" y="395" font-size="9" fill="#fff">cs_description</text>
+      <text x="35" y="409" font-size="9" fill="#fff">cs_username</text>
+      <text x="35" y="423" font-size="9" fill="#fff">cs_envelopelookup</text>
+
+      <!-- cs_apirequest -->
+      <rect x="270" y="400" width="180" height="100" rx="8" fill="#D4760A" stroke="#b06308" stroke-width="1.5"/>
+      <text x="305" y="425" font-size="12" font-weight="700" fill="#fff">cs_apirequest</text>
+      <text x="285" y="443" font-size="9" fill="#fff">cs_apirequestid (PK)</text>
+      <text x="285" y="457" font-size="9" fill="#fff">cs_requestbody</text>
+      <text x="285" y="471" font-size="9" fill="#fff">cs_responsebody</text>
+      <text x="285" y="485" font-size="9" fill="#fff">cs_statuscode / timestamp</text>
+
+      <!-- Relationship lines -->
+      <!-- envelope -> signer (1:N) -->
+      <line x1="270" y1="220" x2="200" y2="200" stroke="#335075" stroke-width="2"/>
+      <text x="210" y="200" font-size="9" fill="#335075" font-weight="600">1:N</text>
+
+      <!-- envelope -> document (1:N) -->
+      <line x1="460" y1="250" x2="530" y2="240" stroke="#335075" stroke-width="2"/>
+      <text x="475" y="237" font-size="9" fill="#335075" font-weight="600">1:N</text>
+
+      <!-- envelope -> template (ref) -->
+      <line x1="365" y1="170" x2="365" y2="135" stroke="#1B6C2A" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="372" y="157" font-size="9" fill="#1B6C2A">ref</text>
+
+      <!-- envelope -> field (1:N) -->
+      <line x1="270" y1="190" x2="220" y2="75" stroke="#1B6C2A" stroke-width="1.5"/>
+      <text x="228" y="130" font-size="9" fill="#1B6C2A" font-weight="600">1:N</text>
+
+      <!-- envelope -> accesslink (1:N) -->
+      <line x1="460" y1="340" x2="530" y2="370" stroke="#D4760A" stroke-width="2"/>
+      <text x="475" y="350" font-size="9" fill="#D4760A" font-weight="600">1:N</text>
+
+      <!-- envelope -> history (1:N) -->
+      <line x1="270" y1="340" x2="200" y2="350" stroke="#D4760A" stroke-width="2"/>
+      <text x="215" y="342" font-size="9" fill="#D4760A" font-weight="600">1:N</text>
+
+      <!-- envelope -> apirequest (1:N) -->
+      <line x1="360" y1="355" x2="360" y2="398" stroke="#D4760A" stroke-width="2"/>
+      <text x="367" y="382" font-size="9" fill="#D4760A" font-weight="600">1:N</text>
+    </svg>
+    <figcaption>Figure 6: Data Model (ERD) — cs_envelope as central hub with related entities color-coded by category</figcaption>
+  </figure>
+
+  <p><strong>PDF Document Storage:</strong> Documents uploaded via the portal are stored as Dataverse <strong>annotations</strong> (Notes table) attached to <code>cs_document</code> records, rather than in text/memo fields. This approach supports files up to 128 MB (vs the 1 MB limit of Dataverse text columns) and leverages Dataverse's native file handling infrastructure.</p>
+
+  <h3 id="sec4-2">4.2 Data Model Details</h3>
+
+  <h4>4.2.1 cs_envelope (Envelopes) — Hub Entity</h4>
+  <p>Central entity representing a single e-signature request, from draft through completion. All other entities relate back to this.</p>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>cs_envelopeid</td><td>GUID PK</td><td>Primary key</td></tr>
+      <tr><td>cs_name</td><td>String</td><td>Envelope display name</td></tr>
+      <tr><td>cs_subject</td><td>String</td><td>Email subject for signer notices</td></tr>
+      <tr><td>cs_message</td><td>Memo</td><td>Message body for signer notices</td></tr>
+      <tr><td>cs_templateid</td><td>String</td><td>Nintex template reference</td></tr>
+      <tr><td>cs_preparedenvelopeid</td><td>String</td><td>Nintex prepared envelope ID</td></tr>
+      <tr><td>cs_processingmode</td><td>Choice</td><td>Sequential or parallel signing</td></tr>
+      <tr><td>cs_daystoexpire</td><td>Integer</td><td>Days until envelope expires</td></tr>
+      <tr><td>cs_reminderfrequency</td><td>Integer</td><td>Days between signer reminders</td></tr>
+      <tr><td>cs_responsebody</td><td>Memo</td><td>Full API response (audit)</td></tr>
+      <tr><td>cs_requestbody</td><td>Memo</td><td>Full API request payload (audit)</td></tr>
+      <tr><td>cs_requesthistory</td><td>Boolean</td><td>Trigger to fetch history from Nintex</td></tr>
+      <tr><td>cs_iscancelled</td><td>Boolean</td><td>Trigger to cancel via Nintex</td></tr>
+      <tr><td>cs_sentdate</td><td>DateTime</td><td>When sent to Nintex</td></tr>
+      <tr><td>cs_completeddate</td><td>DateTime</td><td>When all signatures obtained</td></tr>
+      <tr><td>cs_cancelleddate</td><td>DateTime</td><td>When cancelled</td></tr>
+      <tr><td>cs_expirationdate</td><td>DateTime</td><td>When envelope expires</td></tr>
+      <tr><td>cs_callbackurl</td><td>String</td><td>Webhook callback URL</td></tr>
+      <tr><td>cs_redirecturl</td><td>String</td><td>Post-signing redirect URL</td></tr>
+      <tr><td>statuscode</td><td>Integer</td><td>Workflow state (see below)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Envelope statuscode values (statecode=0 Active):</strong></p>
+  <table>
+    <thead>
+      <tr><th>Value</th><th>Label (EN)</th><th>Label (FR)</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Draft</td><td>Brouillon</td><td>Being assembled by client or portal user</td></tr>
+      <tr><td>717640001</td><td>Preparing</td><td>En pr&eacute;paration</td><td>Preparing via Nintex API</td></tr>
+      <tr><td>717640002</td><td>Ready to Send</td><td>Pr&ecirc;t &agrave; envoyer</td><td>Prepared, awaiting submission</td></tr>
+      <tr><td>717640003</td><td>In Process</td><td>En cours</td><td>Sent to signers via Nintex</td></tr>
+      <tr><td>717640004</td><td>Completed</td><td>Termin&eacute;</td><td>All signatures obtained (terminal)</td></tr>
+      <tr><td>717640005</td><td>Error</td><td>Erreur</td><td>Technical error (retriable)</td></tr>
+      <tr><td>717640006</td><td>Cancelled</td><td>Annul&eacute;</td><td>Cancelled by requestor (terminal)</td></tr>
+      <tr><td>717640007</td><td>Cancel Error</td><td>Erreur d'annulation</td><td>Error during cancellation attempt</td></tr>
+      <tr><td>2</td><td colspan="3">Inactive (statecode=1)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- FIGURE 8: Envelope Lifecycle State Machine -->
+  <figure id="fig8" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 340" width="780" height="340">
+      <!-- States -->
+      <rect x="20" y="140" width="100" height="45" rx="22" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="45" y="168" font-size="12" font-weight="700" fill="#fff">Draft</text>
+
+      <rect x="170" y="140" width="110" height="45" rx="22" fill="#D4A017" stroke="#b08813" stroke-width="1.5"/>
+      <text x="190" y="168" font-size="12" font-weight="700" fill="#fff">Preparing</text>
+
+      <rect x="330" y="140" width="130" height="45" rx="22" fill="#D4A017" stroke="#b08813" stroke-width="1.5"/>
+      <text x="342" y="168" font-size="11" font-weight="700" fill="#fff">Ready to Send</text>
+
+      <rect x="510" y="140" width="110" height="45" rx="22" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="525" y="168" font-size="12" font-weight="700" fill="#fff">In Process</text>
+
+      <rect x="670" y="140" width="100" height="45" rx="22" fill="#145520" stroke="#0d3d15" stroke-width="1.5"/>
+      <text x="682" y="168" font-size="11" font-weight="700" fill="#fff">Completed</text>
+
+      <rect x="510" y="30" width="110" height="45" rx="22" fill="#AF3C43" stroke="#922B31" stroke-width="1.5"/>
+      <text x="530" y="58" font-size="12" font-weight="700" fill="#fff">Cancelled</text>
+
+      <rect x="510" y="260" width="110" height="45" rx="22" fill="#AF3C43" stroke="#922B31" stroke-width="1.5"/>
+      <text x="542" y="288" font-size="12" font-weight="700" fill="#fff">Error</text>
+
+      <rect x="670" y="260" width="105" height="45" rx="22" fill="#922B31" stroke="#7a2329" stroke-width="1.5"/>
+      <text x="677" y="288" font-size="10" font-weight="700" fill="#fff">Cancel Error</text>
+
+      <!-- Arrows -->
+      <line x1="120" y1="162" x2="168" y2="162" stroke="#333" stroke-width="2" marker-end="url(#arrowGray)"/>
+      <line x1="280" y1="162" x2="328" y2="162" stroke="#333" stroke-width="2" marker-end="url(#arrowGray)"/>
+      <line x1="460" y1="162" x2="508" y2="162" stroke="#333" stroke-width="2" marker-end="url(#arrowGray)"/>
+      <line x1="620" y1="162" x2="668" y2="162" stroke="#333" stroke-width="2" marker-end="url(#arrowGray)"/>
+
+      <!-- In Process -> Cancelled -->
+      <line x1="565" y1="140" x2="565" y2="77" stroke="#AF3C43" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+      <!-- In Process -> Error -->
+      <line x1="565" y1="185" x2="565" y2="258" stroke="#AF3C43" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+      <!-- In Process -> Cancel Error -->
+      <line x1="620" y1="175" x2="670" y2="268" stroke="#922B31" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+      <!-- Draft -> Error -->
+      <line x1="70" y1="185" x2="510" y2="275" stroke="#AF3C43" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrowRed)"/>
+      <text x="250" y="245" font-size="9" fill="#AF3C43" font-style="italic">validation failure</text>
+
+      <!-- Status code labels -->
+      <text x="45" y="200" font-size="8" fill="#555" text-anchor="middle" transform="translate(25,0)">1</text>
+      <text x="220" y="200" font-size="8" fill="#555" text-anchor="middle" transform="translate(5,0)">717640001</text>
+      <text x="395" y="200" font-size="8" fill="#555" text-anchor="middle">717640002</text>
+      <text x="565" y="200" font-size="8" fill="#555" text-anchor="middle">717640003</text>
+      <text x="720" y="200" font-size="8" fill="#555" text-anchor="middle">717640004</text>
+      <text x="565" y="22" font-size="8" fill="#555" text-anchor="middle">717640006</text>
+      <text x="565" y="318" font-size="8" fill="#555" text-anchor="middle">717640005</text>
+      <text x="722" y="318" font-size="8" fill="#555" text-anchor="middle">717640007</text>
+    </svg>
+    <figcaption>Figure 8: Envelope Lifecycle State Machine — Statuscode transitions with color-coded terminal and error states</figcaption>
+  </figure>
+
+  <h4>4.2.2 cs_signer (Signers)</h4>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Type</th><th>PII</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>cs_signerid</td><td>GUID PK</td><td>No</td><td>Primary key</td></tr>
+      <tr><td>cs_fullname</td><td>String</td><td>Yes</td><td>Signer display name</td></tr>
+      <tr><td>cs_email</td><td>String</td><td>Yes</td><td>Signer email address</td></tr>
+      <tr><td>cs_signerorder</td><td>Integer</td><td>No</td><td>Signing sequence position</td></tr>
+      <tr><td>cs_authenticationtype</td><td>Choice</td><td>No</td><td>Authentication method for signing</td></tr>
+      <tr><td>cs_language</td><td>String</td><td>No</td><td>Preferred language (EN/FR)</td></tr>
+      <tr><td>cs_signerstatus</td><td>Choice</td><td>No</td><td>Current signing status</td></tr>
+      <tr><td>cs_signeddate</td><td>DateTime</td><td>No</td><td>When signer completed signing</td></tr>
+      <tr><td>cs_signinglink</td><td>String</td><td>Yes</td><td>Unique signing URL (sensitive)</td></tr>
+      <tr><td>cs_sendreminder</td><td>Boolean</td><td>No</td><td>Trigger to send reminder via Nintex</td></tr>
+      <tr><td>cs_envelopelookup</td><td>Lookup</td><td>No</td><td>Parent envelope reference</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Signer statuscode values:</strong></p>
+  <table>
+    <thead><tr><th>Value</th><th>Label</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Pending</td></tr>
+      <tr><td>717640001</td><td>Signed</td></tr>
+      <tr><td>717640002</td><td>Declined</td></tr>
+      <tr><td>717640003</td><td>Delegated</td></tr>
+      <tr><td>2</td><td>Inactive</td></tr>
+    </tbody>
+  </table>
+
+  <h4>4.2.3 cs_document (Documents)</h4>
+  <table>
+    <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>cs_documentid</td><td>GUID PK</td><td>Primary key</td></tr>
+      <tr><td>cs_filename</td><td>String</td><td>Original filename</td></tr>
+      <tr><td>cs_filecontent</td><td>Memo</td><td>Base64-encoded source document</td></tr>
+      <tr><td>cs_signedcontent</td><td>Memo</td><td>Base64-encoded signed document</td></tr>
+      <tr><td>cs_documentorder</td><td>Integer</td><td>Display/signing order</td></tr>
+      <tr><td>cs_requestsignedcopy</td><td>Boolean</td><td>Trigger to download signed copy</td></tr>
+      <tr><td>cs_envelopelookup</td><td>Lookup</td><td>Parent envelope reference</td></tr>
+    </tbody>
+  </table>
+
+  <h4>4.2.4 cs_template (Templates)</h4>
+  <table>
+    <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>cs_templateid</td><td>GUID PK</td><td>Primary key</td></tr>
+      <tr><td>cs_name</td><td>String</td><td>Template display name</td></tr>
+      <tr><td>cs_description</td><td>Memo</td><td>Template description</td></tr>
+      <tr><td>cs_isactive</td><td>Boolean</td><td>Whether template is active</td></tr>
+      <tr><td>cs_templatejson</td><td>Memo</td><td>Full template configuration as JSON</td></tr>
+      <tr><td>cs_category</td><td>String</td><td>Template category</td></tr>
+    </tbody>
+  </table>
+
+  <h4>4.2.5 cs_accesslink, cs_envelopehistory, cs_apirequest &amp; Supporting Tables</h4>
+  <table>
+    <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>cs_accesslink</td><td>Access links for completed envelopes (download URLs for signed documents)</td></tr>
+      <tr><td>cs_envelopehistory</td><td>Audit history events for envelopes, fetched from Nintex</td></tr>
+      <tr><td>cs_apirequest</td><td>Complete audit log of all Nintex API interactions (7-year retention)</td></tr>
+      <tr><td>cs_authtoken</td><td>Cached Nintex API auth tokens</td></tr>
+      <tr><td>cs_webhook</td><td>Inbound webhook event payloads</td></tr>
+      <tr><td>cs_useraccount</td><td>Nintex user account references</td></tr>
+      <tr><td>cs_field</td><td>Signature/form field definitions</td></tr>
+      <tr><td>cs_senderinput</td><td>Template sender input parameters</td></tr>
+      <tr><td>cs_emailnotification</td><td>Email notification configuration</td></tr>
+      <tr><td>cs_digitalsignature</td><td>Standalone digital signature requests</td></tr>
+      <tr><td>cs_assuresign</td><td>Legacy AssureSign integration entity</td></tr>
+      <tr><td>cs_item</td><td>Utility/test entity</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec4-3">4.3 Row-Level Security Implementation</h3>
+  <p>Each client has a unique Service Principal (or, for portal users, a unique Contact record) that is mapped to a Dataverse user identity. Security roles grant Organization-level privileges, but the <code>ownerid</code> field filter is automatically applied by the Dataverse Web API to every query, ensuring each caller retrieves only their own records.</p>
+  <table>
+    <thead><tr><th>Test Scenario</th><th>Expected Result</th></tr></thead>
+    <tbody>
+      <tr><td>Client A queries all envelopes</td><td>Returns only Client A's envelopes</td></tr>
+      <tr><td>Client A queries Client B's envelope by ID</td><td>404 Not Found</td></tr>
+      <tr><td>Client A attempts to update Client B's envelope</td><td>403 Forbidden</td></tr>
+      <tr><td>Admin queries all envelopes</td><td>Returns all envelopes (no filter applied)</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec4-4">4.4 Column-Level Security</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Table</th><th>Access Level</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>cs_requestbody</td><td>cs_envelope</td><td>Admin read only</td><td>Contains PII in API payload</td></tr>
+      <tr><td>cs_responsebody</td><td>cs_envelope</td><td>Admin read only</td><td>Contains Nintex tokens</td></tr>
+      <tr><td>cs_signinglink</td><td>cs_signer</td><td>Owner and Admin read</td><td>Unique signing access URL</td></tr>
+      <tr><td>cs_ipaddress</td><td>cs_signer</td><td>Admin read only</td><td>PII — tracking data</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec4-5">4.5 Data Encryption</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Encryption Method</th><th>Key Management</th></tr></thead>
+    <tbody>
+      <tr><td>At Rest</td><td>AES-256 (Dataverse TDE)</td><td>Microsoft-managed</td></tr>
+      <tr><td>In Transit</td><td>TLS 1.2+</td><td>Certificate pinning</td></tr>
+      <tr><td>Application</td><td>Base64 encoding (not encryption)</td><td>N/A</td></tr>
+      <tr><td>Backup</td><td>AES-256</td><td>Microsoft-managed</td></tr>
+    </tbody>
+  </table>
+  <blockquote><strong>Note:</strong> Base64 encoding of documents is used for API transport compatibility only. Documents remain readable to authorized users in Dataverse.</blockquote>
+
+  <hr>
+
+  <!-- Section 5 -->
+  <h2 id="sec5">5. Integration Architecture</h2>
+
+  <h3 id="sec5-1">5.1 Integration Layers</h3>
+  <p>The platform follows a layered integration architecture with Client Layer, API Gateway Layer (Dataverse Web API / Custom Connector / Portal Web API), Authentication Layer (Entra ID), Broker Service Layer (Power Automate flows), Secrets Management (Azure Key Vault), and External SaaS (Nintex AssureSign).</p>
+
+  <h3 id="sec5-2">5.2 Custom Connector Architecture</h3>
+  <p>The Custom Connector provides a Power Platform-native interface to the broker's Dataverse OData endpoints, enabling Power Apps and Power Automate clients to interact with the broker without writing raw HTTP calls.</p>
+  <p><strong>Authentication:</strong> OAuth 2.0 Authorization Code flow (for user-delegated access) or Client Credentials flow (for service principal access).</p>
+  <table>
+    <thead><tr><th>Operation</th><th>HTTP Method</th><th>Dataverse Endpoint</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>CreateEnvelope</td><td>POST</td><td>/cs_envelopes</td><td>Create draft envelope</td></tr>
+      <tr><td>GetEnvelope</td><td>GET</td><td>/cs_envelopes({id})</td><td>Retrieve envelope details</td></tr>
+      <tr><td>ListEnvelopes</td><td>GET</td><td>/cs_envelopes</td><td>Query envelopes</td></tr>
+      <tr><td>UpdateEnvelope</td><td>PATCH</td><td>/cs_envelopes({id})</td><td>Modify or cancel envelope</td></tr>
+      <tr><td>DeleteEnvelope</td><td>DELETE</td><td>/cs_envelopes({id})</td><td>Delete envelope</td></tr>
+      <tr><td>AddSigner</td><td>POST</td><td>/cs_signers</td><td>Add signer to envelope</td></tr>
+      <tr><td>UpdateSigner</td><td>PATCH</td><td>/cs_signers({id})</td><td>Modify signer</td></tr>
+      <tr><td>RemoveSigner</td><td>DELETE</td><td>/cs_signers({id})</td><td>Delete signer</td></tr>
+      <tr><td>AddDocument</td><td>POST</td><td>/cs_documents</td><td>Attach document</td></tr>
+      <tr><td>RemoveDocument</td><td>DELETE</td><td>/cs_documents({id})</td><td>Remove document</td></tr>
+      <tr><td>GetSigners</td><td>GET</td><td>/cs_envelopes({id})/cs_envelope_signer</td><td>Get envelope signers</td></tr>
+      <tr><td>ListTemplates</td><td>GET</td><td>/cs_templates</td><td>Available templates</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec5-3">5.3 OData Endpoint Integration</h3>
+  <p>All Dataverse entities are accessible via the standard OData API at <code>https://{environment}.crm3.dynamics.com/api/data/v9.2/</code>.</p>
+  <table>
+    <thead><tr><th>Option</th><th>Purpose</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>$filter</td><td>Filter results</td><td><code>statuscode eq 717640004</code></td></tr>
+      <tr><td>$select</td><td>Specify returned columns</td><td><code>cs_name,statuscode</code></td></tr>
+      <tr><td>$expand</td><td>Include related entities</td><td><code>cs_envelope_signer</code></td></tr>
+      <tr><td>$orderby</td><td>Sort results</td><td><code>createdon desc</code></td></tr>
+      <tr><td>$top</td><td>Limit result count</td><td><code>50</code></td></tr>
+      <tr><td>$skip</td><td>Pagination offset</td><td><code>100</code></td></tr>
+      <tr><td>$count</td><td>Include total count</td><td><code>true</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec5-4">5.4 Nintex AssureSign API Integration</h3>
+  <p><strong>API Version:</strong> 3.7 | <strong>Auth URL:</strong> <code>https://account.assuresign.net/api/v3.7/authentication/apiUser</code> | <strong>API Base URL:</strong> <code>https://ca1.assuresign.net/api/documentnow/v3.7</code> | <strong>Region:</strong> Canadian (ca1)</p>
+  <p>Authentication to Nintex requires posting API credentials (username, key, and context username) to the authentication endpoint to obtain a bearer token valid for 60 minutes. The broker caches this token and automatically refreshes it before expiry. All Nintex credentials are stored as Dataverse environment variables in the ESignatureConfig solution.</p>
+
+  <h4>Environment Variables (ESignatureConfig solution)</h4>
+  <table>
+    <thead><tr><th>Schema Name</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>cs_NintexApiUsername</td><td>Nintex API username</td></tr>
+      <tr><td>cs_NintexApiKey</td><td>Nintex API key</td></tr>
+      <tr><td>cs_NintexContextUsername</td><td>Nintex context username (user impersonation)</td></tr>
+      <tr><td>cs_NintexAuthUrl</td><td>Auth endpoint (default: <code>https://account.assuresign.net/api/v3.7</code>)</td></tr>
+      <tr><td>cs_NintexApiBaseUrl</td><td>API base URL (default: <code>https://ca1.assuresign.net/api/documentnow/v3.7</code>)</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Key Nintex API Endpoints</h4>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>/authentication/apiUser</td><td>POST</td><td>Obtain access token</td></tr>
+      <tr><td>/submit</td><td>POST</td><td>Create and send envelope</td></tr>
+      <tr><td>/templates</td><td>GET</td><td>List available templates</td></tr>
+      <tr><td>/envelopes/{id}</td><td>GET</td><td>Get envelope status</td></tr>
+      <tr><td>/envelopes/{id}/signingLinks</td><td>GET</td><td>Retrieve per-signer signing URLs</td></tr>
+      <tr><td>/envelopes/{id}/history</td><td>GET</td><td>Get envelope event history</td></tr>
+      <tr><td>/envelopes/{id}/cancel</td><td>POST</td><td>Cancel an active envelope</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Payload Mapping (Dataverse to Nintex)</h4>
+  <table>
+    <thead><tr><th>Nintex Payload Property</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Subject</td><td>cs_envelope.cs_subject</td></tr>
+      <tr><td>Message</td><td>cs_envelope.cs_message</td></tr>
+      <tr><td>DaysToExpire</td><td>cs_envelope.cs_daystoexpire</td></tr>
+      <tr><td>ReminderFrequency</td><td>cs_envelope.cs_reminderfrequency</td></tr>
+      <tr><td>ProcessingMode</td><td>cs_envelope.cs_processingmode</td></tr>
+      <tr><td>Signers[].Email</td><td>cs_signer.cs_email</td></tr>
+      <tr><td>Signers[].FullName</td><td>cs_signer.cs_fullname</td></tr>
+      <tr><td>Signers[].SignerOrder</td><td>cs_signer.cs_signerorder</td></tr>
+      <tr><td>Signers[].Language</td><td>cs_signer.cs_language</td></tr>
+      <tr><td>Documents[].FileName</td><td>cs_document.cs_filename</td></tr>
+      <tr><td>Documents[].FileContent</td><td>cs_document.cs_filecontent (Base64)</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec5-5">5.5 Broker Orchestration Flows</h3>
+  <p>All flows use the <strong>Microsoft Dataverse</strong> connector (<code>shared_commondataserviceforapps</code>) with connection reference <code>cs_sharecommondataserviceforapps</code>.</p>
+
+  <!-- FIGURE 4: Broker Flows Architecture -->
+  <figure id="fig4" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 480" width="780" height="480">
+      <!-- Central Dataverse Hub -->
+      <circle cx="390" cy="240" r="65" fill="#26374A" stroke="#1a2a3a" stroke-width="2"/>
+      <text x="355" y="235" font-size="13" font-weight="700" fill="#fff">Dataverse</text>
+      <text x="370" y="255" font-size="10" fill="#ccc">Hub</text>
+
+      <!-- Legend -->
+      <rect x="600" y="10" width="170" height="90" rx="6" fill="#fff" stroke="#E1E4E7" stroke-width="1"/>
+      <text x="615" y="28" font-size="10" font-weight="700" fill="#26374A">Trigger Type</text>
+      <rect x="615" y="36" width="12" height="12" rx="2" fill="#1B6C2A"/>
+      <text x="633" y="47" font-size="9" fill="#333">Status Change</text>
+      <rect x="615" y="53" width="12" height="12" rx="2" fill="#335075"/>
+      <text x="633" y="64" font-size="9" fill="#333">Field Change</text>
+      <rect x="615" y="70" width="12" height="12" rx="2" fill="#D4760A"/>
+      <text x="633" y="81" font-size="9" fill="#333">Recurrence</text>
+
+      <!-- Flow nodes - Status change (green) -->
+      <rect x="120" y="40" width="150" height="35" rx="8" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="135" y="62" font-size="10" font-weight="600" fill="#fff">Prepare Envelope</text>
+      <line x1="270" y1="57" x2="340" y2="200" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="310" y="20" width="150" height="35" rx="8" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="340" y="42" font-size="10" font-weight="600" fill="#fff">Send Envelope</text>
+      <line x1="385" y1="55" x2="390" y2="175" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="500" y="40" width="140" height="35" rx="8" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="515" y="62" font-size="10" font-weight="600" fill="#fff">Get Signing Links</text>
+      <line x1="500" y1="57" x2="440" y2="200" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="565" y="120" width="140" height="35" rx="8" fill="#1B6C2A" stroke="#145520" stroke-width="1.5"/>
+      <text x="580" y="142" font-size="10" font-weight="600" fill="#fff">Get Access Links</text>
+      <line x1="565" y1="137" x2="450" y2="220" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <!-- Flow nodes - Field change (blue) -->
+      <rect x="20" y="130" width="155" height="35" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="40" y="152" font-size="10" font-weight="600" fill="#fff">Cancel Envelope</text>
+      <line x1="175" y1="147" x2="330" y2="220" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="20" y="230" width="155" height="35" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="25" y="252" font-size="10" font-weight="600" fill="#fff">Get Envelope History</text>
+      <line x1="175" y1="247" x2="325" y2="240" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="20" y="310" width="165" height="35" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="28" y="332" font-size="10" font-weight="600" fill="#fff">Get Document Content</text>
+      <line x1="185" y1="327" x2="330" y2="265" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="130" y="400" width="165" height="35" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="140" y="422" font-size="10" font-weight="600" fill="#fff">Send Signer Reminder</text>
+      <line x1="250" y1="400" x2="360" y2="300" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="500" y="400" width="155" height="35" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="515" y="422" font-size="10" font-weight="600" fill="#fff">Upsert Template</text>
+      <line x1="500" y1="417" x2="430" y2="295" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Flow nodes - Recurrence (orange) -->
+      <rect x="560" y="290" width="140" height="35" rx="8" fill="#D4760A" stroke="#b06308" stroke-width="1.5"/>
+      <text x="590" y="312" font-size="10" font-weight="600" fill="#fff">Status Sync</text>
+      <line x1="560" y1="307" x2="455" y2="260" stroke="#D4760A" stroke-width="1.5" marker-end="url(#arrowOrange)"/>
+      <text x="655" y="342" font-size="8" fill="#D4760A">every 30 min</text>
+
+      <rect x="350" y="430" width="150" height="35" rx="8" fill="#D4760A" stroke="#b06308" stroke-width="1.5"/>
+      <text x="368" y="452" font-size="10" font-weight="600" fill="#fff">Sync Templates</text>
+      <line x1="425" y1="430" x2="400" y2="305" stroke="#D4760A" stroke-width="1.5" marker-end="url(#arrowOrange)"/>
+      <text x="363" y="478" font-size="8" fill="#D4760A">daily</text>
+    </svg>
+    <figcaption>Figure 4: Broker Flows Architecture — 11 flows radiating from central Dataverse hub, color-coded by trigger type</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>#</th><th>Flow Name</th><th>Trigger</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Prepare Envelope</strong></td><td>Envelope statuscode = 717640001</td><td>Calls Nintex API to prepare, sets statuscode = 717640002</td></tr>
+      <tr><td>2</td><td><strong>Send Envelope</strong></td><td>Envelope statuscode = 717640002</td><td>Submits to Nintex API, sets statuscode = 717640003</td></tr>
+      <tr><td>3</td><td><strong>Cancel Envelope</strong></td><td>cs_iscancelled = true</td><td>Cancels via Nintex API, sets statuscode = 717640006</td></tr>
+      <tr><td>4</td><td><strong>Status Sync</strong></td><td>Recurrence (30 min)</td><td>Polls Nintex for In Process envelopes, updates statuses</td></tr>
+      <tr><td>5</td><td><strong>Get Signing Links</strong></td><td>Envelope statuscode = 717640003</td><td>Retrieves signing URLs, updates signer records</td></tr>
+      <tr><td>6</td><td><strong>Get Access Links</strong></td><td>Envelope statuscode = 717640004</td><td>Creates access link records for completed envelopes</td></tr>
+      <tr><td>7</td><td><strong>Get Envelope History</strong></td><td>cs_requesthistory = true</td><td>Fetches history from Nintex, creates history records</td></tr>
+      <tr><td>8</td><td><strong>Get Document Content</strong></td><td>cs_requestsignedcopy = true</td><td>Downloads signed document content from Nintex</td></tr>
+      <tr><td>9</td><td><strong>Send Signer Reminder</strong></td><td>cs_sendreminder = true</td><td>Sends reminder via Nintex API</td></tr>
+      <tr><td>10</td><td><strong>Sync Templates</strong></td><td>Recurrence (daily)</td><td>Syncs template list from Nintex API</td></tr>
+      <tr><td>11</td><td><strong>Upsert Template</strong></td><td>cs_template.cs_name change</td><td>Upserts individual template to Nintex</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec5-6">5.6 Error Handling Strategy</h3>
+  <table>
+    <thead><tr><th>Error Type</th><th>Handling</th><th>Retry Logic</th><th>Notification</th></tr></thead>
+    <tbody>
+      <tr><td>Nintex API 5xx</td><td>Log error, mark envelope Error</td><td>3 retries with exponential backoff</td><td>Admin alert after 3 failures</td></tr>
+      <tr><td>Nintex API 4xx</td><td>Log error, mark envelope Error</td><td>No retry</td><td>Requestor notification</td></tr>
+      <tr><td>Token Expired</td><td>Refresh token automatically</td><td>Automatic</td><td>None</td></tr>
+      <tr><td>Validation Error</td><td>Return structured error to client</td><td>No retry</td><td>Client receives error response</td></tr>
+      <tr><td>Dataverse Throttling</td><td>Retry with backoff</td><td>5 retries</td><td>Admin alert if persistent</td></tr>
+      <tr><td>Network Timeout</td><td>Retry</td><td>3 retries</td><td>Log incident</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Section 6 -->
+  <h2 id="sec6">6. Power Pages Portal Architecture</h2>
+
+  <h3 id="sec6-1">6.1 Overview</h3>
+  <p>The Power Pages portal provides EC staff with a self-service web interface for managing e-signature workflows. The portal uses the Government of Canada <strong>GCWeb (WET)</strong> theme for compliance with federal web standards, is fully responsive for mobile and desktop use, and is built using the Power Pages <strong>Enhanced Data Model</strong> (using the <code>powerpagecomponent</code> table rather than legacy <code>adx_</code> prefixed tables).</p>
+
+  <!-- FIGURE 3: Portal Architecture -->
+  <figure id="fig3" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 480" width="780" height="480">
+      <!-- Browser Layer -->
+      <rect x="140" y="10" width="500" height="80" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="160" y="35" font-size="13" font-weight="700" fill="#26374A">BROWSER (EC Staff)</text>
+      <text x="160" y="55" font-size="11" fill="#555">GCWeb/WET Responsive UI</text>
+      <text x="160" y="72" font-size="10" fill="#555">PDF.js (rendering) + interact.js (drag-and-drop)</text>
+
+      <line x1="390" y1="90" x2="390" y2="125" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <text x="400" y="112" font-size="9" fill="#335075" font-weight="600">HTTPS (TLS 1.2+)</text>
+
+      <!-- Power Pages Layer -->
+      <rect x="80" y="125" width="620" height="140" rx="8" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="100" y="150" font-size="13" font-weight="700" fill="#fff">POWER PAGES (Canada Central)</text>
+      <text x="100" y="170" font-size="10" fill="#ccc">Web Templates (Liquid + HTML + CSS + JS)</text>
+      <!-- Template boxes -->
+      <rect x="100" y="180" width="108" height="30" rx="4" fill="#26374A" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="108" y="200" font-size="8" fill="#ccc">CS-Home-WET</text>
+      <rect x="218" y="180" width="108" height="30" rx="4" fill="#26374A" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="226" y="200" font-size="8" fill="#ccc">CS-Templates</text>
+      <rect x="336" y="180" width="128" height="30" rx="4" fill="#26374A" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="340" y="200" font-size="8" fill="#ccc">CS-Template-Editor</text>
+      <rect x="474" y="180" width="128" height="30" rx="4" fill="#26374A" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="478" y="200" font-size="8" fill="#ccc">CS-Envelope-Editor</text>
+      <rect x="100" y="218" width="108" height="30" rx="4" fill="#26374A" stroke="#4a6a8a" stroke-width="1"/>
+      <text x="112" y="238" font-size="8" fill="#ccc">CS-Envelopes</text>
+      <text x="218" y="238" font-size="10" fill="#ccc">Portal Web API (/_api/) | Entra ID SSO (OIDC)</text>
+
+      <line x1="390" y1="265" x2="390" y2="300" stroke="#335075" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <text x="400" y="287" font-size="9" fill="#335075" font-weight="600">Dataverse Web API</text>
+
+      <!-- Dataverse Layer -->
+      <rect x="140" y="300" width="500" height="60" rx="8" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="160" y="325" font-size="13" font-weight="700" fill="#fff">DATAVERSE (Broker Environment)</text>
+      <text x="160" y="345" font-size="10" fill="#ccc">cs_envelope | cs_signer | cs_document | cs_template | annotation</text>
+
+      <!-- Arrow to Nintex (through broker only) -->
+      <line x1="390" y1="360" x2="390" y2="395" stroke="#AF3C43" stroke-width="2" marker-end="url(#arrowRed)"/>
+      <text x="400" y="383" font-size="9" fill="#AF3C43" font-weight="600">Power Automate Flows</text>
+
+      <!-- Nintex Layer -->
+      <rect x="140" y="395" width="500" height="55" rx="8" fill="#fdf0f0" stroke="#AF3C43" stroke-width="2"/>
+      <text x="160" y="420" font-size="13" font-weight="700" fill="#AF3C43">NINTEX ASSURESIGN</text>
+      <text x="160" y="438" font-size="10" fill="#555">ca1.assuresign.net (Canada Region)</text>
+
+      <!-- Direct path blocked indicator -->
+      <text x="660" y="190" font-size="20" fill="#AF3C43" font-weight="700">&#x2717;</text>
+      <text x="660" y="210" font-size="8" fill="#AF3C43">No direct</text>
+      <text x="660" y="220" font-size="8" fill="#AF3C43">API access</text>
+
+      <text x="660" y="345" font-size="20" fill="#1B6C2A" font-weight="700">&#x2713;</text>
+      <text x="655" y="365" font-size="8" fill="#1B6C2A">Via Broker</text>
+      <text x="665" y="375" font-size="8" fill="#1B6C2A">only</text>
+    </svg>
+    <figcaption>Figure 3: Portal Architecture — Portal communicates with Nintex exclusively through the Broker layer (never directly)</figcaption>
+  </figure>
+
+  <h3 id="sec6-2">6.2 Enhanced Data Model</h3>
+  <p>The portal uses the Power Pages <strong>Enhanced Data Model</strong>, which stores all portal configuration in the <code>powerpagecomponent</code> table.</p>
+  <table>
+    <thead><tr><th>Type Value</th><th>Component Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>2</td><td>Web Page</td><td>Portal page definition</td></tr>
+      <tr><td>6</td><td>Web Template Metadata</td><td>Template metadata and configuration</td></tr>
+      <tr><td>7</td><td>Content Snippet</td><td>Reusable localized text fragments</td></tr>
+      <tr><td>8</td><td>Web Template Source</td><td>Liquid/HTML/CSS/JS template source code</td></tr>
+      <tr><td>9</td><td>Site Setting</td><td>Key-value portal configuration</td></tr>
+      <tr><td>18</td><td>Table Permission</td><td>Data access rules for portal users</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec6-3">6.3 Web Templates</h3>
+  <h4>CS-Home-WET (Dashboard)</h4>
+  <p>The home page displays a personalized dashboard for authenticated EC staff. It includes a welcome message, overview stat tiles (templates, completed envelopes, in-progress, errors), recent envelopes table with status badges, and quick-action links. The dashboard uses WET panel components and GCWeb colour tokens.</p>
+
+  <h4>CS-Templates (Template List)</h4>
+  <p>Displays all available signature templates in a searchable, filterable list with name, description, category, field count, and status.</p>
+
+  <h4>CS-Template-Editor (PDF Field Placement)</h4>
+  <p>A full-screen editor for placing signature fields on PDF documents. Features include PDF rendering via PDF.js 3.11, drag-and-drop field placement via interact.js 1.10, responsive layout with collapsible tools panel, CSP compliance, and GC visual tokens.</p>
+
+  <h4>CS-Envelope-Editor (Envelope Creation)</h4>
+  <p>A guided envelope creation interface supporting create mode (<code>?templateId=GUID&amp;name=EnvelopeName</code>), edit mode (<code>?id=GUID</code>), and read-only mode for non-draft statuses. Includes signer configuration, envelope properties, and PDF preview.</p>
+
+  <h4>CS-Envelopes (Envelope List)</h4>
+  <p>Displays the user's envelopes with colour-coded status badges, filtering, and sorting options.</p>
+
+  <h3 id="sec6-4">6.4 PDF Storage via Annotations</h3>
+  <table>
+    <thead><tr><th>Approach</th><th>Max File Size</th><th>Base64 Overhead</th><th>Native File Handling</th></tr></thead>
+    <tbody>
+      <tr><td>Memo/Text column</td><td>~1 MB</td><td>Yes (+33%)</td><td>No</td></tr>
+      <tr><td>Annotation (Note)</td><td>128 MB</td><td>Yes (+33%)</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec6-5">6.5 Responsive Design</h3>
+  <ul>
+    <li><strong>Desktop (&gt;992px):</strong> Side-by-side layout with tools panel on the left and PDF canvas on the right</li>
+    <li><strong>Tablet (768-992px):</strong> Stacked layout with collapsible tools panel</li>
+    <li><strong>Mobile (&lt;768px):</strong> Full-width PDF canvas with a bottom tools panel that slides up</li>
+  </ul>
+
+  <h3 id="sec6-6">6.6 Portal Authentication Configuration</h3>
+  <table>
+    <thead><tr><th>Configuration Item</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Provider Type</td><td>OpenID Connect (Entra ID)</td></tr>
+      <tr><td>Authority</td><td><code>https://login.microsoftonline.com/{tenant-id}/v2.0</code></td></tr>
+      <tr><td>Client ID</td><td>Power Pages App Registration</td></tr>
+      <tr><td>Client Secret</td><td>Stored in Azure Key Vault</td></tr>
+      <tr><td>Redirect URI</td><td><code>https://{portal-subdomain}.powerappsportals.com/signin-oidc</code></td></tr>
+      <tr><td>Scopes</td><td>openid, profile, email</td></tr>
+      <tr><td>Session Timeout</td><td>8 hours</td></tr>
+      <tr><td>Idle Timeout</td><td>2 hours</td></tr>
+      <tr><td>Auto-Registration</td><td>Enabled (creates Contact on first login)</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec6-7">6.7 Portal Table Permissions</h3>
+  <table>
+    <thead><tr><th>Table</th><th>Access Type</th><th>Privileges</th></tr></thead>
+    <tbody>
+      <tr><td>cs_template (read)</td><td>Global (all records)</td><td>Read</td></tr>
+      <tr><td>cs_template (manage own)</td><td>Contact (ownerid = current Contact)</td><td>Create, Read, Write, Delete</td></tr>
+      <tr><td>cs_envelope</td><td>Contact (ownerid = current Contact)</td><td>Create, Read, Write</td></tr>
+      <tr><td>cs_document</td><td>Parental (via cs_envelope)</td><td>Create, Read, Append To</td></tr>
+      <tr><td>cs_field</td><td>Parental (via cs_envelope)</td><td>Create, Read, Append To</td></tr>
+      <tr><td>cs_signer</td><td>Parental (via cs_envelope)</td><td>Create, Read, Append To</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec6-8">6.8 Portal Deployment</h3>
+  <p>Portal components are deployed using targeted Dataverse Web API scripts rather than full solution exports:</p>
+  <ul>
+    <li><strong><code>deploy-records.sh</code></strong> — Generic tool for copying specific <code>powerpagecomponent</code> records (by GUID) or entire tables between environments</li>
+    <li><strong><code>deploy-web-template.sh</code></strong> — Deploys individual web template source code to a target environment</li>
+    <li><strong>Deployment profiles</strong> — Environment-specific site settings stored in <code>deployment-profiles/</code></li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- PART 3: SECURITY & MONITORING -->
+<!-- ============================================================ -->
+<div class="container page-break">
+  <h1 id="part3">Part 3: Security &amp; Monitoring</h1>
+
+  <!-- Section 7 -->
+  <h2 id="sec7">7. Security Architecture</h2>
+
+  <h3 id="sec7-1">7.1 Defence in Depth</h3>
+  <p>The platform applies security controls across seven layers:</p>
+
+  <!-- FIGURE 7: Security Defence in Depth -->
+  <figure id="fig7" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 420" width="780" height="420">
+      <!-- Concentric layers (outside in) -->
+      <ellipse cx="390" cy="210" rx="370" ry="195" fill="#e8edf2" stroke="#335075" stroke-width="1.5"/>
+      <text x="50" y="45" font-size="11" font-weight="700" fill="#26374A">Layer 1: Compliance</text>
+      <text x="50" y="60" font-size="9" fill="#555">Audit Logging, ITSG-33, PII Management</text>
+
+      <ellipse cx="390" cy="210" rx="310" ry="165" fill="#d4dde7" stroke="#335075" stroke-width="1.5"/>
+      <text x="110" y="80" font-size="11" font-weight="700" fill="#26374A">Layer 2: Secrets</text>
+      <text x="110" y="95" font-size="9" fill="#555">Azure Key Vault, MSI, Rotation</text>
+
+      <ellipse cx="390" cy="210" rx="255" ry="138" fill="#c0ccdb" stroke="#335075" stroke-width="1.5"/>
+      <text x="165" y="110" font-size="11" font-weight="700" fill="#26374A">Layer 3: Identity</text>
+      <text x="165" y="125" font-size="9" fill="#555">Entra ID, MFA, Conditional Access</text>
+
+      <ellipse cx="390" cy="210" rx="205" ry="112" fill="#a8b9cd" stroke="#335075" stroke-width="1.5"/>
+      <text x="210" y="140" font-size="11" font-weight="700" fill="#26374A">Layer 4: Network</text>
+      <text x="210" y="155" font-size="9" fill="#555">TLS 1.2+, DDoS, IP Restrictions</text>
+
+      <ellipse cx="390" cy="210" rx="155" ry="88" fill="#8ba3be" stroke="#26374A" stroke-width="1.5"/>
+      <text x="265" y="165" font-size="11" font-weight="700" fill="#fff">Layer 5: API Gateway</text>
+      <text x="265" y="180" font-size="9" fill="#e0e8f0">OAuth Validation, Throttling</text>
+
+      <ellipse cx="390" cy="210" rx="108" ry="65" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="310" y="195" font-size="11" font-weight="700" fill="#fff">Layer 6: Application</text>
+      <text x="318" y="210" font-size="9" fill="#ccc">Input Validation, DLP, CSP</text>
+
+      <ellipse cx="390" cy="210" rx="60" ry="38" fill="#26374A" stroke="#1a2a3a" stroke-width="2"/>
+      <text x="355" y="215" font-size="11" font-weight="700" fill="#fff">Layer 7</text>
+      <text x="367" y="230" font-size="8" fill="#ccc">Data</text>
+
+      <!-- Labels for innermost -->
+      <text x="320" y="395" font-size="9" fill="#555">AES-256, RLS, CLS</text>
+    </svg>
+    <figcaption>Figure 7: Security Defence in Depth — Seven concentric security layers from Compliance (outermost) to Data (innermost)</figcaption>
+  </figure>
+
+  <p><strong>Layer 1 — Compliance:</strong> Audit logging for all actions; ITSG-33 control alignment; PII management.</p>
+  <p><strong>Layer 2 — Secrets:</strong> Azure Key Vault for all credential storage; Managed Identities to eliminate secrets in code; quarterly secret rotation.</p>
+  <p><strong>Layer 3 — Identity:</strong> Entra ID authentication; Conditional Access policy enforcement; MFA for administrator accounts.</p>
+  <p><strong>Layer 4 — Network:</strong> TLS 1.2+ encryption in transit; optional IP restrictions; Azure Front Door DDoS protection.</p>
+  <p><strong>Layer 5 — API Gateway:</strong> OAuth 2.0 token validation; per-client API throttling; full request logging.</p>
+  <p><strong>Layer 6 — Application:</strong> Input validation (XSS and injection prevention); DLP policies; portal-specific file type whitelist and size controls; CSP headers on portal pages.</p>
+  <p><strong>Layer 7 — Data:</strong> AES-256 encryption at rest; Column-Level Security on sensitive fields; Row-Level Security for per-client and per-user data isolation.</p>
+
+  <h3 id="sec7-2">7.2 Threat Model — STRIDE Analysis</h3>
+  <table>
+    <thead><tr><th>Threat</th><th>Attack Vector</th><th>Mitigation</th><th>Residual Risk</th></tr></thead>
+    <tbody>
+      <tr><td>Spoofing</td><td>Impersonate client application or service</td><td>OAuth 2.0, service principals, Entra ID SSO</td><td>Low</td></tr>
+      <tr><td>Tampering</td><td>Modify envelope data</td><td>RLS, audit logging, immutable logs</td><td>Low</td></tr>
+      <tr><td>Repudiation</td><td>Deny sending an envelope</td><td>Complete audit trail in cs_apirequest</td><td>Low</td></tr>
+      <tr><td>Information Disclosure</td><td>Access another application's data</td><td>RLS, CLS, encryption</td><td>Low</td></tr>
+      <tr><td>Denial of Service</td><td>Flood API or portal with requests</td><td>API throttling, DLP policies, portal file size limits</td><td>Medium</td></tr>
+      <tr><td>Elevation of Privilege</td><td>Gain admin access</td><td>Least privilege, MFA, PIM</td><td>Low</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec7-3">7.3 Data Classification</h3>
+  <table>
+    <thead><tr><th>Data Element</th><th>Classification</th><th>Encryption</th><th>Access Control</th><th>Retention</th></tr></thead>
+    <tbody>
+      <tr><td>Envelope metadata (name, subject)</td><td>Protected B</td><td>At rest and in transit</td><td>RLS</td><td>7 years</td></tr>
+      <tr><td>Signer PII (email, name, phone)</td><td>Protected B</td><td>At rest and in transit</td><td>RLS + CLS</td><td>7 years</td></tr>
+      <tr><td>Document content (Base64)</td><td>Protected B</td><td>At rest and in transit</td><td>RLS</td><td>7 years</td></tr>
+      <tr><td>Signing links</td><td>Protected B</td><td>At rest and in transit</td><td>RLS + CLS</td><td>Until expiry</td></tr>
+      <tr><td>API request/response logs</td><td>Protected B</td><td>At rest and in transit</td><td>Admin only</td><td>7 years</td></tr>
+      <tr><td>Nintex API credentials</td><td>Secret</td><td>Azure Key Vault</td><td>MSI only</td><td>Rotate quarterly</td></tr>
+      <tr><td>Client secrets</td><td>Secret</td><td>Azure Key Vault</td><td>Admin only</td><td>2-year maximum</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec7-4">7.4 PII Management</h3>
+  <table>
+    <thead><tr><th>Element</th><th>Table</th><th>Purpose</th><th>Legal Basis</th></tr></thead>
+    <tbody>
+      <tr><td>Email address</td><td>cs_signer</td><td>Contact signer</td><td>Consent via envelope submission</td></tr>
+      <tr><td>Full name</td><td>cs_signer</td><td>Display on document</td><td>Consent via envelope submission</td></tr>
+      <tr><td>Phone number</td><td>cs_signer</td><td>Optional contact method</td><td>Consent via envelope submission</td></tr>
+      <tr><td>IP address</td><td>cs_signer</td><td>Audit trail</td><td>Legitimate interest (fraud prevention)</td></tr>
+    </tbody>
+  </table>
+  <h4>Data Subject Rights</h4>
+  <table>
+    <thead><tr><th>Right</th><th>Implementation</th><th>Response Time</th></tr></thead>
+    <tbody>
+      <tr><td>Access</td><td>Export via Dataverse API</td><td>30 days</td></tr>
+      <tr><td>Rectification</td><td>Update signer record</td><td>Immediate</td></tr>
+      <tr><td>Erasure</td><td>Delete envelope (cascade)</td><td>30 days</td></tr>
+      <tr><td>Portability</td><td>Export as JSON/CSV</td><td>30 days</td></tr>
+      <tr><td>Objection</td><td>Opt-out via configuration</td><td>Immediate</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec7-5">7.5 Portal Security Controls</h3>
+  <table>
+    <thead><tr><th>Control</th><th>Implementation</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Authentication</td><td>Entra ID SSO (OIDC)</td><td>Identity verification</td></tr>
+      <tr><td>Authorization</td><td>Table permissions (owner-based)</td><td>Access control</td></tr>
+      <tr><td>Row-Level Security</td><td>ownerid field filtering</td><td>Multi-user data isolation</td></tr>
+      <tr><td>Encryption at Rest</td><td>Dataverse TDE (AES-256)</td><td>Data protection</td></tr>
+      <tr><td>Encryption in Transit</td><td>TLS 1.2+ (HTTPS)</td><td>Network security</td></tr>
+      <tr><td>Input Validation</td><td>Client-side and server-side</td><td>Prevent injection attacks</td></tr>
+      <tr><td>File Type Validation</td><td>Whitelist (.pdf only for portal)</td><td>Malware surface reduction</td></tr>
+      <tr><td>CSP Headers</td><td>Restrict script sources</td><td>Prevent XSS</td></tr>
+      <tr><td>Anti-CSRF</td><td>Power Pages built-in tokens</td><td>Prevent cross-site request forgery</td></tr>
+      <tr><td>Rate Limiting</td><td>Power Pages throttling</td><td>Abuse prevention</td></tr>
+      <tr><td>Audit Logging</td><td>Portal logs and Dataverse audit</td><td>Compliance and forensic trail</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Section 8 -->
+  <h2 id="sec8">8. Monitoring, Logging &amp; Audit</h2>
+
+  <h3 id="sec8-1">8.1 Monitoring Architecture</h3>
+  <p>All logging sources flow into a central Log Analytics workspace (2-year retention). The primary data sources are Dataverse Audit Logs, Power Automate Run History, Azure Monitor Metrics, Application Insights (portal and API monitoring), Key Vault Logs, and Entra ID Sign-in Logs.</p>
+  <p>Azure Monitor Dashboards provide three operational views: <strong>Operational Health</strong> (API success rates, latency, envelope volume), <strong>Security Monitoring</strong> (failed authentications, unusual IP addresses, privileged access events), and <strong>Client Usage</strong> (top clients by volume, completion rates, failed envelopes by client).</p>
+
+  <h3 id="sec8-2">8.2 Logging Strategy</h3>
+  <p>All Nintex API calls are logged to <code>cs_apirequest</code> records with the full request body, response body, HTTP status code, success flag, timestamp, and duration. This provides a complete Protected B-compliant audit trail for all Nintex interactions.</p>
+  <p>Portal activity is additionally logged to Application Insights via custom events and metrics, capturing page views, API call outcomes, and any client-side errors.</p>
+  <p><strong>Retention:</strong> 7 years for Dataverse audit data and cs_apirequest records (Protected B requirement).</p>
+
+  <h3 id="sec8-3">8.3 Alerting Rules</h3>
+  <h4>Critical Alerts (Immediate Response)</h4>
+  <table>
+    <thead><tr><th>Alert</th><th>Condition</th><th>Threshold</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>Nintex API Failure</td><td>HTTP 5xx errors</td><td>&gt;5 in 5 minutes</td><td>Page on-call engineer</td></tr>
+      <tr><td>Authentication Failure</td><td>401/403 errors</td><td>&gt;10 in 5 minutes</td><td>Security team notification</td></tr>
+      <tr><td>Data Breach Attempt</td><td>Cross-tenant access attempt</td><td>Any</td><td>Immediate investigation</td></tr>
+      <tr><td>Service Degradation</td><td>API latency &gt; 5 seconds</td><td>95th percentile</td><td>Incident response</td></tr>
+    </tbody>
+  </table>
+  <h4>Warning Alerts (Business Hours)</h4>
+  <table>
+    <thead><tr><th>Alert</th><th>Condition</th><th>Threshold</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>Token Expiry</td><td>Secret expires in &lt;60 days</td><td>N/A</td><td>Rotation reminder</td></tr>
+      <tr><td>High Error Rate</td><td>Failed flows</td><td>&gt;10% in 1 hour</td><td>Investigate root cause</td></tr>
+      <tr><td>Storage Capacity</td><td>Dataverse usage</td><td>&gt;80%</td><td>Capacity planning</td></tr>
+      <tr><td>Client Quota Exceeded</td><td>Monthly envelope volume</td><td>&gt;Limit</td><td>Billing notification</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="sec8-4">8.4 Audit Trail Requirements (ITSG-33)</h3>
+  <p>All CRUD operations on Protected B data entities (<code>cs_envelope</code>, <code>cs_signer</code>, <code>cs_document</code>, <code>cs_field</code>, <code>cs_apirequest</code>) generate Dataverse audit log entries capturing the timestamp, user ID, operation type, entity name, and record ID. Service principal creation and deletion events are captured in Entra ID logs.</p>
+
+  <h3 id="sec8-5">8.5 Log Retention</h3>
+  <table>
+    <thead><tr><th>Log Type</th><th>Retention Period</th><th>Archive Location</th><th>Legal Hold</th></tr></thead>
+    <tbody>
+      <tr><td>Dataverse Audit Logs</td><td>7 years</td><td>Azure Storage (Cool tier)</td><td>Available</td></tr>
+      <tr><td>cs_apirequest</td><td>7 years</td><td>In-place (Dataverse)</td><td>Available</td></tr>
+      <tr><td>Azure Monitor Logs</td><td>2 years</td><td>Log Analytics</td><td>Available</td></tr>
+      <tr><td>Power Automate Run History</td><td>28 days</td><td>Power Platform</td><td>N/A</td></tr>
+      <tr><td>Entra ID Sign-in Logs</td><td>1 year</td><td>Azure AD Premium</td><td>Available</td></tr>
+      <tr><td>Key Vault Access Logs</td><td>2 years</td><td>Storage Account</td><td>Available</td></tr>
+      <tr><td>Application Insights</td><td>90 days</td><td>Application Insights</td><td>N/A</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- PART 4: OPERATIONS & COMPLIANCE -->
+<!-- ============================================================ -->
+<div class="container page-break">
+  <h1 id="part4">Part 4: Operations &amp; Compliance</h1>
+
+  <!-- Section 9 -->
+  <h2 id="sec9">9. Data Retention &amp; Disposition</h2>
+  <h3>9.1 Retention Requirements (Protected B)</h3>
+  <p>All Protected B data must be retained for a minimum of 7 years in accordance with Government of Canada standards.</p>
+
+  <h3>9.2 Retention Policies</h3>
+  <table>
+    <thead><tr><th>Entity</th><th>Retention Period</th><th>Disposition Method</th><th>Trigger</th></tr></thead>
+    <tbody>
+      <tr><td>cs_envelope</td><td>7 years from completion</td><td>Hard delete</td><td>Automated daily job</td></tr>
+      <tr><td>cs_signer</td><td>7 years from completion</td><td>Hard delete (cascade)</td><td>Parent envelope deletion</td></tr>
+      <tr><td>cs_document</td><td>7 years from completion</td><td>Hard delete (cascade)</td><td>Parent envelope deletion</td></tr>
+      <tr><td>cs_apirequest</td><td>7 years from creation</td><td>Hard delete</td><td>Automated daily job</td></tr>
+      <tr><td>cs_template</td><td>Active templates only</td><td>Soft delete (deactivate)</td><td>Manual</td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.3 Backup Strategy</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Backup Frequency</th><th>Retention</th><th>RPO</th></tr></thead>
+    <tbody>
+      <tr><td>Dataverse (continuous)</td><td>Continuous</td><td>28 days</td><td>&lt;1 hour</td></tr>
+      <tr><td>Dataverse (manual weekly)</td><td>Weekly</td><td>90 days</td><td>&lt;24 hours</td></tr>
+      <tr><td>Key Vault</td><td>Continuous</td><td>90 days (soft-delete)</td><td>&lt;1 hour</td></tr>
+    </tbody>
+  </table>
+  <p><strong>RTO: 4 hours | RPO: 24 hours</strong></p>
+
+  <hr>
+
+  <!-- Section 10 -->
+  <h2 id="sec10">10. Client Onboarding Process</h2>
+  <h3>10.1 Onboarding Workflow</h3>
+  <p>Client onboarding follows a structured lifecycle: intake and requirements gathering, service principal creation and Dataverse configuration, credential packaging and secure delivery, training and integration support, testing, production go-live, and ongoing monitoring with quarterly review.</p>
+
+  <h3>10.2 Onboarding Timeline</h3>
+  <p>Total typical timeline: <strong>14-21 business days.</strong></p>
+  <table>
+    <thead><tr><th>Phase</th><th>Activities</th><th>Duration</th></tr></thead>
+    <tbody>
+      <tr><td>Intake</td><td>Requirements gathering, intake form completion</td><td>Day 1</td></tr>
+      <tr><td>Provisioning</td><td>Create service principal, configure Dataverse application user and security role</td><td>Days 1-2</td></tr>
+      <tr><td>Delivery</td><td>Package credentials, deliver via secure channel, provide integration guide</td><td>Days 2-3</td></tr>
+      <tr><td>Training</td><td>Schedule and conduct training session</td><td>Days 3-5</td></tr>
+      <tr><td>Testing</td><td>Client tests integration; issue resolution</td><td>Days 7-14</td></tr>
+      <tr><td>Go-Live</td><td>Production approval, cutover, enhanced monitoring</td><td>Days 14-21</td></tr>
+      <tr><td>Review</td><td>Week 1 and Week 4 post-go-live reviews</td><td>Ongoing</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.3 Onboarding Roles &amp; Responsibilities</h3>
+  <table>
+    <thead><tr><th>Role</th><th>Responsibilities</th></tr></thead>
+    <tbody>
+      <tr><td>Platform Lead</td><td>Overall ownership and approvals</td></tr>
+      <tr><td>Security Lead</td><td>Service principal creation and permissions</td></tr>
+      <tr><td>Technical Lead</td><td>Dataverse configuration and training</td></tr>
+      <tr><td>Support Lead</td><td>Documentation and ongoing support</td></tr>
+      <tr><td>Client Project Manager</td><td>Client-side coordination</td></tr>
+      <tr><td>Client Technical Lead</td><td>Integration development</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Section 11 -->
+  <h2 id="sec11">11. Environment Strategy</h2>
+  <h3>11.1 Environment Architecture</h3>
+
+  <!-- FIGURE 9: Environment Architecture -->
+  <figure id="fig9" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 280" width="780" height="280">
+      <!-- DEV -->
+      <rect x="20" y="50" width="220" height="140" rx="8" fill="#e8f5e9" stroke="#1B6C2A" stroke-width="2"/>
+      <text x="85" y="80" font-size="14" font-weight="700" fill="#1B6C2A">DEV</text>
+      <text x="40" y="105" font-size="10" fill="#333">goc-wetv14</text>
+      <text x="40" y="123" font-size="9" fill="#555">goc-wetv14.crm3.dynamics.com</text>
+      <text x="40" y="145" font-size="9" fill="#555">Feature development</text>
+      <text x="40" y="160" font-size="9" fill="#555">Portal work</text>
+      <rect x="40" y="168" width="80" height="16" rx="3" fill="#D4A017"/>
+      <text x="48" y="180" font-size="8" fill="#fff" font-weight="600">Sandbox</text>
+
+      <!-- EC DEV -->
+      <rect x="280" y="50" width="220" height="140" rx="8" fill="#fff3e0" stroke="#D4760A" stroke-width="2"/>
+      <text x="340" y="80" font-size="14" font-weight="700" fill="#D4760A">EC DEV</text>
+      <text x="300" y="105" font-size="10" fill="#333">dev-ec-esign-01</text>
+      <text x="300" y="123" font-size="9" fill="#555">dev-ec-esign-01.crm3.dynamics.com</text>
+      <text x="300" y="145" font-size="9" fill="#555">Elections Canada development</text>
+      <rect x="300" y="168" width="80" height="16" rx="3" fill="#D4A017"/>
+      <text x="308" y="180" font-size="8" fill="#fff" font-weight="600">Sandbox</text>
+
+      <!-- EC TEST -->
+      <rect x="540" y="50" width="220" height="140" rx="8" fill="#e3f2fd" stroke="#335075" stroke-width="2"/>
+      <text x="600" y="80" font-size="14" font-weight="700" fill="#335075">EC TEST</text>
+      <text x="560" y="105" font-size="10" fill="#333">test-ec-esign-01</text>
+      <text x="560" y="123" font-size="9" fill="#555">test-ec-esign-01.crm3.dynamics.com</text>
+      <text x="560" y="145" font-size="9" fill="#555">Elections Canada testing/UAT</text>
+      <rect x="560" y="168" width="80" height="16" rx="3" fill="#D4A017"/>
+      <text x="568" y="180" font-size="8" fill="#fff" font-weight="600">Sandbox</text>
+
+      <!-- Deployment arrows -->
+      <line x1="240" y1="120" x2="278" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowGray)"/>
+      <text x="245" y="112" font-size="8" fill="#333" font-weight="600">Deploy</text>
+      <line x1="500" y1="120" x2="538" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowGray)"/>
+      <text x="505" y="112" font-size="8" fill="#333" font-weight="600">Deploy</text>
+
+      <!-- Git source -->
+      <rect x="310" y="225" width="160" height="40" rx="6" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="335" y="250" font-size="11" font-weight="600" fill="#fff">Git Repository</text>
+      <line x1="390" y1="225" x2="130" y2="192" stroke="#26374A" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="390" y1="225" x2="390" y2="192" stroke="#26374A" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="390" y1="225" x2="650" y2="192" stroke="#26374A" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- All Canada Central -->
+      <text x="300" y="30" font-size="11" fill="#555" font-weight="600">All environments: Canada Central region (.crm3)</text>
+    </svg>
+    <figcaption>Figure 9: Environment Architecture — Three Dataverse environments with deployment flow from Git source</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>Environment</th><th>Unique Name</th><th>Region</th><th>Purpose</th><th>Nintex Account</th></tr></thead>
+    <tbody>
+      <tr><td><strong>DEV</strong></td><td>goc-wetv14</td><td>Canada Central</td><td>Feature development, portal work</td><td>Sandbox</td></tr>
+      <tr><td><strong>EC DEV</strong></td><td>dev-ec-esign-01</td><td>Canada Central</td><td>Elections Canada development</td><td>Sandbox</td></tr>
+      <tr><td><strong>EC TEST</strong></td><td>test-ec-esign-01</td><td>Canada Central</td><td>Elections Canada testing/UAT</td><td>Sandbox</td></tr>
+    </tbody>
+  </table>
+
+  <h3>11.2 DLP Policies</h3>
+  <p><strong>Allowed Connectors:</strong> Dataverse (broker environment only), Azure Key Vault, Office 365 Outlook, Approvals, Custom Connector "ESign Elections Canada".</p>
+  <p><strong>Blocked Connectors:</strong> All other connectors by default.</p>
+  <p><strong>Rules:</strong> No data exfiltration to consumer services; no cross-environment data flows; all API calls must be audited.</p>
+
+  <hr>
+
+  <!-- Section 12 -->
+  <h2 id="sec12">12. Network Architecture</h2>
+
+  <h3>12.1 Network Topology</h3>
+  <p>All inbound traffic from client applications and portal users passes through Azure Front Door (WAF and DDoS protection) before reaching the Power Platform endpoints over TLS 1.2+. The broker's Power Automate flows communicate outbound to Nintex AssureSign (<code>ca1.assuresign.net</code>) over HTTPS.</p>
+
+  <!-- FIGURE 10: Network & Data Flow -->
+  <figure id="fig10" class="avoid-break">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 380" width="780" height="380">
+      <!-- Clients -->
+      <rect x="20" y="20" width="120" height="50" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="35" y="42" font-size="10" font-weight="600" fill="#26374A">API Clients</text>
+      <text x="35" y="58" font-size="8" fill="#555">Service Principals</text>
+
+      <rect x="20" y="90" width="120" height="50" rx="8" fill="#d4e4f7" stroke="#335075" stroke-width="1.5"/>
+      <text x="35" y="112" font-size="10" font-weight="600" fill="#26374A">Portal Users</text>
+      <text x="35" y="128" font-size="8" fill="#555">Entra ID SSO</text>
+
+      <!-- Azure Front Door -->
+      <rect x="190" y="40" width="130" height="80" rx="8" fill="#E1E4E7" stroke="#999" stroke-width="1.5"/>
+      <text x="205" y="68" font-size="10" font-weight="700" fill="#26374A">Azure Front</text>
+      <text x="225" y="82" font-size="10" font-weight="700" fill="#26374A">Door</text>
+      <text x="210" y="100" font-size="8" fill="#555">WAF + DDoS</text>
+
+      <line x1="140" y1="45" x2="188" y2="70" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="140" y1="115" x2="188" y2="90" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Power Pages / Dataverse -->
+      <rect x="370" y="20" width="110" height="45" rx="6" fill="#335075" stroke="#26374A" stroke-width="1.5"/>
+      <text x="384" y="38" font-size="9" font-weight="600" fill="#fff">Power Pages</text>
+      <text x="396" y="52" font-size="8" fill="#ccc">Portal</text>
+
+      <rect x="370" y="85" width="110" height="45" rx="6" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="387" y="103" font-size="9" font-weight="600" fill="#fff">Dataverse</text>
+      <text x="385" y="117" font-size="8" fill="#ccc">Web API</text>
+
+      <line x1="320" y1="65" x2="368" y2="45" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="320" y1="90" x2="368" y2="107" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="425" y1="65" x2="425" y2="83" stroke="#335075" stroke-width="1" marker-end="url(#arrowBlue)"/>
+
+      <!-- Power Automate -->
+      <rect x="370" y="160" width="110" height="45" rx="6" fill="#26374A" stroke="#1a2a3a" stroke-width="1.5"/>
+      <text x="376" y="178" font-size="9" font-weight="600" fill="#fff">Power Automate</text>
+      <text x="398" y="192" font-size="8" fill="#ccc">Flows</text>
+      <line x1="425" y1="130" x2="425" y2="158" stroke="#335075" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Key Vault -->
+      <rect x="210" y="170" width="110" height="40" rx="6" fill="#E1E4E7" stroke="#999" stroke-width="1.5"/>
+      <text x="223" y="195" font-size="9" font-weight="600" fill="#26374A">Key Vault</text>
+      <line x1="370" y1="185" x2="322" y2="190" stroke="#666" stroke-width="1" marker-end="url(#arrowGray)"/>
+      <text x="330" y="180" font-size="7" fill="#555">Secrets</text>
+
+      <!-- Nintex -->
+      <rect x="540" y="160" width="130" height="45" rx="8" fill="#fdf0f0" stroke="#AF3C43" stroke-width="2"/>
+      <text x="555" y="180" font-size="10" font-weight="700" fill="#AF3C43">Nintex API</text>
+      <text x="555" y="195" font-size="8" fill="#555">ca1.assuresign.net</text>
+      <line x1="480" y1="182" x2="538" y2="182" stroke="#AF3C43" stroke-width="2" marker-end="url(#arrowRed)"/>
+      <text x="490" y="174" font-size="8" fill="#AF3C43" font-weight="600">HTTPS</text>
+
+      <!-- Response path -->
+      <line x1="538" y1="195" x2="482" y2="195" stroke="#1B6C2A" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <text x="490" y="210" font-size="7" fill="#1B6C2A">Response</text>
+
+      <!-- Azure Monitor -->
+      <rect x="540" y="80" width="130" height="40" rx="6" fill="#E1E4E7" stroke="#999" stroke-width="1.5"/>
+      <text x="555" y="100" font-size="9" font-weight="600" fill="#26374A">Azure Monitor</text>
+      <text x="555" y="113" font-size="8" fill="#555">Log Analytics</text>
+      <line x1="480" y1="107" x2="538" y2="100" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+
+      <!-- Entra ID -->
+      <rect x="210" y="260" width="260" height="45" rx="6" fill="#E1E4E7" stroke="#999" stroke-width="1.5"/>
+      <text x="265" y="283" font-size="11" font-weight="700" fill="#26374A">Microsoft Entra ID</text>
+      <text x="265" y="297" font-size="9" fill="#555">OAuth 2.0 Token Issuer &amp; Validation</text>
+
+      <line x1="340" y1="260" x2="255" y2="120" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+      <line x1="425" y1="205" x2="425" y2="258" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+
+      <!-- TLS labels -->
+      <text x="150" y="62" font-size="7" fill="#335075">TLS 1.2+</text>
+    </svg>
+    <figcaption>Figure 10: Network &amp; Data Flow — End-to-end data flow from clients through Azure Front Door, Dataverse, and Power Automate to Nintex</figcaption>
+  </figure>
+
+  <h3>12.2 Latency Targets</h3>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Target</th><th>Measurement Method</th></tr></thead>
+    <tbody>
+      <tr><td>Client/Portal to Dataverse</td><td>&lt;200 ms</td><td>Azure Monitor</td></tr>
+      <tr><td>Dataverse to Nintex API</td><td>&lt;500 ms</td><td>Application Insights</td></tr>
+      <tr><td>End-to-End (Submit Envelope)</td><td>&lt;3 seconds</td><td>Flow analytics</td></tr>
+      <tr><td>Portal Page Load</td><td>&lt;2 seconds</td><td>Application Insights</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Section 13 -->
+  <h2 id="sec13">13. Disaster Recovery &amp; Business Continuity</h2>
+
+  <h3>13.1 Recovery Objectives</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Target</th><th>Maximum Tolerable</th></tr></thead>
+    <tbody>
+      <tr><td>RTO (Recovery Time Objective)</td><td>4 hours</td><td>8 hours</td></tr>
+      <tr><td>RPO (Recovery Point Objective)</td><td>24 hours</td><td>48 hours</td></tr>
+      <tr><td>MTTR (Mean Time To Repair)</td><td>2 hours</td><td>4 hours</td></tr>
+      <tr><td>MTBF (Mean Time Between Failures)</td><td>720 hours (30 days)</td><td>N/A</td></tr>
+    </tbody>
+  </table>
+
+  <h3>13.2 Disaster Scenarios</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th>Type</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr><td>Regional Outage (Canada Central)</td><td>Infrastructure</td><td>Activate DR environment in Canada East</td></tr>
+      <tr><td>Dataverse Corruption / Data Loss</td><td>Data</td><td>Point-in-time restore from continuous backup</td></tr>
+      <tr><td>Security Breach</td><td>Security</td><td>Incident response and containment procedure</td></tr>
+      <tr><td>Nintex Outage</td><td>External dependency</td><td>Wait for Nintex recovery; queue submissions</td></tr>
+      <tr><td>Portal Outage</td><td>Infrastructure</td><td>Restart portal; clients continue via API</td></tr>
+    </tbody>
+  </table>
+
+  <h3>13.3 Recovery Procedures</h3>
+  <p><strong>Hour 0-1: Assessment</strong> — Verify outage scope via Azure Status page. Test broker API endpoint. Notify stakeholders with ETA of 4 hours.</p>
+  <p><strong>Hour 1-2: Activation</strong> — Restore latest Dataverse backup to DR environment (Canada East). Monitor restore progress.</p>
+  <p><strong>Hour 2-3: Configuration</strong> — Import Power Automate solutions from Git repository. Reconfigure Managed Identity access to Key Vault. Update DLP policies. Test Nintex integration from DR environment.</p>
+  <p><strong>Hour 3-4: Validation</strong> — Submit 3 test envelopes end-to-end. Verify status sync. Send notification to all clients with the new temporary endpoint URL.</p>
+
+  <h3>13.4 Critical Business Functions</h3>
+  <table>
+    <thead><tr><th>Function</th><th>RTO</th><th>RPO</th><th>Dependencies</th></tr></thead>
+    <tbody>
+      <tr><td>Create Envelope</td><td>4h</td><td>24h</td><td>Dataverse, Entra ID</td></tr>
+      <tr><td>Send Envelope</td><td>4h</td><td>24h</td><td>Dataverse, Nintex, Key Vault</td></tr>
+      <tr><td>Status Sync</td><td>8h</td><td>48h</td><td>Nintex API</td></tr>
+      <tr><td>Portal Access</td><td>4h</td><td>24h</td><td>Dataverse, Entra ID, Power Pages</td></tr>
+      <tr><td>Client Onboarding</td><td>24h</td><td>N/A</td><td>Entra ID (manual process fallback)</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Section 14 -->
+  <h2 id="sec14">14. Compliance &amp; Governance (ITSG-33)</h2>
+
+  <h3>14.1 ITSG-33 Control Mapping</h3>
+
+  <h4>Access Control (AC)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>AC-1</td><td>Access control policy</td><td>Security roles, RLS, OAuth 2.0</td></tr>
+      <tr><td>AC-2</td><td>Account management</td><td>Service principals per client; quarterly review</td></tr>
+      <tr><td>AC-3</td><td>Access enforcement</td><td>Dataverse RLS, security roles</td></tr>
+      <tr><td>AC-4</td><td>Information flow enforcement</td><td>DLP policies, network isolation</td></tr>
+      <tr><td>AC-6</td><td>Least privilege</td><td>Minimal permissions per role</td></tr>
+      <tr><td>AC-7</td><td>Unsuccessful logon attempts</td><td>Entra ID lockout after 5 failures</td></tr>
+      <tr><td>AC-17</td><td>Remote access</td><td>VPN/Conditional Access required</td></tr>
+      <tr><td>AC-20</td><td>Use of external systems</td><td>Nintex via API only; portal via authenticated HTTPS only</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Audit and Accountability (AU)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>AU-2</td><td>Audit events</td><td>All CRUD on Protected B data</td></tr>
+      <tr><td>AU-3</td><td>Content of audit records</td><td>Timestamp, user, action, result</td></tr>
+      <tr><td>AU-6</td><td>Audit review</td><td>Weekly security team review</td></tr>
+      <tr><td>AU-9</td><td>Protection of audit information</td><td>Immutable storage, RBAC</td></tr>
+      <tr><td>AU-11</td><td>Audit record retention</td><td>7 years for Protected B</td></tr>
+      <tr><td>AU-12</td><td>Audit generation</td><td>Dataverse, Azure Monitor, Entra ID</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Configuration Management (CM)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>CM-2</td><td>Baseline configuration</td><td>Git-managed solution source; PAC CLI pack/unpack</td></tr>
+      <tr><td>CM-3</td><td>Configuration change control</td><td>Pull request reviews; solution versioning</td></tr>
+      <tr><td>CM-6</td><td>Configuration settings</td><td>Environment variables in ESignatureConfig solution</td></tr>
+      <tr><td>CM-7</td><td>Least functionality</td><td>DLP policies; blocked connectors by default</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Contingency Planning (CP)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>CP-2</td><td>Contingency plan</td><td>DR procedures documented (Section 13)</td></tr>
+      <tr><td>CP-9</td><td>Information system backup</td><td>Continuous Dataverse backup; weekly manual snapshots</td></tr>
+      <tr><td>CP-10</td><td>Information system recovery</td><td>4-hour RTO; point-in-time restore capability</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Identification and Authentication (IA)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>IA-2</td><td>Identification and authentication</td><td>Entra ID for all users and services</td></tr>
+      <tr><td>IA-4</td><td>Identifier management</td><td>Unique service principals per client</td></tr>
+      <tr><td>IA-5</td><td>Authenticator management</td><td>Azure Key Vault; quarterly rotation</td></tr>
+      <tr><td>IA-8</td><td>Identification (non-organizational)</td><td>External signers identified by email + signing link</td></tr>
+    </tbody>
+  </table>
+
+  <h4>System and Communications Protection (SC)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>SC-7</td><td>Boundary protection</td><td>DLP policies, TLS 1.2+</td></tr>
+      <tr><td>SC-8</td><td>Transmission confidentiality</td><td>TLS 1.2+ for all communications</td></tr>
+      <tr><td>SC-12</td><td>Cryptographic key management</td><td>Azure Key Vault, quarterly rotation</td></tr>
+      <tr><td>SC-13</td><td>Cryptographic protection</td><td>AES-256 at rest, TLS 1.2+ in transit</td></tr>
+      <tr><td>SC-28</td><td>Protection of information at rest</td><td>Dataverse TDE, Storage encryption</td></tr>
+    </tbody>
+  </table>
+
+  <h4>System and Information Integrity (SI)</h4>
+  <table>
+    <thead><tr><th>Control</th><th>Requirement</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>SI-2</td><td>Flaw remediation</td><td>Platform-managed patching (PaaS)</td></tr>
+      <tr><td>SI-3</td><td>Malicious code protection</td><td>File type whitelist; CSP headers</td></tr>
+      <tr><td>SI-4</td><td>Information system monitoring</td><td>Azure Monitor; Application Insights; alerting rules</td></tr>
+      <tr><td>SI-5</td><td>Security alerts</td><td>Critical and warning alert rules (Section 8.3)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>14.2 Privacy Impact Assessment (PIA)</h3>
+  <table>
+    <thead><tr><th>PII Element</th><th>Purpose</th><th>Legal Authority</th><th>Retention</th></tr></thead>
+    <tbody>
+      <tr><td>Signer email</td><td>Contact for signature request</td><td>Consent via envelope submission</td><td>7 years</td></tr>
+      <tr><td>Signer name</td><td>Display on document</td><td>Consent via envelope submission</td><td>7 years</td></tr>
+      <tr><td>Signer phone</td><td>Optional contact method</td><td>Consent via envelope submission</td><td>7 years</td></tr>
+      <tr><td>IP address</td><td>Audit trail (fraud prevention)</td><td>Legitimate interest</td><td>7 years</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Privacy Controls Applied:</strong> Collection limitation; data quality; purpose specification; use limitation; security safeguards; openness (privacy policy published); individual participation (data subject rights supported); accountability (Privacy Officer designated).</p>
+
+  <h3>14.3 Compliance Summary</h3>
+  <table>
+    <thead><tr><th>Control Family</th><th>Total Controls</th><th>Implemented</th><th>Not Applicable</th></tr></thead>
+    <tbody>
+      <tr><td>AC: Access Control</td><td>25</td><td>20</td><td>5</td></tr>
+      <tr><td>AU: Audit and Accountability</td><td>16</td><td>16</td><td>0</td></tr>
+      <tr><td>CM: Configuration Management</td><td>11</td><td>11</td><td>0</td></tr>
+      <tr><td>CP: Contingency Planning</td><td>13</td><td>13</td><td>0</td></tr>
+      <tr><td>IA: Identification and Authentication</td><td>11</td><td>10</td><td>1</td></tr>
+      <tr><td>SC: System and Communications Protection</td><td>44</td><td>38</td><td>6</td></tr>
+      <tr><td>SI: System and Information Integrity</td><td>23</td><td>20</td><td>3</td></tr>
+      <tr><td><strong>TOTAL</strong></td><td><strong>143</strong></td><td><strong>128</strong></td><td><strong>15</strong></td></tr>
+    </tbody>
+  </table>
+  <p><strong>Overall Compliance Rate: 90% (128/143 controls implemented)</strong></p>
+</div>
+
+<!-- ============================================================ -->
+<!-- PART 5: ANNEXES -->
+<!-- ============================================================ -->
+<div class="container page-break">
+  <h1 id="part5">Part 5: Annexes</h1>
+
+  <!-- Annex A -->
+  <h2 id="annexA">Annex A: Environment Configuration</h2>
+
+  <h3>A.1 Environment URLs</h3>
+  <table>
+    <thead><tr><th>Environment</th><th>Unique Name</th><th>URL</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>DEV</td><td>goc-wetv14</td><td>https://goc-wetv14.crm3.dynamics.com</td><td>Feature development</td></tr>
+      <tr><td>EC DEV</td><td>dev-ec-esign-01</td><td>https://dev-ec-esign-01.crm3.dynamics.com</td><td>Elections Canada development</td></tr>
+      <tr><td>EC TEST</td><td>test-ec-esign-01</td><td>https://test-ec-esign-01.crm3.dynamics.com</td><td>Elections Canada testing</td></tr>
+      <tr><td>Production</td><td>[TBD]</td><td>https://[TBD].crm3.dynamics.com</td><td>Live workloads</td></tr>
+      <tr><td>DR</td><td>[TBD]</td><td>https://[TBD].crm4.dynamics.com</td><td>Disaster recovery</td></tr>
+    </tbody>
+  </table>
+
+  <h3>A.2 Azure Resources</h3>
+  <table>
+    <thead><tr><th>Resource Type</th><th>Name</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Key Vault (Dev)</td><td>[TBD]-dev-kv</td><td>Dev secrets</td></tr>
+      <tr><td>Key Vault (Prod)</td><td>[TBD]-prod-kv</td><td>Production secrets</td></tr>
+      <tr><td>Storage Account</td><td>[TBD]auditarchive</td><td>Audit log archive</td></tr>
+      <tr><td>Log Analytics</td><td>broker-prod-logs</td><td>Monitoring</td></tr>
+      <tr><td>Application Insights</td><td>[TBD]-appi</td><td>Portal monitoring</td></tr>
+    </tbody>
+  </table>
+
+  <h3>A.3 Nintex Configuration</h3>
+  <table>
+    <thead><tr><th>Environment</th><th>Account Type</th><th>Auth URL</th><th>API Base URL</th></tr></thead>
+    <tbody>
+      <tr><td>DEV</td><td>Sandbox</td><td>https://account.assuresign.net/api/v3.7</td><td>https://ca1.assuresign.net/api/documentnow/v3.7</td></tr>
+      <tr><td>EC DEV</td><td>Sandbox</td><td>https://account.assuresign.net/api/v3.7</td><td>https://ca1.assuresign.net/api/documentnow/v3.7</td></tr>
+      <tr><td>EC TEST</td><td>Sandbox</td><td>https://account.assuresign.net/api/v3.7</td><td>https://ca1.assuresign.net/api/documentnow/v3.7</td></tr>
+      <tr><td>Production</td><td>Production</td><td>https://account.assuresign.net/api/v3.7</td><td>https://ca1.assuresign.net/api/documentnow/v3.7</td></tr>
+    </tbody>
+  </table>
+
+  <h3>A.4 Solution Inventory</h3>
+  <table>
+    <thead><tr><th>Solution</th><th>Unique Name</th><th>Current Version</th><th>Environment(s)</th></tr></thead>
+    <tbody>
+      <tr><td>Nintex Schema</td><td>nintex</td><td>Latest</td><td>All</td></tr>
+      <tr><td>E-Signature Config</td><td>ESignatureConfig</td><td>Latest</td><td>All</td></tr>
+      <tr><td>E-Signature Broker</td><td>ESignatureBroker</td><td>1.0.0.73</td><td>All</td></tr>
+      <tr><td>E-Signature Client</td><td>ESignatureClient</td><td>Latest</td><td>Client environments only</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Annex B -->
+  <h2 id="annexB">Annex B: API Specifications</h2>
+
+  <h3>B.1 Nintex AssureSign API Endpoints</h3>
+  <p><strong>Base URL:</strong> <code>https://ca1.assuresign.net/api/documentnow/v3.7</code></p>
+  <p><strong>Auth URL:</strong> <code>https://account.assuresign.net/api/v3.7/authentication/apiUser</code></p>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Method</th><th>Purpose</th><th>Request Body / Params</th></tr></thead>
+    <tbody>
+      <tr><td>/authentication/apiUser</td><td>POST</td><td>Obtain access token</td><td>{apiUsername, key, contextUsername}</td></tr>
+      <tr><td>/submit</td><td>POST</td><td>Create and send envelope</td><td>Full envelope payload</td></tr>
+      <tr><td>/templates</td><td>GET</td><td>List available templates</td><td>None</td></tr>
+      <tr><td>/envelopes/{id}</td><td>GET</td><td>Get envelope details and status</td><td>Path: envelope ID</td></tr>
+      <tr><td>/envelopes/{id}/signingLinks</td><td>GET</td><td>Retrieve per-signer signing URLs</td><td>Path: envelope ID</td></tr>
+      <tr><td>/envelopes/{id}/history</td><td>GET</td><td>Get envelope event history</td><td>Path: envelope ID</td></tr>
+      <tr><td>/envelopes/{id}/cancel</td><td>POST</td><td>Cancel an active envelope</td><td>Path: envelope ID</td></tr>
+    </tbody>
+  </table>
+
+  <h3>B.2 Dataverse OData Query Examples</h3>
+  <p><strong>Get envelopes with status "In Process" (717640003):</strong></p>
+  <pre><code>GET /api/data/v9.2/cs_envelopes?$filter=statuscode eq 717640003&amp;$select=cs_name,statuscode</code></pre>
+  <p><strong>Get envelope with signers expanded:</strong></p>
+  <pre><code>GET /api/data/v9.2/cs_envelopes({guid})?$expand=cs_envelope_signer($select=cs_email,cs_fullname,statuscode)</code></pre>
+  <p><strong>Get environment variable values (pattern used by all broker flows):</strong></p>
+  <pre><code>GET /api/data/v9.2/environmentvariabledefinitions?$filter=startswith(schemaname,'cs_Nintex')
+    &amp;$expand=environmentvariabledefinition_environmentvariablevalue($select=value)
+    &amp;$select=schemaname</code></pre>
+
+  <h3>B.3 Portal Web API Examples</h3>
+  <p><strong>Create envelope via portal:</strong></p>
+  <pre><code>POST /_api/cs_envelopes
+Content-Type: application/json
+{
+  "cs_name": "Contract - John Smith",
+  "cs_subject": "Please sign this contract",
+  "statuscode": 1
+}</code></pre>
+  <p><strong>Create signer linked to envelope:</strong></p>
+  <pre><code>POST /_api/cs_signers
+Content-Type: application/json
+{
+  "cs_fullname": "John Smith",
+  "cs_email": "john.smith@example.com",
+  "cs_signerorder": 1,
+  "cs_envelopelookup@odata.bind": "cs_envelopes({envelope-guid})"
+}</code></pre>
+  <p><strong>Upload PDF as annotation:</strong></p>
+  <pre><code>POST /_api/annotations
+Content-Type: application/json
+{
+  "subject": "Template PDF",
+  "filename": "contract.pdf",
+  "documentbody": "&lt;base64-encoded-pdf&gt;",
+  "mimetype": "application/pdf",
+  "objectid_cs_template@odata.bind": "cs_templates({template-guid})"
+}</code></pre>
+
+  <hr>
+
+  <!-- Annex C -->
+  <h2 id="annexC">Annex C: Troubleshooting Guide</h2>
+
+  <h3>C.1 Common Issues (Broker Service)</h3>
+
+  <h4>"Unauthorized" when calling the API</h4>
+  <p><strong>Cause:</strong> Token is invalid or has expired.</p>
+  <p><strong>Resolution:</strong> Verify the token's expiry and audience claim (the <code>aud</code> claim must match the broker Dataverse environment URL). Request a new token if expired.</p>
+
+  <h4>"Cannot access cs_envelopes"</h4>
+  <p><strong>Cause:</strong> Missing security role assignment or incorrect environment URL.</p>
+  <p><strong>Resolution:</strong> Verify the Application User exists in Dataverse and is assigned the E-Signature Broker User security role. Test the identity using a <code>WhoAmI</code> call to the Dataverse API.</p>
+
+  <h4>"Envelope stuck in Draft, won't progress"</h4>
+  <p><strong>Cause:</strong> Missing signers or documents, or statuscode not set to Preparing (717640001).</p>
+  <p><strong>Resolution:</strong> Retrieve the envelope with <code>$expand=cs_envelope_signer,cs_envelope_document</code> and verify at least one signer and one document exist. Set <code>statuscode</code> to <code>717640001</code> to trigger the Prepare Envelope flow.</p>
+
+  <h4>"Signer not receiving email"</h4>
+  <p><strong>Cause:</strong> Email in spam, or envelope has not yet been sent to Nintex.</p>
+  <p><strong>Resolution:</strong> Check the envelope status and <code>cs_preparedenvelopeid</code>. If status is In Process (717640003), the email was dispatched by Nintex — check the signer's spam folder. Retrieve the signing link from <code>cs_signinglink</code> and deliver it via an alternative channel.</p>
+
+  <h4>"Envelope stuck in Preparing"</h4>
+  <p><strong>Cause:</strong> Prepare Envelope flow failed or is not running.</p>
+  <p><strong>Resolution:</strong> Check Power Automate flow run history for the Prepare Envelope flow. Verify the flow is turned on. Check <code>cs_responsebody</code> for Nintex API error details.</p>
+
+  <h3>C.2 Common Issues (Portal)</h3>
+
+  <h4>Portal login fails or loops</h4>
+  <p><strong>Cause:</strong> Entra ID OpenID Connect misconfiguration or incorrect redirect URI.</p>
+  <p><strong>Resolution:</strong> Verify the portal's authentication provider settings match the App Registration in Entra ID. Confirm the redirect URI matches exactly.</p>
+
+  <h4>PDF not rendering in template editor</h4>
+  <p><strong>Cause:</strong> PDF.js library not loaded, or CORS/CSP blocking.</p>
+  <p><strong>Resolution:</strong> Check browser developer console for errors. Verify the PDF.js CDN is allowed in the portal's Content Security Policy headers.</p>
+
+  <h4>Connection reference errors in deployed environment</h4>
+  <p><strong>Cause:</strong> The Dataverse connection reference (<code>cs_sharecommondataserviceforapps</code>) is not configured in the target environment.</p>
+  <p><strong>Resolution:</strong> After importing the ESignatureBroker solution, navigate to the solution's connection references and create or update the connection with valid credentials for the target environment.</p>
+
+  <h3>C.3 Support Escalation Matrix</h3>
+  <table>
+    <thead><tr><th>Severity</th><th>Response Time</th><th>Escalation Path</th></tr></thead>
+    <tbody>
+      <tr><td>P1 — Critical</td><td>15 minutes</td><td>L1 &rarr; L2 &rarr; Platform Lead &rarr; Incident Commander</td></tr>
+      <tr><td>P2 — High</td><td>2 hours</td><td>L1 &rarr; L2 &rarr; Technical Lead</td></tr>
+      <tr><td>P3 — Medium</td><td>8 hours</td><td>L1 &rarr; L2</td></tr>
+      <tr><td>P4 — Low</td><td>24 hours</td><td>L1</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Severity Definitions</h4>
+  <ul>
+    <li><strong>P1:</strong> Complete service outage or confirmed security breach</li>
+    <li><strong>P2:</strong> Significant degradation affecting multiple clients or portal users</li>
+    <li><strong>P3:</strong> Single client or user impacted; workaround available</li>
+    <li><strong>P4:</strong> Minor issue or enhancement request</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- GLOSSARY -->
+<!-- ============================================================ -->
+<div class="container page-break">
+  <h1 id="glossary">Glossary of Acronyms</h1>
+
+  <table class="glossary-table">
+    <thead><tr><th>Acronym</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CLS</td><td>Column-Level Security</td></tr>
+      <tr><td>CRUD</td><td>Create, Read, Update, Delete</td></tr>
+      <tr><td>CSP</td><td>Content Security Policy</td></tr>
+      <tr><td>DDoS</td><td>Distributed Denial of Service</td></tr>
+      <tr><td>DLP</td><td>Data Loss Prevention</td></tr>
+      <tr><td>DR</td><td>Disaster Recovery</td></tr>
+      <tr><td>EC</td><td>Elections Canada</td></tr>
+      <tr><td>ERD</td><td>Entity Relationship Diagram</td></tr>
+      <tr><td>GC</td><td>Government of Canada</td></tr>
+      <tr><td>GUID</td><td>Globally Unique Identifier</td></tr>
+      <tr><td>HTML</td><td>HyperText Markup Language</td></tr>
+      <tr><td>HTTP</td><td>HyperText Transfer Protocol</td></tr>
+      <tr><td>HTTPS</td><td>HyperText Transfer Protocol Secure</td></tr>
+      <tr><td>ITSG-33</td><td>IT Security Guidance Publication 33 (Government of Canada)</td></tr>
+      <tr><td>JS</td><td>JavaScript</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>MFA</td><td>Multi-Factor Authentication</td></tr>
+      <tr><td>MSI</td><td>Managed Service Identity</td></tr>
+      <tr><td>N/A</td><td>Not Applicable</td></tr>
+      <tr><td>OAuth</td><td>Open Authorization</td></tr>
+      <tr><td>OData</td><td>Open Data Protocol</td></tr>
+      <tr><td>OIDC</td><td>OpenID Connect</td></tr>
+      <tr><td>PaaS</td><td>Platform as a Service</td></tr>
+      <tr><td>PAC</td><td>Power Platform CLI</td></tr>
+      <tr><td>PDF</td><td>Portable Document Format</td></tr>
+      <tr><td>PII</td><td>Personally Identifiable Information</td></tr>
+      <tr><td>PIM</td><td>Privileged Identity Management</td></tr>
+      <tr><td>PK</td><td>Primary Key</td></tr>
+      <tr><td>RBAC</td><td>Role-Based Access Control</td></tr>
+      <tr><td>REST</td><td>Representational State Transfer</td></tr>
+      <tr><td>RLS</td><td>Row-Level Security</td></tr>
+      <tr><td>RPO</td><td>Recovery Point Objective</td></tr>
+      <tr><td>RTO</td><td>Recovery Time Objective</td></tr>
+      <tr><td>SADD</td><td>Solution Architecture and Design Document</td></tr>
+      <tr><td>SaaS</td><td>Software as a Service</td></tr>
+      <tr><td>SDK</td><td>Software Development Kit</td></tr>
+      <tr><td>SOC</td><td>System and Organization Controls</td></tr>
+      <tr><td>SP</td><td>Service Principal</td></tr>
+      <tr><td>SQL</td><td>Structured Query Language</td></tr>
+      <tr><td>SSO</td><td>Single Sign-On</td></tr>
+      <tr><td>TDE</td><td>Transparent Data Encryption</td></tr>
+      <tr><td>TLS</td><td>Transport Layer Security</td></tr>
+      <tr><td>URL</td><td>Uniform Resource Locator</td></tr>
+      <tr><td>UUID</td><td>Universally Unique Identifier</td></tr>
+      <tr><td>WET</td><td>Web Experience Toolkit (Government of Canada)</td></tr>
+      <tr><td>XSS</td><td>Cross-Site Scripting</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <p style="text-align:center; color: var(--gc-blue-light); font-style:italic; margin-top:40px; padding-bottom:20px;">
+    End of Document — ESign Elections Canada SADD v2.0 — April 2026
+  </p>
+  <div style="height:3px; background:var(--gc-red); margin-top:20px;"></div>
+</div>
+
+</body>
+</html>
