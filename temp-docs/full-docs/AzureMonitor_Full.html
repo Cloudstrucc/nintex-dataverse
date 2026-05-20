@@ -1,0 +1,1457 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>AzureMonitor_Full</title><style>
+:root{--ec-burgundy:#6a0032;--ec-navy:#1e384b;--ec-teal:#036064;--ec-green:#8b9538;--ec-gold:#c9862d;--ec-purple:#60205c;--ec-light:#f3f4f5;--ec-text:#222;--ec-muted:#666}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ec-text);line-height:1.45;background:#f6f6f6}main{width:min(1080px,100%);margin:0 auto;background:#fff;box-shadow:0 0 20px rgba(0,0,0,.08)}
+.cover{min-height:100vh;position:relative;overflow:hidden;background:#fff;padding:72px 72px 54px;display:flex;align-items:center;justify-content:flex-end;page-break-after:always}.cover:before{content:'';position:absolute;left:-200px;top:-100px;width:640px;height:640px;background:var(--ec-burgundy);transform:rotate(45deg)}.cover:after{content:'';position:absolute;left:180px;top:-80px;width:36px;height:680px;background:var(--ec-teal);transform:rotate(45deg);border-left:14px solid #fff}.cover .gold{position:absolute;left:100px;bottom:-120px;width:320px;height:320px;background:var(--ec-gold);transform:rotate(45deg)}.cover .green{position:absolute;left:-80px;bottom:30px;width:180px;height:26px;background:var(--ec-green);transform:rotate(45deg)}.cover-card{position:relative;z-index:2;width:min(620px,58%);padding:36px 42px;background:rgba(255,255,255,.95);border-left:8px solid var(--ec-burgundy);box-shadow:0 10px 24px rgba(0,0,0,.08)}.cover-kicker{text-transform:uppercase;letter-spacing:.16em;color:var(--ec-burgundy);font-weight:700;font-size:12px}.cover h1{font-size:36px;line-height:1.06;margin:20px 0 18px;color:#111}.cover .subtitle{font-size:17px;color:var(--ec-navy);font-weight:700;margin-bottom:28px}.cover .meta{font-size:13px;color:#444;border-top:1px solid #ddd;padding-top:18px}.brand-wordmark{position:absolute;top:42px;right:72px;color:#111;font-weight:700;letter-spacing:.02em;z-index:3}.brand-wordmark .x{display:inline-block;color:var(--ec-burgundy);font-size:24px;transform:translateY(2px);margin-right:4px}
+.content{padding:48px 72px 72px}.toc{background:#f5f5f5;border:1px solid #e2e2e2;padding:22px 26px;margin:0 0 28px;page-break-after:always}.toc h2{border:0;padding:0;margin:0 0 12px}.toc ul{columns:2;column-gap:40px;list-style:none;padding:0;margin:0}.toc li{break-inside:avoid;margin:0 0 7px;font-size:13px}.toc-l3{margin-left:18px!important;font-size:12px!important}.toc a{color:#222;text-decoration:none;border-bottom:1px solid #ddd}h1,h2,h3,h4{color:#111;line-height:1.2}h1{font-size:32px}h2{margin-top:46px;font-size:25px;padding-top:8px;border-top:2px solid #e8e8e8}h3{margin-top:30px;color:var(--ec-burgundy);font-size:19px}h4{margin-top:20px;color:var(--ec-navy);font-size:16px}a{color:var(--ec-burgundy)}blockquote{margin:22px 0;padding:14px 18px;border-left:5px solid var(--ec-teal);background:#f4f7f7}.diagram{border:1px solid #ddd;border-radius:10px;margin:22px 0;padding:10px;page-break-inside:avoid}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:13px}th{background:var(--ec-navy);color:#fff;text-align:left}th,td{border:1px solid #d8d8d8;padding:8px 10px;vertical-align:top}tr:nth-child(even) td{background:#fafafa}code{font-family:Consolas,'Courier New',monospace;font-size:.92em;color:#111}pre{background:#111827;color:#f8fafc;padding:14px 16px;border-radius:6px;overflow-x:auto;white-space:pre-wrap;font-size:12px}pre code{color:inherit}.pagebreak{page-break-before:always}hr{border:0;border-top:1px solid #ddd;margin:28px 0}.badge{display:inline-block;padding:3px 8px;background:var(--ec-light);border-left:4px solid var(--ec-burgundy);margin-right:5px;font-size:12px}
+@media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}main{width:100%;box-shadow:none}@page{size:Letter;margin:.65in .55in .7in .55in}.cover{height:10in;min-height:10in;padding:.55in;break-after:page}.cover-card{width:58%;box-shadow:none}.cover h1{font-size:30px}.content{padding:0}.toc{break-after:page}h1{break-before:page}h2,h3,h4{break-after:avoid}table,pre,.diagram,blockquote{break-inside:avoid}a{text-decoration:none;color:#111}}
+@media(max-width:760px){.content{padding:32px 24px}.cover{padding:36px 24px}.cover-card{width:100%}.brand-wordmark{right:24px}.cover:before{left:-360px}.cover:after{left:80px}.toc ul{columns:1}}
+</style></head><body><main><section class="cover">
+  <div class="brand-wordmark"><span class="x">X</span>Elections Canada</div>
+  <div class="gold"></div><div class="green"></div>
+  <div class="cover-card">
+    <div class="cover-kicker">Implementation Architecture and Build Book</div>
+    <h1>Azure Monitor and Microsoft Purview Monitoring for Power Platform</h1>
+    <div class="subtitle">Full IT Operations Version - Power Platform, Power Pages, Dataverse, Power Automate, and Entra External ID</div>
+    <div class="meta">
+      <strong>Author:</strong> Frederick Pearson, Platform Engineering<br/>
+      <strong>Audience:</strong> Elections Canada IT Operations, Power Platform Administrators, Identity Operations, Purview/Compliance Administrators<br/>
+      <strong>Version:</strong> 1.0<br/>
+      <strong>Use:</strong> Architecture review, operational monitoring design, implementation planning, and RFC support
+    </div>
+  </div>
+</section><section class="content"><nav class="toc" id="toc"><h2>Table of Contents</h2><ul>
+<li class="toc-l1"><a href="#azure-monitor-and-microsoft-purview-monitoring-for-power-platform">Azure Monitor and Microsoft Purview Monitoring for Power
+Platform</a></li>
+<li class="toc-l2"><a href="#document-control">Document Control</a></li>
+<li class="toc-l2"><a href="#implementation-summary">Implementation Summary</a></li>
+<li class="toc-l2"><a href="#monitoring-requirements">Monitoring Requirements</a></li>
+<li class="toc-l3"><a href="#azure-monitor-operational-requirements">Azure Monitor operational requirements</a></li>
+<li class="toc-l3"><a href="#microsoft-purview-evidence-requirements">Microsoft Purview evidence requirements</a></li>
+<li class="toc-l3"><a href="#entra-external-id-operational-requirements">Entra External ID operational requirements</a></li>
+<li class="toc-l2"><a href="#target-architecture">Target Architecture</a></li>
+<li class="toc-l3"><a href="#logical-architecture">Logical architecture</a></li>
+<li class="toc-l3"><a href="#data-flow">Data flow</a></li>
+<li class="toc-l2"><a href="#resource-naming-and-placeholder-standards">Resource Naming and Placeholder Standards</a></li>
+<li class="toc-l2"><a href="#roles-and-responsibilities">Roles and Responsibilities</a></li>
+<li class="toc-l2"><a href="#azure-monitor-alert-catalogue">Azure Monitor Alert Catalogue</a></li>
+<li class="toc-l2"><a href="#azure-monitor-dashboard-and-workbook-requirements">Azure Monitor Dashboard and Workbook Requirements</a></li>
+<li class="toc-l2"><a href="#appendix-a-azure-monitor-operational-build-book">Appendix A - Azure Monitor Operational Build Book</a></li>
+<li class="toc-l3"><a href="#prerequisites">Prerequisites</a></li>
+<li class="toc-l3"><a href="#create-or-validate-the-azure-resource-group">Create or validate the Azure resource group</a></li>
+<li class="toc-l3"><a href="#create-or-validate-the-log-analytics-workspace">Create or validate the Log Analytics workspace</a></li>
+<li class="toc-l3"><a href="#create-or-validate-application-insights">Create or validate Application Insights</a></li>
+<li class="toc-l3"><a href="#configure-power-platform-export-to-application-insights">Configure Power Platform export to Application Insights</a></li>
+<li class="toc-l3"><a href="#configure-an-azure-monitor-action-group">Configure an Azure Monitor action group</a></li>
+<li class="toc-l3"><a href="#configure-azure-monitor-alert-rules">Configure Azure Monitor alert rules</a></li>
+<li class="toc-l3"><a href="#create-the-it-operations-workbook">Create the IT Operations workbook</a></li>
+<li class="toc-l2"><a href="#appendix-b-entra-external-id-operational-monitoring-build-book">Appendix B - Entra External ID Operational Monitoring Build
+Book</a></li>
+<li class="toc-l3"><a href="#prerequisites">Prerequisites</a></li>
+<li class="toc-l3"><a href="#configure-external-id-diagnostics">Configure External ID diagnostics</a></li>
+<li class="toc-l2"><a href="#appendix-c-microsoft-purview-audit-and-compliance-evidence-build-book">Appendix C - Microsoft Purview Audit and Compliance Evidence Build
+Book</a></li>
+<li class="toc-l3"><a href="#prerequisites">Prerequisites</a></li>
+<li class="toc-l3"><a href="#validate-purview-audit-access">Validate Purview audit access</a></li>
+<li class="toc-l3"><a href="#enable-power-platform-environment-audit-visibility-in-purview">Enable Power Platform environment audit visibility in Purview</a></li>
+<li class="toc-l3"><a href="#validate-power-platform-admin-logs-in-purview">Validate Power Platform admin logs in Purview</a></li>
+<li class="toc-l3"><a href="#validate-power-apps-and-dataverse-audit-records-in-purview">Validate Power Apps and Dataverse audit records in Purview</a></li>
+<li class="toc-l3"><a href="#define-the-evidence-procedure">Define the evidence procedure</a></li>
+<li class="toc-l2"><a href="#appendix-d-operational-support-runbooks">Appendix D - Operational Support Runbooks</a></li>
+<li class="toc-l3"><a href="#power-pages-availability-failure">Power Pages availability failure</a></li>
+<li class="toc-l3"><a href="#power-automate-cloud-flow-failure-spike">Power Automate cloud flow failure spike</a></li>
+<li class="toc-l3"><a href="#dataverse-exception-spike">Dataverse exception spike</a></li>
+<li class="toc-l3"><a href="#entra-external-id-failed-sign-in-spike">Entra External ID failed sign-in spike</a></li>
+<li class="toc-l3"><a href="#telemetry-ingestion-gap">Telemetry ingestion gap</a></li>
+<li class="toc-l2"><a href="#appendix-e-validation-checklist">Appendix E - Validation Checklist</a></li>
+<li class="toc-l2"><a href="#references">References</a></li>
+</ul></nav><section class="level1" id="azure-monitor-and-microsoft-purview-monitoring-for-power-platform">
+<h1 id="azure-monitor-and-microsoft-purview-monitoring-for-power-platform">Azure Monitor and Microsoft Purview Monitoring for Power
+Platform</h1>
+<section class="level2" id="document-control">
+<h2 id="document-control">Document Control</h2>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Organization</td>
+<td>Elections Canada</td>
+</tr>
+<tr class="even">
+<td>Document owner</td>
+<td>Platform Engineering</td>
+</tr>
+<tr class="odd">
+<td>Author</td>
+<td>Frederick Pearson</td>
+</tr>
+<tr class="even">
+<td>Target implementation teams</td>
+<td>IT Operations, Power Platform Administrators, Identity Operations,
+Purview/Compliance Administrators</td>
+</tr>
+<tr class="odd">
+<td>Primary technologies</td>
+<td>Azure Monitor, Log Analytics, Application Insights, Microsoft
+Purview, Entra External ID diagnostic settings</td>
+</tr>
+<tr class="even">
+<td>Primary workload scope</td>
+<td>Power Pages, Power Apps, Dataverse, Power Automate, external user
+sign-in and registration telemetry</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level2" id="implementation-summary">
+<h2 id="implementation-summary">Implementation Summary</h2>
+<p>Elections Canada will use Azure Monitor as the operational monitoring
+layer for Power Platform environments and external-facing Power Pages
+sites. Azure Monitor will collect telemetry through Application
+Insights, store telemetry in Log Analytics, execute operational alert
+rules, notify IT Operations through action groups, and support IT
+Operations dashboards and support runbooks.</p>
+<p>Elections Canada will use Microsoft Purview as the audit and
+compliance evidence layer for Power Platform. Purview will provide audit
+records for Power Platform admin activity, Power Apps activity,
+Dataverse/model-driven app activity, and compliance investigation
+support. Purview evidence will support operational investigations,
+compliance reviews, eDiscovery support, and evidence packages for
+incidents or service tickets.</p>
+<p>Elections Canada will route Entra External ID diagnostics to Azure
+Monitor because Power Pages sites use Entra External ID for external
+user sign-in and registration. This will allow IT Operations and
+Identity Operations to validate the health and reliability of sign-in,
+registration, and identity diagnostics for external users.</p>
+<div aria-label="Azure Monitor and Microsoft Purview operational monitoring architecture for Power Platform and Entra External ID" class="diagram" role="img">
+<svg viewbox="0 0 1040 520" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<filter height="140%" id="shadow" width="140%" x="-20%" y="-20%"><fedropshadow dx="0" dy="2" flood-opacity="0.14" stddeviation="2"></fedropshadow></filter>
+<marker id="arrow" markerheight="10" markerunits="strokeWidth" markerwidth="10" orient="auto" refx="8" refy="3"><path d="M0,0 L0,6 L9,3 z" fill="#1e384b"></path></marker>
+</defs>
+<rect fill="#f8f8f8" height="500" rx="16" stroke="#d8d8d8" width="1020" x="10" y="10"></rect>
+<text fill="#222" font-size="22" font-weight="700" x="35" y="44">Elections
+Canada - Azure Monitor and Purview monitoring boundary</text>
+<g filter="url(#shadow)">
+<rect fill="#ffffff" height="110" rx="12" stroke="#6a0032" stroke-width="2" width="220" x="50" y="90"></rect>
+<text fill="#6a0032" font-size="18" font-weight="700" x="70" y="122">Power
+Platform</text> <text fill="#333" font-size="13" x="70" y="150">Power
+Pages</text><text fill="#333" font-size="13" x="70" y="170">Power Apps /
+Dataverse</text><text fill="#333" font-size="13" x="70" y="190">Power
+Automate</text>
+<rect fill="#ffffff" height="110" rx="12" stroke="#036064" stroke-width="2" width="220" x="50" y="260"></rect>
+<text fill="#036064" font-size="18" font-weight="700" x="70" y="292">Entra
+External ID</text>
+<text fill="#333" font-size="13" x="70" y="320">External
+users</text><text fill="#333" font-size="13" x="70" y="340">Sign-in and
+registration</text><text fill="#333" font-size="13" x="70" y="360">Audit
+and diagnostic logs</text>
+<rect fill="#ffffff" height="110" rx="12" stroke="#1e384b" stroke-width="2" width="230" x="360" y="90"></rect>
+<text fill="#1e384b" font-size="18" font-weight="700" x="380" y="122">Application
+Insights</text>
+<text fill="#333" font-size="13" x="380" y="150">Operational
+telemetry</text><text fill="#333" font-size="13" x="380" y="170">Requests,
+dependencies</text><text fill="#333" font-size="13" x="380" y="190">Exceptions,
+traces</text>
+<rect fill="#ffffff" height="110" rx="12" stroke="#1e384b" stroke-width="2" width="230" x="360" y="260"></rect>
+<text fill="#1e384b" font-size="18" font-weight="700" x="380" y="292">Log
+Analytics</text>
+<text fill="#333" font-size="13" x="380" y="320">Workspace
+storage</text><text fill="#333" font-size="13" x="380" y="340">KQL
+queries</text><text fill="#333" font-size="13" x="380" y="360">Operational
+evidence</text>
+<rect fill="#ffffff" height="110" rx="12" stroke="#8b9538" stroke-width="2" width="260" x="700" y="90"></rect>
+<text fill="#8b9538" font-size="18" font-weight="700" x="720" y="122">Azure
+Monitor</text> <text fill="#333" font-size="13" x="720" y="150">Alerts
+and action
+groups</text><text fill="#333" font-size="13" x="720" y="170">Workbooks
+and dashboards</text><text fill="#333" font-size="13" x="720" y="190">IT
+Operations triage</text>
+<rect fill="#ffffff" height="110" rx="12" stroke="#6a0032" stroke-width="2" width="260" x="700" y="260"></rect>
+<text fill="#6a0032" font-size="18" font-weight="700" x="720" y="292">Microsoft
+Purview</text> <text fill="#333" font-size="13" x="720" y="320">Audit
+evidence</text><text fill="#333" font-size="13" x="720" y="340">DLP and
+compliance
+records</text><text fill="#333" font-size="13" x="720" y="360">eDiscovery
+support</text> </g>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="3" x1="270" x2="360" y1="145" y2="145"></line>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="3" x1="590" x2="700" y1="145" y2="145"></line>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="3" x1="270" x2="360" y1="315" y2="315"></line>
+<line marker-end="url(#arrow)" stroke="#6a0032" stroke-width="3" x1="590" x2="700" y1="315" y2="315"></line>
+<path d="M 165 200 C 165 230, 720 220, 720 260" fill="none" marker-end="url(#arrow)" stroke="#6a0032" stroke-width="3"></path>
+<path d="M 475 200 L 475 260" fill="none" marker-end="url(#arrow)" stroke="#1e384b" stroke-width="3"></path>
+<rect fill="#fff" height="48" rx="8" stroke="#cfcfcf" width="890" x="70" y="425"></rect>
+<text fill="#333" font-size="13" x="90" y="455">Implementation result:
+IT Operations receives operational alerts from Azure Monitor, while
+Purview provides audit and compliance evidence for Power Platform and
+external identity activity.</text>
+</svg>
+</div>
+</section>
+<section class="level2" id="monitoring-requirements">
+<h2 id="monitoring-requirements">Monitoring Requirements</h2>
+<section class="level3" id="azure-monitor-operational-requirements">
+<h3 id="azure-monitor-operational-requirements">Azure Monitor operational requirements</h3>
+<p>Elections Canada will implement Azure Monitor to monitor operational
+health and reliability for the following Power Platform workload
+areas:</p>
+<ul>
+<li>Power Pages availability and response behaviour.</li>
+<li>Power Automate cloud flow run failures.</li>
+<li>Power Automate trigger and action dependency failures.</li>
+<li>Dataverse and model-driven app diagnostics and performance
+telemetry.</li>
+<li>Canvas app client-side errors and application traces where telemetry
+is exported.</li>
+<li>Custom connector, API, gateway, and Azure dependency failures where
+those dependencies are visible in Application Insights.</li>
+<li>Telemetry ingestion health for Power Platform telemetry
+exports.</li>
+<li>Entra External ID sign-in and registration diagnostic log flow to
+Log Analytics.</li>
+</ul>
+</section>
+<section class="level3" id="microsoft-purview-evidence-requirements">
+<h3 id="microsoft-purview-evidence-requirements">Microsoft Purview evidence requirements</h3>
+<p>Elections Canada will implement Microsoft Purview audit and
+compliance evidence procedures for the following Power Platform workload
+areas:</p>
+<ul>
+<li>Power Platform tenant and environment administration activity.</li>
+<li>Power Apps activity and maker/user activity available in Purview
+audit.</li>
+<li>Dataverse and model-driven app activity where auditing is enabled
+and Purview can access the activity logs.</li>
+<li>DLP, compliance, retention, and eDiscovery support records where
+applicable.</li>
+<li>Evidence export, screenshot capture, and audit-search result
+preservation for support and investigation tickets.</li>
+</ul>
+</section>
+<section class="level3" id="entra-external-id-operational-requirements">
+<h3 id="entra-external-id-operational-requirements">Entra External ID operational requirements</h3>
+<p>Elections Canada will collect Entra External ID diagnostic logs into
+Log Analytics to support Power Pages external authentication monitoring.
+The operational monitoring implementation will include:</p>
+<ul>
+<li>Diagnostic settings in the external tenant.</li>
+<li>Log Analytics routing for sign-in and audit activity categories
+available in the tenant.</li>
+<li>Operational alerts for external authentication failure spikes.</li>
+<li>Operational alerts for registration-related issues and high-volume
+failure patterns where captured in available logs.</li>
+<li>Operational alerts for diagnostic ingestion gaps.</li>
+</ul>
+</section>
+</section>
+<section class="level2" id="target-architecture">
+<h2 id="target-architecture">Target Architecture</h2>
+<section class="level3" id="logical-architecture">
+<h3 id="logical-architecture">Logical architecture</h3>
+<p>Power Platform operational telemetry will be exported into
+Application Insights. Application Insights will be connected to a Log
+Analytics workspace so IT Operations can use Azure Monitor Logs, KQL,
+alert rules, action groups, workbooks, and dashboard queries. Entra
+External ID diagnostic settings will route external identity diagnostics
+to the same or a dedicated Log Analytics workspace, depending on
+Elections Canada workspace segmentation policy.</p>
+<p>Microsoft Purview will remain the audit and compliance evidence
+source for Power Platform activities that are captured by Purview audit.
+Purview will not be used as the operational telemetry platform. Azure
+Monitor will own operational alerts and dashboards. Purview will own
+audit search, compliance evidence, and retention/eDiscovery support.</p>
+</section>
+<section class="level3" id="data-flow">
+<h3 id="data-flow">Data flow</h3>
+<ul>
+<li>Power Pages, Dataverse, Power Apps, and Power Automate telemetry
+flows to Application Insights through the Power Platform data export
+capability.</li>
+<li>Application Insights telemetry is queryable through Azure Monitor
+Logs / Log Analytics.</li>
+<li>Azure Monitor alert rules execute KQL or metric-based alerting logic
+against the Application Insights or workspace data.</li>
+<li>Azure Monitor action groups notify IT Operations destinations such
+as email distribution lists, Teams/webhook endpoints, ITSM integrations,
+or automation endpoints.</li>
+<li>Entra External ID diagnostic settings send identity diagnostics to
+Log Analytics.</li>
+<li>Power Platform audit records are made available in Microsoft Purview
+after environment auditing and Purview audit access settings are
+configured.</li>
+<li>Purview search and export results are attached as evidence to
+investigation records or operational tickets when audit evidence is
+required.</li>
+</ul>
+</section>
+</section>
+<section class="level2" id="resource-naming-and-placeholder-standards">
+<h2 id="resource-naming-and-placeholder-standards">Resource Naming and Placeholder Standards</h2>
+<p>Resource names in the build book use placeholders. Implementers must
+replace placeholder values with approved Elections Canada names before
+deployment.</p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>Placeholder</th>
+<th>Suggested production naming pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Azure subscription</td>
+<td><code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code></td>
+<td>Existing approved Elections Canada Azure subscription</td>
+</tr>
+<tr class="even">
+<td>Azure resource group</td>
+<td><code>&lt;RESOURCE_GROUP_NAME&gt;</code></td>
+<td><code>rg-ec-pp-monitoring-prod-cac</code></td>
+</tr>
+<tr class="odd">
+<td>Azure region</td>
+<td><code>&lt;AZURE_REGION&gt;</code></td>
+<td><code>canadacentral</code></td>
+</tr>
+<tr class="even">
+<td>Log Analytics workspace</td>
+<td><code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code></td>
+<td><code>law-ec-pp-monitoring-prod-cac</code></td>
+</tr>
+<tr class="odd">
+<td>Application Insights resource</td>
+<td><code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code></td>
+<td><code>appi-ec-pp-prod-cac</code></td>
+</tr>
+<tr class="even">
+<td>Azure Monitor action group</td>
+<td><code>&lt;ACTION_GROUP_NAME&gt;</code></td>
+<td><code>ag-ec-pp-itops-prod</code></td>
+</tr>
+<tr class="odd">
+<td>Action group short name</td>
+<td><code>&lt;ACTION_GROUP_SHORT_NAME&gt;</code></td>
+<td><code>EC-PP-OPS</code></td>
+</tr>
+<tr class="even">
+<td>Power Platform production environment</td>
+<td><code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code></td>
+<td><code>EC-PP-PROD</code></td>
+</tr>
+<tr class="odd">
+<td>Power Platform environment ID</td>
+<td><code>&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;</code></td>
+<td>Environment GUID from Power Platform admin center</td>
+</tr>
+<tr class="even">
+<td>Power Platform export package</td>
+<td><code>&lt;POWER_PLATFORM_EXPORT_PACKAGE_NAME&gt;</code></td>
+<td><code>export-ec-pp-prod-to-appi</code></td>
+</tr>
+<tr class="odd">
+<td>Entra External ID tenant</td>
+<td><code>&lt;EXTERNAL_ID_TENANT_ID&gt;</code></td>
+<td>External tenant GUID</td>
+</tr>
+<tr class="even">
+<td>Entra diagnostic setting</td>
+<td><code>&lt;ENTRA_DIAGNOSTIC_SETTING_NAME&gt;</code></td>
+<td><code>diag-ec-extid-to-law-prod</code></td>
+</tr>
+<tr class="odd">
+<td>Evidence folder</td>
+<td><code>&lt;EVIDENCE_REPOSITORY_URL&gt;</code></td>
+<td>Approved SharePoint/records repository location</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level2" id="roles-and-responsibilities">
+<h2 id="roles-and-responsibilities">Roles and Responsibilities</h2>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Team</th>
+<th>Implementation responsibility</th>
+<th>Operational responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IT Operations</td>
+<td>Create or validate Log Analytics, Application Insights, Azure
+Monitor action groups, alert rules, workbooks, and operational
+validation.</td>
+<td>Triage operational alerts, maintain thresholds, attach evidence to
+tickets, manage operational runbooks.</td>
+</tr>
+<tr class="even">
+<td>Power Platform Administrators</td>
+<td>Configure Power Platform data export to Application Insights and
+validate environment-level telemetry.</td>
+<td>Validate Power Platform environment telemetry and assist with
+flow/app/environment triage.</td>
+</tr>
+<tr class="odd">
+<td>Identity Operations</td>
+<td>Configure Entra External ID diagnostic routing to Log
+Analytics.</td>
+<td>Triage external identity operational alerts and validate
+sign-in/registration flows.</td>
+</tr>
+<tr class="even">
+<td>Purview/Compliance Administrators</td>
+<td>Configure Purview audit access, validate audit search, and define
+evidence export procedures.</td>
+<td>Support audit/eDiscovery/compliance evidence requests and maintain
+role-based access to Purview evidence.</td>
+</tr>
+<tr class="odd">
+<td>Security/SOC</td>
+<td>Consume relevant telemetry from operational or audit sources when
+needed by security workflows.</td>
+<td>Correlate with SIEM tooling under the separate security monitoring
+build books.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level2" id="azure-monitor-alert-catalogue">
+<h2 id="azure-monitor-alert-catalogue">Azure Monitor Alert Catalogue</h2>
+<p>The following operational alerts are implemented for Power Platform
+monitoring. Thresholds are starting values and must be tuned through
+change control after baselining production activity.</p>
+<table>
+<colgroup>
+<col style="width: 18%"/>
+<col style="width: 25%"/>
+<col style="width: 18%"/>
+<col style="width: 18%"/>
+<col style="width: 18%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Alert name</th>
+<th style="text-align: right;">Severity</th>
+<th>Workload</th>
+<th>Purpose</th>
+<th>Initial threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;ALERT_PP_POWERPAGES_AVAILABILITY_FAILURE&gt;</code></td>
+<td style="text-align: right;">Sev 2</td>
+<td>Power Pages</td>
+<td>Detect repeated availability test failures for external-facing
+sites.</td>
+<td>Failed availability count &gt;= 3 in 15 minutes</td>
+</tr>
+<tr class="even">
+<td><code>&lt;ALERT_PP_POWERPAGES_RESPONSE_TIME_HIGH&gt;</code></td>
+<td style="text-align: right;">Sev 3</td>
+<td>Power Pages</td>
+<td>Detect sustained high page response time.</td>
+<td>95th percentile duration &gt; 5 seconds over 15 minutes</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;ALERT_PP_FLOW_RUN_FAILURE_SPIKE&gt;</code></td>
+<td style="text-align: right;">Sev 2</td>
+<td>Power Automate</td>
+<td>Detect elevated failed cloud flow runs.</td>
+<td>Failed requests &gt;= 5 in 15 minutes</td>
+</tr>
+<tr class="even">
+<td><code>&lt;ALERT_PP_FLOW_DEPENDENCY_FAILURE_SPIKE&gt;</code></td>
+<td style="text-align: right;">Sev 3</td>
+<td>Power Automate</td>
+<td>Detect trigger/action connector or dependency failures.</td>
+<td>Failed dependencies &gt;= 10 in 15 minutes</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;ALERT_PP_DATAVERSE_EXCEPTION_SPIKE&gt;</code></td>
+<td style="text-align: right;">Sev 2</td>
+<td>Dataverse / model-driven apps</td>
+<td>Detect application exception spikes.</td>
+<td>Exceptions &gt;= 5 in 15 minutes</td>
+</tr>
+<tr class="even">
+<td><code>&lt;ALERT_PP_CONNECTOR_DEPENDENCY_FAILURE&gt;</code></td>
+<td style="text-align: right;">Sev 3</td>
+<td>Connectors / APIs</td>
+<td>Detect failed downstream calls or gateway/API dependencies.</td>
+<td>Failed dependencies &gt;= 10 in 15 minutes</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;ALERT_PP_TELEMETRY_INGESTION_GAP&gt;</code></td>
+<td style="text-align: right;">Sev 2</td>
+<td>Monitoring pipeline</td>
+<td>Detect missing telemetry from the production environment.</td>
+<td>No telemetry for 60 minutes during expected production hours</td>
+</tr>
+<tr class="even">
+<td><code>&lt;ALERT_EXTID_FAILED_SIGNIN_SPIKE&gt;</code></td>
+<td style="text-align: right;">Sev 2</td>
+<td>Entra External ID</td>
+<td>Detect spikes in external user authentication failures.</td>
+<td>Failed sign-ins &gt;= 20 in 15 minutes</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;ALERT_EXTID_AUDIT_ACTIVITY_SPIKE&gt;</code></td>
+<td style="text-align: right;">Sev 3</td>
+<td>Entra External ID</td>
+<td>Detect unusual spikes in external identity audit activity.</td>
+<td>Audit events &gt;= 50 in 15 minutes</td>
+</tr>
+<tr class="even">
+<td><code>&lt;ALERT_EXTID_DIAGNOSTIC_INGESTION_GAP&gt;</code></td>
+<td style="text-align: right;">Sev 2</td>
+<td>External identity monitoring</td>
+<td>Detect missing external tenant diagnostic logs.</td>
+<td>No sign-in/audit logs for 60 minutes during expected activity
+window</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level2" id="azure-monitor-dashboard-and-workbook-requirements">
+<h2 id="azure-monitor-dashboard-and-workbook-requirements">Azure Monitor Dashboard and Workbook Requirements</h2>
+<p>Elections Canada will implement an Azure Monitor workbook for IT
+Operations. The workbook will include:</p>
+<ul>
+<li>Power Platform environment selection by
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;</code>.</li>
+<li>Power Pages availability and response time trend.</li>
+<li>Power Automate failed request trend.</li>
+<li>Power Automate dependency failure trend.</li>
+<li>Dataverse/model-driven app exception trend.</li>
+<li>Connector/API dependency failure trend.</li>
+<li>Entra External ID failed sign-in trend.</li>
+<li>Telemetry ingestion status.</li>
+<li>Links to support runbooks and evidence folder locations.</li>
+</ul>
+</section>
+<section class="level2" id="appendix-a---azure-monitor-operational-build-book">
+<h2 id="appendix-a-azure-monitor-operational-build-book">Appendix A - Azure Monitor Operational Build Book</h2>
+<section class="level3" id="prerequisites">
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>An approved Azure subscription
+<code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code> is required for the
+monitoring resources.</li>
+<li>An approved Azure resource group
+<code>&lt;RESOURCE_GROUP_NAME&gt;</code> is required in
+<code>&lt;AZURE_REGION&gt;</code>.</li>
+<li>A Log Analytics workspace
+<code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code> is required for Azure
+Monitor Logs.</li>
+<li>A workspace-based Application Insights resource
+<code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code> is required for Power
+Platform telemetry.</li>
+<li>A Power Platform production environment
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code> is required in
+scope for monitoring.</li>
+<li>The implementer requires Global Administrator or appropriate
+delegated roles, plus Power Platform Administrator and Azure
+Owner/Contributor access for the target subscription/resource
+group.</li>
+<li>The implementer requires access to the Power Platform admin center,
+Azure portal, Entra admin center, and evidence repository
+<code>&lt;EVIDENCE_REPOSITORY_URL&gt;</code>.</li>
+<li>A notification destination for IT Operations is required before
+action group configuration. Use placeholder
+<code>&lt;IT_OPERATIONS_NOTIFICATION_DESTINATION&gt;</code>.</li>
+</ul>
+</section>
+<section class="level3" id="create-or-validate-the-azure-resource-group">
+<h3 id="create-or-validate-the-azure-resource-group">Create or validate the Azure resource group</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>Sign in to the Azure portal as a Global Administrator or an account
+with delegated Azure permissions.</li>
+<li>Open <strong>Subscriptions</strong>.</li>
+<li>Select subscription <code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code>.</li>
+<li>Select <strong>Resource groups</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Enter resource group name
+<code>&lt;RESOURCE_GROUP_NAME&gt;</code>.</li>
+<li>Select region <code>&lt;AZURE_REGION&gt;</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+</ul>
+<p>Optional Azure PowerShell:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb1-1"><a aria-hidden="true" href="#cb1-1" tabindex="-1"></a>Connect-AzAccount <span class="op">-</span>Tenant <span class="st">"&lt;TENANT_ID&gt;"</span></span>
+<span id="cb1-2"><a aria-hidden="true" href="#cb1-2" tabindex="-1"></a>Set-AzContext <span class="op">-</span>SubscriptionId <span class="st">"&lt;AZURE_SUBSCRIPTION_ID&gt;"</span></span>
+<span id="cb1-3"><a aria-hidden="true" href="#cb1-3" tabindex="-1"></a>New-AzResourceGroup <span class="op">-</span>Name <span class="st">"&lt;RESOURCE_GROUP_NAME&gt;"</span> <span class="op">-</span>Location <span class="st">"&lt;AZURE_REGION&gt;"</span></span></code></pre></div>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the resource group <strong>Overview</strong>
+page showing resource group name, subscription, and region.</li>
+<li>Save the screenshot as <code>EV-AZMON-001-ResourceGroup.png</code>
+in <code>&lt;EVIDENCE_REPOSITORY_URL&gt;</code>.</li>
+</ul>
+</section>
+<section class="level3" id="create-or-validate-the-log-analytics-workspace">
+<h3 id="create-or-validate-the-log-analytics-workspace">Create or validate the Log Analytics workspace</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>In the Azure portal, search for <strong>Log Analytics
+workspaces</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code>.</li>
+<li>Select resource group <code>&lt;RESOURCE_GROUP_NAME&gt;</code>.</li>
+<li>Enter workspace name
+<code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code>.</li>
+<li>Select region <code>&lt;AZURE_REGION&gt;</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the new workspace.</li>
+<li>Select <strong>Usage and estimated costs</strong>.</li>
+<li>Set the daily cap according to Elections Canada cost-management
+requirements.</li>
+<li>Select <strong>Data retention</strong> and set operational retention
+according to Elections Canada operational support policy. Use 90 days as
+a starting operational value unless the approved policy states
+otherwise.</li>
+</ul>
+<p>Optional Azure PowerShell:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a aria-hidden="true" href="#cb2-1" tabindex="-1"></a>New-AzOperationalInsightsWorkspace `</span>
+<span id="cb2-2"><a aria-hidden="true" href="#cb2-2" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;RESOURCE_GROUP_NAME&gt;"</span> `</span>
+<span id="cb2-3"><a aria-hidden="true" href="#cb2-3" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;"</span> `</span>
+<span id="cb2-4"><a aria-hidden="true" href="#cb2-4" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;AZURE_REGION&gt;"</span> `</span>
+<span id="cb2-5"><a aria-hidden="true" href="#cb2-5" tabindex="-1"></a>  <span class="op">-</span>Sku <span class="st">"PerGB2018"</span></span></code></pre></div>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the workspace <strong>Overview</strong>
+page.</li>
+<li>Take a screenshot of <strong>Usage and estimated costs</strong>
+showing retention and cost controls.</li>
+<li>Save evidence as <code>EV-AZMON-002-LogAnalyticsOverview.png</code>
+and <code>EV-AZMON-003-LogAnalyticsRetention.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="create-or-validate-application-insights">
+<h3 id="create-or-validate-application-insights">Create or validate Application Insights</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>In the Azure portal, search for <strong>Application
+Insights</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code>.</li>
+<li>Select resource group <code>&lt;RESOURCE_GROUP_NAME&gt;</code>.</li>
+<li>Enter name <code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code>.</li>
+<li>Select region <code>&lt;AZURE_REGION&gt;</code>.</li>
+<li>Set <strong>Resource Mode</strong> to
+<strong>Workspace-based</strong>.</li>
+<li>Select Log Analytics workspace
+<code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the Application Insights resource.</li>
+<li>Select <strong>Properties</strong> and record the Application ID,
+Connection string, and linked workspace name in the implementation
+record.</li>
+</ul>
+<p>Optional Azure PowerShell:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a aria-hidden="true" href="#cb3-1" tabindex="-1"></a><span class="va">$workspace</span> <span class="op">=</span> Get-AzOperationalInsightsWorkspace <span class="op">-</span>ResourceGroupName <span class="st">"&lt;RESOURCE_GROUP_NAME&gt;"</span> <span class="op">-</span>Name <span class="st">"&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;"</span></span>
+<span id="cb3-2"><a aria-hidden="true" href="#cb3-2" tabindex="-1"></a>New-AzApplicationInsights `</span>
+<span id="cb3-3"><a aria-hidden="true" href="#cb3-3" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;RESOURCE_GROUP_NAME&gt;"</span> `</span>
+<span id="cb3-4"><a aria-hidden="true" href="#cb3-4" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;APPLICATION_INSIGHTS_NAME&gt;"</span> `</span>
+<span id="cb3-5"><a aria-hidden="true" href="#cb3-5" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;AZURE_REGION&gt;"</span> `</span>
+<span id="cb3-6"><a aria-hidden="true" href="#cb3-6" tabindex="-1"></a>  <span class="op">-</span>WorkspaceResourceId <span class="va">$workspace</span><span class="op">.</span><span class="fu">ResourceId</span></span></code></pre></div>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the Application Insights
+<strong>Overview</strong> page.</li>
+<li>Take a screenshot of <strong>Properties</strong> showing the linked
+workspace.</li>
+<li>Save evidence as <code>EV-AZMON-004-AppInsightsOverview.png</code>
+and <code>EV-AZMON-005-AppInsightsProperties.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="configure-power-platform-export-to-application-insights">
+<h3 id="configure-power-platform-export-to-application-insights">Configure Power Platform export to Application Insights</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>Sign in to the Power Platform admin center.</li>
+<li>Select <strong>Manage</strong>.</li>
+<li>Select <strong>Data export</strong>.</li>
+<li>Select the <strong>App Insights</strong> tab.</li>
+<li>Select <strong>New data export</strong>.</li>
+<li>Enter export package name
+<code>&lt;POWER_PLATFORM_EXPORT_PACKAGE_NAME&gt;</code>.</li>
+<li>Select the data types required for the workload:
+<ul>
+<li>Dataverse diagnostics and performance.</li>
+<li>Power Automate cloud flow runs.</li>
+<li>Power Automate triggers and actions.</li>
+</ul></li>
+<li>Select filters for environment
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code> and environment ID
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;</code>.</li>
+<li>Select <strong>Next</strong>.</li>
+<li>Select Azure subscription
+<code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code>.</li>
+<li>Select resource group <code>&lt;RESOURCE_GROUP_NAME&gt;</code>.</li>
+<li>Select Application Insights resource
+<code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code>.</li>
+<li>Select <strong>Next</strong>.</li>
+<li>Review the package details.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Record the export package name and creation timestamp in the
+implementation record.</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>Wait for telemetry to begin. Microsoft states that data starts being
+exported to Application Insights within 24 hours after setup.</li>
+<li>Open Application Insights
+<code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code>.</li>
+<li>Select <strong>Logs</strong>.</li>
+<li>Run the validation query:</li>
+</ul>
+<pre class="kusto"><code>union isfuzzy=true requests, dependencies, exceptions, traces, AppRequests, AppDependencies, AppExceptions, AppTraces
+| where TimeGenerated &gt;= ago(24h) or timestamp &gt;= ago(24h)
+| summarize Records=count() by Type</code></pre>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the Power Platform data export package
+summary.</li>
+<li>Take a screenshot of the Application Insights <strong>Logs</strong>
+query result showing records.</li>
+<li>Save evidence as <code>EV-AZMON-006-PPExportPackage.png</code> and
+<code>EV-AZMON-007-TelemetryValidation.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="configure-an-azure-monitor-action-group">
+<h3 id="configure-an-azure-monitor-action-group">Configure an Azure Monitor action group</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>In the Azure portal, open <strong>Monitor</strong>.</li>
+<li>Select <strong>Alerts</strong>.</li>
+<li>Select <strong>Action groups</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code> and
+resource group <code>&lt;RESOURCE_GROUP_NAME&gt;</code>.</li>
+<li>Enter action group name <code>&lt;ACTION_GROUP_NAME&gt;</code>.</li>
+<li>Enter display name
+<code>&lt;ACTION_GROUP_SHORT_NAME&gt;</code>.</li>
+<li>Open the <strong>Notifications</strong> tab.</li>
+<li>Add notification type
+<code>&lt;IT_OPERATIONS_NOTIFICATION_TYPE&gt;</code>.</li>
+<li>Enter destination
+<code>&lt;IT_OPERATIONS_NOTIFICATION_DESTINATION&gt;</code>.</li>
+<li>Open the <strong>Actions</strong> tab.</li>
+<li>Add webhook, Logic App, ITSM, or automation action only if approved
+by Elections Canada operational process.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+</ul>
+<p>Optional Azure PowerShell:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb5-1"><a aria-hidden="true" href="#cb5-1" tabindex="-1"></a><span class="va">$email</span> <span class="op">=</span> New-AzActionGroupReceiver <span class="op">-</span>Name <span class="st">"IT Operations"</span> <span class="op">-</span>EmailReceiver <span class="op">-</span>EmailAddress <span class="st">"&lt;IT_OPERATIONS_EMAIL&gt;"</span></span>
+<span id="cb5-2"><a aria-hidden="true" href="#cb5-2" tabindex="-1"></a>Set-AzActionGroup `</span>
+<span id="cb5-3"><a aria-hidden="true" href="#cb5-3" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;RESOURCE_GROUP_NAME&gt;"</span> `</span>
+<span id="cb5-4"><a aria-hidden="true" href="#cb5-4" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;ACTION_GROUP_NAME&gt;"</span> `</span>
+<span id="cb5-5"><a aria-hidden="true" href="#cb5-5" tabindex="-1"></a>  <span class="op">-</span>ShortName <span class="st">"&lt;ACTION_GROUP_SHORT_NAME&gt;"</span> `</span>
+<span id="cb5-6"><a aria-hidden="true" href="#cb5-6" tabindex="-1"></a>  <span class="op">-</span>Receiver <span class="va">$email</span></span></code></pre></div>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the action group <strong>Overview</strong>
+page.</li>
+<li>Take a screenshot of the configured notification destination,
+masking personal addresses if required by privacy process.</li>
+<li>Save evidence as <code>EV-AZMON-008-ActionGroup.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="configure-azure-monitor-alert-rules">
+<h3 id="configure-azure-monitor-alert-rules">Configure Azure Monitor alert rules</h3>
+<p>For each alert rule in the alert catalogue:</p>
+<ul>
+<li>In the Azure portal, open <strong>Monitor</strong>.</li>
+<li>Select <strong>Alerts</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select <strong>Alert rule</strong>.</li>
+<li>On <strong>Scope</strong>, select Application Insights
+<code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code> or Log Analytics
+workspace <code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code> based on the
+alert query source.</li>
+<li>Select <strong>Condition</strong>.</li>
+<li>Select <strong>Custom log search</strong>.</li>
+<li>Paste the KQL query for the alert.</li>
+<li>Select <strong>Run</strong> to validate that the query
+executes.</li>
+<li>Configure measurement using the documented threshold.</li>
+<li>Configure evaluation frequency and lookback period.</li>
+<li>Select <strong>Actions</strong>.</li>
+<li>Select action group <code>&lt;ACTION_GROUP_NAME&gt;</code>.</li>
+<li>Select <strong>Details</strong>.</li>
+<li>Enter the alert rule name from the alert catalogue.</li>
+<li>Set severity as defined in the alert catalogue.</li>
+<li>Enter a description that includes environment, workload, threshold,
+triage owner, and runbook link.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+</ul>
+<p>Power Pages availability failure query:</p>
+<pre class="kusto"><code>AppAvailabilityResults
+| where TimeGenerated &gt;= ago(15m)
+| where Name contains "&lt;POWER_PAGES_SITE_NAME&gt;" or Location has "&lt;POWER_PAGES_SITE_URL&gt;"
+| where Success == false
+| summarize FailedChecks=count()</code></pre>
+<p>Power Automate failed flow run query:</p>
+<pre class="kusto"><code>AppRequests
+| where TimeGenerated &gt;= ago(15m)
+| where Properties["environmentId"] == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;" or tostring(Properties.environmentId) == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;"
+| where Success == false
+| summarize FailedRuns=count() by tostring(OperationName)</code></pre>
+<p>Power Automate dependency failure query:</p>
+<pre class="kusto"><code>AppDependencies
+| where TimeGenerated &gt;= ago(15m)
+| where Properties["environmentId"] == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;" or tostring(Properties.environmentId) == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;"
+| where Success == false
+| summarize FailedDependencies=count() by tostring(Name), tostring(Target)</code></pre>
+<p>Dataverse/model-driven app exception query:</p>
+<pre class="kusto"><code>AppExceptions
+| where TimeGenerated &gt;= ago(15m)
+| where Properties["environmentId"] == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;" or tostring(Properties.environmentId) == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;"
+| summarize ExceptionCount=count() by tostring(ProblemId), tostring(OuterMessage)</code></pre>
+<p>Telemetry ingestion gap query:</p>
+<pre class="kusto"><code>union isfuzzy=true AppRequests, AppDependencies, AppExceptions, AppTraces
+| where TimeGenerated &gt;= ago(60m)
+| where Properties["environmentId"] == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;" or tostring(Properties.environmentId) == "&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;"
+| summarize TelemetryRecords=count()</code></pre>
+<p>Evidence capture:</p>
+<ul>
+<li>For each alert rule, take a screenshot of the
+<strong>Condition</strong> tab showing the query and threshold.</li>
+<li>Take a screenshot of the <strong>Actions</strong> tab showing
+<code>&lt;ACTION_GROUP_NAME&gt;</code>.</li>
+<li>Take a screenshot of the created alert rule
+<strong>Overview</strong> page.</li>
+<li>Save evidence with the pattern
+<code>EV-AZMON-ALERT-&lt;ALERT_NAME&gt;.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="create-the-it-operations-workbook">
+<h3 id="create-the-it-operations-workbook">Create the IT Operations workbook</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>In the Azure portal, open <strong>Monitor</strong>.</li>
+<li>Select <strong>Workbooks</strong>.</li>
+<li>Select <strong>New</strong>.</li>
+<li>Add a text block with the workbook title
+<code>Elections Canada - Power Platform Operational Monitoring</code>.</li>
+<li>Add a parameter for
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_ID&gt;</code>.</li>
+<li>Add query tiles for:
+<ul>
+<li>Power Pages availability failures.</li>
+<li>Power Pages response duration.</li>
+<li>Power Automate failed runs.</li>
+<li>Power Automate dependency failures.</li>
+<li>Dataverse exception count.</li>
+<li>Entra External ID failed sign-ins.</li>
+<li>Telemetry ingestion status.</li>
+</ul></li>
+<li>Save the workbook as <code>&lt;WORKBOOK_NAME&gt;</code> using
+suggested name <code>wb-ec-pp-ops-monitoring-prod</code>.</li>
+<li>Set workbook permissions according to Elections Canada
+least-privilege requirements.</li>
+</ul>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the saved workbook overview.</li>
+<li>Take screenshots of each workbook section after queries return
+data.</li>
+<li>Save evidence as <code>EV-AZMON-009-WorkbookOverview.png</code> and
+related section screenshots.</li>
+</ul>
+</section>
+</section>
+<section class="level2" id="appendix-b---entra-external-id-operational-monitoring-build-book">
+<h2 id="appendix-b-entra-external-id-operational-monitoring-build-book">Appendix B - Entra External ID Operational Monitoring Build
+Book</h2>
+<section class="level3" id="prerequisites-1">
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>The Entra External ID tenant
+<code>&lt;EXTERNAL_ID_TENANT_ID&gt;</code> is required for external
+Power Pages authentication.</li>
+<li>A Log Analytics workspace
+<code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code> is required as the
+diagnostic destination.</li>
+<li>The implementer requires Global Administrator or Security
+Administrator access to configure tenant diagnostic settings.</li>
+<li>The implementer requires access to switch into the external tenant
+in the Entra admin center.</li>
+</ul>
+</section>
+<section class="level3" id="configure-external-id-diagnostics">
+<h3 id="configure-external-id-diagnostics">Configure External ID diagnostics</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>Sign in to the Microsoft Entra admin center.</li>
+<li>Use the directory switcher to switch to external tenant
+<code>&lt;EXTERNAL_ID_TENANT_ID&gt;</code>.</li>
+<li>Browse to <strong>Entra ID</strong>.</li>
+<li>Select <strong>Monitoring &amp; health</strong>.</li>
+<li>Select <strong>Diagnostic settings</strong>.</li>
+<li>Select <strong>Add diagnostic setting</strong> or <strong>Start set
+up</strong> if the setup wizard is shown.</li>
+<li>Enter diagnostic setting name
+<code>&lt;ENTRA_DIAGNOSTIC_SETTING_NAME&gt;</code>.</li>
+<li>Select the available sign-in and audit log categories required by
+Elections Canada policy. At minimum, select available categories for
+sign-in activity and audit activity.</li>
+<li>Select <strong>Send to Log Analytics workspace</strong>.</li>
+<li>Select subscription <code>&lt;AZURE_SUBSCRIPTION_ID&gt;</code>.</li>
+<li>Select workspace
+<code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code>.</li>
+<li>Select <strong>Save</strong>.</li>
+</ul>
+<p>Validation query:</p>
+<pre class="kusto"><code>union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs, AuditLogs
+| where TimeGenerated &gt;= ago(24h)
+| summarize Records=count() by Type</code></pre>
+<p>Failed external sign-in alert query:</p>
+<pre class="kusto"><code>SigninLogs
+| where TimeGenerated &gt;= ago(15m)
+| where ResultType != 0
+| summarize FailedSignIns=count() by AppDisplayName, ResultDescription</code></pre>
+<p>External ID audit activity spike query:</p>
+<pre class="kusto"><code>AuditLogs
+| where TimeGenerated &gt;= ago(15m)
+| summarize AuditEvents=count() by OperationName, Result</code></pre>
+<p>External ID diagnostic ingestion gap query:</p>
+<pre class="kusto"><code>union isfuzzy=true SigninLogs, AuditLogs
+| where TimeGenerated &gt;= ago(60m)
+| summarize DiagnosticRecords=count()</code></pre>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the external tenant diagnostic setting page
+showing the destination workspace.</li>
+<li>Take a screenshot of the validation query results in Log
+Analytics.</li>
+<li>Take screenshots of each External ID alert rule after creation.</li>
+<li>Save evidence as <code>EV-EXTID-001-DiagnosticSettings.png</code>,
+<code>EV-EXTID-002-ValidationQuery.png</code>, and
+<code>EV-EXTID-ALERT-&lt;ALERT_NAME&gt;.png</code>.</li>
+</ul>
+</section>
+</section>
+<section class="level2" id="appendix-c---microsoft-purview-audit-and-compliance-evidence-build-book">
+<h2 id="appendix-c-microsoft-purview-audit-and-compliance-evidence-build-book">Appendix C - Microsoft Purview Audit and Compliance Evidence Build
+Book</h2>
+<section class="level3" id="prerequisites-2">
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Microsoft Purview audit access is required for authorized compliance
+and security staff.</li>
+<li>A Compliance Administrator, Security Administrator, or role with
+equivalent Purview permissions is required to validate audit search and
+evidence export.</li>
+<li>Power Platform production environments must have environment
+auditing configured.</li>
+<li>The Power Platform environment setting <strong>Enable SAS Logging in
+Purview</strong> must be enabled for each production environment in
+scope.</li>
+<li>The domain <code>https://*.api.powerplatformusercontent.com</code>
+must be allowed where the environment requires SAS functionality, in
+accordance with Microsoft guidance.</li>
+<li>Evidence exports must be saved to approved repository
+<code>&lt;EVIDENCE_REPOSITORY_URL&gt;</code>.</li>
+</ul>
+</section>
+<section class="level3" id="validate-purview-audit-access">
+<h3 id="validate-purview-audit-access">Validate Purview audit access</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>Sign in to the Microsoft Purview portal.</li>
+<li>Open <strong>Solutions</strong>.</li>
+<li>Select <strong>Audit</strong>.</li>
+<li>Confirm that the implementer can access audit search.</li>
+<li>Confirm that authorized staff are assigned either <strong>Audit
+Logs</strong> or <strong>View-Only Audit Logs</strong> roles as
+appropriate.</li>
+</ul>
+<p>Optional PowerShell validation:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb15-1"><a aria-hidden="true" href="#cb15-1" tabindex="-1"></a>Connect-ExchangeOnline <span class="op">-</span>UserPrincipalName <span class="st">"&lt;ADMIN_UPN&gt;"</span></span>
+<span id="cb15-2"><a aria-hidden="true" href="#cb15-2" tabindex="-1"></a>Get-ManagementRoleAssignment <span class="op">-</span>Role <span class="st">"Audit Logs"</span> <span class="op">|</span> <span class="fu">Format-Table</span> RoleAssigneeName<span class="op">,</span> Role</span>
+<span id="cb15-3"><a aria-hidden="true" href="#cb15-3" tabindex="-1"></a>Get-ManagementRoleAssignment <span class="op">-</span>Role <span class="st">"View-Only Audit Logs"</span> <span class="op">|</span> <span class="fu">Format-Table</span> RoleAssigneeName<span class="op">,</span> Role</span></code></pre></div>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the Purview <strong>Audit</strong> page.</li>
+<li>Take a screenshot or export of the role assignment validation, with
+privileged identities handled according to Elections Canada
+evidence-handling rules.</li>
+<li>Save evidence as <code>EV-PURVIEW-001-AuditAccess.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="enable-power-platform-environment-audit-visibility-in-purview">
+<h3 id="enable-power-platform-environment-audit-visibility-in-purview">Enable Power Platform environment audit visibility in Purview</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>Sign in to the Power Platform admin center as a Power Platform
+administrator or system administrator.</li>
+<li>Select <strong>Manage</strong>.</li>
+<li>Select <strong>Environments</strong>.</li>
+<li>Select production environment
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code>.</li>
+<li>Select <strong>Settings</strong>.</li>
+<li>Expand <strong>Product</strong>.</li>
+<li>Select <strong>Privacy and Security</strong>.</li>
+<li>Under <strong>Storage Shared Access Signature (SAS) Security
+Settings</strong>, set <strong>Enable SAS Logging in Purview</strong> to
+<strong>On</strong>.</li>
+<li>Select <strong>Save</strong>.</li>
+<li>Repeat for each production environment in scope.</li>
+</ul>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the environment <strong>Privacy and
+Security</strong> page showing <strong>Enable SAS Logging in
+Purview</strong> set to <strong>On</strong>.</li>
+<li>Save evidence as
+<code>EV-PURVIEW-002-SASLogging-&lt;ENVIRONMENT_NAME&gt;.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="validate-power-platform-admin-logs-in-purview">
+<h3 id="validate-power-platform-admin-logs-in-purview">Validate Power Platform admin logs in Purview</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>In Microsoft Purview, open <strong>Solutions</strong>.</li>
+<li>Select <strong>Audit</strong>.</li>
+<li>Create a new search for Power Platform administrative activity.</li>
+<li>Set the date range to the implementation window.</li>
+<li>Filter activities for Power Platform administration where
+available.</li>
+<li>Run the search.</li>
+<li>Validate that environment administration events are returned.</li>
+<li>Export the results if required by the RFC evidence process.</li>
+</ul>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the audit search query criteria.</li>
+<li>Take a screenshot of the returned result count.</li>
+<li>Save the export as
+<code>EV-PURVIEW-003-PowerPlatformAdminAudit.csv</code> if export is
+required.</li>
+</ul>
+</section>
+<section class="level3" id="validate-power-apps-and-dataverse-audit-records-in-purview">
+<h3 id="validate-power-apps-and-dataverse-audit-records-in-purview">Validate Power Apps and Dataverse audit records in Purview</h3>
+<p>Portal implementation:</p>
+<ul>
+<li>In Microsoft Purview, open <strong>Audit</strong>.</li>
+<li>Search for Power Apps and Dataverse/model-driven app activities for
+production environment
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code>.</li>
+<li>Validate that records return for the selected timeframe.</li>
+<li>Capture search criteria, result count, and export reference.</li>
+</ul>
+<p>Evidence capture:</p>
+<ul>
+<li>Take a screenshot of the audit search filters.</li>
+<li>Take a screenshot of result count and sample event details.</li>
+<li>Save evidence as
+<code>EV-PURVIEW-004-PowerAppsDataverseAudit.png</code>.</li>
+</ul>
+</section>
+<section class="level3" id="define-the-evidence-procedure">
+<h3 id="define-the-evidence-procedure">Define the evidence procedure</h3>
+<p>The evidence package for operational monitoring must include:</p>
+<ul>
+<li>Screenshot of Log Analytics workspace configuration.</li>
+<li>Screenshot of Application Insights workspace linkage.</li>
+<li>Screenshot of Power Platform data export package.</li>
+<li>Screenshot of action group notification destination.</li>
+<li>Screenshot of every alert rule condition and action group
+assignment.</li>
+<li>Screenshot of workbook overview and critical tiles.</li>
+<li>Screenshot of Entra External ID diagnostic settings and validation
+query.</li>
+<li>Screenshot of Purview audit access and environment audit
+visibility.</li>
+<li>Exported Purview audit search files when required by an incident or
+compliance investigation.</li>
+</ul>
+</section>
+</section>
+<section class="level2" id="appendix-d---operational-support-runbooks">
+<h2 id="appendix-d-operational-support-runbooks">Appendix D - Operational Support Runbooks</h2>
+<section class="level3" id="power-pages-availability-failure">
+<h3 id="power-pages-availability-failure">Power Pages availability failure</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Runbook value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;ALERT_PP_POWERPAGES_AVAILABILITY_FAILURE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Sev 2</td>
+</tr>
+<tr class="odd">
+<td>Environment and workload affected</td>
+<td><code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code> /
+<code>&lt;POWER_PAGES_SITE_NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Query or metric used</td>
+<td><code>AppAvailabilityResults</code> failed checks</td>
+</tr>
+<tr class="odd">
+<td>Expected first response</td>
+<td>IT Operations validates whether the external-facing site is
+reachable from approved networks and public endpoints.</td>
+</tr>
+<tr class="even">
+<td>Initial triage steps</td>
+<td>Review availability results, test site URL, check recent
+deployment/change tickets, validate authentication redirect to Entra
+External ID, review Power Platform service health.</td>
+</tr>
+<tr class="odd">
+<td>Escalation owner</td>
+<td>Power Platform support owner and web/application operations
+owner.</td>
+</tr>
+<tr class="even">
+<td>Closure criteria</td>
+<td>Availability tests succeed for two consecutive evaluation windows
+and user-impacting incident record is updated.</td>
+</tr>
+<tr class="odd">
+<td>False positives and tuning notes</td>
+<td>Tune synthetic test locations and thresholds if transient regional
+network conditions create repeated non-actionable alerts.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level3" id="power-automate-cloud-flow-failure-spike">
+<h3 id="power-automate-cloud-flow-failure-spike">Power Automate cloud flow failure spike</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Runbook value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;ALERT_PP_FLOW_RUN_FAILURE_SPIKE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Sev 2</td>
+</tr>
+<tr class="odd">
+<td>Environment and workload affected</td>
+<td><code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code> / production
+cloud flows</td>
+</tr>
+<tr class="even">
+<td>Query or metric used</td>
+<td><code>AppRequests</code> failed cloud flow runs</td>
+</tr>
+<tr class="odd">
+<td>Expected first response</td>
+<td>IT Operations identifies affected flow IDs and validates whether
+business process execution is impacted.</td>
+</tr>
+<tr class="even">
+<td>Initial triage steps</td>
+<td>Review failed flow operation names, open Power Automate run history
+for affected flow, check connector status, validate service account
+authentication, review recent solution deployments.</td>
+</tr>
+<tr class="odd">
+<td>Escalation owner</td>
+<td>Power Platform application owner or flow owner.</td>
+</tr>
+<tr class="even">
+<td>Closure criteria</td>
+<td>Failed run rate returns to baseline and affected business process
+owner confirms recovery.</td>
+</tr>
+<tr class="odd">
+<td>False positives and tuning notes</td>
+<td>Exclude known non-production flows and tune thresholds by production
+environment and critical flow grouping.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level3" id="dataverse-exception-spike">
+<h3 id="dataverse-exception-spike">Dataverse exception spike</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Runbook value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;ALERT_PP_DATAVERSE_EXCEPTION_SPIKE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Sev 2</td>
+</tr>
+<tr class="odd">
+<td>Environment and workload affected</td>
+<td><code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code> / Dataverse and
+model-driven apps</td>
+</tr>
+<tr class="even">
+<td>Query or metric used</td>
+<td><code>AppExceptions</code> exception count</td>
+</tr>
+<tr class="odd">
+<td>Expected first response</td>
+<td>IT Operations identifies exception type, affected users, and
+affected app/module.</td>
+</tr>
+<tr class="even">
+<td>Initial triage steps</td>
+<td>Review exception messages, correlate with recent plugin/workflow/app
+releases, check Dataverse service health, review integration failure
+patterns.</td>
+</tr>
+<tr class="odd">
+<td>Escalation owner</td>
+<td>Dataverse application support team.</td>
+</tr>
+<tr class="even">
+<td>Closure criteria</td>
+<td>Exception count returns to baseline and root cause is documented in
+the ticket.</td>
+</tr>
+<tr class="odd">
+<td>False positives and tuning notes</td>
+<td>Suppress known benign exceptions only after approval and evidence of
+non-impact.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level3" id="entra-external-id-failed-sign-in-spike">
+<h3 id="entra-external-id-failed-sign-in-spike">Entra External ID failed sign-in spike</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Runbook value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;ALERT_EXTID_FAILED_SIGNIN_SPIKE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Sev 2</td>
+</tr>
+<tr class="odd">
+<td>Environment and workload affected</td>
+<td><code>&lt;EXTERNAL_ID_TENANT_ID&gt;</code> / Power Pages external
+authentication</td>
+</tr>
+<tr class="even">
+<td>Query or metric used</td>
+<td><code>SigninLogs</code> failures</td>
+</tr>
+<tr class="odd">
+<td>Expected first response</td>
+<td>Identity Operations validates whether external users are blocked
+from sign-in or registration.</td>
+</tr>
+<tr class="even">
+<td>Initial triage steps</td>
+<td>Review result codes, app display name, conditional access impact,
+identity provider configuration, registration flow changes, and user
+reports.</td>
+</tr>
+<tr class="odd">
+<td>Escalation owner</td>
+<td>Identity Operations and Power Pages support owner.</td>
+</tr>
+<tr class="even">
+<td>Closure criteria</td>
+<td>Failed sign-ins return to baseline and successful external sign-ins
+are observed.</td>
+</tr>
+<tr class="odd">
+<td>False positives and tuning notes</td>
+<td>Tune thresholds for expected campaign or registration peaks.
+Separate brute-force/security patterns are handled by the SIEM/security
+build books.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level3" id="telemetry-ingestion-gap">
+<h3 id="telemetry-ingestion-gap">Telemetry ingestion gap</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Runbook value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;ALERT_PP_TELEMETRY_INGESTION_GAP&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Sev 2</td>
+</tr>
+<tr class="odd">
+<td>Environment and workload affected</td>
+<td>Monitoring pipeline for
+<code>&lt;POWER_PLATFORM_ENVIRONMENT_NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Query or metric used</td>
+<td>Count of recent Application Insights telemetry records</td>
+</tr>
+<tr class="odd">
+<td>Expected first response</td>
+<td>IT Operations validates whether telemetry export is still
+functioning.</td>
+</tr>
+<tr class="even">
+<td>Initial triage steps</td>
+<td>Check Power Platform data export configuration, Application Insights
+availability, Log Analytics ingestion, Azure service health, and recent
+permission changes.</td>
+</tr>
+<tr class="odd">
+<td>Escalation owner</td>
+<td>IT Operations monitoring owner and Power Platform
+administrator.</td>
+</tr>
+<tr class="even">
+<td>Closure criteria</td>
+<td>Telemetry resumes and monitoring gap is documented with
+timeframe.</td>
+</tr>
+<tr class="odd">
+<td>False positives and tuning notes</td>
+<td>Apply business-hours logic for low-activity workloads if 24x7
+telemetry volume is not expected.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section class="level2" id="appendix-e---validation-checklist">
+<h2 id="appendix-e-validation-checklist">Appendix E - Validation Checklist</h2>
+<ul>
+<li>Log Analytics workspace
+<code>&lt;LOG_ANALYTICS_WORKSPACE_NAME&gt;</code> exists and is in the
+approved subscription and region.</li>
+<li>Application Insights <code>&lt;APPLICATION_INSIGHTS_NAME&gt;</code>
+exists and is workspace-based.</li>
+<li>Power Platform data export package
+<code>&lt;POWER_PLATFORM_EXPORT_PACKAGE_NAME&gt;</code> exists and
+points to the correct Application Insights resource.</li>
+<li>Application Insights telemetry records are visible in Logs.</li>
+<li>Azure Monitor action group <code>&lt;ACTION_GROUP_NAME&gt;</code>
+exists and sends test notifications to
+<code>&lt;IT_OPERATIONS_NOTIFICATION_DESTINATION&gt;</code>.</li>
+<li>All alert rules in the alert catalogue are created, enabled, named
+consistently, and mapped to the action group.</li>
+<li>The IT Operations workbook exists and returns data for the
+production environment.</li>
+<li>Entra External ID diagnostic setting
+<code>&lt;ENTRA_DIAGNOSTIC_SETTING_NAME&gt;</code> sends available
+sign-in and audit logs to Log Analytics.</li>
+<li>Purview audit access is validated for authorized personnel.</li>
+<li>Power Platform production environments have <strong>Enable SAS
+Logging in Purview</strong> turned on.</li>
+<li>Evidence screenshots and exports are saved in
+<code>&lt;EVIDENCE_REPOSITORY_URL&gt;</code>.</li>
+</ul>
+</section>
+<section class="level2" id="references">
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/set-up-export-application-insights">Export
+data to Application Insights - Power Platform</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/app-insights-cloud-flow">Set
+up Application Insights with Power Automate</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule">Create
+or edit a log search alert rule - Azure Monitor</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups">Create
+and manage action groups in Azure Monitor</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview">Overview
+of Azure Monitor alerts</a></li>
+<li><a href="https://learn.microsoft.com/en-us/entra/external-id/customers/how-to-azure-monitor">Azure
+Monitor in external tenants - Microsoft Entra External ID</a></li>
+<li><a href="https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-integrate-activity-logs-with-azure-monitor-logs">Integrate
+Microsoft Entra logs with Azure Monitor logs</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-overview">Power
+Platform activity logging and auditing in Microsoft Purview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-power-platform-admin">View
+Power Platform admin logs in Microsoft Purview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-power-apps">View
+Power Apps activity logs in Microsoft Purview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/manage-dataverse-auditing">Manage
+Dataverse auditing</a></li>
+</ul>
+</section>
+</section>
+</section></main></body></html>
