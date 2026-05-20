@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" role="img" aria-label="Target monitoring architecture - Microsoft Sentinel SIEM variant">
+  <defs>
+    <style><![CDATA[
+      .t{font-family:Arial, Helvetica, sans-serif; fill:#222;}
+      .h{font-weight:700; font-size:22px;}
+      .s{font-size:16px;}
+      .xs{font-size:13px; fill:#555;}
+      .box{fill:#fff; stroke:#1e384b; stroke-width:2.2; rx:16;}
+      .box2{fill:#f8fafb; stroke:#036064; stroke-width:2.2; rx:16;}
+      .siem{fill:#fff7fb; stroke:#6a0032; stroke-width:2.8; rx:16;}
+      .pur{fill:#fffaf2; stroke:#c9862d; stroke-width:2.2; rx:16;}
+      .ops{fill:#f7fbf0; stroke:#8b9538; stroke-width:2.2; rx:16;}
+      .arrow{stroke:#333; stroke-width:2.4; fill:none; marker-end:url(#arrow);}
+      .arrowB{stroke:#6a0032; stroke-width:2.6; fill:none; marker-end:url(#arrowB);}
+      .lane{fill:#f4f5f6; stroke:#e2e4e5; stroke-width:1; rx:20;}
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker>
+    <marker id="arrowB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6a0032"/></marker>
+  </defs>
+  <rect width="1200" height="650" fill="#ffffff"/>
+  <text x="40" y="42" class="t h">Target monitoring architecture - Microsoft Sentinel SIEM variant</text>
+  <text x="40" y="68" class="t xs">Power Platform operational telemetry is separated from security/audit telemetry and identity-provider telemetry.</text>
+
+  <rect x="30" y="105" width="1140" height="170" class="lane"/>
+  <text x="54" y="133" class="t h" fill="#1e384b">Operational monitoring path</text>
+  <rect x="70" y="160" width="235" height="74" class="box"/>
+  <text x="90" y="188" class="t s" font-weight="700">Power Platform workloads</text>
+  <text x="90" y="210" class="t xs">Power Pages / Power Apps</text>
+  <text x="90" y="228" class="t xs">Dataverse / Power Automate</text>
+  <path d="M305 197 H395" class="arrow"/>
+  <text x="318" y="185" class="t xs">telemetry</text>
+  <rect x="395" y="160" width="205" height="74" class="box2"/>
+  <text x="417" y="190" class="t s" font-weight="700">Application Insights</text>
+  <text x="417" y="214" class="t xs">exceptions / traces / deps.</text>
+  <path d="M600 197 H690" class="arrow"/>
+  <rect x="690" y="160" width="200" height="74" class="box2"/>
+  <text x="714" y="190" class="t s" font-weight="700">Log Analytics</text>
+  <text x="714" y="214" class="t xs">KQL / tables / retention</text>
+  <path d="M890 197 H980" class="arrow"/>
+  <rect x="980" y="160" width="150" height="74" class="ops"/>
+  <text x="1007" y="190" class="t s" font-weight="700">Azure Monitor</text>
+  <text x="1007" y="214" class="t xs">alerts / workbooks</text>
+
+  <rect x="30" y="310" width="1140" height="245" class="lane"/>
+  <text x="54" y="338" class="t h" fill="#6a0032">Security monitoring and evidence path</text>
+  <rect x="70" y="370" width="235" height="74" class="box"/>
+  <text x="90" y="398" class="t s" font-weight="700">Power Platform activity</text>
+  <text x="90" y="422" class="t xs">admin / audit / DLP evidence</text>
+  <path d="M305 407 H395" class="arrow"/>
+  <rect x="395" y="370" width="205" height="74" class="pur"/>
+  <text x="420" y="398" class="t s" font-weight="700">Microsoft Purview</text>
+  <text x="420" y="422" class="t xs">audit / compliance search</text>
+  <path d="M600 407 H690" class="arrowB"/>
+  <text x="620" y="392" class="t xs">audit feed</text>
+  <rect x="690" y="370" width="200" height="74" class="siem"/>
+  <text x="714" y="397" class="t s" font-weight="700">Microsoft Sentinel</text>
+  <text x="714" y="419" class="t xs">Business Apps solution</text>
+  <text x="714" y="437" class="t xs">incidents / hunting</text>
+  <path d="M890 407 H980" class="arrowB"/>
+  <rect x="980" y="370" width="150" height="74" class="siem"/>
+  <text x="1012" y="398" class="t s" font-weight="700">SOC</text>
+  <text x="1012" y="422" class="t xs">triage / response</text>
+
+  <rect x="70" y="470" width="235" height="58" class="box"/>
+  <text x="90" y="496" class="t s" font-weight="700">Entra External ID</text>
+  <text x="90" y="516" class="t xs">external sign-in / registration</text>
+  <path d="M305 500 H395" class="arrow"/>
+  <text x="318" y="488" class="t xs">Diagnostic settings</text>
+  <rect x="395" y="470" width="205" height="58" class="box2"/>
+  <text x="420" y="496" class="t s" font-weight="700">Log Analytics</text>
+  <text x="420" y="516" class="t xs">Workspace</text>
+  <path d="M600 500 H690" class="arrowB"/>
+  <rect x="690" y="470" width="200" height="58" class="siem"/>
+  <text x="714" y="496" class="t s" font-weight="700">Microsoft Sentinel</text>
+  <text x="714" y="516" class="t xs">SIEM / SOAR</text>
+
+  <text x="40" y="610" class="t xs">Implementation build-book appendices in this document configure the operational path, the SIEM path, Entra External ID monitoring, Purview evidence, alerts, validation, and support runbooks.</text>
+</svg>

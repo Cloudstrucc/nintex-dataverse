@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Power Platform Azure Monitor Operational Monitoring Build Book</title>
+<style>
+:root{
+  --ec-burgundy:#6a0032;
+  --ec-burgundy-dark:#49001b;
+  --ec-teal:#036064;
+  --ec-navy:#1e384b;
+  --ec-olive:#8b9538;
+  --ec-gold:#c9862d;
+  --ec-purple:#60205c;
+  --ink:#202124;
+  --muted:#5f6368;
+  --border:#d7d9db;
+  --soft:#f5f6f7;
+  --soft-burgundy:#fbf4f7;
+  --soft-teal:#f0faf9;
+  --soft-gold:#fff8ec;
+}
+@page {
+  size: Letter;
+  margin: 0.70in 0.62in 0.76in 0.62in;
+  @bottom-left {
+    content: 'Elections Canada - IM/IT implementation build book';
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #666;
+  }
+  @bottom-right {
+    content: 'Page ' counter(page) ' of ' counter(pages);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #666;
+  }
+}
+@page cover {
+  size: Letter;
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+*{box-sizing:border-box;}
+html{font-family: Arial, Helvetica, sans-serif;color:var(--ink);font-size:10.6pt;line-height:1.45;background:#eef0f2;scroll-behavior:smooth;}
+body{margin:0;background:#eef0f2;}
+.document-shell{width:8.5in;margin:0.32in auto;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.10);overflow:hidden;}
+.content{padding:0.38in 0.58in 0.48in 0.58in;}
+a{color:var(--ec-burgundy);text-decoration:none;border-bottom:1px solid rgba(106,0,50,.22)}
+a:hover{text-decoration:underline;}
+p{margin:.36rem 0 .72rem;}
+h1,h2,h3,h4{font-family:Arial, Helvetica, sans-serif;line-height:1.18;break-after:avoid;page-break-after:avoid;color:var(--ec-navy);}
+h1{font-size:24pt;letter-spacing:-.02em;margin:.1in 0 .22in;border-bottom:5px solid var(--ec-burgundy);padding-bottom:.16in;color:#111;}
+h2{font-size:17pt;margin:.32in 0 .12in;border-bottom:1px solid #c7c9cc;padding-bottom:.08in;color:var(--ec-navy);}
+h3{font-size:13.2pt;margin:.22in 0 .08in;color:var(--ec-burgundy);}
+h4{font-size:11.5pt;margin:.18in 0 .06in;color:var(--ec-teal);}
+ul,ol{margin:.20rem 0 .72rem;padding-left:1.25rem;}
+li{margin:.10rem 0;}
+strong{color:#111;}
+code{font-family:'Courier New', monospace;background:#f3f4f5;border:1px solid #e0e2e4;border-radius:3px;padding:.04rem .18rem;font-size:9pt;white-space:normal;}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d2536;color:#fff;border-radius:8px;border-left:7px solid var(--ec-teal);padding:.14in .16in;font-size:8.5pt;line-height:1.34;break-inside:avoid;page-break-inside:avoid;}
+pre code{background:transparent;border:0;color:#fff;padding:0;font-size:inherit;}
+table{border-collapse:collapse;width:100%;margin:.16in 0 .25in;break-inside:auto;page-break-inside:auto;font-size:9.4pt;}
+th,td{border:1px solid var(--border);padding:.065in .085in;vertical-align:top;}
+th{background:var(--ec-navy);color:#fff;font-weight:700;}
+tr:nth-child(even) td{background:#fbfbfc;}
+blockquote{border-left:6px solid var(--ec-gold);padding:.08in .16in;margin:.18in 0;background:#fff8ec;color:#333;break-inside:avoid;}
+hr{border:0;border-top:1px solid var(--border);margin:.2in 0;}
+.cover{page:cover;break-after:page;page-break-after:always;position:relative;width:8.5in;height:11in;background:#fff;overflow:hidden;}
+.cover-graphic{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+.brand-wordmark{position:absolute;right:.58in;top:.48in;z-index:2;color:#222;font-weight:700;font-size:14pt;letter-spacing:.01em;}
+.brand-rule{position:absolute;right:.58in;top:.82in;z-index:2;width:1.9in;height:3px;background:var(--ec-burgundy);}
+.cover-card{position:absolute;right:.62in;top:3.08in;width:4.55in;z-index:2;background:rgba(255,255,255,.97);box-shadow:0 16px 36px rgba(0,0,0,.10);border-left:8px solid var(--ec-burgundy);padding:.34in .34in .30in;}
+.cover-badge{display:inline-block;background:var(--ec-burgundy);color:#fff;border-radius:999px;padding:.07in .15in;font-size:8.5pt;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin-bottom:.20in;}
+.cover-title{font-size:27pt;line-height:1.06;font-weight:700;letter-spacing:-.03em;color:#171717;margin:0 0 .17in;overflow-wrap:break-word;hyphens:none;}
+.cover-subtitle{font-size:12.2pt;color:var(--ec-burgundy);font-weight:700;margin-bottom:.18in;line-height:1.25;}
+.cover-meta{font-size:9.6pt;color:#404040;border-top:1px solid #aaa;padding-top:.16in;line-height:1.45;}
+.cover-meta div{margin:.04in 0;}
+.cover-footer{position:absolute;left:.58in;right:.58in;bottom:.42in;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;color:#6d6d6d;font-size:10pt;}
+.cover-footer .url{font-size:18pt;font-weight:700;letter-spacing:.03em;color:#777;}
+.toc{break-after:page;page-break-after:always;background:#fff;border:1px solid var(--border);border-left:8px solid var(--ec-burgundy);padding:.24in .28in;margin:.08in 0 .35in;}
+.toc h2{margin:0 0 .16in;border:0;border-bottom:1px solid var(--border);padding-bottom:.10in;color:#111;}
+.toc ol{list-style:none;margin:0;padding:0;}
+.toc li{margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}
+.toc a{display:grid;grid-template-columns:4.25rem minmax(0,1fr) 2.8rem;gap:.45rem;align-items:baseline;padding:.052in 0;border-bottom:1px dotted #c8cacc;color:#222;text-decoration:none;}
+.toc a:hover{color:var(--ec-burgundy);}
+.toc .toc-no{font-weight:700;color:var(--ec-burgundy);font-size:8.8pt;}
+.toc .toc-title{overflow-wrap:break-word;}
+.toc .toc-level-3 a{grid-template-columns:4.95rem minmax(0,1fr) 2.8rem;margin-left:.24in;font-size:9.2pt;color:#444;}
+.toc .toc-level-3 .toc-no{color:var(--ec-teal);}
+.toc .toc-page{font-size:8.5pt;color:#666;text-align:right;}
+.step{border:1px solid #d9dddf;border-left:7px solid var(--ec-teal);background:#fcfdfd;border-radius:6px;padding:.13in .16in;margin:.15in 0 .22in;break-inside:avoid;page-break-inside:avoid;}
+.step > :first-child{margin-top:0;}
+.step h3,.step h4{margin-top:0;}
+.evidence{position:relative;border:1px solid #dfc4d1;border-left:7px solid var(--ec-burgundy);background:#fff8fb;border-radius:6px;padding:.30in .16in .12in;margin:.12in 0 .18in;break-inside:avoid;page-break-inside:avoid;}
+.evidence:before{content:'Evidence screenshot required';position:absolute;left:.16in;top:.09in;font-size:8.5pt;text-transform:uppercase;letter-spacing:.04em;font-weight:700;color:var(--ec-burgundy);}
+.callout{border:1px solid var(--border);border-left:7px solid var(--ec-burgundy);background:#fbfbfc;border-radius:6px;padding:.11in .16in;margin:.16in 0;break-inside:avoid;}
+.small{font-size:9pt;color:#555;}
+.no-break{break-inside:avoid;page-break-inside:avoid;}
+.references, .refs{font-size:9.2pt;}
+@media screen{
+  .toc .toc-page::after{content:'link';font-size:8pt;color:#999;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  html,body{background:#fff !important;margin:0;padding:0;}
+  .document-shell{width:auto;margin:0;background:#fff;box-shadow:none;overflow:visible;}
+  .content{padding:0;}
+  .cover{width:8.5in;height:11in;min-height:11in;}
+  .cover-card{right:.52in;top:3.10in;width:4.65in;box-shadow:none;}
+  .cover-title{font-size:26pt;}
+  a{color:inherit;border-bottom:0;}
+  h1{break-before:auto;page-break-before:auto;}
+  h2,h3,h4{break-after:avoid;page-break-after:avoid;}
+  table,pre,.step,.evidence,.callout,blockquote{break-inside:avoid;page-break-inside:avoid;}
+  .toc a::after{content:target-counter(attr(href), page);justify-self:end;color:#666;font-size:8.5pt;}
+}
+</style>
+</head>
+<body>
+<div class="document-shell">
+<section class="cover">
+<svg aria-hidden="true" class="cover-graphic" preserveaspectratio="none" viewbox="0 0 850 1100" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#ffffff" height="1100" width="850"></rect>
+<polygon fill="#6a0032" points="-185,80 150,-255 535,130 190,475"></polygon>
+<polygon fill="#5a0027" opacity="0.42" points="-185,80 20,-125 335,190 125,400"></polygon>
+<polygon fill="#6a0032" points="176,471 377,672 190,860 -18,648"></polygon>
+<polygon fill="#ffffff" points="184,468 224,508 603,128 563,88"></polygon>
+<polygon fill="#036064" points="232,516 270,554 650,174 612,136"></polygon>
+<polygon fill="#c9862d" points="129,852 340,1063 107,1295 -105,1082"></polygon>
+<polygon fill="#8b9538" points="-88,760 -55,727 120,902 87,935"></polygon>
+<line stroke="#6a0032" stroke-width="8" x1="0" x2="850" y1="1096" y2="1096"></line>
+</svg>
+<div class="brand-wordmark">Elections Canada</div>
+<div class="brand-rule"></div>
+<div class="cover-card">
+<div class="cover-badge">Azure Monitor</div>
+<div class="cover-title">Power Platform Azure Monitor Operational Monitoring Build Book</div>
+<div class="cover-subtitle">Standalone step-by-step implementation guide for IT Operations</div>
+<div class="cover-meta">
+<div><strong>Audience:</strong> IT Operations / Azure Administrators / Power Platform Administrators</div>
+<div><strong>Author:</strong> Frederick Pearson, Platform Engineering</div>
+<div><strong>Document type:</strong> Standalone IM/IT ticket build book</div>
+<div><strong>Status:</strong> Draft for implementation</div>
+<div><strong>Date:</strong> 2026-04-21</div>
+</div>
+</div>
+<div class="cover-footer"><span class="url">elections.ca</span><span>Technical implementation guide</span></div>
+</section>
+<div class="content">
+<nav aria-label="Table of contents" class="toc"><h2>Table of contents</h2><ol><li class="toc-level-2"><a href="#document-control"><span class="toc-no">1</span><span class="toc-title">Document control</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#implementation-objective"><span class="toc-no">2</span><span class="toc-title">Implementation objective</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#execution-rules-for-the-administrator"><span class="toc-no">3</span><span class="toc-title">Execution rules for the
+administrator</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#placeholder-convention"><span class="toc-no">4</span><span class="toc-title">Placeholder convention</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#required-evidence-capture-standard"><span class="toc-no">5</span><span class="toc-title">Required evidence capture
+standard</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#prerequisites"><span class="toc-no">6</span><span class="toc-title">Prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#administrator-access"><span class="toc-no">6.1</span><span class="toc-title">Administrator access</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#resource-and-licensing-prerequisites"><span class="toc-no">6.2</span><span class="toc-title">Resource and licensing
+prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#build-steps"><span class="toc-no">7</span><span class="toc-title">Build steps</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-the-monitoring-resource-group"><span class="toc-no"></span><span class="toc-title">Create the monitoring resource group</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-the-log-analytics-workspace"><span class="toc-no"></span><span class="toc-title">Create the Log Analytics workspace</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#assign-least-privilege-access-to-the-workspace"><span class="toc-no"></span><span class="toc-title">Assign least-privilege access to the workspace</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-workspace-based-application-insights"><span class="toc-no"></span><span class="toc-title">Create workspace-based Application Insights</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#configure-power-platform-export-to-application-insights"><span class="toc-no"></span><span class="toc-title">Configure Power Platform export to Application Insights</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#validate-initial-power-platform-telemetry-in-application-insights"><span class="toc-no"></span><span class="toc-title">Validate initial Power Platform telemetry in Application Insights</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-power-pages-availability-monitoring"><span class="toc-no"></span><span class="toc-title">Create Power Pages availability monitoring</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#configure-entra-external-id-diagnostic-settings-to-log-analytics"><span class="toc-no"></span><span class="toc-title">Configure Entra External ID diagnostic settings to Log Analytics</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-the-it-operations-action-group"><span class="toc-no"></span><span class="toc-title">Create the IT Operations action group</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-azure-monitor-operational-alerts"><span class="toc-no"></span><span class="toc-title">Create Azure Monitor operational alerts</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-the-azure-monitor-workbook"><span class="toc-no"></span><span class="toc-title">Create the Azure Monitor workbook</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#support-runbooks-for-azure-monitor-alerts"><span class="toc-no">8</span><span class="toc-title">Support runbooks for
+Azure Monitor alerts</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#final-validation-checklist"><span class="toc-no">9</span><span class="toc-title">Final validation checklist</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#official-references"><span class="toc-no">10</span><span class="toc-title">Official references</span><span class="toc-page"></span></a></li></ol></nav>
+<h1 id="elections-canada-azure-monitor-operational-monitoring-build-book">Elections
+Canada Azure Monitor Operational Monitoring Build Book</h1>
+<h2 id="document-control">Document control</h2>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Organization</td>
+<td>Elections Canada</td>
+</tr>
+<tr class="even">
+<td>Author</td>
+<td>Frederick Pearson, Platform Engineering</td>
+</tr>
+<tr class="odd">
+<td>Primary implementation team</td>
+<td>IT Operations / Azure administrators / Power Platform
+administrators</td>
+</tr>
+<tr class="even">
+<td>Implementer role</td>
+<td>Global Administrator or delegated administrator with the specified
+Azure, Power Platform, Entra, Sentinel, or QRadar permissions</td>
+</tr>
+<tr class="odd">
+<td>Environment scope</td>
+<td>Production Power Platform environments, production Dataverse
+environments, external-facing Power Pages sites, and Entra External ID
+tenants or applications used for external registration and sign-in</td>
+</tr>
+<tr class="even">
+<td>Evidence requirement</td>
+<td>Every implementation step that changes configuration must be
+captured with a screenshot and saved to the evidence folder named in
+this build book</td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-objective">Implementation objective</h2>
+<p>Elections Canada will implement Azure Monitor as the operational
+monitoring layer for Power Platform, Power Pages, Power Automate,
+Dataverse, and Entra External ID sign-in/registration flows. The
+implementation will create Log Analytics, Application Insights, Power
+Platform telemetry export, External ID diagnostic log routing, IT
+Operations action groups, operational alert rules, and evidence-ready
+support runbooks.</p>
+<h2 id="execution-rules-for-the-administrator">Execution rules for the
+administrator</h2>
+<ul>
+<li>Use the placeholders exactly as written when reading the procedure;
+replace them with approved Elections Canada values in the RFC/ticket
+before implementation.</li>
+<li>Use the Azure portal, Power Platform admin center, Microsoft
+Defender portal, Microsoft Entra admin center, Microsoft Purview portal,
+or QRadar Console as specified for each step.</li>
+<li>Run optional Azure PowerShell commands only from an administrative
+workstation approved for tenant administration.</li>
+<li>Save command output and screenshots in the evidence folder for the
+ticket.</li>
+<li>Do not close the ticket until every validation query, alert test,
+and evidence screenshot in the final checklist has been completed.</li>
+</ul>
+<h2 id="placeholder-convention">Placeholder convention</h2>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Placeholder</th>
+<th>Meaning</th>
+<th>Suggested Elections Canada value pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-TENANT-ID&gt;</code></td>
+<td>Microsoft Entra tenant ID</td>
+<td><code>&lt;tenant-guid&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SUBSCRIPTION-ID&gt;</code></td>
+<td>Azure subscription ID used for monitoring resources</td>
+<td><code>&lt;subscription-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-LOCATION&gt;</code></td>
+<td>Azure region for monitoring resources</td>
+<td><code>canadacentral</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-RG-MONITORING&gt;</code></td>
+<td>Resource group for monitoring resources</td>
+<td><code>rg-ec-pp-monitoring-prod-cca-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-LAW-NAME&gt;</code></td>
+<td>Log Analytics workspace name</td>
+<td><code>law-ec-pp-monitoring-prod-cca-001</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+<td>Application Insights resource name</td>
+<td><code>appi-ec-pp-operational-prod-cca-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-ENVIRONMENT-NAME&gt;</code></td>
+<td>Power Platform environment display name</td>
+<td><code>EC-PowerPlatform-Prod</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ENVIRONMENT-ID&gt;</code></td>
+<td>Power Platform environment GUID</td>
+<td><code>&lt;environment-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-POWERPAGES-URL&gt;</code></td>
+<td>Production Power Pages URL</td>
+<td><code>https://&lt;portal-name&gt;.powerappsportals.com</code> or
+approved custom domain</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EXTERNALID-TENANT-ID&gt;</code></td>
+<td>Entra External ID tenant ID</td>
+<td><code>&lt;external-tenant-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-EXTERNALID-APP-ID&gt;</code></td>
+<td>App registration/client ID used by Power Pages
+sign-in/registration</td>
+<td><code>&lt;application-client-id&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EVIDENCE-FOLDER&gt;</code></td>
+<td>Evidence folder for implementation screenshots</td>
+<td><code>EC-PP-Monitoring-RFC-&lt;ticket-number&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="required-evidence-capture-standard">Required evidence capture
+standard</h2>
+<ul>
+<li>Capture the full browser page or the relevant configuration pane
+after every configuration save.</li>
+<li>Ensure the screenshot shows the artifact name, tenant/subscription
+context, and final state.</li>
+<li>Name screenshots using the pattern
+<code>&lt;step-number&gt;-&lt;short-description&gt;-&lt;yyyy-mm-dd&gt;.png</code>.</li>
+<li>Capture command output by saving the PowerShell transcript to
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/powershell-transcript.txt</code>.</li>
+<li>Store exported CSV/JSON results from validation queries in
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/validation-results/</code>.</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="administrator-access">Administrator access</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Requirement</th>
+<th>Required value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Microsoft Entra role</td>
+<td>Global Administrator, Security Administrator, or delegated roles
+that can configure diagnostic settings for Entra logs</td>
+</tr>
+<tr class="even">
+<td>Azure RBAC</td>
+<td>Owner or Contributor on <code>&lt;EC-SUBSCRIPTION-ID&gt;</code> and
+Monitoring Contributor / Log Analytics Contributor for monitoring
+resources</td>
+</tr>
+<tr class="odd">
+<td>Power Platform role</td>
+<td>Power Platform Administrator or Dynamics 365 Administrator at tenant
+level, plus Environment Administrator or System Administrator in each
+Dataverse environment</td>
+</tr>
+<tr class="even">
+<td>Power Pages access</td>
+<td>Access to the production Power Pages URL and an approved synthetic
+monitoring account or anonymous health-check URL</td>
+</tr>
+<tr class="odd">
+<td>Evidence access</td>
+<td>Write access to <code>&lt;EC-EVIDENCE-FOLDER&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="resource-and-licensing-prerequisites">Resource and licensing
+prerequisites</h3>
+<ul>
+<li>An Azure subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code> is
+required to host Log Analytics, Application Insights, action groups,
+alert rules, and optional Event Hubs resources.</li>
+<li>A production Power Platform managed environment is required for
+Power Platform telemetry export to Application Insights.</li>
+<li>An Application Insights resource is required for Power Platform
+telemetry export.</li>
+<li>A unique Application Insights resource is required for each
+monitored production environment or tenant-level export package so
+out-of-box reports remain accurate.</li>
+<li>Power Platform telemetry export can take up to 24 hours before data
+appears in Application Insights.</li>
+<li>Entra External ID monitoring requires a destination Log Analytics
+workspace in the workforce tenant when the external tenant is
+separate.</li>
+</ul>
+<h2 id="build-steps">Build steps</h2>
+<h3 id="create-the-monitoring-resource-group">Create the monitoring resource group</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Sign in to the Azure portal.</li>
+<li>Search for <strong>Resource groups</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Enter resource group name
+<code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+<li>Select region <code>&lt;EC-LOCATION&gt;</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the new resource group and confirm the
+<strong>Overview</strong> page displays the correct subscription,
+location, and resource group name.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a aria-hidden="true" href="#cb2-1" tabindex="-1"></a>New-AzResourceGroup `</span>
+<span id="cb2-2"><a aria-hidden="true" href="#cb2-2" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb2-3"><a aria-hidden="true" href="#cb2-3" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;EC-LOCATION&gt;"</span> `</span>
+<span id="cb2-4"><a aria-hidden="true" href="#cb2-4" tabindex="-1"></a>  <span class="op">-</span>Tag @<span class="op">{</span>Workload<span class="op">=</span><span class="st">"PowerPlatformMonitoring"</span><span class="op">;</span> Environment<span class="op">=</span><span class="st">"Prod"</span><span class="op">;</span> Owner<span class="op">=</span><span class="st">"IT Operations"</span><span class="op">;</span> Organization<span class="op">=</span><span class="st">"Elections Canada"</span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>02-resource-group-overview.png</code> showing
+<code>&lt;EC-RG-MONITORING&gt;</code>, subscription, location, and
+tags.</p>
+</div>
+<h3 id="create-the-log-analytics-workspace">Create the Log Analytics workspace</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Log Analytics
+workspaces</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Select resource group <code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+<li>Enter workspace name <code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select region <code>&lt;EC-LOCATION&gt;</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>After deployment, open <code>&lt;EC-LAW-NAME&gt;</code> and select
+<strong>Overview</strong>.</li>
+<li>Select <strong>Usage and estimated costs</strong>.</li>
+<li>Select <strong>Data retention</strong>.</li>
+<li>Set retention to the approved Elections Canada operational retention
+value, represented here as
+<code>&lt;EC-LAW-RETENTION-DAYS&gt;</code>.</li>
+<li>Select <strong>OK</strong> or <strong>Save</strong>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a aria-hidden="true" href="#cb3-1" tabindex="-1"></a>New-AzOperationalInsightsWorkspace `</span>
+<span id="cb3-2"><a aria-hidden="true" href="#cb3-2" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb3-3"><a aria-hidden="true" href="#cb3-3" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-LAW-NAME&gt;"</span> `</span>
+<span id="cb3-4"><a aria-hidden="true" href="#cb3-4" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;EC-LOCATION&gt;"</span> `</span>
+<span id="cb3-5"><a aria-hidden="true" href="#cb3-5" tabindex="-1"></a>  <span class="op">-</span>Sku <span class="st">"PerGB2018"</span> `</span>
+<span id="cb3-6"><a aria-hidden="true" href="#cb3-6" tabindex="-1"></a>  <span class="op">-</span>RetentionInDays <span class="op">&lt;</span>EC-LAW-RETENTION-DAYS<span class="op">&gt;</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>03-log-analytics-overview.png</code> and
+<code>03-log-analytics-retention.png</code>.</p>
+</div>
+<h3 id="assign-least-privilege-access-to-the-workspace">Assign least-privilege access to the workspace</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open <code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Access control (IAM)</strong>.</li>
+<li>Select <strong>Add</strong> &gt; <strong>Add role
+assignment</strong>.</li>
+<li>Assign <strong>Log Analytics Reader</strong> to the approved IT
+Operations support group
+<code>&lt;EC-GRP-ITOPS-MONITORING-READERS&gt;</code>.</li>
+<li>Assign <strong>Monitoring Contributor</strong> to the approved IT
+Operations monitoring administration group
+<code>&lt;EC-GRP-ITOPS-MONITORING-ADMINS&gt;</code>.</li>
+<li>Assign <strong>Reader</strong> to the approved Power Platform
+support group <code>&lt;EC-GRP-PP-SUPPORT-READERS&gt;</code>.</li>
+<li>Select <strong>Review + assign</strong>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a aria-hidden="true" href="#cb4-1" tabindex="-1"></a><span class="va">$Workspace</span> <span class="op">=</span> Get-AzOperationalInsightsWorkspace <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> <span class="op">-</span>Name <span class="st">"&lt;EC-LAW-NAME&gt;"</span></span>
+<span id="cb4-2"><a aria-hidden="true" href="#cb4-2" tabindex="-1"></a>New-AzRoleAssignment <span class="op">-</span>ObjectId <span class="st">"&lt;EC-GRP-ITOPS-MONITORING-READERS-OBJECTID&gt;"</span> <span class="op">-</span>RoleDefinitionName <span class="st">"Log Analytics Reader"</span> <span class="op">-</span>Scope <span class="va">$Workspace</span><span class="op">.</span><span class="fu">ResourceId</span></span>
+<span id="cb4-3"><a aria-hidden="true" href="#cb4-3" tabindex="-1"></a>New-AzRoleAssignment <span class="op">-</span>ObjectId <span class="st">"&lt;EC-GRP-ITOPS-MONITORING-ADMINS-OBJECTID&gt;"</span> <span class="op">-</span>RoleDefinitionName <span class="st">"Monitoring Contributor"</span> <span class="op">-</span>Scope <span class="va">$Workspace</span><span class="op">.</span><span class="fu">ResourceId</span></span>
+<span id="cb4-4"><a aria-hidden="true" href="#cb4-4" tabindex="-1"></a>New-AzRoleAssignment <span class="op">-</span>ObjectId <span class="st">"&lt;EC-GRP-PP-SUPPORT-READERS-OBJECTID&gt;"</span> <span class="op">-</span>RoleDefinitionName <span class="st">"Reader"</span> <span class="op">-</span>Scope <span class="va">$Workspace</span><span class="op">.</span><span class="fu">ResourceId</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>04-workspace-iam-role-assignments.png</code> showing
+the assigned groups and roles.</p>
+</div>
+<h3 id="create-workspace-based-application-insights">Create workspace-based Application Insights</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Application
+Insights</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Select resource group <code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+<li>Enter name <code>&lt;EC-APPINSIGHTS-NAME&gt;</code>.</li>
+<li>Select region <code>&lt;EC-LOCATION&gt;</code>.</li>
+<li>For <strong>Resource Mode</strong>, select
+<strong>Workspace-based</strong>.</li>
+<li>Select Log Analytics workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the Application Insights resource and confirm it is linked to
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb5-1"><a aria-hidden="true" href="#cb5-1" tabindex="-1"></a><span class="va">$Workspace</span> <span class="op">=</span> Get-AzOperationalInsightsWorkspace <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> <span class="op">-</span>Name <span class="st">"&lt;EC-LAW-NAME&gt;"</span></span>
+<span id="cb5-2"><a aria-hidden="true" href="#cb5-2" tabindex="-1"></a>New-AzApplicationInsights `</span>
+<span id="cb5-3"><a aria-hidden="true" href="#cb5-3" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb5-4"><a aria-hidden="true" href="#cb5-4" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-APPINSIGHTS-NAME&gt;"</span> `</span>
+<span id="cb5-5"><a aria-hidden="true" href="#cb5-5" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;EC-LOCATION&gt;"</span> `</span>
+<span id="cb5-6"><a aria-hidden="true" href="#cb5-6" tabindex="-1"></a>  <span class="op">-</span>WorkspaceResourceId <span class="va">$Workspace</span><span class="op">.</span><span class="fu">ResourceId</span> `</span>
+<span id="cb5-7"><a aria-hidden="true" href="#cb5-7" tabindex="-1"></a>  <span class="op">-</span>ApplicationType <span class="st">"web"</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>05-application-insights-overview.png</code> showing
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code> and the workspace link.</p>
+</div>
+<h3 id="configure-power-platform-export-to-application-insights">Configure Power Platform export to Application Insights</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Sign in to the Power Platform admin center.</li>
+<li>Select <strong>Manage</strong> in the left navigation.</li>
+<li>Select <strong>Data export</strong>.</li>
+<li>Select the <strong>App Insights</strong> tab.</li>
+<li>Select <strong>New data export</strong>.</li>
+<li>Enter export package name
+<code>&lt;EC-PP-APPINSIGHTS-EXPORT-NAME&gt;</code>.</li>
+<li>Select the data types required for the environment:
+<ul>
+<li><strong>Dataverse diagnostics and performance</strong>.</li>
+<li><strong>Power Automate</strong> for cloud flow runs, triggers, and
+actions when available for the tenant and environment.</li>
+</ul></li>
+<li>Select filters for environment
+<code>&lt;EC-ENVIRONMENT-NAME&gt;</code> /
+<code>&lt;EC-ENVIRONMENT-ID&gt;</code>.</li>
+<li>Select Azure subscription
+<code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Select Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code>.</li>
+<li>Review the configuration.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Return to <strong>Data export</strong> &gt; <strong>App
+Insights</strong> and verify the export package status.</li>
+</ul>
+<p><strong>Optional automation note</strong></p>
+<ul>
+<li>This step is performed in the Power Platform admin center because
+the data export package is a Power Platform administrative
+configuration. Keep the Azure PowerShell transcript open, but capture
+this as portal evidence.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>06-power-platform-data-export-created.png</code>
+showing export name, data types, environment, and Application Insights
+target.</p>
+</div>
+<h3 id="validate-initial-power-platform-telemetry-in-application-insights">Validate initial Power Platform telemetry in Application Insights</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code>.</li>
+<li>Select <strong>Logs</strong>.</li>
+<li>Set time range to <strong>Last 24 hours</strong> after telemetry has
+had time to arrive.</li>
+<li>Run the following validation queries.</li>
+<li>Export each result set to CSV and save it to
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/validation-results/</code>.</li>
+</ul>
+<p><strong>Validation queries</strong></p>
+<pre class="kusto"><code>requests
+| where timestamp &gt; ago(24h)
+| summarize RequestCount=count(), FailedRequests=countif(success == false) by operation_Name
+| order by FailedRequests desc</code></pre>
+<pre class="kusto"><code>dependencies
+| where timestamp &gt; ago(24h)
+| summarize DependencyCount=count(), FailedDependencies=countif(success == false) by target, type
+| order by FailedDependencies desc</code></pre>
+<pre class="kusto"><code>exceptions
+| where timestamp &gt; ago(24h)
+| summarize ExceptionCount=count() by type, outerMessage
+| order by ExceptionCount desc</code></pre>
+</div>
+<div class="evidence">
+<p>Capture <code>07-appinsights-logs-validation.png</code> showing query
+results from requests, dependencies, and exceptions.</p>
+</div>
+<h3 id="create-power-pages-availability-monitoring">Create Power Pages availability monitoring</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code>.</li>
+<li>Select <strong>Availability</strong>.</li>
+<li>Select <strong>Add Classic test</strong> or <strong>Add Standard
+test</strong>, depending on the tenant UI.</li>
+<li>Enter test name
+<code>&lt;EC-PPAGES-AVAILABILITY-TEST-NAME&gt;</code>.</li>
+<li>Set URL to <code>&lt;EC-POWERPAGES-URL&gt;</code> or approved
+health-check URL
+<code>&lt;EC-POWERPAGES-HEALTHCHECK-URL&gt;</code>.</li>
+<li>Set test frequency to <strong>5 minutes</strong>.</li>
+<li>Select at least three test locations approved by Elections Canada
+for external availability checks.</li>
+<li>Enable retry logic if offered by the portal.</li>
+<li>Set success criteria to HTTP 200 or the approved success condition
+for the page.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the created test and verify that the first test run
+begins.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb9-1"><a aria-hidden="true" href="#cb9-1" tabindex="-1"></a><span class="co"># Availability web tests can be deployed as Azure resources. Use this pattern when the Az.ApplicationInsights module in the admin environment supports web-test deployment.</span></span>
+<span id="cb9-2"><a aria-hidden="true" href="#cb9-2" tabindex="-1"></a><span class="co"># Replace the properties with approved values and validate in non-production first.</span></span>
+<span id="cb9-3"><a aria-hidden="true" href="#cb9-3" tabindex="-1"></a><span class="va">$AppInsights</span> <span class="op">=</span> Get-AzApplicationInsights <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> <span class="op">-</span>Name <span class="st">"&lt;EC-APPINSIGHTS-NAME&gt;"</span></span>
+<span id="cb9-4"><a aria-hidden="true" href="#cb9-4" tabindex="-1"></a><span class="co"># If New-AzApplicationInsightsWebTest is not available in the installed module, deploy the equivalent Microsoft.Insights/webtests ARM/Bicep template with New-AzResourceGroupDeployment.</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>08-power-pages-availability-test.png</code> showing the
+test URL, frequency, locations, and current status.</p>
+</div>
+<h3 id="configure-entra-external-id-diagnostic-settings-to-log-analytics">Configure Entra External ID diagnostic settings to Log Analytics</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Sign in to the Microsoft Entra admin center with the tenant context
+required for Entra External ID monitoring.</li>
+<li>Browse to <strong>Entra ID</strong> &gt; <strong>Monitoring &amp;
+health</strong> &gt; <strong>Diagnostic settings</strong>.</li>
+<li>Select <strong>Add diagnostic setting</strong>.</li>
+<li>Enter diagnostic setting name
+<code>&lt;EC-DIAG-EXTID-LAW-NAME&gt;</code>.</li>
+<li>Select the required log categories:
+<ul>
+<li><strong>AuditLogs</strong>.</li>
+<li><strong>SignInLogs</strong>.</li>
+<li><strong>NonInteractiveUserSignInLogs</strong> when available.</li>
+<li><strong>ServicePrincipalSignInLogs</strong> when available.</li>
+<li><strong>ManagedIdentitySignInLogs</strong> when available.</li>
+<li><strong>ProvisioningLogs</strong> when registration, provisioning,
+or lifecycle investigation is required.</li>
+</ul></li>
+<li>Select <strong>Send to Log Analytics workspace</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Select workspace <code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Save</strong>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb10-1"><a aria-hidden="true" href="#cb10-1" tabindex="-1"></a><span class="co"># The Microsoft Entra tenant diagnostic setting is a tenant-level diagnostic setting. Use the Azure Monitor diagnostic settings cmdlets when the tenant supports the scope.</span></span>
+<span id="cb10-2"><a aria-hidden="true" href="#cb10-2" tabindex="-1"></a><span class="va">$TenantScope</span> <span class="op">=</span> <span class="st">"/providers/Microsoft.aadiam/diagnosticSettings/&lt;EC-DIAG-EXTID-LAW-NAME&gt;"</span></span>
+<span id="cb10-3"><a aria-hidden="true" href="#cb10-3" tabindex="-1"></a><span class="co"># Portal configuration is the required method when the current Az module does not expose the tenant diagnostic setting scope in the admin environment.</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>09-entra-external-id-diagnostic-setting.png</code>
+showing selected log categories and destination
+<code>&lt;EC-LAW-NAME&gt;</code>.</p>
+</div>
+<h3 id="create-the-it-operations-action-group">Create the IT Operations action group</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Monitor</strong>.</li>
+<li>Select <strong>Alerts</strong>.</li>
+<li>Select <strong>Action groups</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code> and
+resource group <code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+<li>Enter action group name
+<code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code>.</li>
+<li>Enter display name
+<code>&lt;EC-ACTIONGROUP-ITOPS-SHORTNAME&gt;</code>.</li>
+<li>On <strong>Notifications</strong>, add the approved notification
+channels:
+<ul>
+<li>Email/SMS/Push/Voice:
+<code>&lt;EC-ITOPS-DISTRIBUTION-LIST&gt;</code>.</li>
+<li>Email/SMS/Push/Voice:
+<code>&lt;EC-POWERPLATFORM-SUPPORT-DL&gt;</code>.</li>
+</ul></li>
+<li>On <strong>Actions</strong>, add ITSM webhook, Logic App, or secure
+automation endpoint <code>&lt;EC-ITSM-WEBHOOK-URI&gt;</code> if
+approved.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Use <strong>Test action group</strong> and verify receipt.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb11-1"><a aria-hidden="true" href="#cb11-1" tabindex="-1"></a><span class="va">$EmailReceiver</span> <span class="op">=</span> New-AzActionGroupEmailReceiverObject <span class="op">-</span>Name <span class="st">"ITOpsEmail"</span> <span class="op">-</span>EmailAddress <span class="st">"&lt;EC-ITOPS-DISTRIBUTION-LIST&gt;"</span></span>
+<span id="cb11-2"><a aria-hidden="true" href="#cb11-2" tabindex="-1"></a>New-AzActionGroup `</span>
+<span id="cb11-3"><a aria-hidden="true" href="#cb11-3" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb11-4"><a aria-hidden="true" href="#cb11-4" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;"</span> `</span>
+<span id="cb11-5"><a aria-hidden="true" href="#cb11-5" tabindex="-1"></a>  <span class="op">-</span>ShortName <span class="st">"&lt;EC-ACTIONGROUP-ITOPS-SHORTNAME&gt;"</span> `</span>
+<span id="cb11-6"><a aria-hidden="true" href="#cb11-6" tabindex="-1"></a>  <span class="op">-</span>Receiver <span class="va">$EmailReceiver</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>10-action-group-created.png</code> and
+<code>10-action-group-test-notification.png</code>.</p>
+</div>
+<h3 id="create-azure-monitor-operational-alerts">Create Azure Monitor operational alerts</h3>
+<p>Create the following alert rules. Each alert uses action group
+<code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code> and stores the alert in
+resource group <code>&lt;EC-RG-MONITORING&gt;</code> unless the RFC
+specifies otherwise.</p>
+<h4 id="alert-am-01---power-pages-availability-failure">Alert AM-01 -
+Power Pages availability failure</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-PPAGES-AVAILABILITY-CRITICAL&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>1 - Critical</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Signal</td>
+<td>Availability test failure or log search over
+<code>availabilityResults</code></td>
+</tr>
+<tr class="odd">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="even">
+<td>Lookback window</td>
+<td>10 minutes</td>
+</tr>
+<tr class="odd">
+<td>Trigger</td>
+<td>Failed availability result count greater than or equal to 2</td>
+</tr>
+<tr class="even">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open <strong>Monitor</strong> &gt; <strong>Alerts</strong>.</li>
+<li>Select <strong>Create</strong> &gt; <strong>Alert
+rule</strong>.</li>
+<li>Select scope <code>&lt;EC-APPINSIGHTS-NAME&gt;</code>.</li>
+<li>Select condition <strong>Availability</strong> / <strong>Failed
+locations</strong> if using the availability signal, or select
+<strong>Custom log search</strong> if using the KQL below.</li>
+<li>Enter the threshold above.</li>
+<li>Select action group
+<code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code>.</li>
+<li>Enter alert name
+<code>&lt;EC-ALERT-PPAGES-AVAILABILITY-CRITICAL&gt;</code>.</li>
+<li>Set severity <strong>1</strong>.</li>
+<li>Select <strong>Review + create</strong> and
+<strong>Create</strong>.</li>
+</ul>
+<pre class="kusto"><code>availabilityResults
+| where timestamp &gt; ago(10m)
+| where name == "&lt;EC-PPAGES-AVAILABILITY-TEST-NAME&gt;"
+| where success == false
+| summarize FailedCount=count()</code></pre>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb13-1"><a aria-hidden="true" href="#cb13-1" tabindex="-1"></a><span class="co"># Use New-AzScheduledQueryRule for the custom log search variant after validating the query in Application Insights Logs.</span></span>
+<span id="cb13-2"><a aria-hidden="true" href="#cb13-2" tabindex="-1"></a><span class="co"># Store the query in a .kql file and deploy with approved scheduled-query-rule cmdlets or ARM/Bicep template.</span></span></code></pre></div>
+<div class="evidence">
+<p>Capture <code>11-am01-ppages-availability-alert.png</code> showing
+scope, condition, severity, and action group.</p>
+</div>
+<h4 id="alert-am-02---power-pages-response-time-degradation">Alert AM-02
+- Power Pages response time degradation</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-PPAGES-P95-LATENCY-WARNING&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>2 - Warning</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>p95 duration greater than <code>&lt;EC-PPAGES-P95-MS&gt;</code>
+milliseconds</td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>requests
+| where timestamp &gt; ago(15m)
+| where url startswith "&lt;EC-POWERPAGES-URL&gt;"
+| summarize P95DurationMs=percentile(duration, 95)
+| where P95DurationMs &gt; &lt;EC-PPAGES-P95-MS&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am02-ppages-latency-alert.png</code>.</p>
+</div>
+<h4 id="alert-am-03---power-automate-cloud-flow-run-failures">Alert
+AM-03 - Power Automate cloud flow run failures</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-FLOW-RUN-FAILURES-ERROR&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>2 - Error</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>Failed request count greater than or equal to
+<code>&lt;EC-FLOW-FAILURE-THRESHOLD&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>requests
+| where timestamp &gt; ago(15m)
+| where success == false
+| summarize FailedRuns=count() by operation_Name
+| where FailedRuns &gt;= &lt;EC-FLOW-FAILURE-THRESHOLD&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am03-flow-run-failure-alert.png</code>.</p>
+</div>
+<h4 id="alert-am-04---power-automate-action-or-trigger-dependency-failures">Alert
+AM-04 - Power Automate action or trigger dependency failures</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-FLOW-DEPENDENCY-FAILURES-ERROR&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>2 - Error</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>Failed dependency count greater than or equal to
+<code>&lt;EC-DEPENDENCY-FAILURE-THRESHOLD&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>dependencies
+| where timestamp &gt; ago(15m)
+| where success == false
+| summarize FailedDependencies=count() by target, type, operation_Name
+| where FailedDependencies &gt;= &lt;EC-DEPENDENCY-FAILURE-THRESHOLD&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am04-flow-dependency-failure-alert.png</code>.</p>
+</div>
+<h4 id="alert-am-05---dataverse-exception-spike">Alert AM-05 - Dataverse
+exception spike</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-DATAVERSE-EXCEPTION-SPIKE-ERROR&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>2 - Error</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>Exception count greater than or equal to
+<code>&lt;EC-DATAVERSE-EXCEPTION-THRESHOLD&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>exceptions
+| where timestamp &gt; ago(15m)
+| summarize ExceptionCount=count() by type, outerMessage
+| where ExceptionCount &gt;= &lt;EC-DATAVERSE-EXCEPTION-THRESHOLD&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am05-dataverse-exception-alert.png</code>.</p>
+</div>
+<h4 id="alert-am-06---connector-or-api-dependency-failure-spike">Alert
+AM-06 - Connector or API dependency failure spike</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-CONNECTOR-API-FAILURES-ERROR&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>2 - Error</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>Failed dependencies for a target greater than or equal to
+<code>&lt;EC-CONNECTOR-FAILURE-THRESHOLD&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>dependencies
+| where timestamp &gt; ago(15m)
+| where success == false
+| summarize FailedCalls=count() by target
+| where FailedCalls &gt;= &lt;EC-CONNECTOR-FAILURE-THRESHOLD&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am06-connector-api-failure-alert.png</code>.</p>
+</div>
+<h4 id="alert-am-07---entra-external-id-sign-in-failure-spike-for-power-pages">Alert
+AM-07 - Entra External ID sign-in failure spike for Power Pages</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-EXTID-SIGNIN-FAILURE-SPIKE-ERROR&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>2 - Error</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Log Analytics workspace <code>&lt;EC-LAW-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>5 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>Failed sign-ins for <code>&lt;EC-EXTERNALID-APP-ID&gt;</code>
+greater than or equal to
+<code>&lt;EC-EXTID-FAILURE-THRESHOLD&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>SigninLogs
+| where TimeGenerated &gt; ago(15m)
+| where AppId == "&lt;EC-EXTERNALID-APP-ID&gt;" or AppDisplayName has "&lt;EC-POWERPAGES-APP-DISPLAY-NAME&gt;"
+| where ResultType != 0
+| summarize FailedSignIns=count() by AppDisplayName, ResultType, ResultDescription
+| where FailedSignIns &gt;= &lt;EC-EXTID-FAILURE-THRESHOLD&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am07-entra-external-id-failure-alert.png</code>.</p>
+</div>
+<h4 id="alert-am-08---monitoring-pipeline-silence">Alert AM-08 -
+Monitoring pipeline silence</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alert name</td>
+<td><code>&lt;EC-ALERT-PP-TELEMETRY-SILENCE-WARNING&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>3 - Warning</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>Application Insights resource
+<code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Evaluation frequency</td>
+<td>30 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookback window</td>
+<td>24 hours</td>
+</tr>
+<tr class="even">
+<td>Trigger</td>
+<td>No requests or dependencies for the monitored environment in 24
+hours</td>
+</tr>
+<tr class="odd">
+<td>Action group</td>
+<td><code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>union requests, dependencies
+| where timestamp &gt; ago(24h)
+| summarize TelemetryCount=count()
+| where TelemetryCount == 0</code></pre>
+<div class="evidence">
+<p>Capture <code>11-am08-telemetry-silence-alert.png</code>.</p>
+</div>
+<h3 id="create-the-azure-monitor-workbook">Create the Azure Monitor workbook</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open <strong>Azure Monitor</strong>.</li>
+<li>Select <strong>Workbooks</strong>.</li>
+<li>Select <strong>New</strong>.</li>
+<li>Name the workbook
+<code>&lt;EC-WORKBOOK-ITOPS-PP-MONITORING&gt;</code>.</li>
+<li>Add a text section named <strong>Scope</strong> listing
+<code>&lt;EC-ENVIRONMENT-NAME&gt;</code>,
+<code>&lt;EC-POWERPAGES-URL&gt;</code>, and
+<code>&lt;EC-EXTERNALID-APP-ID&gt;</code>.</li>
+<li>Add query tiles for:
+<ul>
+<li>Power Pages availability failures.</li>
+<li>Power Pages p95 duration.</li>
+<li>Power Automate failed runs.</li>
+<li>Flow action and trigger dependency failures.</li>
+<li>Dataverse exceptions.</li>
+<li>Connector/API failures.</li>
+<li>Entra External ID sign-in failure spike.</li>
+</ul></li>
+<li>Select <strong>Save</strong>.</li>
+<li>Save the workbook in resource group
+<code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>12-azure-monitor-workbook-overview.png</code> and
+<code>12-workbook-save-confirmation.png</code>.</p>
+</div>
+<h2 id="support-runbooks-for-azure-monitor-alerts">Support runbooks for
+Azure Monitor alerts</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Alert</th>
+<th>First response</th>
+<th>Initial triage</th>
+<th>Escalation owner</th>
+<th>Closure criteria</th>
+<th>Tuning notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-ALERT-PPAGES-AVAILABILITY-CRITICAL&gt;</code></td>
+<td>Acknowledge alert in Azure Monitor and create/update the IT Ops
+incident.</td>
+<td>Open Availability test results, confirm failed locations, test
+<code>&lt;EC-POWERPAGES-URL&gt;</code> from approved admin network,
+check Power Pages admin center health, check DNS/custom
+domain/certificate status.</td>
+<td>IT Operations web/platform support; escalate to Power Platform
+administrator if site is reachable but authentication/app behavior
+fails.</td>
+<td>Availability test passes from approved locations for two consecutive
+evaluation periods and user-impact statement is documented.</td>
+<td>Suppress known maintenance windows using alert processing rules;
+tune if only one external location fails.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ALERT-PPAGES-P95-LATENCY-WARNING&gt;</code></td>
+<td>Acknowledge and review workbook latency tile.</td>
+<td>Compare p95 duration against baseline, inspect slow requests, review
+Dataverse/API dependency failures, validate external ID sign-in latency
+if login pages are affected.</td>
+<td>IT Operations; escalate to Power Platform app owner for app-specific
+latency.</td>
+<td>p95 returns below <code>&lt;EC-PPAGES-P95-MS&gt;</code> for two
+consecutive periods.</td>
+<td>Use separate thresholds for anonymous public pages and authenticated
+pages if needed.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-ALERT-FLOW-RUN-FAILURES-ERROR&gt;</code></td>
+<td>Acknowledge and identify affected flow from
+<code>operation_Name</code>.</td>
+<td>Open Power Automate run history, identify failed action, validate
+connector status and dependent service availability.</td>
+<td>Power Platform support team; escalate to system owner for business
+process impact.</td>
+<td>Flow succeeds or failed runs are explained by approved change/known
+outage.</td>
+<td>Tune threshold per critical flow; create critical-flow-specific
+alerts for election-critical automations.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ALERT-FLOW-DEPENDENCY-FAILURES-ERROR&gt;</code></td>
+<td>Acknowledge and identify failed dependency target.</td>
+<td>Review dependency target, connector, API status, authentication
+errors, and retry behavior.</td>
+<td>IT Operations integration/API owner.</td>
+<td>Dependency calls return to normal and retries succeed.</td>
+<td>Exclude known transient targets only with documented approval.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-ALERT-DATAVERSE-EXCEPTION-SPIKE-ERROR&gt;</code></td>
+<td>Acknowledge and review exception type and message.</td>
+<td>Correlate exceptions with recent solution import, plugin changes,
+API deployment, or data operations.</td>
+<td>Power Platform administrator and Dataverse solution owner.</td>
+<td>Exception count returns below threshold and root cause is
+logged.</td>
+<td>Tune by exception type if a noisy benign exception is
+identified.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ALERT-CONNECTOR-API-FAILURES-ERROR&gt;</code></td>
+<td>Acknowledge and identify connector/API target.</td>
+<td>Validate connector connection references, secret expiry, API
+availability, throttling, and network dependencies.</td>
+<td>Integration/API owner.</td>
+<td>Connector/API calls are succeeding and affected flows/apps
+recover.</td>
+<td>Maintain approved target allowlist for expected failure-prone
+noncritical endpoints.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-ALERT-EXTID-SIGNIN-FAILURE-SPIKE-ERROR&gt;</code></td>
+<td>Acknowledge and check if Power Pages sign-in or registration is
+affected.</td>
+<td>Review SigninLogs result codes, affected app, IP/country patterns,
+conditional access result, and identity provider status.</td>
+<td>Identity team; escalate to IT Security if suspicious patterns
+appear.</td>
+<td>Sign-in failure rate returns to baseline and any configuration issue
+is remediated.</td>
+<td>Separate brute-force/security rules must remain in SIEM; this Azure
+Monitor alert is for operational sign-in failure visibility.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ALERT-PP-TELEMETRY-SILENCE-WARNING&gt;</code></td>
+<td>Acknowledge and verify that telemetry export still exists.</td>
+<td>Check Power Platform data export status, Application Insights
+ingestion, workspace ingestion, and recent platform activity.</td>
+<td>IT Operations; escalate to Power Platform administrator.</td>
+<td>Telemetry resumes or a documented no-activity explanation is
+attached.</td>
+<td>Tune during extended shutdown periods or approved non-use
+windows.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="final-validation-checklist">Final validation checklist</h2>
+<ul>
+<li><code>&lt;EC-RG-MONITORING&gt;</code> exists in
+<code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li><code>&lt;EC-LAW-NAME&gt;</code> exists, has approved retention, and
+has correct RBAC.</li>
+<li><code>&lt;EC-APPINSIGHTS-NAME&gt;</code> exists and is
+workspace-based.</li>
+<li>Power Platform data export package
+<code>&lt;EC-PP-APPINSIGHTS-EXPORT-NAME&gt;</code> is active.</li>
+<li>Application Insights validation queries return records or a
+documented 24-hour wait has been recorded.</li>
+<li>Entra External ID diagnostic setting
+<code>&lt;EC-DIAG-EXTID-LAW-NAME&gt;</code> sends logs to
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Action group <code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code> sends a
+test notification to the approved recipients.</li>
+<li>All AM-01 through AM-08 alert rules exist and use
+<code>&lt;EC-ACTIONGROUP-ITOPS-NAME&gt;</code>.</li>
+<li>Workbook <code>&lt;EC-WORKBOOK-ITOPS-PP-MONITORING&gt;</code> is
+saved and visible to IT Operations.</li>
+<li>Screenshots are saved for every evidence checkpoint.</li>
+<li>PowerShell transcript is stopped and saved.</li>
+</ul>
+<div class="sourceCode" id="cb21"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb21-1"><a aria-hidden="true" href="#cb21-1" tabindex="-1"></a><span class="fu">Stop-Transcript</span></span></code></pre></div>
+<h2 id="official-references">Official references</h2>
+<ul>
+<li>Microsoft Learn - Export data to Application Insights:
+https://learn.microsoft.com/en-us/power-platform/admin/set-up-export-application-insights</li>
+<li>Microsoft Learn - Overview of integration with Application Insights:
+https://learn.microsoft.com/en-us/power-platform/admin/overview-integration-application-insights</li>
+<li>Microsoft Learn - Set up Application Insights with Power Automate:
+https://learn.microsoft.com/en-us/power-platform/admin/app-insights-cloud-flow</li>
+<li>Microsoft Learn - Configure Microsoft Entra diagnostic settings:
+https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-configure-diagnostic-settings</li>
+<li>Microsoft Learn - Set up Azure Monitor in external tenants:
+https://learn.microsoft.com/en-us/entra/external-id/customers/how-to-azure-monitor</li>
+<li>Microsoft Learn - Create Azure Monitor log search alert rules:
+https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule</li>
+<li>Microsoft Learn - Action groups in Azure Monitor:
+https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups</li>
+</ul>
+</div>
+</div>
+</body>
+</html>

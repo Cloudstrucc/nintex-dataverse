@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Power Platform IBM QRadar Security Monitoring Build Book</title>
+<style>
+:root{
+  --ec-burgundy:#6a0032;
+  --ec-burgundy-dark:#49001b;
+  --ec-teal:#036064;
+  --ec-navy:#1e384b;
+  --ec-olive:#8b9538;
+  --ec-gold:#c9862d;
+  --ec-purple:#60205c;
+  --ink:#202124;
+  --muted:#5f6368;
+  --border:#d7d9db;
+  --soft:#f5f6f7;
+  --soft-burgundy:#fbf4f7;
+  --soft-teal:#f0faf9;
+  --soft-gold:#fff8ec;
+}
+@page {
+  size: Letter;
+  margin: 0.70in 0.62in 0.76in 0.62in;
+  @bottom-left {
+    content: 'Elections Canada - IM/IT implementation build book';
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #666;
+  }
+  @bottom-right {
+    content: 'Page ' counter(page) ' of ' counter(pages);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #666;
+  }
+}
+@page cover {
+  size: Letter;
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+*{box-sizing:border-box;}
+html{font-family: Arial, Helvetica, sans-serif;color:var(--ink);font-size:10.6pt;line-height:1.45;background:#eef0f2;scroll-behavior:smooth;}
+body{margin:0;background:#eef0f2;}
+.document-shell{width:8.5in;margin:0.32in auto;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.10);overflow:hidden;}
+.content{padding:0.38in 0.58in 0.48in 0.58in;}
+a{color:var(--ec-burgundy);text-decoration:none;border-bottom:1px solid rgba(106,0,50,.22)}
+a:hover{text-decoration:underline;}
+p{margin:.36rem 0 .72rem;}
+h1,h2,h3,h4{font-family:Arial, Helvetica, sans-serif;line-height:1.18;break-after:avoid;page-break-after:avoid;color:var(--ec-navy);}
+h1{font-size:24pt;letter-spacing:-.02em;margin:.1in 0 .22in;border-bottom:5px solid var(--ec-burgundy);padding-bottom:.16in;color:#111;}
+h2{font-size:17pt;margin:.32in 0 .12in;border-bottom:1px solid #c7c9cc;padding-bottom:.08in;color:var(--ec-navy);}
+h3{font-size:13.2pt;margin:.22in 0 .08in;color:var(--ec-burgundy);}
+h4{font-size:11.5pt;margin:.18in 0 .06in;color:var(--ec-teal);}
+ul,ol{margin:.20rem 0 .72rem;padding-left:1.25rem;}
+li{margin:.10rem 0;}
+strong{color:#111;}
+code{font-family:'Courier New', monospace;background:#f3f4f5;border:1px solid #e0e2e4;border-radius:3px;padding:.04rem .18rem;font-size:9pt;white-space:normal;}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d2536;color:#fff;border-radius:8px;border-left:7px solid var(--ec-teal);padding:.14in .16in;font-size:8.5pt;line-height:1.34;break-inside:avoid;page-break-inside:avoid;}
+pre code{background:transparent;border:0;color:#fff;padding:0;font-size:inherit;}
+table{border-collapse:collapse;width:100%;margin:.16in 0 .25in;break-inside:auto;page-break-inside:auto;font-size:9.4pt;}
+th,td{border:1px solid var(--border);padding:.065in .085in;vertical-align:top;}
+th{background:var(--ec-navy);color:#fff;font-weight:700;}
+tr:nth-child(even) td{background:#fbfbfc;}
+blockquote{border-left:6px solid var(--ec-gold);padding:.08in .16in;margin:.18in 0;background:#fff8ec;color:#333;break-inside:avoid;}
+hr{border:0;border-top:1px solid var(--border);margin:.2in 0;}
+.cover{page:cover;break-after:page;page-break-after:always;position:relative;width:8.5in;height:11in;background:#fff;overflow:hidden;}
+.cover-graphic{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+.brand-wordmark{position:absolute;right:.58in;top:.48in;z-index:2;color:#222;font-weight:700;font-size:14pt;letter-spacing:.01em;}
+.brand-rule{position:absolute;right:.58in;top:.82in;z-index:2;width:1.9in;height:3px;background:var(--ec-burgundy);}
+.cover-card{position:absolute;right:.62in;top:3.08in;width:4.55in;z-index:2;background:rgba(255,255,255,.97);box-shadow:0 16px 36px rgba(0,0,0,.10);border-left:8px solid var(--ec-burgundy);padding:.34in .34in .30in;}
+.cover-badge{display:inline-block;background:var(--ec-burgundy);color:#fff;border-radius:999px;padding:.07in .15in;font-size:8.5pt;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin-bottom:.20in;}
+.cover-title{font-size:27pt;line-height:1.06;font-weight:700;letter-spacing:-.03em;color:#171717;margin:0 0 .17in;overflow-wrap:break-word;hyphens:none;}
+.cover-subtitle{font-size:12.2pt;color:var(--ec-burgundy);font-weight:700;margin-bottom:.18in;line-height:1.25;}
+.cover-meta{font-size:9.6pt;color:#404040;border-top:1px solid #aaa;padding-top:.16in;line-height:1.45;}
+.cover-meta div{margin:.04in 0;}
+.cover-footer{position:absolute;left:.58in;right:.58in;bottom:.42in;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;color:#6d6d6d;font-size:10pt;}
+.cover-footer .url{font-size:18pt;font-weight:700;letter-spacing:.03em;color:#777;}
+.toc{break-after:page;page-break-after:always;background:#fff;border:1px solid var(--border);border-left:8px solid var(--ec-burgundy);padding:.24in .28in;margin:.08in 0 .35in;}
+.toc h2{margin:0 0 .16in;border:0;border-bottom:1px solid var(--border);padding-bottom:.10in;color:#111;}
+.toc ol{list-style:none;margin:0;padding:0;}
+.toc li{margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}
+.toc a{display:grid;grid-template-columns:4.25rem minmax(0,1fr) 2.8rem;gap:.45rem;align-items:baseline;padding:.052in 0;border-bottom:1px dotted #c8cacc;color:#222;text-decoration:none;}
+.toc a:hover{color:var(--ec-burgundy);}
+.toc .toc-no{font-weight:700;color:var(--ec-burgundy);font-size:8.8pt;}
+.toc .toc-title{overflow-wrap:break-word;}
+.toc .toc-level-3 a{grid-template-columns:4.95rem minmax(0,1fr) 2.8rem;margin-left:.24in;font-size:9.2pt;color:#444;}
+.toc .toc-level-3 .toc-no{color:var(--ec-teal);}
+.toc .toc-page{font-size:8.5pt;color:#666;text-align:right;}
+.step{border:1px solid #d9dddf;border-left:7px solid var(--ec-teal);background:#fcfdfd;border-radius:6px;padding:.13in .16in;margin:.15in 0 .22in;break-inside:avoid;page-break-inside:avoid;}
+.step > :first-child{margin-top:0;}
+.step h3,.step h4{margin-top:0;}
+.evidence{position:relative;border:1px solid #dfc4d1;border-left:7px solid var(--ec-burgundy);background:#fff8fb;border-radius:6px;padding:.30in .16in .12in;margin:.12in 0 .18in;break-inside:avoid;page-break-inside:avoid;}
+.evidence:before{content:'Evidence screenshot required';position:absolute;left:.16in;top:.09in;font-size:8.5pt;text-transform:uppercase;letter-spacing:.04em;font-weight:700;color:var(--ec-burgundy);}
+.callout{border:1px solid var(--border);border-left:7px solid var(--ec-burgundy);background:#fbfbfc;border-radius:6px;padding:.11in .16in;margin:.16in 0;break-inside:avoid;}
+.small{font-size:9pt;color:#555;}
+.no-break{break-inside:avoid;page-break-inside:avoid;}
+.references, .refs{font-size:9.2pt;}
+@media screen{
+  .toc .toc-page::after{content:'link';font-size:8pt;color:#999;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  html,body{background:#fff !important;margin:0;padding:0;}
+  .document-shell{width:auto;margin:0;background:#fff;box-shadow:none;overflow:visible;}
+  .content{padding:0;}
+  .cover{width:8.5in;height:11in;min-height:11in;}
+  .cover-card{right:.52in;top:3.10in;width:4.65in;box-shadow:none;}
+  .cover-title{font-size:26pt;}
+  a{color:inherit;border-bottom:0;}
+  h1{break-before:auto;page-break-before:auto;}
+  h2,h3,h4{break-after:avoid;page-break-after:avoid;}
+  table,pre,.step,.evidence,.callout,blockquote{break-inside:avoid;page-break-inside:avoid;}
+  .toc a::after{content:target-counter(attr(href), page);justify-self:end;color:#666;font-size:8.5pt;}
+}
+</style>
+</head>
+<body>
+<div class="document-shell">
+<section class="cover">
+<svg aria-hidden="true" class="cover-graphic" preserveaspectratio="none" viewbox="0 0 850 1100" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#ffffff" height="1100" width="850"></rect>
+<polygon fill="#6a0032" points="-185,80 150,-255 535,130 190,475"></polygon>
+<polygon fill="#5a0027" opacity="0.42" points="-185,80 20,-125 335,190 125,400"></polygon>
+<polygon fill="#6a0032" points="176,471 377,672 190,860 -18,648"></polygon>
+<polygon fill="#ffffff" points="184,468 224,508 603,128 563,88"></polygon>
+<polygon fill="#036064" points="232,516 270,554 650,174 612,136"></polygon>
+<polygon fill="#c9862d" points="129,852 340,1063 107,1295 -105,1082"></polygon>
+<polygon fill="#8b9538" points="-88,760 -55,727 120,902 87,935"></polygon>
+<line stroke="#6a0032" stroke-width="8" x1="0" x2="850" y1="1096" y2="1096"></line>
+</svg>
+<div class="brand-wordmark">Elections Canada</div>
+<div class="brand-rule"></div>
+<div class="cover-card">
+<div class="cover-badge">IBM QRadar</div>
+<div class="cover-title">Power Platform IBM QRadar Security Monitoring Build Book</div>
+<div class="cover-subtitle">Standalone step-by-step implementation guide for QRadar SIEM</div>
+<div class="cover-meta">
+<div><strong>Audience:</strong> IT Security / SOC / QRadar Administrators / Global Administrators</div>
+<div><strong>Author:</strong> Frederick Pearson, Platform Engineering</div>
+<div><strong>Document type:</strong> Standalone IM/IT ticket build book</div>
+<div><strong>Status:</strong> Draft for implementation</div>
+<div><strong>Date:</strong> 2026-04-21</div>
+</div>
+</div>
+<div class="cover-footer"><span class="url">elections.ca</span><span>Technical implementation guide</span></div>
+</section>
+<div class="content">
+<nav aria-label="Table of contents" class="toc"><h2>Table of contents</h2><ol><li class="toc-level-2"><a href="#document-control"><span class="toc-no">1</span><span class="toc-title">Document control</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#implementation-objective"><span class="toc-no">2</span><span class="toc-title">Implementation objective</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#execution-rules-for-the-administrator"><span class="toc-no">3</span><span class="toc-title">Execution rules for the
+administrator</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#placeholder-convention"><span class="toc-no">4</span><span class="toc-title">Placeholder convention</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#required-evidence-capture-standard"><span class="toc-no">5</span><span class="toc-title">Required evidence capture
+standard</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#prerequisites"><span class="toc-no">6</span><span class="toc-title">Prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#administrator-access"><span class="toc-no">6.1</span><span class="toc-title">Administrator access</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#platform-prerequisites"><span class="toc-no">6.2</span><span class="toc-title">Platform prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#implementation-artifact-placeholders"><span class="toc-no">7</span><span class="toc-title">Implementation artifact
+placeholders</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#build-steps"><span class="toc-no">8</span><span class="toc-title">Build steps</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-event-hubs-namespace-for-qradar-ingestion"><span class="toc-no"></span><span class="toc-title">Create Event Hubs namespace for QRadar ingestion</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-event-hubs-consumer-group-and-qradar-listen-policy"><span class="toc-no"></span><span class="toc-title">Create Event Hubs, consumer group, and QRadar listen policy</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-qradar-checkpoint-storage-account"><span class="toc-no"></span><span class="toc-title">Create QRadar checkpoint storage account</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#route-entra-external-id-logs-to-event-hubs"><span class="toc-no"></span><span class="toc-title">Route Entra External ID logs to Event Hubs</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-microsoft-entra-app-registration-for-qradar-office-365-rest-api-collection"><span class="toc-no"></span><span class="toc-title">Create Microsoft Entra app registration for QRadar Office 365 REST API collection</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#validate-qradar-dsms-and-protocols"><span class="toc-no"></span><span class="toc-title">Validate QRadar DSMs and protocols</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#add-qradar-microsoft-office-365-purview-audit-log-source"><span class="toc-no"></span><span class="toc-title">Add QRadar Microsoft Office 365 / Purview audit log source</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#add-qradar-microsoft-entra-id-event-hubs-log-source"><span class="toc-no"></span><span class="toc-title">Add QRadar Microsoft Entra ID Event Hubs log source</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-qradar-custom-event-properties-for-power-platform-audit-payloads"><span class="toc-no"></span><span class="toc-title">Create QRadar custom event properties for Power Platform audit payloads</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-qradar-reference-sets"><span class="toc-no"></span><span class="toc-title">Create QRadar reference sets</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-qradar-rules-and-offenses"><span class="toc-no"></span><span class="toc-title">Create QRadar rules and offenses</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-qradar-saved-searches-and-dashboard"><span class="toc-no"></span><span class="toc-title">Create QRadar saved searches and dashboard</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#support-runbooks-for-qradar-offenses"><span class="toc-no">9</span><span class="toc-title">Support runbooks for
+QRadar offenses</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#final-validation-checklist"><span class="toc-no">10</span><span class="toc-title">Final validation checklist</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#official-references"><span class="toc-no">11</span><span class="toc-title">Official references</span><span class="toc-page"></span></a></li></ol></nav>
+<h1 id="elections-canada-ibm-qradar-security-monitoring-build-book">Elections
+Canada IBM QRadar Security Monitoring Build Book</h1>
+<h2 id="document-control">Document control</h2>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Organization</td>
+<td>Elections Canada</td>
+</tr>
+<tr class="even">
+<td>Author</td>
+<td>Frederick Pearson, Platform Engineering</td>
+</tr>
+<tr class="odd">
+<td>Primary implementation team</td>
+<td>IT Security / SOC / QRadar administrators / Global
+administrators</td>
+</tr>
+<tr class="even">
+<td>Implementer role</td>
+<td>Global Administrator or delegated administrator with the specified
+Azure, Power Platform, Entra, Sentinel, or QRadar permissions</td>
+</tr>
+<tr class="odd">
+<td>Environment scope</td>
+<td>Production Power Platform environments, production Dataverse
+environments, external-facing Power Pages sites, and Entra External ID
+tenants or applications used for external registration and sign-in</td>
+</tr>
+<tr class="even">
+<td>Evidence requirement</td>
+<td>Every implementation step that changes configuration must be
+captured with a screenshot and saved to the evidence folder named in
+this build book</td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-objective">Implementation objective</h2>
+<p>Elections Canada will implement IBM QRadar as the SIEM layer for
+Power Platform and Entra External ID monitoring. The implementation will
+route Microsoft Entra logs through Azure Event Hubs, collect Microsoft
+365/Purview audit events through the QRadar Microsoft Office 365 DSM,
+configure QRadar log sources, custom event properties, reference sets,
+offense rules, saved searches, dashboards, and evidence-ready SOC
+runbooks.</p>
+<h2 id="execution-rules-for-the-administrator">Execution rules for the
+administrator</h2>
+<ul>
+<li>Use the placeholders exactly as written when reading the procedure;
+replace them with approved Elections Canada values in the RFC/ticket
+before implementation.</li>
+<li>Use the Azure portal, Power Platform admin center, Microsoft
+Defender portal, Microsoft Entra admin center, Microsoft Purview portal,
+or QRadar Console as specified for each step.</li>
+<li>Run optional Azure PowerShell commands only from an administrative
+workstation approved for tenant administration.</li>
+<li>Save command output and screenshots in the evidence folder for the
+ticket.</li>
+<li>Do not close the ticket until every validation query, alert test,
+and evidence screenshot in the final checklist has been completed.</li>
+</ul>
+<h2 id="placeholder-convention">Placeholder convention</h2>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Placeholder</th>
+<th>Meaning</th>
+<th>Suggested Elections Canada value pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-TENANT-ID&gt;</code></td>
+<td>Microsoft Entra tenant ID</td>
+<td><code>&lt;tenant-guid&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SUBSCRIPTION-ID&gt;</code></td>
+<td>Azure subscription ID used for monitoring resources</td>
+<td><code>&lt;subscription-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-LOCATION&gt;</code></td>
+<td>Azure region for monitoring resources</td>
+<td><code>canadacentral</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-RG-MONITORING&gt;</code></td>
+<td>Resource group for monitoring resources</td>
+<td><code>rg-ec-pp-monitoring-prod-cca-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-LAW-NAME&gt;</code></td>
+<td>Log Analytics workspace name</td>
+<td><code>law-ec-pp-monitoring-prod-cca-001</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+<td>Application Insights resource name</td>
+<td><code>appi-ec-pp-operational-prod-cca-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-ENVIRONMENT-NAME&gt;</code></td>
+<td>Power Platform environment display name</td>
+<td><code>EC-PowerPlatform-Prod</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ENVIRONMENT-ID&gt;</code></td>
+<td>Power Platform environment GUID</td>
+<td><code>&lt;environment-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-POWERPAGES-URL&gt;</code></td>
+<td>Production Power Pages URL</td>
+<td><code>https://&lt;portal-name&gt;.powerappsportals.com</code> or
+approved custom domain</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EXTERNALID-TENANT-ID&gt;</code></td>
+<td>Entra External ID tenant ID</td>
+<td><code>&lt;external-tenant-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-EXTERNALID-APP-ID&gt;</code></td>
+<td>App registration/client ID used by Power Pages
+sign-in/registration</td>
+<td><code>&lt;application-client-id&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EVIDENCE-FOLDER&gt;</code></td>
+<td>Evidence folder for implementation screenshots</td>
+<td><code>EC-PP-Monitoring-RFC-&lt;ticket-number&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="required-evidence-capture-standard">Required evidence capture
+standard</h2>
+<ul>
+<li>Capture the full browser page or the relevant configuration pane
+after every configuration save.</li>
+<li>Ensure the screenshot shows the artifact name, tenant/subscription
+context, and final state.</li>
+<li>Name screenshots using the pattern
+<code>&lt;step-number&gt;-&lt;short-description&gt;-&lt;yyyy-mm-dd&gt;.png</code>.</li>
+<li>Capture command output by saving the PowerShell transcript to
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/powershell-transcript.txt</code>.</li>
+<li>Store exported CSV/JSON results from validation queries in
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/validation-results/</code>.</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="administrator-access">Administrator access</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Requirement</th>
+<th>Required value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Microsoft Entra role</td>
+<td>Global Administrator or Security Administrator for app registrations
+and diagnostic settings</td>
+</tr>
+<tr class="even">
+<td>Azure RBAC</td>
+<td>Owner or Contributor on <code>&lt;EC-SUBSCRIPTION-ID&gt;</code> for
+Event Hubs, storage account, and diagnostic routing</td>
+</tr>
+<tr class="odd">
+<td>Microsoft Purview role</td>
+<td>Audit Logs or View-Only Audit Logs for validation; appropriate role
+to enable audit evidence access</td>
+</tr>
+<tr class="even">
+<td>QRadar role</td>
+<td>QRadar administrator with permissions to install DSM/protocol
+updates, add log sources, create custom event properties, rules,
+offenses, searches, and dashboards</td>
+</tr>
+<tr class="odd">
+<td>Network/firewall</td>
+<td>QRadar Event Collector can reach Azure Event Hubs over port 5671 and
+Azure Storage over port 443</td>
+</tr>
+<tr class="even">
+<td>Evidence access</td>
+<td>Write access to <code>&lt;EC-EVIDENCE-FOLDER&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="platform-prerequisites">Platform prerequisites</h3>
+<ul>
+<li>IBM QRadar Console and Event Collectors are operational and licensed
+for the required ingestion volume.</li>
+<li>QRadar DSM/protocol components for Microsoft Office 365, Microsoft
+Entra ID, and Microsoft Azure Event Hubs are installed or approved for
+installation.</li>
+<li>Microsoft Purview audit is enabled for Power Platform activity
+evidence.</li>
+<li>Production Power Platform environments and Entra External ID
+applications in scope are documented.</li>
+<li>Event Hubs and a storage account are required for QRadar collection
+of Entra and Azure logs.</li>
+</ul>
+<h2 id="implementation-artifact-placeholders">Implementation artifact
+placeholders</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Placeholder</th>
+<th>Suggested value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-EH-NAMESPACE&gt;</code></td>
+<td><code>evhns-ec-ppsec-prod-cca-001</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EH-ENTRA-NAME&gt;</code></td>
+<td><code>evh-ec-entra-extid-prod-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-EH-POWERPLATFORM-NAME&gt;</code></td>
+<td><code>evh-ec-pp-audit-prod-001</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EH-CG-QRADAR&gt;</code></td>
+<td><code>cg-qradar</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-EH-SAS-LISTEN&gt;</code></td>
+<td><code>qradar-listen</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SA-QRADAR-CHECKPOINT&gt;</code></td>
+<td><code>stecqradarppprod001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code></td>
+<td><code>EC-M365-Purview-PowerPlatform-Audit</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;</code></td>
+<td><code>EC-Entra-ExternalID-EventHub</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-QRADAR-REFERENCESET-ADMINS&gt;</code></td>
+<td><code>EC_PP_Approved_Admins</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-QRADAR-REFERENCESET-COUNTRIES&gt;</code></td>
+<td><code>EC_Approved_Countries</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="build-steps">Build steps</h2>
+<h3 id="create-event-hubs-namespace-for-qradar-ingestion">Create Event Hubs namespace for QRadar ingestion</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Event Hubs</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Select resource group <code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+<li>Enter namespace name <code>&lt;EC-EH-NAMESPACE&gt;</code>.</li>
+<li>Select location <code>&lt;EC-LOCATION&gt;</code>.</li>
+<li>Select pricing tier approved by the RFC.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the namespace overview after deployment.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a aria-hidden="true" href="#cb2-1" tabindex="-1"></a>New-AzEventHubNamespace `</span>
+<span id="cb2-2"><a aria-hidden="true" href="#cb2-2" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb2-3"><a aria-hidden="true" href="#cb2-3" tabindex="-1"></a>  <span class="op">-</span>NamespaceName <span class="st">"&lt;EC-EH-NAMESPACE&gt;"</span> `</span>
+<span id="cb2-4"><a aria-hidden="true" href="#cb2-4" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;EC-LOCATION&gt;"</span> `</span>
+<span id="cb2-5"><a aria-hidden="true" href="#cb2-5" tabindex="-1"></a>  <span class="op">-</span>SkuName <span class="st">"Standard"</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>02-event-hubs-namespace-overview.png</code>.</p>
+</div>
+<h3 id="create-event-hubs-consumer-group-and-qradar-listen-policy">Create Event Hubs, consumer group, and QRadar listen policy</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Event Hubs namespace <code>&lt;EC-EH-NAMESPACE&gt;</code>.</li>
+<li>Select <strong>Entities</strong> &gt; <strong>Event
+Hubs</strong>.</li>
+<li>Select <strong>+ Event Hub</strong>.</li>
+<li>Create event hub <code>&lt;EC-EH-ENTRA-NAME&gt;</code> for Entra
+External ID logs.</li>
+<li>Set partition count to
+<code>&lt;EC-EH-PARTITION-COUNT&gt;</code>.</li>
+<li>Set message retention to
+<code>&lt;EC-EH-RETENTION-DAYS&gt;</code>.</li>
+<li>Select <strong>Review + create</strong> and
+<strong>Create</strong>.</li>
+<li>Open <code>&lt;EC-EH-ENTRA-NAME&gt;</code>.</li>
+<li>Select <strong>Consumer groups</strong>.</li>
+<li>Select <strong>+ Consumer group</strong>.</li>
+<li>Enter <code>&lt;EC-EH-CG-QRADAR&gt;</code>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select <strong>Shared access policies</strong>.</li>
+<li>Select <strong>+ Add</strong>.</li>
+<li>Enter policy name <code>&lt;EC-EH-SAS-LISTEN&gt;</code>.</li>
+<li>Select <strong>Listen</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the policy and securely store the primary connection string in
+the approved secret repository for QRadar configuration.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a aria-hidden="true" href="#cb3-1" tabindex="-1"></a>New-AzEventHub `</span>
+<span id="cb3-2"><a aria-hidden="true" href="#cb3-2" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb3-3"><a aria-hidden="true" href="#cb3-3" tabindex="-1"></a>  <span class="op">-</span>NamespaceName <span class="st">"&lt;EC-EH-NAMESPACE&gt;"</span> `</span>
+<span id="cb3-4"><a aria-hidden="true" href="#cb3-4" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-EH-ENTRA-NAME&gt;"</span> `</span>
+<span id="cb3-5"><a aria-hidden="true" href="#cb3-5" tabindex="-1"></a>  <span class="op">-</span>PartitionCount <span class="op">&lt;</span>EC-EH-PARTITION-COUNT<span class="op">&gt;</span> `</span>
+<span id="cb3-6"><a aria-hidden="true" href="#cb3-6" tabindex="-1"></a>  <span class="op">-</span>MessageRetentionInDays <span class="op">&lt;</span>EC-EH-RETENTION-DAYS<span class="op">&gt;</span></span>
+<span id="cb3-7"><a aria-hidden="true" href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a aria-hidden="true" href="#cb3-8" tabindex="-1"></a>New-AzEventHubConsumerGroup `</span>
+<span id="cb3-9"><a aria-hidden="true" href="#cb3-9" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb3-10"><a aria-hidden="true" href="#cb3-10" tabindex="-1"></a>  <span class="op">-</span>NamespaceName <span class="st">"&lt;EC-EH-NAMESPACE&gt;"</span> `</span>
+<span id="cb3-11"><a aria-hidden="true" href="#cb3-11" tabindex="-1"></a>  <span class="op">-</span>EventHubName <span class="st">"&lt;EC-EH-ENTRA-NAME&gt;"</span> `</span>
+<span id="cb3-12"><a aria-hidden="true" href="#cb3-12" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-EH-CG-QRADAR&gt;"</span></span>
+<span id="cb3-13"><a aria-hidden="true" href="#cb3-13" tabindex="-1"></a></span>
+<span id="cb3-14"><a aria-hidden="true" href="#cb3-14" tabindex="-1"></a>New-AzEventHubAuthorizationRule `</span>
+<span id="cb3-15"><a aria-hidden="true" href="#cb3-15" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb3-16"><a aria-hidden="true" href="#cb3-16" tabindex="-1"></a>  <span class="op">-</span>NamespaceName <span class="st">"&lt;EC-EH-NAMESPACE&gt;"</span> `</span>
+<span id="cb3-17"><a aria-hidden="true" href="#cb3-17" tabindex="-1"></a>  <span class="op">-</span>EventHubName <span class="st">"&lt;EC-EH-ENTRA-NAME&gt;"</span> `</span>
+<span id="cb3-18"><a aria-hidden="true" href="#cb3-18" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-EH-SAS-LISTEN&gt;"</span> `</span>
+<span id="cb3-19"><a aria-hidden="true" href="#cb3-19" tabindex="-1"></a>  <span class="op">-</span>Rights <span class="op">@(</span><span class="st">"Listen"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture
+<code>03-event-hub-consumer-group-and-listen-policy.png</code>. Do not
+include full secrets in screenshots.</p>
+</div>
+<h3 id="create-qradar-checkpoint-storage-account">Create QRadar checkpoint storage account</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Storage
+accounts</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code> and
+resource group <code>&lt;EC-RG-MONITORING&gt;</code>.</li>
+<li>Enter storage account name
+<code>&lt;EC-SA-QRADAR-CHECKPOINT&gt;</code>.</li>
+<li>Select region <code>&lt;EC-LOCATION&gt;</code>.</li>
+<li>Select performance <strong>Standard</strong> and redundancy approved
+by the RFC.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the storage account.</li>
+<li>Select <strong>Access keys</strong>.</li>
+<li>Securely store the required connection string for QRadar
+checkpointing in the approved secret repository.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a aria-hidden="true" href="#cb4-1" tabindex="-1"></a>New-AzStorageAccount `</span>
+<span id="cb4-2"><a aria-hidden="true" href="#cb4-2" tabindex="-1"></a>  <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> `</span>
+<span id="cb4-3"><a aria-hidden="true" href="#cb4-3" tabindex="-1"></a>  <span class="op">-</span>Name <span class="st">"&lt;EC-SA-QRADAR-CHECKPOINT&gt;"</span> `</span>
+<span id="cb4-4"><a aria-hidden="true" href="#cb4-4" tabindex="-1"></a>  <span class="op">-</span>Location <span class="st">"&lt;EC-LOCATION&gt;"</span> `</span>
+<span id="cb4-5"><a aria-hidden="true" href="#cb4-5" tabindex="-1"></a>  <span class="op">-</span>SkuName <span class="st">"Standard_LRS"</span> `</span>
+<span id="cb4-6"><a aria-hidden="true" href="#cb4-6" tabindex="-1"></a>  <span class="op">-</span>Kind <span class="st">"StorageV2"</span> `</span>
+<span id="cb4-7"><a aria-hidden="true" href="#cb4-7" tabindex="-1"></a>  <span class="op">-</span>AllowBlobPublicAccess <span class="va">$false</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>04-qradar-checkpoint-storage-overview.png</code>. Do
+not capture full access keys.</p>
+</div>
+<h3 id="route-entra-external-id-logs-to-event-hubs">Route Entra External ID logs to Event Hubs</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Sign in to the Microsoft Entra admin center.</li>
+<li>Browse to <strong>Entra ID</strong> &gt; <strong>Monitoring &amp;
+health</strong> &gt; <strong>Diagnostic settings</strong>.</li>
+<li>Select <strong>Add diagnostic setting</strong>.</li>
+<li>Enter name <code>&lt;EC-DIAG-EXTID-EVENTHUB-NAME&gt;</code>.</li>
+<li>Select log categories required for QRadar monitoring:
+<ul>
+<li><strong>AuditLogs</strong>.</li>
+<li><strong>SignInLogs</strong>.</li>
+<li><strong>NonInteractiveUserSignInLogs</strong> when available.</li>
+<li><strong>ServicePrincipalSignInLogs</strong> when available.</li>
+<li><strong>ProvisioningLogs</strong> when required by the RFC.</li>
+</ul></li>
+<li>Select <strong>Stream to an event hub</strong>.</li>
+<li>Select subscription <code>&lt;EC-SUBSCRIPTION-ID&gt;</code>.</li>
+<li>Select Event Hubs namespace
+<code>&lt;EC-EH-NAMESPACE&gt;</code>.</li>
+<li>Select event hub <code>&lt;EC-EH-ENTRA-NAME&gt;</code>.</li>
+<li>Select shared access policy with send permissions if the portal
+requests it.</li>
+<li>Select <strong>Save</strong>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell note</strong></p>
+<ul>
+<li>Use portal configuration for tenant-level Entra diagnostic settings
+when the administrative Az module does not expose the Microsoft Entra
+diagnostic scope. Export the diagnostic setting configuration as
+screenshot evidence.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>05-entra-diagnostic-to-event-hub.png</code> showing the
+log categories and destination Event Hub.</p>
+</div>
+<h3 id="create-microsoft-entra-app-registration-for-qradar-office-365-rest-api-collection">Create Microsoft Entra app registration for QRadar Office 365 REST API collection</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open the Microsoft Entra admin center.</li>
+<li>Select <strong>Applications</strong> &gt; <strong>App
+registrations</strong>.</li>
+<li>Select <strong>New registration</strong>.</li>
+<li>Enter name <code>&lt;EC-APPREG-QRADAR-O365-AUDIT&gt;</code>.</li>
+<li>Select <strong>Accounts in this organizational directory
+only</strong>.</li>
+<li>Select <strong>Register</strong>.</li>
+<li>Copy the <strong>Application (client) ID</strong> and
+<strong>Directory (tenant) ID</strong> to the approved secret
+repository.</li>
+<li>Select <strong>Certificates &amp; secrets</strong>.</li>
+<li>Select <strong>New client secret</strong>.</li>
+<li>Enter description
+<code>&lt;EC-APPREG-QRADAR-O365-SECRET-DESC&gt;</code>.</li>
+<li>Select an approved expiry period based on Elections Canada secret
+rotation policy.</li>
+<li>Select <strong>Add</strong>.</li>
+<li>Copy the secret <strong>Value</strong> to the approved secret
+repository.</li>
+<li>Select <strong>API permissions</strong>.</li>
+<li>Select <strong>Add a permission</strong>.</li>
+<li>Select <strong>Office 365 Management APIs</strong>.</li>
+<li>Select <strong>Application permissions</strong>.</li>
+<li>Add the approved activity feed permissions required for audit
+collection, including the activity feed read permission required by
+QRadar.</li>
+<li>Select <strong>Grant admin consent</strong>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb5-1"><a aria-hidden="true" href="#cb5-1" tabindex="-1"></a><span class="co"># Microsoft Graph PowerShell can be used when approved by the identity team.</span></span>
+<span id="cb5-2"><a aria-hidden="true" href="#cb5-2" tabindex="-1"></a><span class="co"># The portal method is retained as the evidence source for this ticket.</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>06-qradar-app-registration-overview.png</code>,
+<code>06-qradar-api-permissions.png</code>, and
+<code>06-qradar-admin-consent.png</code>. Do not capture secret
+values.</p>
+</div>
+<h3 id="validate-qradar-dsms-and-protocols">Validate QRadar DSMs and protocols</h3>
+<div class="step">
+<p><strong>QRadar Console procedure</strong></p>
+<ul>
+<li>Sign in to the QRadar Console with QRadar administrator
+credentials.</li>
+<li>Open <strong>Admin</strong>.</li>
+<li>Open <strong>Extensions Management</strong> or the DSM/protocol
+management location used by the Elections Canada QRadar version.</li>
+<li>Confirm current components are installed:
+<ul>
+<li>Microsoft Office 365 DSM.</li>
+<li>Office 365 REST API Protocol.</li>
+<li>Microsoft Entra ID DSM.</li>
+<li>Microsoft Azure Event Hubs Protocol.</li>
+</ul></li>
+<li>Install or update the DSM/protocol RPMs if the QRadar platform owner
+has approved the update.</li>
+<li>Deploy changes if QRadar prompts for deployment.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>07-qradar-dsm-protocols-installed.png</code> showing
+component versions.</p>
+</div>
+<h3 id="add-qradar-microsoft-office-365-purview-audit-log-source">Add QRadar Microsoft Office 365 / Purview audit log source</h3>
+<div class="step">
+<p><strong>QRadar Console procedure</strong></p>
+<ul>
+<li>Open <strong>Admin</strong>.</li>
+<li>Select <strong>Data Sources</strong> &gt; <strong>Events</strong>
+&gt; <strong>Log Sources</strong>.</li>
+<li>Select <strong>Add</strong>.</li>
+<li>Enter log source name
+<code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code>.</li>
+<li>Set <strong>Log Source Type</strong> to <strong>Microsoft Office
+365</strong>.</li>
+<li>Set <strong>Protocol Configuration</strong> to <strong>Office 365
+REST API</strong>.</li>
+<li>Enter <strong>Log Source Identifier</strong>
+<code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code>.</li>
+<li>Enter <strong>Tenant ID</strong>
+<code>&lt;EC-TENANT-ID&gt;</code>.</li>
+<li>Enter <strong>Client ID</strong> from
+<code>&lt;EC-APPREG-QRADAR-O365-AUDIT&gt;</code>.</li>
+<li>Enter <strong>Client Secret</strong> from the approved secret
+repository.</li>
+<li>Set <strong>Event Filter</strong> to include the approved audit
+event categories required for Power Platform and compliance evidence,
+including <strong>General</strong>, <strong>Azure Active
+Directory</strong>, and <strong>DLP</strong> where available.</li>
+<li>Save the log source.</li>
+<li>Deploy changes when prompted.</li>
+<li>Use <strong>Test</strong> if available.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>08-qradar-o365-logsource-configured.png</code> and
+<code>08-qradar-o365-logsource-test.png</code>. Mask secrets.</p>
+</div>
+<h3 id="add-qradar-microsoft-entra-id-event-hubs-log-source">Add QRadar Microsoft Entra ID Event Hubs log source</h3>
+<div class="step">
+<p><strong>QRadar Console procedure</strong></p>
+<ul>
+<li>Open <strong>Admin</strong>.</li>
+<li>Select <strong>Data Sources</strong> &gt; <strong>Events</strong>
+&gt; <strong>Log Sources</strong>.</li>
+<li>Select <strong>Add</strong>.</li>
+<li>Enter log source name
+<code>&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;</code>.</li>
+<li>Set <strong>Log Source Type</strong> to <strong>Microsoft Entra
+ID</strong>.</li>
+<li>Set <strong>Protocol Configuration</strong> to <strong>Microsoft
+Azure Event Hubs</strong>.</li>
+<li>Set authentication method to <strong>SAS</strong> or approved
+<strong>Entra ID</strong> authentication.</li>
+<li>Enter Event Hub connection string or approved tenant/client/secret
+values.</li>
+<li>Enter Event Hub name <code>&lt;EC-EH-ENTRA-NAME&gt;</code>.</li>
+<li>Enter consumer group <code>&lt;EC-EH-CG-QRADAR&gt;</code>.</li>
+<li>Enter storage account connection string for
+<code>&lt;EC-SA-QRADAR-CHECKPOINT&gt;</code> when requested by the
+protocol.</li>
+<li>Save the log source.</li>
+<li>Deploy changes when prompted.</li>
+<li>Use the QRadar protocol test tool and confirm successful
+connection.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>09-qradar-entra-eventhub-logsource.png</code> and
+<code>09-qradar-entra-eventhub-test-success.png</code>. Mask
+secrets.</p>
+</div>
+<h3 id="create-qradar-custom-event-properties-for-power-platform-audit-payloads">Create QRadar custom event properties for Power Platform audit payloads</h3>
+<div class="step">
+<p><strong>QRadar Console procedure</strong></p>
+<ul>
+<li>Open <strong>Admin</strong>.</li>
+<li>Select <strong>Custom Event Properties</strong>.</li>
+<li>Create or validate these properties for Microsoft 365/Purview audit
+payloads that contain Power Platform records:
+<ul>
+<li><code>EC_PP_Workload</code> - extracts workload or service name from
+payload.</li>
+<li><code>EC_PP_Operation</code> - extracts operation/activity
+name.</li>
+<li><code>EC_PP_Actor</code> - extracts user principal name or
+actor.</li>
+<li><code>EC_PP_EnvironmentId</code> - extracts Power Platform
+environment ID.</li>
+<li><code>EC_PP_ObjectId</code> - extracts app, flow, connector, DLP
+policy, or portal object identifier.</li>
+<li><code>EC_PP_ClientIP</code> - extracts client IP if present.</li>
+<li><code>EC_PP_ResultStatus</code> - extracts result or status if
+present.</li>
+</ul></li>
+<li>Use JSON property extraction where supported by QRadar for JSON
+events.</li>
+<li>Test each property against recent Microsoft Office 365 audit
+events.</li>
+<li>Save each property.</li>
+<li>Deploy changes if QRadar prompts for deployment.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>10-qradar-custom-event-properties.png</code> and
+<code>10-custom-property-test-results.png</code>.</p>
+</div>
+<h3 id="create-qradar-reference-sets">Create QRadar reference sets</h3>
+<div class="step">
+<p><strong>QRadar Console procedure</strong></p>
+<ul>
+<li>Open <strong>Admin</strong>.</li>
+<li>Select <strong>Reference Set Management</strong>.</li>
+<li>Create reference set
+<code>&lt;EC-QRADAR-REFERENCESET-ADMINS&gt;</code> with type
+<strong>Alphanumeric</strong>.</li>
+<li>Populate it with approved Power Platform administrators.</li>
+<li>Create reference set
+<code>&lt;EC-QRADAR-REFERENCESET-COUNTRIES&gt;</code> with type
+<strong>Alphanumeric</strong>.</li>
+<li>Populate it with approved country or region codes for Power Pages /
+external sign-in activity.</li>
+<li>Create reference set
+<code>&lt;EC-QRADAR-REFERENCESET-APPIDS&gt;</code> with approved Power
+Pages and Entra External ID application IDs.</li>
+<li>Save all reference sets.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>11-qradar-reference-sets.png</code>.</p>
+</div>
+<h3 id="create-qradar-rules-and-offenses">Create QRadar rules and offenses</h3>
+<p>Create each rule in QRadar using <strong>Offenses</strong> &gt;
+<strong>Rules</strong> or the rule wizard location used by the Elections
+Canada QRadar version. Enable offense creation for each security
+rule.</p>
+<h4 id="rule-q-01---power-platform-environment-changed-outside-approved-change-window">Rule
+Q-01 - Power Platform environment changed outside approved change
+window</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-PP-ENV-CHANGE-OUTSIDE-WINDOW&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Rule type</td>
+<td>Event rule</td>
+</tr>
+<tr class="odd">
+<td>Severity</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>Credibility</td>
+<td>7</td>
+</tr>
+<tr class="odd">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Purpose</td>
+<td>Generate an offense when Power Platform environment create, delete,
+or update activity is observed outside the approved RFC window.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Apply to events from
+<code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code>.</li>
+<li>Match when <code>EC_PP_Operation</code> contains
+<code>Environment</code> and contains one of <code>Create</code>,
+<code>Delete</code>, <code>Remove</code>, <code>Update</code>.</li>
+<li>Exclude events whose actor is approved and whose timestamp is inside
+an approved change window.</li>
+<li>Dispatch a new offense indexed by <code>EC_PP_Actor</code> and
+<code>EC_PP_EnvironmentId</code>.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q01-env-change-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-02---power-platform-dlp-policy-modified">Rule Q-02 -
+Power Platform DLP policy modified</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-PP-DLP-MODIFIED&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>7</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense when Power Platform DLP configuration changes
+are observed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match events where <code>EC_PP_Operation</code> or raw payload
+contains <code>DLP</code>, <code>Dlp</code>, or
+<code>Policy</code>.</li>
+<li>Match operations containing <code>Create</code>,
+<code>Update</code>, <code>Delete</code>, <code>Set</code>, or
+<code>Remove</code>.</li>
+<li>Exclude only approved change-window events documented in the
+ticket.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q02-dlp-modified-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-03---custom-connector-changed">Rule Q-03 - Custom
+connector changed</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-PP-CUSTOM-CONNECTOR-CHANGE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>6</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>7</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense or notable event when a custom connector is
+created, updated, deleted, or connection settings change.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match <code>EC_PP_Operation</code> or payload fields containing
+<code>Connector</code>, <code>CustomConnector</code>, or
+<code>Connection</code>.</li>
+<li>Match change verbs <code>Create</code>, <code>Update</code>,
+<code>Delete</code>, <code>Remove</code>, <code>Set</code>.</li>
+<li>Group by actor and object ID.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q03-custom-connector-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-04---power-pages-site-configuration-changed">Rule Q-04 -
+Power Pages site configuration changed</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-POWERPAGES-CONFIG-CHANGE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>7</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense when external-facing Power Pages configuration
+or authentication-related settings change.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match payload values containing <code>Power Pages</code>,
+<code>PowerPages</code>, <code>Portal</code>, <code>Website</code>, or
+the approved Power Pages site identifier.</li>
+<li>Match change verbs <code>Create</code>, <code>Update</code>,
+<code>Delete</code>, <code>Set</code>, <code>Change</code>.</li>
+<li>Index offense by actor and site/object ID.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q04-power-pages-config-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-05---dataverse-high-volume-destructive-activity">Rule
+Q-05 - Dataverse high-volume destructive activity</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-DATAVERSE-MASS-DELETE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>9</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>7</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense when Dataverse delete activity exceeds the
+approved threshold.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match Dataverse or Dynamics audit events where operation includes
+<code>Delete</code>.</li>
+<li>Trigger when more than
+<code>&lt;EC-DATAVERSE-DELETE-THRESHOLD&gt;</code> matching events are
+seen from the same actor in
+<code>&lt;EC-DATAVERSE-DELETE-WINDOW-MINUTES&gt;</code> minutes.</li>
+<li>Group by actor, environment ID, and entity/object ID where
+available.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q05-dataverse-mass-delete-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-06---entra-external-id-sign-in-failure-spike">Rule Q-06 -
+Entra External ID sign-in failure spike</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-EXTID-SIGNIN-FAILURE-SPIKE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>6</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense when sign-in failures against the Power Pages
+External ID application exceed the approved threshold.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match Entra sign-in events for application ID
+<code>&lt;EC-EXTERNALID-APP-ID&gt;</code>.</li>
+<li>Match failed result codes or failure status.</li>
+<li>Trigger when failures are greater than
+<code>&lt;EC-EXTID-FAILURE-THRESHOLD&gt;</code> in
+<code>&lt;EC-EXTID-FAILURE-WINDOW-MINUTES&gt;</code> minutes.</li>
+<li>Index by source IP and application ID.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q06-external-id-failure-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-07---entra-external-id-risky-sign-in-or-unusual-geography">Rule
+Q-07 - Entra External ID risky sign-in or unusual geography</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-EXTID-RISKY-OR-GEO-SIGNIN&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>7</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense when External ID sign-in activity is risky or
+from an unapproved geography.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match app ID <code>&lt;EC-EXTERNALID-APP-ID&gt;</code>.</li>
+<li>Match risk fields indicating medium/high risk when those fields are
+available.</li>
+<li>Match source country/region not present in
+<code>&lt;EC-QRADAR-REFERENCESET-COUNTRIES&gt;</code>.</li>
+<li>Index by user and source IP.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q07-external-id-risk-geo-rule.png</code>.</p>
+</div>
+<h4 id="rule-q-08---application-credential-added-to-power-pages-external-id-application">Rule
+Q-08 - Application credential added to Power Pages / External ID
+application</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-QRADAR-RULE-APP-CREDENTIAL-ADDED-POWERPAGES&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>9</td>
+</tr>
+<tr class="odd">
+<td>Credibility</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>Relevance</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Log source</td>
+<td><code>&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Generate an offense when a credential, secret, or certificate is
+added to the identity application used by external-facing Power
+Pages.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule logic</strong></p>
+<ul>
+<li>Match audit activity containing credential or secret
+addition/update.</li>
+<li>Match target app ID <code>&lt;EC-EXTERNALID-APP-ID&gt;</code> or
+display name <code>&lt;EC-POWERPAGES-APP-DISPLAY-NAME&gt;</code>.</li>
+<li>Exclude only approved rotation windows.</li>
+</ul>
+<div class="evidence">
+<p>Capture <code>12-q08-app-credential-added-rule.png</code>.</p>
+</div>
+<h3 id="create-qradar-saved-searches-and-dashboard">Create QRadar saved searches and dashboard</h3>
+<div class="step">
+<p><strong>QRadar Console procedure</strong></p>
+<ul>
+<li>Open <strong>Log Activity</strong>.</li>
+<li>Create and save searches for:
+<ul>
+<li>Power Platform administrative activity by actor.</li>
+<li>DLP policy changes.</li>
+<li>Custom connector changes.</li>
+<li>Power Pages configuration changes.</li>
+<li>Entra External ID sign-in failures by source IP.</li>
+<li>External ID risky or unapproved geography sign-ins.</li>
+</ul></li>
+<li>Create a QRadar dashboard named
+<code>&lt;EC-QRADAR-DASHBOARD-PP-SECURITY&gt;</code>.</li>
+<li>Add widgets based on the saved searches.</li>
+<li>Save the dashboard.</li>
+</ul>
+<p><strong>Example AQL searches</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a aria-hidden="true" href="#cb6-1" tabindex="-1"></a><span class="kw">SELECT</span> QIDNAME(qid) <span class="kw">AS</span> EventName, <span class="ot">"EC_PP_Actor"</span>, <span class="ot">"EC_PP_Operation"</span>, <span class="ot">"EC_PP_EnvironmentId"</span>, <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> EventCount</span>
+<span id="cb6-2"><a aria-hidden="true" href="#cb6-2" tabindex="-1"></a><span class="kw">FROM</span> <span class="kw">events</span></span>
+<span id="cb6-3"><a aria-hidden="true" href="#cb6-3" tabindex="-1"></a><span class="kw">WHERE</span> LOGSOURCENAME(logsourceid) <span class="op">=</span> <span class="st">'&lt;EC-QRADAR-O365-LOGSOURCE&gt;'</span></span>
+<span id="cb6-4"><a aria-hidden="true" href="#cb6-4" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> <span class="ot">"EC_PP_Actor"</span>, <span class="ot">"EC_PP_Operation"</span>, <span class="ot">"EC_PP_EnvironmentId"</span></span>
+<span id="cb6-5"><a aria-hidden="true" href="#cb6-5" tabindex="-1"></a><span class="fu">LAST</span> <span class="dv">24</span> HOURS</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a aria-hidden="true" href="#cb7-1" tabindex="-1"></a><span class="kw">SELECT</span> sourceip, username, <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> FailedSignIns</span>
+<span id="cb7-2"><a aria-hidden="true" href="#cb7-2" tabindex="-1"></a><span class="kw">FROM</span> <span class="kw">events</span></span>
+<span id="cb7-3"><a aria-hidden="true" href="#cb7-3" tabindex="-1"></a><span class="kw">WHERE</span> LOGSOURCENAME(logsourceid) <span class="op">=</span> <span class="st">'&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;'</span></span>
+<span id="cb7-4"><a aria-hidden="true" href="#cb7-4" tabindex="-1"></a><span class="kw">AND</span> UTF8(payload) ILIKE <span class="st">'%&lt;EC-EXTERNALID-APP-ID&gt;%'</span></span>
+<span id="cb7-5"><a aria-hidden="true" href="#cb7-5" tabindex="-1"></a><span class="kw">AND</span> (UTF8(payload) ILIKE <span class="st">'%failure%'</span> <span class="kw">OR</span> UTF8(payload) ILIKE <span class="st">'%ResultType%'</span>)</span>
+<span id="cb7-6"><a aria-hidden="true" href="#cb7-6" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> sourceip, username</span>
+<span id="cb7-7"><a aria-hidden="true" href="#cb7-7" tabindex="-1"></a><span class="fu">LAST</span> <span class="dv">1</span> HOURS</span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>13-qradar-dashboard-created.png</code> and export
+saved-search screenshots.</p>
+</div>
+<h2 id="support-runbooks-for-qradar-offenses">Support runbooks for
+QRadar offenses</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>QRadar rule</th>
+<th>First response</th>
+<th>Initial triage</th>
+<th>Escalation owner</th>
+<th>Closure criteria</th>
+<th>Tuning notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-QRADAR-RULE-PP-ENV-CHANGE-OUTSIDE-WINDOW&gt;</code></td>
+<td>SOC acknowledges offense and checks associated RFC.</td>
+<td>Review actor, source IP, environment ID, raw event payload, and
+change ticket.</td>
+<td>SOC to Power Platform administrator.</td>
+<td>Approved change is linked or unauthorized action is contained and
+incident record is complete.</td>
+<td>Maintain change-window reference set.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-QRADAR-RULE-PP-DLP-MODIFIED&gt;</code></td>
+<td>SOC treats as high-priority governance event.</td>
+<td>Validate DLP policy, actor, affected connectors, and before/after
+change where available.</td>
+<td>SOC to Power Platform governance owner.</td>
+<td>Change is approved or reverted and impact documented.</td>
+<td>Use approved admin reference set to reduce noise, not suppress all
+admin changes.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-QRADAR-RULE-PP-CUSTOM-CONNECTOR-CHANGE&gt;</code></td>
+<td>SOC validates connector endpoint and authentication settings.</td>
+<td>Review connector owner, target endpoint, data classifications, and
+approval record.</td>
+<td>SOC to Power Platform administrator/API owner.</td>
+<td>Connector is approved or disabled/removed.</td>
+<td>Whitelist approved deployment service principals only through
+reference set.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-QRADAR-RULE-POWERPAGES-CONFIG-CHANGE&gt;</code></td>
+<td>SOC checks whether public-facing site exposure changed.</td>
+<td>Review site setting, authentication setting, actor, and deployment
+history.</td>
+<td>SOC to Power Pages owner and Identity team.</td>
+<td>Change is approved or rolled back.</td>
+<td>Tune non-production separately from production.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-QRADAR-RULE-DATAVERSE-MASS-DELETE&gt;</code></td>
+<td>SOC treats as potential destructive activity.</td>
+<td>Validate user, entity, delete count, source IP, and whether bulk
+delete job was approved.</td>
+<td>SOC to Dataverse owner; escalate to IR for unauthorized destructive
+activity.</td>
+<td>Activity is approved or contained; recovery requirement
+assessed.</td>
+<td>Thresholds must be table-specific for high-value data.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-QRADAR-RULE-EXTID-SIGNIN-FAILURE-SPIKE&gt;</code></td>
+<td>SOC checks for outage, brute force, or misconfiguration.</td>
+<td>Review source IP, countries, result codes, app ID, and recent
+identity configuration changes.</td>
+<td>SOC to Identity team; escalate to IT Ops for service failure.</td>
+<td>Failure rate returns to baseline or attack/misconfiguration is
+contained.</td>
+<td>Tune by baseline and public campaign periods.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-QRADAR-RULE-EXTID-RISKY-OR-GEO-SIGNIN&gt;</code></td>
+<td>SOC assesses identity risk.</td>
+<td>Review risk fields, source geography, MFA/CA status, and account
+history.</td>
+<td>SOC to Identity team.</td>
+<td>Risk is remediated, dismissed with justification, or access is
+blocked.</td>
+<td>Approved geography reference set must be maintained.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-QRADAR-RULE-APP-CREDENTIAL-ADDED-POWERPAGES&gt;</code></td>
+<td>SOC treats as high-priority persistence event.</td>
+<td>Verify app ID, credential type, actor, and secret rotation change
+record.</td>
+<td>SOC to Identity/application owner.</td>
+<td>Credential is approved or removed; secret rotation documented.</td>
+<td>Exclude approved rotation windows only.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="final-validation-checklist">Final validation checklist</h2>
+<ul>
+<li>Event Hubs namespace <code>&lt;EC-EH-NAMESPACE&gt;</code>
+exists.</li>
+<li>Event Hub <code>&lt;EC-EH-ENTRA-NAME&gt;</code> exists with consumer
+group <code>&lt;EC-EH-CG-QRADAR&gt;</code> and listen policy
+<code>&lt;EC-EH-SAS-LISTEN&gt;</code>.</li>
+<li>Storage account <code>&lt;EC-SA-QRADAR-CHECKPOINT&gt;</code> exists
+for QRadar checkpointing.</li>
+<li>Entra External ID diagnostic setting streams logs to Event
+Hubs.</li>
+<li>App registration <code>&lt;EC-APPREG-QRADAR-O365-AUDIT&gt;</code>
+exists with approved API permissions and admin consent.</li>
+<li>QRadar DSM/protocol components are installed.</li>
+<li>QRadar Office 365 log source
+<code>&lt;EC-QRADAR-O365-LOGSOURCE&gt;</code> is created and receiving
+events.</li>
+<li>QRadar Entra ID Event Hubs log source
+<code>&lt;EC-QRADAR-ENTRA-LOGSOURCE&gt;</code> is created and receiving
+events.</li>
+<li>Custom event properties for Power Platform payload extraction are
+created and tested.</li>
+<li>Reference sets are created and populated.</li>
+<li>Rules Q-01 through Q-08 are created and enabled.</li>
+<li>Dashboard <code>&lt;EC-QRADAR-DASHBOARD-PP-SECURITY&gt;</code> is
+created.</li>
+<li>Screenshots and QRadar exports are saved to
+<code>&lt;EC-EVIDENCE-FOLDER&gt;</code>.</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb8-1"><a aria-hidden="true" href="#cb8-1" tabindex="-1"></a><span class="fu">Stop-Transcript</span></span></code></pre></div>
+<h2 id="official-references">Official references</h2>
+<ul>
+<li>IBM Docs - Microsoft Office 365 DSM for QRadar:
+https://www.ibm.com/docs/en/dsm?topic=microsoft-office-365</li>
+<li>IBM Docs - Microsoft Entra ID DSM for QRadar:
+https://www.ibm.com/docs/en/dsm?topic=microsoft-entra-id</li>
+<li>IBM Docs - Microsoft Azure Event Hubs protocol for QRadar:
+https://www.ibm.com/docs/en/dsm?topic=options-microsoft-azure-event-hubs-protocol-configuration</li>
+<li>IBM Docs - Configure Microsoft Azure Event Hubs to communicate with
+QRadar:
+https://www.ibm.com/docs/en/dsm?topic=options-configuring-microsoft-azure-event-hubs-communicate-qradar</li>
+<li>Microsoft Learn - Configure Microsoft Entra diagnostic settings:
+https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-configure-diagnostic-settings</li>
+<li>Microsoft Learn - Stream Microsoft Entra logs to an Event Hub:
+https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-stream-logs-to-event-hub</li>
+<li>Microsoft Learn - Prepare Azure resources for exporting security
+alerts to QRadar:
+https://learn.microsoft.com/en-us/azure/defender-for-cloud/export-to-splunk-or-qradar</li>
+<li>Microsoft Learn - Power Platform activity logs and auditing in
+Microsoft Purview:
+https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-overview</li>
+</ul>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Elections Canada Power Platform Monitoring Architecture and Implementation Build Book - IBM QRadar SIEM Variant</title>
+<style>
+:root {
+  --ec-burgundy: #6a0032;
+  --ec-navy: #1e384b;
+  --ec-teal: #036064;
+  --ec-green: #8b9538;
+  --ec-gold: #c9862d;
+  --ec-purple: #60205c;
+  --ec-light: #f3f4f5;
+  --ec-text: #222222;
+  --ec-muted: #666666;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: var(--ec-text); line-height: 1.45; background: #f6f6f6; }
+main { width: min(1080px, 100%); margin: 0 auto; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,.08); }
+.cover { min-height: 100vh; position: relative; overflow: hidden; background: white; padding: 72px 72px 54px 72px; display: flex; align-items: center; justify-content: flex-end; page-break-after: always; }
+.cover:before { content: ''; position: absolute; left: -200px; top: -100px; width: 640px; height: 640px; background: var(--ec-burgundy); transform: rotate(45deg); }
+.cover:after { content: ''; position: absolute; left: 180px; top: -80px; width: 36px; height: 680px; background: var(--ec-teal); transform: rotate(45deg); border-left: 14px solid white; }
+.cover .gold { position: absolute; left: 100px; bottom: -120px; width: 320px; height: 320px; background: var(--ec-gold); transform: rotate(45deg); }
+.cover .green { position: absolute; left: -80px; bottom: 30px; width: 180px; height: 26px; background: var(--ec-green); transform: rotate(45deg); }
+.cover-card { position: relative; z-index: 2; width: 58%; padding: 36px 42px; background: rgba(255,255,255,.94); border-left: 8px solid var(--ec-burgundy); }
+.cover-kicker { text-transform: uppercase; letter-spacing: .16em; color: var(--ec-burgundy); font-weight: 700; font-size: 12px; }
+.cover h1 { font-size: 38px; line-height: 1.06; margin: 20px 0 18px; color: #111; }
+.cover .subtitle { font-size: 18px; color: var(--ec-navy); font-weight: 700; margin-bottom: 28px; }
+.cover .meta { font-size: 13px; color: #444; border-top: 1px solid #ddd; padding-top: 18px; }
+.brand-wordmark { position: absolute; top: 42px; right: 72px; color: #111; font-weight: 700; letter-spacing: .02em; z-index: 3; }
+.brand-wordmark .x { display:inline-block; color: var(--ec-burgundy); font-size: 24px; transform: translateY(2px); margin-right: 4px; }
+.content { padding: 48px 72px 72px; }
+h1, h2, h3, h4 { color: #111; line-height: 1.2; }
+h1 { font-size: 32px; }
+h2 { margin-top: 46px; font-size: 25px; padding-top: 8px; border-top: 2px solid #e8e8e8; }
+h3 { margin-top: 30px; color: var(--ec-burgundy); font-size: 19px; }
+h4 { margin-top: 20px; color: var(--ec-navy); font-size: 16px; }
+a { color: var(--ec-burgundy); }
+blockquote { margin: 22px 0; padding: 14px 18px; border-left: 5px solid var(--ec-teal); background: #f4f7f7; }
+.toc { background: #f5f5f5; border: 1px solid #e2e2e2; padding: 22px 26px; margin: 28px 0; }
+.toc h2 { border: 0; padding: 0; margin: 0 0 12px; }
+.toc ul { columns: 2; column-gap: 40px; }
+table { width: 100%; border-collapse: collapse; margin: 18px 0 24px; font-size: 13px; }
+th { background: var(--ec-navy); color: #fff; text-align: left; }
+th, td { border: 1px solid #d8d8d8; padding: 8px 10px; vertical-align: top; }
+tr:nth-child(even) td { background: #fafafa; }
+code { font-family: Consolas, 'Courier New', monospace; font-size: .92em; color: #111; }
+pre { background: #111827; color: #f8fafc; padding: 14px 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; font-size: 12px; }
+pre code { color: inherit; }
+.diagram { border: 1px solid #ddd; border-radius: 10px; margin: 22px 0; padding: 10px; page-break-inside: avoid; }
+.badge { display: inline-block; padding: 3px 8px; background: var(--ec-light); border-left: 4px solid var(--ec-burgundy); margin-right: 5px; font-size: 12px; }
+hr { border: 0; border-top: 1px solid #ddd; margin: 36px 0; }
+.footer-note { color: var(--ec-muted); font-size: 12px; margin-top: 50px; }
+@page { size: Letter; margin: 0.65in 0.6in 0.7in 0.6in; }
+@media print {
+  body { background: white; }
+  main { width: 100%; box-shadow: none; }
+  .content { padding: 0; }
+  .cover { min-height: calc(11in - 1.35in); padding: .4in; }
+  .cover-card { width: 62%; }
+  h2 { page-break-after: avoid; }
+  h3 { page-break-after: avoid; }
+  table, pre, .diagram { page-break-inside: avoid; }
+  a { color: #000; text-decoration: none; }
+  .page-break { page-break-before: always; }
+}
+
+
+/* v4 print-ready corrections */
+html { scroll-behavior: smooth; }
+body { background: #f2f3f4; }
+main { max-width: 1080px; }
+.cover { min-height: 100vh; padding: 0; display: flex; align-items: center; justify-content: flex-end; background: #fff; }
+.cover:before, .cover:after, .cover .gold, .cover .green { display: none !important; }
+.cover-graphic { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+.cover-card { margin-right: 72px; width: 58%; position: relative; z-index: 2; background: rgba(255,255,255,.96); box-shadow: 0 14px 35px rgba(0,0,0,.08); }
+.brand-wordmark { z-index: 3; }
+.toc { background: #ffffff; border: 1px solid #d7d9db; border-left: 8px solid var(--ec-burgundy); padding: 24px 28px; margin: 30px 0 42px; page-break-after: always; }
+.toc h2 { margin: 0 0 16px; padding: 0 0 10px; border: 0; border-bottom: 1px solid #d7d9db; color: #111; }
+.toc ol, .toc ul { columns: initial !important; list-style: none; margin: 0; padding: 0; }
+.toc li { break-inside: avoid; page-break-inside: avoid; margin: 0; padding: 0; }
+.toc a { display: grid; grid-template-columns: 3.8rem minmax(0,1fr) 3.5rem; gap: .55rem; align-items: baseline; text-decoration: none; color: #222; padding: 5px 0; border-bottom: 1px dotted #d2d4d6; }
+.toc a:hover { color: var(--ec-burgundy); text-decoration: underline; }
+.toc .toc-no { font-weight: 700; color: var(--ec-burgundy); font-size: 12px; }
+.toc .toc-title { overflow-wrap: anywhere; }
+.toc .toc-level-3 a { grid-template-columns: 4.7rem minmax(0,1fr) 3.5rem; margin-left: 1.2rem; font-size: 13px; color: #444; }
+.toc .toc-level-3 .toc-no { color: var(--ec-teal); }
+.toc .toc-level-4 a { grid-template-columns: 5.5rem minmax(0,1fr) 3.5rem; margin-left: 2.2rem; font-size: 12px; color: #555; }
+.architecture-diagram { margin: 20px 0 28px; border: 1px solid #d7d9db; border-radius: 10px; padding: 10px; background: #fff; page-break-inside: avoid; }
+.architecture-diagram svg { display: block; width: 100%; height: auto; }
+.architecture-diagram figcaption { font-size: 12px; color: #555; margin-top: 8px; }
+h2, h3, h4 { page-break-after: avoid; }
+table, pre, figure, .architecture-diagram, blockquote { page-break-inside: avoid; }
+@page { size: Letter; margin: 0.65in 0.6in 0.7in 0.6in; @bottom-right { content: "Page " counter(page) " of " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #666; } @bottom-left { content: "Elections Canada - Power Platform Monitoring"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #666; } }
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { background: #fff !important; margin: 0; padding: 0; }
+  main { width: 100% !important; max-width: none !important; box-shadow: none !important; }
+  .content { padding: 0.05in 0.05in 0.1in !important; }
+  .cover { height: 9.65in !important; min-height: 9.65in !important; page-break-after: always; break-after: page; overflow: hidden; }
+  .cover-card { width: 55%; margin-right: .35in; box-shadow: none; }
+  .brand-wordmark { top: .3in; right: .35in; }
+  .toc { page-break-after: always; break-after: page; }
+  .toc a::after { content: target-counter(attr(href), page); color: #666; font-size: 9pt; justify-self: end; align-self: baseline; }
+  a { color: inherit; text-decoration: none; }
+}
+@media screen {
+  .toc a[href] { cursor: pointer; }
+}
+</style>
+</head>
+<body>
+<main>
+<section class="cover"><svg aria-hidden="true" class="cover-graphic" preserveaspectratio="none" viewbox="0 0 850 1100" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#ffffff" height="1100" width="850"></rect>
+<polygon fill="#6a0032" points="-180,90 150,-240 520,130 185,465"></polygon>
+<polygon fill="#5a0027" opacity="0.42" points="-180,90 15,-105 325,205 126,404"></polygon>
+<polygon fill="#6a0032" points="170,460 375,665 190,850 -18,640"></polygon>
+<polygon fill="#ffffff" points="184,466 224,506 600,129 560,89"></polygon>
+<polygon fill="#036064" points="232,514 270,552 648,175 610,137"></polygon>
+<polygon fill="#c9862d" points="130,848 340,1058 107,1290 -105,1078"></polygon>
+<polygon fill="#8b9538" points="-88,760 -55,727 120,902 87,935"></polygon>
+<line stroke="#6a0032" stroke-width="8" x1="0" x2="850" y1="1096" y2="1096"></line>
+</svg>
+<div class="brand-wordmark"><span class="x">✕</span>Elections Canada</div>
+
+<div class="cover-card">
+<div class="cover-kicker">Technical Build Book</div>
+<h1>Elections Canada Power Platform Monitoring Architecture and Implementation Build Book</h1>
+<div class="subtitle">IBM QRadar SIEM Variant</div>
+<div class="meta">
+<strong>Author:</strong> Frederick Pearson, Platform Engineering<br/>
+<strong>Audience:</strong> IM/IT Global Administrators, IT Operations, IT Security/SOC, Identity and Purview administrators<br/>
+<strong>Date:</strong> 2026-05-20<br/>
+<strong>Status:</strong> Draft for RFC package
+    </div>
+</div>
+</section>
+<section class="content">
+<p><a id="elections-canada-power-platform-monitoring-architecture-and-implementation-build-book-ibm-qradar-variant"></a></p>
+<h1>Elections Canada Power Platform Monitoring Architecture and Implementation Build Book - IBM QRadar Variant</h1>
+<p><strong>Organization:</strong> Elections Canada<br/>
+<strong>Document owner:</strong> Frederick Pearson, Platform Engineering<br/>
+<strong>Document type:</strong> Technical architecture and implementation build book<br/>
+<strong>Revision:</strong> 4.0<br/>
+<strong>Date:</strong> 2026-05-20<br/>
+<strong>Status:</strong> Draft for IM/IT RFC package</p>
+
+
+
+<nav aria-label="Table of contents" class="toc"><h2>Table of contents</h2><ol class="toc-list"><li class="toc-level-2"><a href="#document-control"><span class="toc-no">1</span><span class="toc-title">Document control</span></a></li><li class="toc-level-2"><a href="#executive-summary"><span class="toc-no">2</span><span class="toc-title">Implementation summary</span></a></li><li class="toc-level-2"><a href="#architecture"><span class="toc-no">3</span><span class="toc-title">Target monitoring architecture</span></a></li><li class="toc-level-3"><a href="#3-1-architecture-flow"><span class="toc-no">3.1</span><span class="toc-title">Architecture flow</span></a></li><li class="toc-level-3"><a href="#3-2-architecture-implementation-assertions"><span class="toc-no">3.2</span><span class="toc-title">Architecture implementation assertions</span></a></li><li class="toc-level-2"><a href="#requirements"><span class="toc-no">4</span><span class="toc-title">Monitoring and security requirements</span></a></li><li class="toc-level-3"><a href="#4-1-azure-monitor-requirements"><span class="toc-no">4.1</span><span class="toc-title">Azure Monitor requirements</span></a></li><li class="toc-level-3"><a href="#4-2-siem-requirements"><span class="toc-no">4.2</span><span class="toc-title">SIEM requirements</span></a></li><li class="toc-level-3"><a href="#4-3-microsoft-purview-requirements"><span class="toc-no">4.3</span><span class="toc-title">Microsoft Purview requirements</span></a></li><li class="toc-level-3"><a href="#4-4-entra-external-id-requirements"><span class="toc-no">4.4</span><span class="toc-title">Entra External ID requirements</span></a></li><li class="toc-level-2"><a href="#team-responsibilities"><span class="toc-no">5</span><span class="toc-title">Team responsibilities</span></a></li><li class="toc-level-2"><a href="#implementation-artifacts"><span class="toc-no">6</span><span class="toc-title">Implementation artifacts and naming standard</span></a></li><li class="toc-level-2"><a href="#monitoring-design"><span class="toc-no">7</span><span class="toc-title">Detailed monitoring design</span></a></li><li class="toc-level-3"><a href="#7-1-azure-monitor-operational-design"><span class="toc-no">7.1</span><span class="toc-title">Azure Monitor operational design</span></a></li><li class="toc-level-3"><a href="#7-2-siem-security-design"><span class="toc-no">7.2</span><span class="toc-title">SIEM security design</span></a></li><li class="toc-level-3"><a href="#7-3-purview-evidence-design"><span class="toc-no">7.3</span><span class="toc-title">Purview evidence design</span></a></li><li class="toc-level-3"><a href="#7-4-entra-external-id-design-for-power-pages"><span class="toc-no">7.4</span><span class="toc-title">Entra External ID design for Power Pages</span></a></li><li class="toc-level-3"><a href="#7-5-qradar-specific-siem-routing-requirement"><span class="toc-no">7.5</span><span class="toc-title">QRadar-specific SIEM routing requirement</span></a></li><li class="toc-level-2"><a href="#alerts-runbooks"><span class="toc-no">8</span><span class="toc-title">Alert catalogue and support runbooks</span></a></li><li class="toc-level-3"><a href="#operational-alerts-implemented-in-azure-monitor"><span class="toc-no"></span><span class="toc-title">Operational alerts implemented in Azure Monitor</span></a></li><li class="toc-level-3"><a href="#security-alerts-implemented-in-the-siem"><span class="toc-no"></span><span class="toc-title">Security alerts implemented in the SIEM</span></a></li><li class="toc-level-2"><a href="#appendix-azure-monitor"><span class="toc-no">Appendix A</span><span class="toc-title">Azure Monitor Operational Monitoring Build Book</span></a></li><li class="toc-level-3"><a href="#a-1-purpose"><span class="toc-no">A.1</span><span class="toc-title">Purpose</span></a></li><li class="toc-level-3"><a href="#a-2-prerequisites"><span class="toc-no">A.2</span><span class="toc-title">Prerequisites</span></a></li><li class="toc-level-3"><a href="#a-3-artifact-names"><span class="toc-no">A.3</span><span class="toc-title">Artifact names</span></a></li><li class="toc-level-3"><a href="#a-4-step-by-step-configuration"><span class="toc-no">A.4</span><span class="toc-title">Step-by-step configuration</span></a></li><li class="toc-level-2"><a href="#appendix-qradar"><span class="toc-no">Appendix B</span><span class="toc-title">IBM QRadar Security Monitoring Build Book</span></a></li><li class="toc-level-3"><a href="#b-1-purpose"><span class="toc-no">B.1</span><span class="toc-title">Purpose</span></a></li><li class="toc-level-3"><a href="#b-2-prerequisites"><span class="toc-no">B.2</span><span class="toc-title">Prerequisites</span></a></li><li class="toc-level-3"><a href="#b-3-qradar-artifact-names"><span class="toc-no">B.3</span><span class="toc-title">QRadar artifact names</span></a></li><li class="toc-level-3"><a href="#b-4-configure-microsoft-365-purview-audit-ingestion"><span class="toc-no">B.4</span><span class="toc-title">Configure Microsoft 365 / Purview audit ingestion</span></a></li><li class="toc-level-3"><a href="#b-5-configure-entra-external-id-ingestion-through-azure-event-hubs"><span class="toc-no">B.5</span><span class="toc-title">Configure Entra External ID ingestion through Azure Event Hubs</span></a></li><li class="toc-level-3"><a href="#b-6-create-qradar-custom-event-properties"><span class="toc-no">B.6</span><span class="toc-title">Create QRadar custom event properties</span></a></li><li class="toc-level-3"><a href="#b-7-create-reference-sets"><span class="toc-no">B.7</span><span class="toc-title">Create reference sets</span></a></li><li class="toc-level-3"><a href="#b-8-create-qradar-rules-and-offenses"><span class="toc-no">B.8</span><span class="toc-title">Create QRadar rules and offenses</span></a></li><li class="toc-level-3"><a href="#b-9-qradar-validation-and-handoff"><span class="toc-no">B.9</span><span class="toc-title">QRadar validation and handoff</span></a></li><li class="toc-level-2"><a href="#appendix-entra"><span class="toc-no">Appendix C</span><span class="toc-title">Entra External ID Monitoring Build Book</span></a></li><li class="toc-level-3"><a href="#c-1-purpose"><span class="toc-no">C.1</span><span class="toc-title">Purpose</span></a></li><li class="toc-level-3"><a href="#c-2-required-log-categories"><span class="toc-no">C.2</span><span class="toc-title">Required log categories</span></a></li><li class="toc-level-3"><a href="#c-3-create-event-hubs-for-qradar-ingestion"><span class="toc-no">C.3</span><span class="toc-title">Create Event Hubs for QRadar ingestion</span></a></li><li class="toc-level-3"><a href="#c-4-create-storage-account-for-qradar-event-hubs-checkpointing"><span class="toc-no">C.4</span><span class="toc-title">Create storage account for QRadar Event Hubs checkpointing</span></a></li><li class="toc-level-3"><a href="#c-5-route-entra-external-id-logs-to-event-hubs"><span class="toc-no">C.5</span><span class="toc-title">Route Entra External ID logs to Event Hubs</span></a></li><li class="toc-level-3"><a href="#c-6-configure-qradar-microsoft-entra-id-log-sources"><span class="toc-no">C.6</span><span class="toc-title">Configure QRadar Microsoft Entra ID log sources</span></a></li><li class="toc-level-3"><a href="#c-7-required-external-id-qradar-rules"><span class="toc-no">C.7</span><span class="toc-title">Required External ID QRadar rules</span></a></li><li class="toc-level-2"><a href="#appendix-purview"><span class="toc-no">Appendix D</span><span class="toc-title">Microsoft Purview Audit and Compliance Evidence Build Book</span></a></li><li class="toc-level-3"><a href="#d-1-purpose"><span class="toc-no">D.1</span><span class="toc-title">Purpose</span></a></li><li class="toc-level-3"><a href="#d-2-configuration-requirements"><span class="toc-no">D.2</span><span class="toc-title">Configuration requirements</span></a></li><li class="toc-level-3"><a href="#d-3-step-by-step-configuration"><span class="toc-no">D.3</span><span class="toc-title">Step-by-step configuration</span></a></li><li class="toc-level-2"><a href="#appendix-validation"><span class="toc-no">Appendix E</span><span class="toc-title">End-to-End Validation and Handoff</span></a></li><li class="toc-level-3"><a href="#e-1-implementation-validation-checklist"><span class="toc-no">E.1</span><span class="toc-title">Implementation validation checklist</span></a></li><li class="toc-level-3"><a href="#e-2-handoff-package-contents"><span class="toc-no">E.2</span><span class="toc-title">Handoff package contents</span></a></li><li class="toc-level-2"><a href="#appendix-references"><span class="toc-no">Appendix F</span><span class="toc-title">Official references</span></a></li></ol></nav><p><a id="document-control"></a>
+<a id="1-document-control"></a></p>
+<h2 id="document-control">1. Document control</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Organization</td>
+<td>Elections Canada</td>
+</tr>
+<tr>
+<td>Author</td>
+<td>Frederick Pearson, Platform Engineering</td>
+</tr>
+<tr>
+<td>Audience</td>
+<td>Global Administrators, Power Platform Administrators, IT Security/SOC, IT Operations, Compliance/Purview administrators</td>
+</tr>
+<tr>
+<td>Primary implementation teams</td>
+<td>IT Operations for Azure Monitor; IT Security/SOC for IBM QRadar; Identity team for Entra External ID; Compliance team for Microsoft Purview</td>
+</tr>
+<tr>
+<td>Environments in scope</td>
+<td>Production Power Platform environments, production Dataverse environments, external-facing Power Pages sites, and Entra External ID tenants/applications used for external registration and sign-in</td>
+</tr>
+<tr>
+<td>Out of scope</td>
+<td>End-user training, maker governance process design, non-production proof-of-concept monitoring unless added by RFC, and general product comparison material</td>
+</tr>
+</tbody>
+</table>
+<p><a id="executive-summary"></a>
+<a id="2-implementation-summary"></a></p>
+<h2 id="executive-summary">2. Implementation summary</h2>
+<p>Elections Canada will implement the following monitoring design for Power Platform and external-facing Power Pages services:</p>
+<ul>
+<li>Elections Canada will use <strong>Azure Monitor</strong> to collect and alert on operational telemetry for Power Platform workloads. This includes Power Pages availability, page response time, Power Automate run failures, Dataverse exceptions, connector dependency failures, canvas app client-side errors, and monitoring-pipeline health.</li>
+<li>Elections Canada will use <strong>IBM QRadar</strong> as the SIEM for Power Platform security monitoring. This includes Power Platform administrative activity, DLP policy changes, custom connector changes, destructive environment actions, Dataverse/audit investigation signals, Entra External ID sign-in risk, external registration failure spikes, and application credential or consent changes.</li>
+<li>Elections Canada will use <strong>Microsoft Purview</strong> as the audit, compliance, DLP evidence, retention, and eDiscovery support layer. Purview will not replace Azure Monitor or IBM QRadar; it will provide authoritative audit evidence and compliance investigation records.</li>
+<li>Elections Canada will monitor <strong>Entra External ID</strong> because Power Pages relies on Entra External ID for external user registration and sign-in. External identity monitoring is part of both the operational monitoring design and SIEM detection design.</li>
+<li>Elections Canada will implement explicit alert runbooks for each operational and security alert. Each alert will have a name, severity, affected workload, query/search expression, first response, triage steps, escalation owner, closure criteria, and tuning notes.</li>
+</ul>
+<p><a id="architecture"></a>
+<a id="3-target-monitoring-architecture"></a></p>
+<h2 id="architecture">3. Target monitoring architecture</h2>
+<div aria-label="Architecture diagram for Power Platform monitoring with Azure Monitor, Purview and IBM QRadar" class="diagram" role="img">
+<svg viewbox="0 0 1080 500" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="9" refy="4"><path d="M0,0 L10,4 L0,8 z" fill="#1e384b"></path></marker>
+<filter height="120%" id="shadow" width="120%" x="-10%" y="-10%"><fedropshadow dx="0" dy="2" flood-opacity="0.15" stddeviation="3"></fedropshadow></filter>
+</defs>
+<rect fill="#fff" height="500" width="1080"></rect>
+<rect fill="#f4f4f4" filter="url(#shadow)" height="120" rx="12" stroke="#d8d8d8" width="240" x="20" y="28"></rect>
+<text fill="#1e384b" font-size="18" font-weight="700" x="40" y="60">Power Platform</text>
+<text fill="#333" font-size="14" x="40" y="88">Power Pages</text><text fill="#333" font-size="14" x="40" y="110">Power Apps / Dataverse</text><text fill="#333" font-size="14" x="40" y="132">Power Automate</text>
+<rect fill="#f4f4f4" filter="url(#shadow)" height="115" rx="12" stroke="#d8d8d8" width="240" x="20" y="190"></rect>
+<text fill="#1e384b" font-size="18" font-weight="700" x="40" y="224">Entra External ID</text>
+<text fill="#333" font-size="14" x="40" y="252">External registration</text><text fill="#333" font-size="14" x="40" y="274">External sign-in</text>
+<rect fill="#eef6f6" filter="url(#shadow)" height="120" rx="12" stroke="#036064" width="245" x="320" y="28"></rect>
+<text fill="#036064" font-size="18" font-weight="700" x="340" y="60">Azure Monitor</text>
+<text fill="#333" font-size="14" x="340" y="88">Application Insights</text><text fill="#333" font-size="14" x="340" y="110">Log Analytics</text><text fill="#333" font-size="14" x="340" y="132">Operational alerts</text>
+<rect fill="#f8f5f7" filter="url(#shadow)" height="115" rx="12" stroke="#6a0032" width="245" x="320" y="190"></rect>
+<text fill="#6a0032" font-size="18" font-weight="700" x="340" y="224">Microsoft Purview</text>
+<text fill="#333" font-size="14" x="340" y="252">Unified audit evidence</text><text fill="#333" font-size="14" x="340" y="274">DLP / compliance records</text>
+<rect fill="#f8f5f7" filter="url(#shadow)" height="160" rx="12" stroke="#6a0032" width="260" x="645" y="82"></rect>
+<text fill="#6a0032" font-size="18" font-weight="700" x="665" y="118">IBM QRadar</text>
+<text fill="#333" font-size="14" x="665" y="148">Correlation rules</text><text fill="#333" font-size="14" x="665" y="170">Offenses</text><text fill="#333" font-size="14" x="665" y="192">AQL searches</text><text fill="#333" font-size="14" x="665" y="214">SOC workflows</text>
+<rect fill="#f4f4f4" filter="url(#shadow)" height="105" rx="12" stroke="#8b9538" width="260" x="645" y="305"></rect>
+<text fill="#1e384b" font-size="18" font-weight="700" x="665" y="340">Support outputs</text>
+<text fill="#333" font-size="14" x="665" y="368">IT Ops tickets</text><text fill="#333" font-size="14" x="665" y="390">SOC incidents / RFC evidence</text>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="2" x1="260" x2="320" y1="88" y2="88"></line>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="2" x1="260" x2="320" y1="248" y2="248"></line>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="2" x1="565" x2="645" y1="88" y2="138"></line>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="2" x1="565" x2="645" y1="248" y2="178"></line>
+<line marker-end="url(#arrow)" stroke="#1e384b" stroke-width="2" x1="775" x2="775" y1="242" y2="305"></line>
+<line marker-end="url(#arrow)" stroke="#036064" stroke-dasharray="6 4" stroke-width="2" x1="442" x2="710" y1="148" y2="305"></line>
+</svg>
+</div>
+<p><a id="3-1-architecture-flow"></a></p>
+<h3 id="3-1-architecture-flow">3.1 Architecture flow</h3>
+<figure class="architecture-diagram"><svg aria-label="Target monitoring architecture - IBM QRadar SIEM variant" role="img" viewbox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<style><![CDATA[
+      .t{font-family:Arial, Helvetica, sans-serif; fill:#222;}
+      .h{font-weight:700; font-size:22px;}
+      .s{font-size:16px;}
+      .xs{font-size:13px; fill:#555;}
+      .box{fill:#fff; stroke:#1e384b; stroke-width:2.2; rx:16;}
+      .box2{fill:#f8fafb; stroke:#036064; stroke-width:2.2; rx:16;}
+      .siem{fill:#fff7fb; stroke:#6a0032; stroke-width:2.8; rx:16;}
+      .pur{fill:#fffaf2; stroke:#c9862d; stroke-width:2.2; rx:16;}
+      .ops{fill:#f7fbf0; stroke:#8b9538; stroke-width:2.2; rx:16;}
+      .arrow{stroke:#333; stroke-width:2.4; fill:none; marker-end:url(#arrow);}
+      .arrowB{stroke:#6a0032; stroke-width:2.6; fill:none; marker-end:url(#arrowB);}
+      .lane{fill:#f4f5f6; stroke:#e2e4e5; stroke-width:1; rx:20;}
+    ]]></style>
+<marker id="arrow" markerheight="8" markerwidth="8" orient="auto-start-reverse" refx="9" refy="5" viewbox="0 0 10 10"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"></path></marker>
+<marker id="arrowB" markerheight="8" markerwidth="8" orient="auto-start-reverse" refx="9" refy="5" viewbox="0 0 10 10"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6a0032"></path></marker>
+</defs>
+<rect fill="#ffffff" height="650" width="1200"></rect>
+<text class="t h" x="40" y="42">Target monitoring architecture - IBM QRadar SIEM variant</text>
+<text class="t xs" x="40" y="68">Power Platform operational telemetry is separated from security/audit telemetry and identity-provider telemetry.</text>
+<rect class="lane" height="170" width="1140" x="30" y="105"></rect>
+<text class="t h" fill="#1e384b" x="54" y="133">Operational monitoring path</text>
+<rect class="box" height="74" width="235" x="70" y="160"></rect>
+<text class="t s" font-weight="700" x="90" y="188">Power Platform workloads</text>
+<text class="t xs" x="90" y="210">Power Pages / Power Apps</text>
+<text class="t xs" x="90" y="228">Dataverse / Power Automate</text>
+<path class="arrow" d="M305 197 H395"></path>
+<text class="t xs" x="318" y="185">telemetry</text>
+<rect class="box2" height="74" width="205" x="395" y="160"></rect>
+<text class="t s" font-weight="700" x="417" y="190">Application Insights</text>
+<text class="t xs" x="417" y="214">exceptions / traces / deps.</text>
+<path class="arrow" d="M600 197 H690"></path>
+<rect class="box2" height="74" width="200" x="690" y="160"></rect>
+<text class="t s" font-weight="700" x="714" y="190">Log Analytics</text>
+<text class="t xs" x="714" y="214">KQL / tables / retention</text>
+<path class="arrow" d="M890 197 H980"></path>
+<rect class="ops" height="74" width="150" x="980" y="160"></rect>
+<text class="t s" font-weight="700" x="1007" y="190">Azure Monitor</text>
+<text class="t xs" x="1007" y="214">alerts / workbooks</text>
+<rect class="lane" height="245" width="1140" x="30" y="310"></rect>
+<text class="t h" fill="#6a0032" x="54" y="338">Security monitoring and evidence path</text>
+<rect class="box" height="74" width="235" x="70" y="370"></rect>
+<text class="t s" font-weight="700" x="90" y="398">Power Platform activity</text>
+<text class="t xs" x="90" y="422">admin / audit / DLP evidence</text>
+<path class="arrow" d="M305 407 H395"></path>
+<rect class="pur" height="74" width="205" x="395" y="370"></rect>
+<text class="t s" font-weight="700" x="420" y="398">Microsoft Purview</text>
+<text class="t xs" x="420" y="422">audit / compliance search</text>
+<path class="arrowB" d="M600 407 H690"></path>
+<text class="t xs" x="620" y="392">audit feed</text>
+<rect class="siem" height="74" width="200" x="690" y="370"></rect>
+<text class="t s" font-weight="700" x="714" y="397">IBM QRadar</text>
+<text class="t xs" x="714" y="419">M365 DSM + Event Hubs</text>
+<text class="t xs" x="714" y="437">offenses / AQL</text>
+<path class="arrowB" d="M890 407 H980"></path>
+<rect class="siem" height="74" width="150" x="980" y="370"></rect>
+<text class="t s" font-weight="700" x="1012" y="398">SOC</text>
+<text class="t xs" x="1012" y="422">triage / response</text>
+<rect class="box" height="58" width="235" x="70" y="470"></rect>
+<text class="t s" font-weight="700" x="90" y="496">Entra External ID</text>
+<text class="t xs" x="90" y="516">external sign-in / registration</text>
+<path class="arrow" d="M305 500 H395"></path>
+<text class="t xs" x="318" y="488">Diagnostic settings</text>
+<rect class="box2" height="58" width="205" x="395" y="470"></rect>
+<text class="t s" font-weight="700" x="420" y="496">Azure Event Hubs</text>
+<text class="t xs" x="420" y="516">Namespace</text>
+<path class="arrowB" d="M600 500 H690"></path>
+<rect class="siem" height="58" width="200" x="690" y="470"></rect>
+<text class="t s" font-weight="700" x="714" y="496">IBM QRadar</text>
+<text class="t xs" x="714" y="516">SIEM</text>
+<text class="t xs" x="40" y="610">Implementation build-book appendices in this document configure the operational path, the SIEM path, Entra External ID monitoring, Purview evidence, alerts, validation, and support runbooks.</text>
+</svg><figcaption>Figure: Target monitoring architecture for the build book implementation scope.</figcaption></figure>
+<p><a id="3-2-architecture-implementation-assertions"></a></p>
+<h3 id="3-2-architecture-implementation-assertions">3.2 Architecture implementation assertions</h3>
+<ul>
+<li>Power Platform telemetry will flow into Application Insights and Log Analytics for operational analysis.</li>
+<li>Azure Monitor alert rules will notify IT Operations when workloads are broken, slow, unavailable, unhealthy, or failing.</li>
+<li>Microsoft Purview audit will remain enabled and available for compliance search, audit export, DLP evidence, and SIEM ingestion patterns.</li>
+<li>IBM QRadar will generate security detections and SOC-owned incidents/offenses when activity is unauthorized, suspicious, risky, malicious, or policy-relevant.</li>
+<li>Entra External ID logs will be collected for external sign-in, registration, and application/service-principal changes connected to Power Pages.</li>
+<li>The build steps for this architecture are implemented in <strong>Appendix A</strong>, <strong>Appendix B - IBM QRadar Security Monitoring Build Book</strong>, <strong>Appendix C</strong>, and <strong>Appendix D</strong>.</li>
+</ul>
+<p><a id="requirements"></a>
+<a id="4-monitoring-and-security-requirements"></a></p>
+<h2 id="requirements">4. Monitoring and security requirements</h2>
+<p><a id="4-1-azure-monitor-requirements"></a></p>
+<h3 id="4-1-azure-monitor-requirements">4.1 Azure Monitor requirements</h3>
+<p>Elections Canada will implement Azure Monitor to provide the operational monitoring layer for Power Platform. Azure Monitor will:</p>
+<ul>
+<li>Collect Power Platform telemetry in Application Insights.</li>
+<li>Store operational records in Log Analytics.</li>
+<li>Alert IT Operations when Power Pages becomes unavailable or degraded.</li>
+<li>Alert IT Operations when Power Automate cloud-flow failures exceed the approved threshold.</li>
+<li>Alert IT Operations when Dataverse exceptions, plug-in failures, or custom API failures exceed the approved threshold.</li>
+<li>Alert IT Operations when custom connectors, dependencies, or downstream APIs fail repeatedly or become slow.</li>
+<li>Alert IT Operations when monitoring telemetry stops arriving.</li>
+<li>Provide workbooks for support teams to triage incidents without requiring access to the SIEM.</li>
+</ul>
+<p><a id="4-2-siem-requirements"></a></p>
+<h3 id="4-2-siem-requirements">4.2 SIEM requirements</h3>
+<p>Elections Canada will implement IBM QRadar to provide the security monitoring and incident response layer for Power Platform and Entra External ID. IBM QRadar will:</p>
+<ul>
+<li>Receive or query Power Platform administrative and audit activity.</li>
+<li>Detect destructive or unusual administrative actions in production environments.</li>
+<li>Detect Power Platform DLP policy changes.</li>
+<li>Detect custom connector creation or modification.</li>
+<li>Detect audit-logging disablement or reduction.</li>
+<li>Detect External ID risky sign-ins associated with Power Pages.</li>
+<li>Detect External ID registration failure spikes.</li>
+<li>Detect app registration, service principal credential, redirect URI, and consent changes for identity components that support Power Pages.</li>
+<li>Generate SOC-owned incidents/offenses with severity, owner, response procedure, and closure criteria.</li>
+</ul>
+<p><a id="4-3-microsoft-purview-requirements"></a></p>
+<h3 id="4-3-microsoft-purview-requirements">4.3 Microsoft Purview requirements</h3>
+<p>Elections Canada will implement Microsoft Purview as the audit and compliance evidence layer. Purview will:</p>
+<ul>
+<li>Provide searchable Power Platform activity and administrative audit evidence.</li>
+<li>Provide evidence for DLP investigations and compliance investigations.</li>
+<li>Support audit export for RFC evidence, incident response, and eDiscovery.</li>
+<li>Feed SIEM integration patterns where audit records are required for SOC correlation.</li>
+<li>Retain audit and compliance records according to approved Elections Canada retention requirements.</li>
+</ul>
+<p><a id="4-4-entra-external-id-requirements"></a></p>
+<h3 id="4-4-entra-external-id-requirements">4.4 Entra External ID requirements</h3>
+<p>Elections Canada will monitor Entra External ID because external-facing Power Pages sites use it for external registration and sign-in. The implementation will:</p>
+<ul>
+<li>Collect sign-in logs for external users.</li>
+<li>Collect audit logs for user flow, application, service principal, credential, and consent changes.</li>
+<li>Correlate External ID sign-in failures with Power Pages availability and authentication issues.</li>
+<li>Generate security detections for risky sign-ins and suspicious registration patterns.</li>
+<li>Generate operational evidence when authentication failures affect external users.</li>
+</ul>
+<p><a id="team-responsibilities"></a>
+<a id="5-team-responsibilities"></a></p>
+<h2 id="team-responsibilities">5. Team responsibilities</h2>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Implementation responsibility</th>
+<th>Ongoing responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Global Administrator / Privileged Identity team</td>
+<td>Grant tenant consent, configure Entra diagnostic settings, authorize app registrations, validate External ID log routing.</td>
+<td>Maintain privileged access, review app credential changes, support identity incident response.</td>
+</tr>
+<tr>
+<td>IT Operations</td>
+<td>Implement Azure Monitor, Application Insights, Log Analytics operational alerts, workbooks, and action groups.</td>
+<td>Triage operational alerts, maintain runbooks, tune thresholds through change control.</td>
+</tr>
+<tr>
+<td>IT Security / SOC</td>
+<td>Implement IBM QRadar rules, incidents/offenses, hunting searches, and security notification workflows.</td>
+<td>Investigate security alerts, maintain SIEM detection content, tune false positives through change control.</td>
+</tr>
+<tr>
+<td>Power Platform Administrators</td>
+<td>Configure Power Platform export, audit settings, environment inventory, and production scope.</td>
+<td>Support triage, validate environment changes, maintain production environment inventory.</td>
+</tr>
+<tr>
+<td>Microsoft Purview / Compliance administrators</td>
+<td>Configure audit access, validate audit search, define evidence export process.</td>
+<td>Support compliance investigations, eDiscovery, DLP evidence, and audit evidence requests.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="implementation-artifacts"></a>
+<a id="6-implementation-artifacts-and-naming-standard"></a></p>
+<h2 id="implementation-artifacts">6. Implementation artifacts and naming standard</h2>
+<table>
+<thead>
+<tr>
+<th>Artifact type</th>
+<th>Recommended name</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Azure subscription</td>
+<td><code>SUB-EC-PLATFORM-PROD</code></td>
+<td>Production subscription used for Power Platform monitoring resources.</td>
+</tr>
+<tr>
+<td>Resource group</td>
+<td><code>RG-EC-PP-MON-PROD-CAC</code></td>
+<td>Canada Central resource group for monitoring resources.</td>
+</tr>
+<tr>
+<td>Log Analytics workspace</td>
+<td><code>LAW-EC-PP-MON-PROD-CAC</code></td>
+<td>Shared workspace for Azure Monitor logs and SIEM feed integration.</td>
+</tr>
+<tr>
+<td>Application Insights</td>
+<td><code>APPINS-EC-PP-PROD-CAC</code></td>
+<td>Workspace-based Application Insights resource for Power Platform telemetry.</td>
+</tr>
+<tr>
+<td>Operational action group</td>
+<td><code>AG-EC-PP-OPS-P1</code></td>
+<td>Notifies IT Operations for priority operational alerts.</td>
+</tr>
+<tr>
+<td>Security action group</td>
+<td><code>AG-EC-PP-SEC-P1</code></td>
+<td>Notifies SOC / IT Security for priority security alerts.</td>
+</tr>
+<tr>
+<td>Event Hubs namespace</td>
+<td><code>EHNS-EC-SIEM-PROD-CAC</code></td>
+<td>Used when logs are streamed to a third-party SIEM such as QRadar.</td>
+</tr>
+<tr>
+<td>Event Hub - Entra sign-ins</td>
+<td><code>EH-EC-ENTRA-SIGNIN-PROD</code></td>
+<td>Dedicated stream for external-user sign-in events.</td>
+</tr>
+<tr>
+<td>Event Hub - Entra audit</td>
+<td><code>EH-EC-ENTRA-AUDIT-PROD</code></td>
+<td>Dedicated stream for audit and directory change events.</td>
+</tr>
+<tr>
+<td>Event Hub - Power Platform audit</td>
+<td><code>EH-EC-M365-AUDIT-PROD</code></td>
+<td>Used only if the target SIEM integration pattern requires Event Hubs.</td>
+</tr>
+<tr>
+<td>Storage account for QRadar checkpointing</td>
+<td><code>stecsiemcheckpointprod</code></td>
+<td>Required by IBM QRadar Event Hubs protocol for checkpoint state.</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td><code>KV-EC-PP-MON-PROD-CAC</code></td>
+<td>Stores client secrets/certificates for integrations where a certificate is not directly uploaded into the target platform.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="monitoring-design"></a>
+<a id="7-detailed-monitoring-design"></a></p>
+<h2 id="monitoring-design">7. Detailed monitoring design</h2>
+<p><a id="7-1-azure-monitor-operational-design"></a></p>
+<h3 id="7-1-azure-monitor-operational-design">7.1 Azure Monitor operational design</h3>
+<p>Elections Canada will use Azure Monitor for production operational monitoring of Power Platform. The operational monitoring boundary includes Power Pages availability, Power Pages responsiveness, Power Automate failures, Dataverse exceptions, connector dependency failures, canvas app client-side errors, and telemetry-pipeline health. Azure Monitor alert rules will be owned by IT Operations and will generate operational tickets or notifications.</p>
+<p><a id="7-2-siem-security-design"></a></p>
+<h3 id="7-2-siem-security-design">7.2 SIEM security design</h3>
+<p>Elections Canada will use IBM QRadar for security monitoring. The SIEM boundary includes administrative changes, audit policy changes, DLP policy changes, custom connector changes, production environment deletion/reset, suspicious External ID sign-in, External ID registration abuse, and app credential or consent changes. SIEM incidents/offenses will be owned by IT Security/SOC.</p>
+<p><a id="7-3-purview-evidence-design"></a></p>
+<h3 id="7-3-purview-evidence-design">7.3 Purview evidence design</h3>
+<p>Elections Canada will use Microsoft Purview as the audit evidence source for user, maker, admin, DLP, and compliance investigation activities where Microsoft 365/Purview audit captures the event. Purview will provide the evidence trail for audit queries, exports, and incident support. Purview alerting will not replace the Azure Monitor or SIEM alerting design because Purview is not the operational telemetry platform and is not the SOC correlation engine in this architecture.</p>
+<p><a id="7-4-entra-external-id-design-for-power-pages"></a></p>
+<h3 id="7-4-entra-external-id-design-for-power-pages">7.4 Entra External ID design for Power Pages</h3>
+<p>Elections Canada will monitor Entra External ID because external-facing Power Pages sites use it for sign-in and registration. External ID logs will be used in two ways: IT Operations will use the logs to confirm whether registration or sign-in failures are service-impacting, and IT Security will use the logs to detect risky external access, registration abuse, and app/service-principal changes.</p>
+<p><a id="7-5-qradar-specific-siem-routing-requirement"></a></p>
+<h3 id="7-5-qradar-specific-siem-routing-requirement">7.5 QRadar-specific SIEM routing requirement</h3>
+<p>Elections Canada will route Entra External ID diagnostic logs to Azure Event Hubs and configure QRadar to collect those events with the Microsoft Entra ID DSM and Microsoft Azure Event Hubs protocol. Elections Canada will route Microsoft 365 / Microsoft Purview audit events to QRadar using the Microsoft Office 365 DSM and Office 365 REST API protocol. This approach provides QRadar visibility into Power Platform audit activity exposed through Purview and Entra External ID sign-in/audit activity exposed through Azure Event Hubs.</p>
+<p><a id="alerts-runbooks"></a>
+<a id="8-alert-catalogue-and-support-runbooks"></a></p>
+<h2 id="alerts-runbooks">8. Alert catalogue and support runbooks</h2>
+<p><a id="operational-alerts-implemented-in-azure-monitor"></a></p>
+<h3 id="operational-alerts-implemented-in-azure-monitor">Operational alerts implemented in Azure Monitor</h3>
+<p>The following operational alerts are implemented in Azure Monitor against the Application Insights / Log Analytics telemetry for Power Platform workloads. Each alert is assigned a clear response owner and closure criterion before go-live.</p>
+<h4>EC-PP-OPS-P1-PowerPages-Unavailable</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev1 / P1</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>External-facing Power Pages site</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when the Power Pages endpoint fails availability tests from two or more test locations within a 5-minute evaluation period.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Confirm whether the public URL is unavailable, identify whether the issue is DNS, TLS, identity, application, or platform, and open a priority incident if external users are impacted.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Web/Application Support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Availability tests pass from all configured locations for two consecutive evaluation windows and the incident record includes root cause and user-impact statement.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Maintenance windows and planned DNS/TLS changes must be suppressed through an alert processing rule or RFC-linked maintenance note.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">AppAvailabilityResults
+| where TimeGenerated &gt; ago(10m)
+| where Name contains 'PowerPages'
+| summarize FailedLocations=dcount(Location), Total=count(), Failed=countif(Success == false) by Name
+| where FailedLocations &gt;= 2
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Open the Application Insights availability result details.</li>
+<li>Validate DNS resolution and TLS certificate validity.</li>
+<li>Open Power Platform admin center and verify environment health.</li>
+<li>Validate Entra External ID sign-in flow if authentication pages are reachable but sign-in fails.</li>
+<li>Escalate to Power Platform support owner and Microsoft support if the platform is degraded.</li>
+</ul>
+<h4>EC-PP-OPS-P2-PowerPages-Latency-Degraded</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev2 / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>External-facing Power Pages site</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when Power Pages response time exceeds the operational threshold for external users.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Validate whether external users are experiencing slow registration, sign-in, or page rendering.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Power Platform Operations</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>P95 availability response time returns below 5 seconds for two consecutive evaluation windows or the threshold is formally tuned with approval.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Tune threshold per site. Critical public registration pages should use stricter thresholds than internal admin pages.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">AppAvailabilityResults
+| where TimeGenerated &gt; ago(15m)
+| where Name contains 'PowerPages'
+| summarize P95DurationMs=percentile(DurationMs,95) by Name
+| where P95DurationMs &gt; 5000
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Review availability test samples.</li>
+<li>Review dependencies for Dataverse/API latency.</li>
+<li>Check recent Power Pages deployments or configuration changes.</li>
+<li>Check Entra External ID sign-in latency if pages are gated behind authentication.</li>
+</ul>
+<h4>EC-PP-OPS-P2-CloudFlow-Failure-Spike</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev2 / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Power Automate cloud flows</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when cloud flow runs fail above the accepted error threshold.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Identify failed business automation, affected environment, and impacted business process. Restore service or disable a defective deployment according to change-control procedures.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Power Platform Support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Failed runs return below threshold and a failed-run sample has been documented with either resolved error or accepted false positive.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Exclude known non-critical scheduled jobs or increase threshold for batch flows that intentionally fail on no-op input.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">AppRequests
+| where TimeGenerated &gt; ago(15m)
+| where Name has_any ('cloudflow','flow') or AppRoleName has 'PowerAutomate'
+| summarize Total=count(), Failed=countif(Success == false) by OperationName, bin(TimeGenerated, 15m)
+| extend FailureRate = todouble(Failed) / todouble(Total) * 100
+| where Failed &gt;= 5 and FailureRate &gt;= 20
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Open Application Insights transaction samples for failed runs.</li>
+<li>Identify environment ID, flow name, trigger, and failing action.</li>
+<li>Check connector authentication, gateway health, API availability, throttling, and recent solution deployments.</li>
+<li>Notify the owning product team if a business process is affected.</li>
+</ul>
+<h4>EC-PP-OPS-P2-Dataverse-Exception-Spike</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev2 / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Dataverse, model-driven apps, plug-ins, custom APIs</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when Dataverse exceptions or server-side errors increase above the approved threshold.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Determine whether users are blocked from forms, Dataverse operations, or integrations and assign to the application support owner.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Application Support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Exception rate returns below threshold or known exceptions are documented and excluded with approval.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Known validation exceptions must be handled in the application layer rather than suppressed without justification.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">AppExceptions
+| where TimeGenerated &gt; ago(15m)
+| summarize ExceptionCount=count(), SampleMessage=any(Message) by AppRoleName, ProblemId
+| where ExceptionCount &gt;= 10
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Review exception type, message, and operation ID.</li>
+<li>Correlate with recent managed solution import, plug-in deployment, or integration release.</li>
+<li>Review dependency failures and Dataverse service health.</li>
+<li>If data integrity is at risk, stop affected automation until root cause is isolated.</li>
+</ul>
+<h4>EC-PP-OPS-P2-Connector-Dependency-Failures</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev2 / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Custom connectors, Azure Functions, APIs, gateways</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when connector or dependency calls fail repeatedly.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Determine whether the failure is a Power Platform connector, gateway, API dependency, authentication failure, or downstream service outage.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Integration Support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Dependency failure count returns below threshold and any certificate/secret/network issue is corrected or tracked under a separate problem record.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Separate critical dependencies from low-priority optional integrations. Critical business APIs must remain P2 or higher.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">AppDependencies
+| where TimeGenerated &gt; ago(15m)
+| summarize Total=count(), Failed=countif(Success == false), P95DurationMs=percentile(DurationMs,95) by Target, Name
+| where Failed &gt;= 5 or P95DurationMs &gt; 7000
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Open dependency samples and identify HTTP status codes.</li>
+<li>Validate connection references and service principal secrets/certificates.</li>
+<li>Check on-premises data gateway health if applicable.</li>
+<li>Validate downstream API availability and firewall/network changes.</li>
+</ul>
+<h4>EC-PP-OPS-P3-CanvasApp-Client-Error-Spike</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev3 / P3</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Canvas apps</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when client-side canvas app errors increase above the accepted threshold.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Identify the affected app and determine whether users are blocked or experiencing degraded functionality.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Power Apps Support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Trace volume returns below threshold and the app owner confirms no active user impact.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Exclude known informational traces by severity and message pattern. Do not suppress severe client errors without a corresponding defect record.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">AppTraces
+| where TimeGenerated &gt; ago(30m)
+| where SeverityLevel &gt;= 3
+| summarize TraceCount=count(), Sample=any(Message) by AppRoleName, OperationName
+| where TraceCount &gt;= 20
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Review trace samples and user session identifiers.</li>
+<li>Correlate with recent app publish activity.</li>
+<li>Validate connector and Dataverse calls from the same time window.</li>
+<li>Ask app owner to reproduce if needed.</li>
+</ul>
+<h4>EC-PP-OPS-P2-Telemetry-Ingestion-Stopped</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Sev2 / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Monitoring pipeline</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will alert IT Operations when expected Power Platform telemetry stops arriving in Application Insights.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>Treat missing telemetry as a monitoring gap until validated as a planned outage or no-traffic period.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Operations - Monitoring Platform</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Telemetry resumes and the gap duration is documented.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>For low-volume environments, use a longer evaluation window or heartbeat test rather than disabling the alert.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>KQL query</strong></p>
+<pre><code class="language-kusto">union isfuzzy=true AppRequests, AppDependencies, AppExceptions, AppTraces
+| where TimeGenerated &gt; ago(60m)
+| summarize EventCount=count()
+| where EventCount == 0
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Validate Application Insights resource and Log Analytics workspace availability.</li>
+<li>Confirm Power Platform data export configuration still exists.</li>
+<li>Check ingestion caps, workspace daily cap, and diagnostic settings.</li>
+<li>Open a monitoring incident if the gap is not planned.</li>
+</ul>
+<p><a id="security-alerts-implemented-in-the-siem"></a></p>
+<h3 id="security-alerts-implemented-in-the-siem">Security alerts implemented in the SIEM</h3>
+<p>The following security alerts are implemented in the selected SIEM. The Microsoft Sentinel variant uses analytics rules and incidents. The IBM QRadar variant uses correlation rules and offenses. The detection intent, response, owner, and closure criteria remain the same across both SIEM implementations.</p>
+<h4>EC-PP-SEC-P1-Audit-Logging-Disabled</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>High / P1</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Power Platform audit and compliance logging</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when audit logging is disabled or materially reduced for an in-scope production environment.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC opens a P1 investigation, validates whether the change was approved, and requests immediate restoration of audit settings if no approved RFC exists.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / SOC with Power Platform Administrator support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Audit logging is enabled, data continuity impact is documented, and unauthorized activity is either contained or mapped to an approved RFC.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>No permanent suppression is allowed. Only RFC-linked maintenance suppression is permitted.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT QIDNAME(qid) AS EventName, username, sourceip, starttime FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Office 365%' AND (UTF8(payload) ILIKE '%Audit%' AND UTF8(payload) ILIKE '%Disable%') LAST 15 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Identify actor, source IP, affected environment, and exact operation.</li>
+<li>Search for related administrative changes in the prior 24 hours.</li>
+<li>Validate RFC/change record.</li>
+<li>Escalate to tenant Global Administrator and Power Platform Administrator if unauthorized.</li>
+</ul>
+<h4>EC-PP-SEC-P1-Production-Environment-Deleted-Or-Reset</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>High / P1</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Power Platform environments</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when a production Power Platform environment is deleted, reset, disabled, or otherwise materially changed.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC treats the event as a potentially destructive administrative action and validates the change against the RFC immediately.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / SOC; escalation to Platform Engineering</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Change is approved and documented, or the environment has been recovered and containment actions are complete.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Approved disaster recovery tests must be tagged with RFC number and maintenance window.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT QIDNAME(qid) AS EventName, username, sourceip, starttime FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Office 365%' AND (UTF8(payload) ILIKE '%DeleteEnvironment%' OR UTF8(payload) ILIKE '%ResetEnvironment%') LAST 15 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Identify environment ID/name.</li>
+<li>Validate RFC and change window.</li>
+<li>Check whether backup/restore posture is intact.</li>
+<li>Correlate with Entra sign-in anomalies for the actor.</li>
+<li>Notify platform owner and IM/IT management if production service is affected.</li>
+</ul>
+<h4>EC-PP-SEC-P2-DLP-Policy-Changed</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Medium / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Power Platform tenant governance</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when a Power Platform DLP policy is created, deleted, or modified.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC validates the policy change against approved governance or RFC records and confirms whether sensitive connectors were moved between business and non-business groups.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / Governance with Power Platform Administrator support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Policy change is approved or reverted; impact assessment is attached to the incident/ticket.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Routine policy updates still need RFC references. Suppression must be change-window based.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT QIDNAME(qid) AS EventName, username, sourceip, starttime FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Office 365%' AND UTF8(payload) ILIKE '%DlpPolicy%' LAST 30 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Identify the actor and policy ID/name.</li>
+<li>Compare old and new connector grouping if available.</li>
+<li>Validate against change record.</li>
+<li>Confirm whether production environments became less restrictive.</li>
+</ul>
+<h4>EC-PP-SEC-P2-Custom-Connector-Created-Or-Modified</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Medium / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Power Platform connectors</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when a custom connector is created or modified in an in-scope environment.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC validates whether the connector endpoint, authentication method, and DLP classification are approved.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / Governance with Integration Support</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Connector is approved and documented or blocked/reverted.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Known Dev/Test connector activity may be lower severity, but production connector changes stay P2.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT QIDNAME(qid) AS EventName, username, sourceip, starttime FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Office 365%' AND UTF8(payload) ILIKE '%Connector%' LAST 30 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Identify connector name and target host.</li>
+<li>Validate publisher/owner.</li>
+<li>Check DLP policy classification.</li>
+<li>Review recent flow/app changes that use the connector.</li>
+</ul>
+<h4>EC-EXTID-SEC-P1-External-User-Risky-Sign-In</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>High / P1</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Entra External ID and Power Pages authentication</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when an external user sign-in associated with Power Pages is high risk or originates from suspicious conditions.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC validates whether the sign-in is expected, blocks the account/session if needed, and correlates with portal registration attempts.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / Identity Operations</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Risk is dismissed with evidence or containment is complete and the external user flow is stable.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>High-risk sign-ins are never suppressed. Known test accounts must be placed in a controlled exception list.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT username, sourceip, QIDNAME(qid) AS EventName, starttime FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Entra%' AND (UTF8(payload) ILIKE '%Power Pages%' OR UTF8(payload) ILIKE '%PowerApps Portals%') AND (UTF8(payload) ILIKE '%risk%' OR UTF8(payload) ILIKE '%failure%') LAST 15 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Review user, IP, geography, device, application, and conditional access status.</li>
+<li>Check related failed attempts and account creation activity.</li>
+<li>Validate whether the account attempted sensitive portal operations after sign-in.</li>
+<li>Escalate to identity team for containment.</li>
+</ul>
+<h4>EC-EXTID-SEC-P2-Registration-Failure-Spike</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Medium / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Entra External ID external-user registration</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when external registration failures spike for Power Pages, indicating possible abuse, configuration failure, or user-impacting identity issue.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC and IT Operations determine whether this is abuse, bot activity, conditional access misconfiguration, or a broken registration/sign-in user journey.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / Identity Operations; IT Operations for service impact</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Failure volume returns to normal and root cause is recorded.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Expected election-cycle traffic should be baselined before threshold changes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT COUNT(*) AS Failures, UNIQUECOUNT(sourceip) AS DistinctIPs FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Entra%' AND UTF8(payload) ILIKE '%Power Pages%' AND UTF8(payload) ILIKE '%failure%' LAST 30 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Review failure reason codes.</li>
+<li>Group by source IP, location, user agent, and user flow.</li>
+<li>Check recent External ID user flow or custom policy changes.</li>
+<li>Check Power Pages authentication settings.</li>
+</ul>
+<h4>EC-EXTID-SEC-P2-App-Credential-Or-Consent-Changed</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Severity</td>
+<td>Medium / P2</td>
+</tr>
+<tr>
+<td>Environment and workload affected</td>
+<td>Entra app registrations and enterprise applications used by Power Pages</td>
+</tr>
+<tr>
+<td>Alert purpose</td>
+<td>Elections Canada will generate a security alert when credentials, redirect URIs, federated credentials, or consent grants change for app registrations supporting Power Pages or Power Platform integrations.</td>
+</tr>
+<tr>
+<td>Expected first response</td>
+<td>SOC validates whether the change is tied to an approved RFC and whether secrets or redirect URIs were added unexpectedly.</td>
+</tr>
+<tr>
+<td>Escalation owner</td>
+<td>IT Security / Identity Operations</td>
+</tr>
+<tr>
+<td>Closure criteria</td>
+<td>Application change is approved or remediated; credentials are rotated if exposure is suspected.</td>
+</tr>
+<tr>
+<td>Known false positives and tuning notes</td>
+<td>Authorized certificate rollover should be RFC-linked and scheduled.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>QRadar AQL / rule search expression</strong></p>
+<pre><code class="language-sql">SELECT QIDNAME(qid) AS EventName, username, sourceip, starttime FROM events WHERE LOGSOURCENAME(logsourceid) ILIKE '%Entra%' AND (UTF8(payload) ILIKE '%service principal%' OR UTF8(payload) ILIKE '%application%' OR UTF8(payload) ILIKE '%consent%') LAST 30 MINUTES
+</code></pre>
+<p><strong>Initial triage steps</strong></p>
+<ul>
+<li>Identify app/service principal ID.</li>
+<li>Review changed property.</li>
+<li>Validate admin consent source and actor.</li>
+<li>Check sign-in activity after the change.</li>
+<li>Escalate if unauthorized credential or redirect URI was added.</li>
+</ul>
+<p><a id="appendix-azure-monitor"></a>
+<a id="appendix-a-azure-monitor-operational-monitoring-build-book"></a></p>
+<h2 id="appendix-azure-monitor">Appendix A - Azure Monitor Operational Monitoring Build Book</h2>
+<p><a id="a-1-purpose"></a></p>
+<h3 id="a-1-purpose">A.1 Purpose</h3>
+<p>Elections Canada will implement Azure Monitor as the operational monitoring layer for Power Platform environments. Azure Monitor will collect Power Platform telemetry in Application Insights, store queryable records in Log Analytics, execute alert rules, notify IT Operations through action groups, and provide operational evidence for support tickets.</p>
+<p><a id="a-2-prerequisites"></a></p>
+<h3 id="a-2-prerequisites">A.2 Prerequisites</h3>
+<ul>
+<li><p>A production Azure subscription named <code>SUB-EC-PLATFORM-PROD</code> is required for the monitoring resources.</p>
+</li>
+<li><p>A Canada Central resource group named <code>RG-EC-PP-MON-PROD-CAC</code> is required for the Log Analytics workspace, Application Insights resource, Event Hubs namespace, storage account, and related automation artifacts.</p>
+</li>
+<li><p>A Global Administrator or Privileged Role Administrator is required to grant tenant-level admin consent and configure Entra diagnostic routing.</p>
+</li>
+<li><p>A Power Platform Administrator or Dynamics 365 Administrator is required to configure Power Platform environment export and audit settings.</p>
+</li>
+<li><p>A Security Administrator, Compliance Administrator, or equivalent Purview role assignment is required to validate Microsoft Purview audit visibility.</p>
+</li>
+<li><p>A documented list of in-scope Power Platform environments is required before implementation. The minimum columns are environment name, environment ID, type, owner group, Power Pages site URL, Dataverse presence, criticality, support owner, and change window.</p>
+</li>
+<li><p>A named IT Operations distribution list or ticket queue is required for operational alerts. Recommended placeholder: <code>DL-EC-ITOPS-POWERPLATFORM@elections.ca</code>.</p>
+</li>
+<li><p>A named IT Security / SOC distribution list or ticket queue is required for security alerts. Recommended placeholder: <code>DL-EC-SOC-POWERPLATFORM@elections.ca</code>.</p>
+</li>
+<li><p>The implementation must be performed in a controlled change window and recorded under the approved RFC for this monitoring rollout.</p>
+</li>
+<li><p>Application Insights export must be configured for each in-scope production Power Platform environment.</p>
+</li>
+<li><p>Public Power Pages URLs must be known before availability tests are created.</p>
+</li>
+<li><p>IT Operations must provide the mailbox, distribution list, webhook, or ITSM endpoint that receives operational alerts.</p>
+</li>
+</ul>
+<p><a id="a-3-artifact-names"></a></p>
+<h3 id="a-3-artifact-names">A.3 Artifact names</h3>
+<table>
+<thead>
+<tr>
+<th>Artifact type</th>
+<th>Recommended name</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Azure subscription</td>
+<td><code>SUB-EC-PLATFORM-PROD</code></td>
+<td>Production subscription used for Power Platform monitoring resources.</td>
+</tr>
+<tr>
+<td>Resource group</td>
+<td><code>RG-EC-PP-MON-PROD-CAC</code></td>
+<td>Canada Central resource group for monitoring resources.</td>
+</tr>
+<tr>
+<td>Log Analytics workspace</td>
+<td><code>LAW-EC-PP-MON-PROD-CAC</code></td>
+<td>Shared workspace for Azure Monitor logs and SIEM feed integration.</td>
+</tr>
+<tr>
+<td>Application Insights</td>
+<td><code>APPINS-EC-PP-PROD-CAC</code></td>
+<td>Workspace-based Application Insights resource for Power Platform telemetry.</td>
+</tr>
+<tr>
+<td>Operational action group</td>
+<td><code>AG-EC-PP-OPS-P1</code></td>
+<td>Notifies IT Operations for priority operational alerts.</td>
+</tr>
+<tr>
+<td>Security action group</td>
+<td><code>AG-EC-PP-SEC-P1</code></td>
+<td>Notifies SOC / IT Security for priority security alerts.</td>
+</tr>
+<tr>
+<td>Event Hubs namespace</td>
+<td><code>EHNS-EC-SIEM-PROD-CAC</code></td>
+<td>Used when logs are streamed to a third-party SIEM such as QRadar.</td>
+</tr>
+<tr>
+<td>Event Hub - Entra sign-ins</td>
+<td><code>EH-EC-ENTRA-SIGNIN-PROD</code></td>
+<td>Dedicated stream for external-user sign-in events.</td>
+</tr>
+<tr>
+<td>Event Hub - Entra audit</td>
+<td><code>EH-EC-ENTRA-AUDIT-PROD</code></td>
+<td>Dedicated stream for audit and directory change events.</td>
+</tr>
+<tr>
+<td>Event Hub - Power Platform audit</td>
+<td><code>EH-EC-M365-AUDIT-PROD</code></td>
+<td>Used only if the target SIEM integration pattern requires Event Hubs.</td>
+</tr>
+<tr>
+<td>Storage account for QRadar checkpointing</td>
+<td><code>stecsiemcheckpointprod</code></td>
+<td>Required by IBM QRadar Event Hubs protocol for checkpoint state.</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td><code>KV-EC-PP-MON-PROD-CAC</code></td>
+<td>Stores client secrets/certificates for integrations where a certificate is not directly uploaded into the target platform.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="a-4-step-by-step-configuration"></a></p>
+<h3 id="a-4-step-by-step-configuration">A.4 Step-by-step configuration</h3>
+<h4>Step A.4.1 - Create the monitoring resource group</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>Sign in to the Azure portal as a Global Administrator or a privileged Azure administrator assigned to <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>In the top search bar, search for <strong>Resource groups</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Set <strong>Subscription</strong> to <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Set <strong>Resource group</strong> to <code>RG-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Set <strong>Region</strong> to <code>Canada Central</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">Connect-AzAccount -Tenant '&lt;EC-TENANT-ID&gt;'
+Set-AzContext -Subscription 'SUB-EC-PLATFORM-PROD'
+New-AzResourceGroup -Name 'RG-EC-PP-MON-PROD-CAC' -Location 'canadacentral' -Tag @{Workload='PowerPlatformMonitoring'; Owner='PlatformEngineering'; DataClassification='ProtectedB'}
+</code></pre>
+<h4>Step A.4.2 - Create the Log Analytics workspace</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Log Analytics workspaces</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Set <strong>Subscription</strong> to <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Set <strong>Resource group</strong> to <code>RG-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Set <strong>Name</strong> to <code>LAW-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Set <strong>Region</strong> to <code>Canada Central</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>After deployment, open the workspace.</li>
+<li>Select <strong>Usage and estimated costs</strong>.</li>
+<li>Set daily cap and retention according to the Elections Canada data retention standard. A starting operational retention value of 90 days is recommended for troubleshooting. Longer security retention must be managed through the SIEM and Purview retention design.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">New-AzOperationalInsightsWorkspace `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -Name 'LAW-EC-PP-MON-PROD-CAC' `
+  -Location 'canadacentral' `
+  -Sku 'PerGB2018' `
+  -RetentionInDays 90
+</code></pre>
+<h4>Step A.4.3 - Create the workspace-based Application Insights resource</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Application Insights</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Set <strong>Subscription</strong> to <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Set <strong>Resource group</strong> to <code>RG-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Set <strong>Name</strong> to <code>APPINS-EC-PP-PROD-CAC</code>.</li>
+<li>Set <strong>Region</strong> to <code>Canada Central</code>.</li>
+<li>Set <strong>Resource mode</strong> to <strong>Workspace-based</strong>.</li>
+<li>Set <strong>Log Analytics workspace</strong> to <code>LAW-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>After deployment, open the resource and copy the <strong>Connection string</strong>. Store it in the RFC implementation notes and in <code>KV-EC-PP-MON-PROD-CAC</code> if a secure reference is needed.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">$workspace = Get-AzOperationalInsightsWorkspace -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -Name 'LAW-EC-PP-MON-PROD-CAC'
+New-AzApplicationInsights `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -Name 'APPINS-EC-PP-PROD-CAC' `
+  -Location 'canadacentral' `
+  -WorkspaceResourceId $workspace.ResourceId
+</code></pre>
+<h4>Step A.4.4 - Configure Power Platform export to Application Insights</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>Sign in to the Power Platform admin center as a Power Platform Administrator.</li>
+<li>Select <strong>Manage</strong>.</li>
+<li>Select <strong>Environments</strong>.</li>
+<li>Select the first in-scope production environment.</li>
+<li>Select <strong>Settings</strong>.</li>
+<li>Expand <strong>Data export</strong>.</li>
+<li>Select <strong>Application Insights</strong>.</li>
+<li>Select <strong>New data export</strong> or <strong>Set up</strong>.</li>
+<li>Select the Azure subscription <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Select <code>APPINS-EC-PP-PROD-CAC</code> as the Application Insights resource.</li>
+<li>Select the telemetry categories available for the environment. The implementation requires Dataverse, model-driven app, canvas app, and cloud flow telemetry where available.</li>
+<li>Select <strong>Save</strong> or <strong>Create</strong>.</li>
+<li>Repeat the same configuration for every in-scope production environment.</li>
+<li>Record the environment name, environment ID, Application Insights resource name, configuration timestamp, and implementer in the RFC evidence section.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<p>Power Platform export to Application Insights is primarily configured from the Power Platform admin center. Azure PowerShell is used to create and secure the target Azure resources. The implementer must use the portal configuration above for the export binding unless an approved Power Platform administration automation is already in use.</p>
+<h4>Step A.4.5 - Configure Power Pages availability tests</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, open <code>APPINS-EC-PP-PROD-CAC</code>.</li>
+<li>Select <strong>Availability</strong>.</li>
+<li>Select <strong>Add Standard test</strong>.</li>
+<li>Set <strong>Test name</strong> to <code>AVAIL-EC-PP-PAGES-PROD-&lt;SITE-NAME&gt;</code>.</li>
+<li>Set <strong>URL</strong> to the external Power Pages URL, for example <code>https://&lt;site-name&gt;.powerpages.microsoft.com/</code> or the approved custom domain.</li>
+<li>Set <strong>Test frequency</strong> to 5 minutes for production public sites.</li>
+<li>Select at least five test locations, including Canadian or North American locations where available.</li>
+<li>Set <strong>Success criteria</strong> to require HTTP 200 or the expected authenticated landing response.</li>
+<li>Set <strong>Timeout</strong> to 30 seconds.</li>
+<li>Enable <strong>Retry on failure</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Repeat for each critical public endpoint: home page, registration entry point, sign-in page, and high-value post-authentication landing page if a synthetic account is available.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell"># Availability tests are represented as Microsoft.Insights/webtests resources.
+# Use an ARM/Bicep template for repeatable deployment. Replace placeholder values before execution.
+New-AzResourceGroupDeployment `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -TemplateFile '.	emplatesppinsights-webtest.json' `
+  -appInsightsName 'APPINS-EC-PP-PROD-CAC' `
+  -webTestName 'AVAIL-EC-PP-PAGES-PROD-&lt;SITE-NAME&gt;' `
+  -targetUrl 'https://&lt;POWER-PAGES-URL&gt;/'
+</code></pre>
+<h4>Step A.4.6 - Create IT Operations action groups</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Monitor</strong>.</li>
+<li>Select <strong>Alerts</strong>.</li>
+<li>Select <strong>Action groups</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>On <strong>Basics</strong>, set <strong>Subscription</strong> to <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Set <strong>Resource group</strong> to <code>RG-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Set <strong>Region</strong> to <strong>Global</strong>.</li>
+<li>Set <strong>Action group name</strong> to <code>AG-EC-PP-OPS-P1</code>.</li>
+<li>Set <strong>Display name</strong> to <code>EC PP OPS P1</code>.</li>
+<li>Select <strong>Next: Notifications</strong>.</li>
+<li>Add an <strong>Email/SMS message/Push/Voice</strong> notification named <code>Email-ITOps</code> and set the email address to <code>DL-EC-ITOPS-POWERPLATFORM@elections.ca</code>.</li>
+<li>Add a webhook, Logic App, or ITSM action if Elections Canada ticketing integration is available.</li>
+<li>Select <strong>Next: Actions</strong>.</li>
+<li>Add the automation action if a Logic App will create incidents automatically.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">$emailReceiver = New-AzActionGroupReceiver -Name 'Email-ITOps' -EmailReceiver -EmailAddress 'DL-EC-ITOPS-POWERPLATFORM@elections.ca'
+Set-AzActionGroup `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -Name 'AG-EC-PP-OPS-P1' `
+  -ShortName 'EC-PPOPS' `
+  -Receiver $emailReceiver
+</code></pre>
+<h4>Step A.4.7 - Configure operational log alerts</h4>
+<p><strong>Portal configuration pattern for each alert</strong></p>
+<ul>
+<li>In the Azure portal, open <strong>Monitor</strong>.</li>
+<li>Select <strong>Alerts</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Select <strong>Alert rule</strong>.</li>
+<li>On <strong>Scope</strong>, select <code>LAW-EC-PP-MON-PROD-CAC</code> or <code>APPINS-EC-PP-PROD-CAC</code>, depending on where the query is executed.</li>
+<li>Select <strong>Apply</strong>.</li>
+<li>On <strong>Condition</strong>, select <strong>Custom log search</strong>.</li>
+<li>Paste the approved KQL query from the alert catalogue in section <strong>9</strong>.</li>
+<li>Set the <strong>Measurement</strong> to <strong>Table rows</strong> unless the specific alert uses a numeric aggregation.</li>
+<li>Set the <strong>Aggregation granularity</strong> to the documented evaluation window for the alert.</li>
+<li>Set <strong>Frequency of evaluation</strong> to 5 minutes for P1/P2 production alerts and 15 minutes for lower-priority alerts.</li>
+<li>Set <strong>Operator</strong> and <strong>Threshold value</strong> exactly as documented in the alert catalogue.</li>
+<li>Select <strong>Next: Actions</strong>.</li>
+<li>Select <code>AG-EC-PP-OPS-P1</code> for P1/P2 alerts and the approved lower-priority action group for P3 alerts.</li>
+<li>Select <strong>Next: Details</strong>.</li>
+<li>Set <strong>Severity</strong> to the alert severity documented in the catalogue.</li>
+<li>Set <strong>Alert rule name</strong> to the exact alert name from the catalogue.</li>
+<li>Set <strong>Description</strong> to the runbook purpose from the alert catalogue.</li>
+<li>Set <strong>Enable upon creation</strong> to <strong>Yes</strong>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Repeat for every operational alert in section <strong>9.1</strong>.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell"># Example for one log alert. Repeat using the alert catalogue values.
+$law = Get-AzOperationalInsightsWorkspace -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -Name 'LAW-EC-PP-MON-PROD-CAC'
+$actionGroup = Get-AzActionGroup -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -Name 'AG-EC-PP-OPS-P1'
+$query = @'
+AppAvailabilityResults
+| where TimeGenerated &gt; ago(10m)
+| where Name contains 'PowerPages'
+| summarize FailedLocations=dcount(Location), Total=count(), Failed=countif(Success == false) by Name
+| where FailedLocations &gt;= 2
+'@
+New-AzResourceGroupDeployment `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -TemplateFile '.	emplates\scheduled-query-rule.json' `
+  -alertName 'EC-PP-OPS-P1-PowerPages-Unavailable' `
+  -workspaceResourceId $law.ResourceId `
+  -actionGroupId $actionGroup.Id `
+  -query $query `
+  -severity 1 `
+  -evaluationFrequency 'PT5M' `
+  -windowSize 'PT10M'
+</code></pre>
+<h4>Step A.4.8 - Configure operational workbooks</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, open <strong>Monitor</strong>.</li>
+<li>Select <strong>Workbooks</strong>.</li>
+<li>Select <strong>New</strong>.</li>
+<li>Add query sections for Power Pages availability, Power Automate failures, Dataverse exceptions, dependency failures, and telemetry pipeline health.</li>
+<li>Set the workbook name to <code>WB-EC-PP-OPS-PROD</code>.</li>
+<li>Save the workbook to <code>RG-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Assign read access to the IT Operations support group and Platform Engineering.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell"># Workbooks are ARM resources. Export the workbook template after portal creation and redeploy it using:
+New-AzResourceGroupDeployment `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -TemplateFile '.	emplates\workbook-ec-pp-ops.json'
+</code></pre>
+<h4>Step A.4.9 - Validate Azure Monitor implementation</h4>
+<ul>
+<li>Generate a controlled test event by temporarily targeting a non-production availability test to a known invalid URL. Confirm <code>EC-PP-OPS-P1-PowerPages-Unavailable</code> fires and notifies <code>AG-EC-PP-OPS-P1</code>.</li>
+<li>Trigger or locate a known failed non-production flow run and confirm flow telemetry appears in Application Insights.</li>
+<li>Query <code>AppRequests</code>, <code>AppDependencies</code>, <code>AppExceptions</code>, <code>AppTraces</code>, and <code>AppAvailabilityResults</code> in Log Analytics.</li>
+<li>Confirm alert notifications include alert name, severity, affected resource, query result count, and link to the fired alert.</li>
+<li>Attach screenshots or exported JSON evidence to the RFC.</li>
+</ul>
+<p><a id="appendix-qradar"></a>
+<a id="appendix-b-ibm-qradar-security-monitoring-build-book"></a></p>
+<h2 id="appendix-qradar">Appendix B - IBM QRadar Security Monitoring Build Book</h2>
+<p><a id="b-1-purpose"></a></p>
+<h3 id="b-1-purpose">B.1 Purpose</h3>
+<p>Elections Canada will implement IBM QRadar as the SIEM layer for Power Platform and Entra External ID security monitoring where this variant is selected. QRadar will receive Microsoft 365/Purview audit data for Power Platform activity, Entra External ID logs through Azure Event Hubs, and relevant Microsoft cloud security events. QRadar will generate offenses, support AQL searches, and provide SOC correlation rules.</p>
+<p><a id="b-2-prerequisites"></a></p>
+<h3 id="b-2-prerequisites">B.2 Prerequisites</h3>
+<ul>
+<li><p>A production Azure subscription named <code>SUB-EC-PLATFORM-PROD</code> is required for the monitoring resources.</p>
+</li>
+<li><p>A Canada Central resource group named <code>RG-EC-PP-MON-PROD-CAC</code> is required for the Log Analytics workspace, Application Insights resource, Event Hubs namespace, storage account, and related automation artifacts.</p>
+</li>
+<li><p>A Global Administrator or Privileged Role Administrator is required to grant tenant-level admin consent and configure Entra diagnostic routing.</p>
+</li>
+<li><p>A Power Platform Administrator or Dynamics 365 Administrator is required to configure Power Platform environment export and audit settings.</p>
+</li>
+<li><p>A Security Administrator, Compliance Administrator, or equivalent Purview role assignment is required to validate Microsoft Purview audit visibility.</p>
+</li>
+<li><p>A documented list of in-scope Power Platform environments is required before implementation. The minimum columns are environment name, environment ID, type, owner group, Power Pages site URL, Dataverse presence, criticality, support owner, and change window.</p>
+</li>
+<li><p>A named IT Operations distribution list or ticket queue is required for operational alerts. Recommended placeholder: <code>DL-EC-ITOPS-POWERPLATFORM@elections.ca</code>.</p>
+</li>
+<li><p>A named IT Security / SOC distribution list or ticket queue is required for security alerts. Recommended placeholder: <code>DL-EC-SOC-POWERPLATFORM@elections.ca</code>.</p>
+</li>
+<li><p>The implementation must be performed in a controlled change window and recorded under the approved RFC for this monitoring rollout.</p>
+</li>
+<li><p>QRadar Console administrative access is required.</p>
+</li>
+<li><p>QRadar must have the current Microsoft Office 365 DSM and Office 365 REST API protocol packages installed.</p>
+</li>
+<li><p>QRadar must have the current Microsoft Entra ID DSM and Microsoft Azure Event Hubs protocol packages installed.</p>
+</li>
+<li><p>Network egress from QRadar to Microsoft 365 and Azure endpoints is required.</p>
+</li>
+<li><p>Network connectivity to Azure Event Hubs over the IBM-documented ports is required.</p>
+</li>
+<li><p>A Microsoft Entra app registration is required for the Office 365 Management Activity API integration.</p>
+</li>
+<li><p>A certificate or secret must be stored according to Elections Canada secret-management standards.</p>
+</li>
+</ul>
+<p><a id="b-3-qradar-artifact-names"></a></p>
+<h3 id="b-3-qradar-artifact-names">B.3 QRadar artifact names</h3>
+<table>
+<thead>
+<tr>
+<th>QRadar artifact</th>
+<th>Recommended name</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Log source - Purview/M365 audit</td>
+<td><code>EC-M365-Purview-PowerPlatform-Audit</code></td>
+<td>Pulls Microsoft 365/Purview audit records, including Power Platform activity where available.</td>
+</tr>
+<tr>
+<td>Log source - Entra sign-ins</td>
+<td><code>EC-EntraExternalID-SignIn</code></td>
+<td>Ingests External ID sign-in events from Azure Event Hubs.</td>
+</tr>
+<tr>
+<td>Log source - Entra audit</td>
+<td><code>EC-EntraExternalID-Audit</code></td>
+<td>Ingests External ID audit/directory events from Azure Event Hubs.</td>
+</tr>
+<tr>
+<td>Reference set - production environments</td>
+<td><code>REF-EC-PP-PROD-ENVIRONMENTS</code></td>
+<td>Stores production environment IDs/names for rule scoping.</td>
+</tr>
+<tr>
+<td>Reference set - Power Pages apps</td>
+<td><code>REF-EC-EXTID-POWERPAGES-APPS</code></td>
+<td>Stores application IDs/display names used for external portal sign-in.</td>
+</tr>
+<tr>
+<td>Rule group</td>
+<td><code>EC Power Platform Security Monitoring</code></td>
+<td>Contains Power Platform SIEM rules.</td>
+</tr>
+<tr>
+<td>Rule group</td>
+<td><code>EC Entra External ID Monitoring</code></td>
+<td>Contains External ID SIEM rules.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="b-4-configure-microsoft-365-purview-audit-ingestion"></a></p>
+<h3 id="b-4-configure-microsoft-365-purview-audit-ingestion">B.4 Configure Microsoft 365 / Purview audit ingestion</h3>
+<h4>Step B.4.1 - Create the Entra app registration for QRadar Office 365 REST API</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>Sign in to the Microsoft Entra admin center as a Global Administrator.</li>
+<li>Select <strong>Applications</strong>.</li>
+<li>Select <strong>App registrations</strong>.</li>
+<li>Select <strong>New registration</strong>.</li>
+<li>Set <strong>Name</strong> to <code>APP-EC-QRADAR-O365-AUDIT-PROD</code>.</li>
+<li>Set <strong>Supported account types</strong> to <strong>Accounts in this organizational directory only</strong>.</li>
+<li>Select <strong>Register</strong>.</li>
+<li>Record <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong>.</li>
+<li>Select <strong>Certificates &amp; secrets</strong>.</li>
+<li>Upload the approved certificate or create a client secret only if certificate authentication is not available.</li>
+<li>Select <strong>API permissions</strong>.</li>
+<li>Select <strong>Add a permission</strong>.</li>
+<li>Select <strong>Office 365 Management APIs</strong>.</li>
+<li>Select <strong>Application permissions</strong>.</li>
+<li>Add <code>ActivityFeed.Read</code>.</li>
+<li>Add <code>ActivityFeed.ReadDlp</code> if DLP events are required.</li>
+<li>Add service health permissions only if service communications are required and supported by the current QRadar protocol.</li>
+<li>Select <strong>Grant admin consent for Elections Canada</strong>.</li>
+<li>Record the app registration details in the secure implementation record.</li>
+</ul>
+<p><strong>Azure PowerShell / Microsoft Graph alternative</strong></p>
+<pre><code class="language-powershell">Connect-MgGraph -TenantId '&lt;EC-TENANT-ID&gt;' -Scopes 'Application.ReadWrite.All','AppRoleAssignment.ReadWrite.All','Directory.Read.All'
+$app = New-MgApplication -DisplayName 'APP-EC-QRADAR-O365-AUDIT-PROD' -SignInAudience 'AzureADMyOrg'
+$sp = New-MgServicePrincipal -AppId $app.AppId
+# Upload certificate credentials and assign Office 365 Management API application permissions according to the approved permission grant procedure.
+# Complete admin consent through the portal or approved Graph automation.
+</code></pre>
+<h4>Step B.4.2 - Enable and validate Microsoft 365 unified audit logging</h4>
+<ul>
+<li>Complete Appendix D before connecting QRadar.</li>
+<li>Validate that Power Platform audit records are visible in Microsoft Purview.</li>
+<li>Validate that the Office 365 Management Activity API can access audit content after the app registration is authorized.</li>
+</ul>
+<h4>Step B.4.3 - Add the QRadar Microsoft Office 365 log source</h4>
+<p><strong>QRadar console configuration</strong></p>
+<ul>
+<li>Sign in to the QRadar Console.</li>
+<li>Open <strong>Admin</strong>.</li>
+<li>Open <strong>Log Source Management</strong>.</li>
+<li>Select <strong>New Log Source</strong>.</li>
+<li>Set <strong>Log Source Type</strong> to <strong>Microsoft Office 365</strong>.</li>
+<li>Set <strong>Protocol Configuration</strong> to <strong>Office 365 REST API</strong>.</li>
+<li>Set <strong>Log Source Identifier</strong> to <code>EC-M365-Purview-PowerPlatform-Audit</code>.</li>
+<li>Set <strong>Tenant ID</strong> to <code>&lt;EC-TENANT-ID&gt;</code>.</li>
+<li>Set <strong>Client ID</strong> to <code>&lt;APP-EC-QRADAR-O365-AUDIT-PROD-CLIENT-ID&gt;</code>.</li>
+<li>Configure certificate/private key or client secret according to the QRadar protocol form.</li>
+<li>Set <strong>Management Activity API URL</strong> to <code>https://manage.office.com</code> unless Elections Canada requires a sovereign endpoint.</li>
+<li>Set <strong>Azure AD Sign-in URL</strong> to <code>https://login.microsoftonline.com</code> unless a different Microsoft cloud endpoint is required.</li>
+<li>Select audit content types required for collection, including Azure Active Directory audit, SharePoint audit, Exchange audit, General audit, and DLP if approved.</li>
+<li>Set polling interval according to QRadar EPS and Microsoft API throttling expectations.</li>
+<li>Save the log source.</li>
+<li>Select <strong>Test</strong> if the QRadar Log Source Management app supports test connectivity for the protocol.</li>
+<li>Deploy changes.</li>
+</ul>
+<h4>Step B.4.4 - Validate Power Platform audit events in QRadar</h4>
+<p><strong>QRadar validation</strong></p>
+<ul>
+<li>Open <strong>Log Activity</strong>.</li>
+<li>Filter by log source <code>EC-M365-Purview-PowerPlatform-Audit</code>.</li>
+<li>Search the implementation window.</li>
+<li>Validate that events parse as Microsoft Office 365 records.</li>
+<li>Search for Power Platform terms such as <code>PowerPlatform</code>, <code>PowerApps</code>, <code>Environment</code>, <code>DlpPolicy</code>, <code>Connector</code>, and <code>Dataverse</code>.</li>
+<li>Save the search as <code>SEARCH-EC-PP-AUDIT-RECENT-ACTIVITY</code>.</li>
+</ul>
+<p><strong>AQL validation</strong></p>
+<pre><code class="language-sql">SELECT starttime, username, sourceip, QIDNAME(qid) AS EventName, UTF8(payload) AS RawEvent
+FROM events
+WHERE LOGSOURCENAME(logsourceid) = 'EC-M365-Purview-PowerPlatform-Audit'
+LAST 24 HOURS
+</code></pre>
+<p><a id="b-5-configure-entra-external-id-ingestion-through-azure-event-hubs"></a></p>
+<h3 id="b-5-configure-entra-external-id-ingestion-through-azure-event-hubs">B.5 Configure Entra External ID ingestion through Azure Event Hubs</h3>
+<ul>
+<li>Complete Appendix C to route Entra External ID sign-in and audit logs to Event Hubs.</li>
+<li>In QRadar, add log source <code>EC-EntraExternalID-SignIn</code> using <strong>Log Source Type: Microsoft Entra ID</strong> and <strong>Protocol Configuration: Microsoft Azure Event Hubs</strong>.</li>
+<li>In QRadar, add log source <code>EC-EntraExternalID-Audit</code> using the same DSM/protocol and the audit Event Hub.</li>
+<li>Deploy changes and validate events in <strong>Log Activity</strong>.</li>
+</ul>
+<p><a id="b-6-create-qradar-custom-event-properties"></a></p>
+<h3 id="b-6-create-qradar-custom-event-properties">B.6 Create QRadar custom event properties</h3>
+<p><strong>QRadar console configuration</strong></p>
+<ul>
+<li>Open <strong>Admin</strong>.</li>
+<li>Open <strong>Custom Event Properties</strong>.</li>
+<li>Create or validate these custom event properties after sample events are ingested:<ul>
+<li><code>EC_AppDisplayName</code></li>
+<li><code>EC_EnvironmentId</code></li>
+<li><code>EC_EnvironmentName</code></li>
+<li><code>EC_PowerPlatformOperation</code></li>
+<li><code>EC_UserPrincipalName</code></li>
+<li><code>EC_RiskLevel</code></li>
+<li><code>EC_ResultType</code></li>
+<li><code>EC_CorrelationId</code></li>
+<li><code>EC_ConditionalAccessStatus</code></li>
+</ul>
+</li>
+<li>Use the QRadar property extraction workflow against sample raw events.</li>
+<li>Test each property against at least 10 sample events.</li>
+<li>Save the custom properties.</li>
+<li>Re-run the saved searches and confirm the properties populate.</li>
+</ul>
+<p><a id="b-7-create-reference-sets"></a></p>
+<h3 id="b-7-create-reference-sets">B.7 Create reference sets</h3>
+<p><strong>QRadar console configuration</strong></p>
+<ul>
+<li>Open <strong>Admin</strong>.</li>
+<li>Open <strong>Reference Set Management</strong>.</li>
+<li>Create <code>REF-EC-PP-PROD-ENVIRONMENTS</code> as an alphanumeric reference set.</li>
+<li>Add every production Power Platform environment ID and environment name that must be monitored.</li>
+<li>Create <code>REF-EC-EXTID-POWERPAGES-APPS</code> as an alphanumeric reference set.</li>
+<li>Add every Entra application ID and display name associated with Power Pages sign-in and registration.</li>
+<li>Assign maintenance ownership to Platform Engineering.</li>
+</ul>
+<p><a id="b-8-create-qradar-rules-and-offenses"></a></p>
+<h3 id="b-8-create-qradar-rules-and-offenses">B.8 Create QRadar rules and offenses</h3>
+<p><strong>QRadar console configuration pattern</strong></p>
+<ul>
+<li>Open <strong>Offenses</strong>.</li>
+<li>Select <strong>Rules</strong>.</li>
+<li>Select <strong>Actions</strong>.</li>
+<li>Select <strong>New Event Rule</strong>.</li>
+<li>Set the rule name to the exact alert name from section 9.2.</li>
+<li>Place the rule in the group <code>EC Power Platform Security Monitoring</code> or <code>EC Entra External ID Monitoring</code>.</li>
+<li>Set the rule test to match the required log source and the relevant operation, result, risk, or application property.</li>
+<li>Set threshold and time window according to section 9.2.</li>
+<li>Configure rule response to <strong>Create Offense</strong>.</li>
+<li>Set offense indexing by actor, source IP, application, or environment depending on the alert.</li>
+<li>Add SOC notification response if Elections Canada QRadar notification integration is enabled.</li>
+<li>Save the rule.</li>
+<li>Deploy changes.</li>
+<li>Repeat for every security alert in section 9.2.</li>
+</ul>
+<p><strong>Example rule logic - DLP policy changed</strong></p>
+<pre><code class="language-sql">SELECT QIDNAME(qid) AS EventName, username, sourceip, starttime, UTF8(payload) AS RawEvent
+FROM events
+WHERE LOGSOURCENAME(logsourceid) = 'EC-M365-Purview-PowerPlatform-Audit'
+  AND UTF8(payload) ILIKE '%DlpPolicy%'
+LAST 30 MINUTES
+</code></pre>
+<p><strong>Example rule logic - External ID failure spike</strong></p>
+<pre><code class="language-sql">SELECT COUNT(*) AS FailureCount, UNIQUECOUNT(sourceip) AS SourceIPCount
+FROM events
+WHERE LOGSOURCENAME(logsourceid) = 'EC-EntraExternalID-SignIn'
+  AND (UTF8(payload) ILIKE '%failure%' OR UTF8(payload) ILIKE '%ResultType%')
+LAST 30 MINUTES
+</code></pre>
+<p><a id="b-9-qradar-validation-and-handoff"></a></p>
+<h3 id="b-9-qradar-validation-and-handoff">B.9 QRadar validation and handoff</h3>
+<ul>
+<li>Confirm events arrive from each QRadar log source.</li>
+<li>Confirm Microsoft Office 365 audit records include Power Platform activity from Purview.</li>
+<li>Confirm Entra External ID sign-in and audit events are received from Event Hubs.</li>
+<li>Confirm custom event properties parse consistently.</li>
+<li>Trigger a controlled non-production event and confirm the QRadar rule creates an offense.</li>
+<li>Attach QRadar log source screenshots, sample parsed events, rule screenshots, and offense evidence to the RFC.</li>
+</ul>
+<p><a id="appendix-entra"></a>
+<a id="appendix-c-entra-external-id-monitoring-build-book"></a></p>
+<h2 id="appendix-entra">Appendix C - Entra External ID Monitoring Build Book</h2>
+<p><a id="c-1-purpose"></a></p>
+<h3 id="c-1-purpose">C.1 Purpose</h3>
+<p>Elections Canada will monitor Entra External ID because external-facing Power Pages sites use Entra External ID for external user sign-in and registration. The implementation will route Entra External ID activity to Azure Monitor for operational query and to IBM QRadar for SIEM correlation.</p>
+<p><a id="c-2-required-log-categories"></a></p>
+<h3 id="c-2-required-log-categories">C.2 Required log categories</h3>
+<ul>
+<li><code>SignInLogs</code></li>
+<li><code>AuditLogs</code></li>
+<li><code>NonInteractiveUserSignInLogs</code> where available</li>
+<li><code>ServicePrincipalSignInLogs</code> where available</li>
+<li><code>ManagedIdentitySignInLogs</code> where applicable</li>
+<li><code>RiskyUsers</code> and <code>UserRiskEvents</code> where licensing allows</li>
+<li>Application/service principal audit events related to Power Pages, Power Platform, and external-user identity flows</li>
+</ul>
+<p><a id="c-3-create-event-hubs-for-qradar-ingestion"></a></p>
+<h3 id="c-3-create-event-hubs-for-qradar-ingestion">C.3 Create Event Hubs for QRadar ingestion</h3>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Event Hubs</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Set <strong>Subscription</strong> to <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Set <strong>Resource group</strong> to <code>RG-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Set <strong>Namespace name</strong> to <code>EHNS-EC-SIEM-PROD-CAC</code>.</li>
+<li>Set <strong>Location</strong> to <code>Canada Central</code>.</li>
+<li>Set <strong>Pricing tier</strong> according to Elections Canada EPS/throughput estimates. Start with Standard unless the QRadar architecture requires Premium/Dedicated.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Open the namespace.</li>
+<li>Select <strong>Event Hubs</strong>.</li>
+<li>Select <strong>+ Event Hub</strong>.</li>
+<li>Create <code>EH-EC-ENTRA-SIGNIN-PROD</code>.</li>
+<li>Create <code>EH-EC-ENTRA-AUDIT-PROD</code>.</li>
+<li>Open <strong>Shared access policies</strong>.</li>
+<li>Create or validate a policy named <code>QRadarListen</code> with <strong>Listen</strong> permission only.</li>
+<li>Copy the connection string for QRadar configuration and store it according to Elections Canada secret-handling requirements.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">New-AzEventHubNamespace `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -NamespaceName 'EHNS-EC-SIEM-PROD-CAC' `
+  -Location 'canadacentral' `
+  -SkuName Standard
+
+New-AzEventHub -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -NamespaceName 'EHNS-EC-SIEM-PROD-CAC' -Name 'EH-EC-ENTRA-SIGNIN-PROD' -PartitionCount 4 -MessageRetentionInDays 7
+New-AzEventHub -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -NamespaceName 'EHNS-EC-SIEM-PROD-CAC' -Name 'EH-EC-ENTRA-AUDIT-PROD' -PartitionCount 4 -MessageRetentionInDays 7
+New-AzEventHubAuthorizationRule -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -NamespaceName 'EHNS-EC-SIEM-PROD-CAC' -Name 'QRadarListen' -Rights @('Listen')
+</code></pre>
+<p><a id="c-4-create-storage-account-for-qradar-event-hubs-checkpointing"></a></p>
+<h3 id="c-4-create-storage-account-for-qradar-event-hubs-checkpointing">C.4 Create storage account for QRadar Event Hubs checkpointing</h3>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In the Azure portal, search for <strong>Storage accounts</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+<li>Set <strong>Name</strong> to <code>stecsiemcheckpointprod</code>.</li>
+<li>Set <strong>Region</strong> to <code>Canada Central</code>.</li>
+<li>Set <strong>Performance</strong> to <strong>Standard</strong>.</li>
+<li>Set <strong>Redundancy</strong> to the approved Elections Canada standard.</li>
+<li>Select <strong>Review + create</strong> and then <strong>Create</strong>.</li>
+<li>Open the storage account.</li>
+<li>Create a container named <code>qradar-checkpoints</code>.</li>
+<li>Create a shared access policy or access key according to the QRadar protocol requirements and Elections Canada secret management standard.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">New-AzStorageAccount `
+  -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' `
+  -Name 'stecsiemcheckpointprod' `
+  -Location 'canadacentral' `
+  -SkuName 'Standard_GRS'
+$ctx = (Get-AzStorageAccount -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -Name 'stecsiemcheckpointprod').Context
+New-AzStorageContainer -Name 'qradar-checkpoints' -Context $ctx -Permission Off
+</code></pre>
+<p><a id="c-5-route-entra-external-id-logs-to-event-hubs"></a></p>
+<h3 id="c-5-route-entra-external-id-logs-to-event-hubs">C.5 Route Entra External ID logs to Event Hubs</h3>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>Sign in to the Microsoft Entra admin center.</li>
+<li>Switch to the External ID tenant if it is separate from the workforce tenant.</li>
+<li>Browse to <strong>Entra ID</strong>.</li>
+<li>Select <strong>Monitoring &amp; health</strong>.</li>
+<li>Select <strong>Diagnostic settings</strong>.</li>
+<li>Select <strong>Add diagnostic setting</strong>.</li>
+<li>Set <strong>Diagnostic setting name</strong> to <code>DIAG-EC-EXTID-TO-EH-PROD</code>.</li>
+<li>Select the required log categories in section C.2.</li>
+<li>Select <strong>Stream to an event hub</strong>.</li>
+<li>Select subscription <code>SUB-EC-PLATFORM-PROD</code>.</li>
+<li>Select Event Hubs namespace <code>EHNS-EC-SIEM-PROD-CAC</code>.</li>
+<li>Select event hub <code>EH-EC-ENTRA-SIGNIN-PROD</code> for sign-in categories and <code>EH-EC-ENTRA-AUDIT-PROD</code> for audit categories. If the portal permits only one Event Hub per diagnostic setting, create two diagnostic settings: one for sign-in categories and one for audit categories.</li>
+<li>Select policy <code>QRadarListen</code> only for QRadar consumption where applicable.</li>
+<li>Select <strong>Save</strong>.</li>
+</ul>
+<p><strong>Azure PowerShell alternative</strong></p>
+<pre><code class="language-powershell">$ehRuleId = (Get-AzEventHubAuthorizationRule -ResourceGroupName 'RG-EC-PP-MON-PROD-CAC' -NamespaceName 'EHNS-EC-SIEM-PROD-CAC' -Name 'QRadarListen').Id
+$logs = @('SignInLogs','NonInteractiveUserSignInLogs','ServicePrincipalSignInLogs') | ForEach-Object { New-AzDiagnosticSettingLogSettingsObject -Category $_ -Enabled $true }
+New-AzDiagnosticSetting `
+  -Name 'DIAG-EC-EXTID-SIGNIN-TO-EH-PROD' `
+  -ResourceId '/providers/microsoft.aadiam' `
+  -EventHubAuthorizationRuleId $ehRuleId `
+  -EventHubName 'EH-EC-ENTRA-SIGNIN-PROD' `
+  -Log $logs
+</code></pre>
+<p><a id="c-6-configure-qradar-microsoft-entra-id-log-sources"></a></p>
+<h3 id="c-6-configure-qradar-microsoft-entra-id-log-sources">C.6 Configure QRadar Microsoft Entra ID log sources</h3>
+<p><strong>QRadar console configuration</strong></p>
+<ul>
+<li>Sign in to the QRadar Console with an account authorized to manage log sources.</li>
+<li>Open <strong>Admin</strong>.</li>
+<li>Open <strong>Log Source Management</strong>.</li>
+<li>Select <strong>New Log Source</strong>.</li>
+<li>Set <strong>Log Source Type</strong> to <strong>Microsoft Entra ID</strong>.</li>
+<li>Set <strong>Protocol Configuration</strong> to <strong>Microsoft Azure Event Hubs</strong>.</li>
+<li>Set <strong>Log Source Identifier</strong> to <code>EC-EntraExternalID-SignIn</code> for sign-in logs.</li>
+<li>Set <strong>Event Hub Connection String</strong> using the <code>QRadarListen</code> listener connection string.</li>
+<li>Set <strong>Event Hub Name</strong> to <code>EH-EC-ENTRA-SIGNIN-PROD</code>.</li>
+<li>Set <strong>Consumer Group</strong> to <code>$Default</code> unless Elections Canada creates a QRadar-specific consumer group such as <code>qradar</code>.</li>
+<li>Set <strong>Storage Account Connection String</strong> to the checkpoint storage account connection string.</li>
+<li>Set <strong>Container Name</strong> to <code>qradar-checkpoints</code>.</li>
+<li>Save the log source.</li>
+<li>Repeat the same configuration for <code>EC-EntraExternalID-Audit</code> using <code>EH-EC-ENTRA-AUDIT-PROD</code>.</li>
+<li>Deploy changes.</li>
+<li>Validate that events are arriving in <strong>Log Activity</strong>.</li>
+</ul>
+<p><a id="c-7-required-external-id-qradar-rules"></a></p>
+<h3 id="c-7-required-external-id-qradar-rules">C.7 Required External ID QRadar rules</h3>
+<ul>
+<li>Implement <code>EC-EXTID-SEC-P1-External-User-Risky-Sign-In</code> from section 9 as a QRadar correlation rule that creates an offense.</li>
+<li>Implement <code>EC-EXTID-SEC-P2-Registration-Failure-Spike</code> from section 9 as a QRadar threshold rule by log source and application.</li>
+<li>Implement <code>EC-EXTID-SEC-P2-App-Credential-Or-Consent-Changed</code> from section 9 as a QRadar correlation rule against Entra audit events.</li>
+<li>Create or validate custom event properties for <code>AppDisplayName</code>, <code>ResultType</code>, <code>IPAddress</code>, <code>RiskLevel</code>, <code>CorrelationId</code>, <code>UserPrincipalName</code>, and <code>ConditionalAccessStatus</code> after sample event ingestion.</li>
+</ul>
+<p><a id="appendix-purview"></a>
+<a id="appendix-d-microsoft-purview-audit-and-compliance-evidence-build-book"></a></p>
+<h2 id="appendix-purview">Appendix D - Microsoft Purview Audit and Compliance Evidence Build Book</h2>
+<p><a id="d-1-purpose"></a></p>
+<h3 id="d-1-purpose">D.1 Purpose</h3>
+<p>Elections Canada will use Microsoft Purview as the compliance, audit evidence, DLP evidence, retention, and eDiscovery support layer for Power Platform monitoring. Purview will not replace Azure Monitor or the SIEM. Purview will supply audit records and investigation evidence that are consumed by compliance teams and, where required, by the SIEM integration path.</p>
+<p><a id="d-2-configuration-requirements"></a></p>
+<h3 id="d-2-configuration-requirements">D.2 Configuration requirements</h3>
+<ul>
+<li>Power Platform admin activity collection is required in Microsoft Purview for tenant-level administrative events.</li>
+<li>Production Dataverse environments must have auditing enabled where audit records are required for investigation.</li>
+<li>The Power Platform admin center setting that enables Microsoft Purview access to environment data must be enabled for each in-scope production environment.</li>
+<li>Purview audit roles must be assigned to authorized compliance and security staff only.</li>
+<li>Purview records must be retained according to Elections Canada retention and investigation requirements.</li>
+</ul>
+<p><a id="d-3-step-by-step-configuration"></a></p>
+<h3 id="d-3-step-by-step-configuration">D.3 Step-by-step configuration</h3>
+<h4>Step D.3.1 - Validate audit role access</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>Sign in to the Microsoft Purview portal as a Global Administrator or Compliance Administrator.</li>
+<li>Open <strong>Settings</strong>.</li>
+<li>Open <strong>Roles and scopes</strong>.</li>
+<li>Select <strong>Role groups</strong>.</li>
+<li>Validate that the implementation account is assigned to a role group that includes audit search permissions, such as <strong>Audit Manager</strong> or <strong>View-Only Audit Logs</strong>, according to Elections Canada privilege model.</li>
+<li>Assign permanent access only to approved service/admin accounts. Use privileged access workflows for human administrators where available.</li>
+</ul>
+<p><strong>PowerShell alternative</strong></p>
+<pre><code class="language-powershell"># Exchange Online PowerShell is commonly used for Purview audit role validation.
+Connect-ExchangeOnline -UserPrincipalName '&lt;ADMIN-UPN&gt;'
+Get-RoleGroupMember -Identity 'Audit Manager'
+Get-RoleGroupMember -Identity 'View-Only Audit Logs'
+</code></pre>
+<h4>Step D.3.2 - Enable and validate Microsoft 365 unified audit logging</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>In Microsoft Purview, open <strong>Audit</strong>.</li>
+<li>If prompted to start recording user and admin activity, select <strong>Start recording user and admin activity</strong>.</li>
+<li>Wait for Microsoft 365 audit logging to become active.</li>
+<li>Run a test search for the last 24 hours to confirm audit records are returned.</li>
+</ul>
+<p><strong>PowerShell alternative</strong></p>
+<pre><code class="language-powershell">Connect-ExchangeOnline -UserPrincipalName '&lt;ADMIN-UPN&gt;'
+Get-AdminAuditLogConfig | Format-List UnifiedAuditLogIngestionEnabled
+# Enable only if the tenant policy requires it and it is not enabled.
+Set-AdminAuditLogConfig -UnifiedAuditLogIngestionEnabled $true
+</code></pre>
+<h4>Step D.3.3 - Enable Power Platform environment audit visibility in Purview</h4>
+<p><strong>Portal configuration</strong></p>
+<ul>
+<li>Sign in to the Power Platform admin center as a Power Platform Administrator.</li>
+<li>Select <strong>Manage</strong>.</li>
+<li>Select <strong>Environments</strong>.</li>
+<li>Select the production environment.</li>
+<li>Select <strong>Settings</strong>.</li>
+<li>Expand <strong>Product</strong>.</li>
+<li>Select <strong>Privacy + security</strong>.</li>
+<li>Validate auditing status for the organization.</li>
+<li>Turn on auditing when the environment requires Dataverse audit evidence.</li>
+<li>Enable the setting that allows Microsoft Purview to access Power Platform environment audit data.</li>
+<li>Save the configuration.</li>
+<li>Repeat for each production environment in scope.</li>
+</ul>
+<p><strong>PowerShell alternative</strong></p>
+<p>Power Platform environment audit configuration is primarily performed in the Power Platform admin center. Where Elections Canada has approved Power Platform administration automation, the same setting may be validated through the Power Platform administration modules and recorded in the RFC evidence package.</p>
+<h4>Step D.3.4 - Validate Power Platform audit events</h4>
+<p><strong>Portal validation</strong></p>
+<ul>
+<li>In Microsoft Purview, open <strong>Audit</strong>.</li>
+<li>Set the date range to the implementation window.</li>
+<li>Search for Power Platform administrative activities.</li>
+<li>Validate that tenant-level admin events such as environment administration are present.</li>
+<li>Search for Power Apps activities where applicable.</li>
+<li>Export the result set for the RFC evidence package.</li>
+</ul>
+<p><strong>PowerShell validation</strong></p>
+<pre><code class="language-powershell">Search-UnifiedAuditLog `
+  -StartDate (Get-Date).AddDays(-1) `
+  -EndDate (Get-Date) `
+  -RecordType PowerPlatformAdminActivity `
+  -ResultSize 100
+</code></pre>
+<h4>Step D.3.5 - Configure Purview evidence procedures</h4>
+<ul>
+<li>Create a support procedure named <code>RUNBOOK-EC-PURVIEW-PP-AUDIT-EVIDENCE</code>.</li>
+<li>Define who may perform audit searches.</li>
+<li>Define the approved export location and encryption requirements for exported audit results.</li>
+<li>Define the SIEM cross-reference process: incidents/offenses that rely on Purview evidence must include Purview search ID, export file name, date range, and query terms.</li>
+<li>Define closure criteria for compliance investigations.</li>
+</ul>
+<p><a id="appendix-validation"></a>
+<a id="appendix-e-end-to-end-validation-and-handoff"></a></p>
+<h2 id="appendix-validation">Appendix E - End-to-End Validation and Handoff</h2>
+<p><a id="e-1-implementation-validation-checklist"></a></p>
+<h3 id="e-1-implementation-validation-checklist">E.1 Implementation validation checklist</h3>
+<ul>
+<li>Validate that <code>LAW-EC-PP-MON-PROD-CAC</code> exists in Canada Central.</li>
+<li>Validate that <code>APPINS-EC-PP-PROD-CAC</code> is workspace-based and connected to <code>LAW-EC-PP-MON-PROD-CAC</code>.</li>
+<li>Validate that every in-scope production Power Platform environment exports telemetry to Application Insights.</li>
+<li>Validate that Power Pages availability tests are created for all external-facing public endpoints.</li>
+<li>Validate that Azure Monitor action groups notify the IT Operations destination.</li>
+<li>Validate that operational alerts fire in a controlled test and include enough context for triage.</li>
+<li>Validate that Microsoft Purview audit search returns Power Platform audit records.</li>
+<li>Validate that Entra External ID sign-in and audit logs are available in the monitoring pipeline.</li>
+<li>Validate that IBM QRadar receives the required security events.</li>
+<li>Validate that each SIEM detection creates an incident/offense in a controlled test.</li>
+<li>Validate that all alert runbook fields are documented in the RFC record.</li>
+</ul>
+<p><a id="e-2-handoff-package-contents"></a></p>
+<h3 id="e-2-handoff-package-contents">E.2 Handoff package contents</h3>
+<ul>
+<li>Architecture diagram and data-flow summary.</li>
+<li>List of production environments and Power Pages sites in scope.</li>
+<li>List of Azure resources and artifact names.</li>
+<li>List of action groups, SIEM rules, Purview access roles, and External ID diagnostic settings.</li>
+<li>Export of all alert rules and SIEM rule definitions.</li>
+<li>Test evidence for one operational alert and one security alert.</li>
+<li>Contact list for IT Operations, IT Security/SOC, Identity Operations, Power Platform administrators, and Purview/Compliance administrators.</li>
+<li>Known false positives and initial tuning decisions.</li>
+</ul>
+<p><a id="appendix-references"></a>
+<a id="appendix-f-official-references"></a></p>
+<h2 id="appendix-references">Appendix F - Official references</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/set-up-export-application-insights">Power Platform export to Application Insights</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/overview-integration-application-insights">Power Platform integration with Application Insights overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/analyze-telemetry">Analyze model-driven apps and Dataverse telemetry with Application Insights</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/app-insights-cloud-flow">Set up Application Insights with Power Automate</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/application-insights">Analyze canvas app system-generated logs with Application Insights</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview">Azure Monitor alerts overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule">Create Azure Monitor log search alert rules</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups">Azure Monitor action groups</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability">Application Insights availability tests</a></li>
+<li><a href="https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-configure-diagnostic-settings">Configure Microsoft Entra diagnostic settings</a></li>
+<li><a href="https://learn.microsoft.com/en-us/entra/external-id/customers/how-to-azure-monitor">Set up Azure Monitor in External ID external tenants</a></li>
+<li><a href="https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-stream-logs-to-event-hub">Stream Microsoft Entra logs to an Event Hub</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/platform/diagnostic-settings">Azure Monitor diagnostic settings</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-overview">Power Platform activity logging and auditing in Microsoft Purview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-power-platform-admin">View Power Platform admin logs in Microsoft Purview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-power-apps">View Power Apps activity logs in Microsoft Purview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/purview/audit-log-activities">Microsoft Purview audit log activities</a></li>
+<li><a href="https://learn.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-reference">Office 365 Management Activity API reference</a></li>
+<li><a href="https://www.ibm.com/docs/en/SS42VS_DSM/com.ibm.dsm.doc/c_dsm_guide_microsoft_office_365_overview.html">IBM QRadar DSM for Microsoft Office 365</a></li>
+<li><a href="https://www.ibm.com/docs/en/dsm?topic=options-office-365-rest-api-protocol-configuration">IBM QRadar Office 365 REST API protocol configuration options</a></li>
+<li><a href="https://www.ibm.com/docs/en/dsm?topic=mo3-configuring-microsoft-office-365-account-in-microsoft-azure-active-directory">IBM QRadar Microsoft Office 365 account configuration in Microsoft Azure Active Directory</a></li>
+<li><a href="https://www.ibm.com/docs/en/dsm?topic=microsoft-entra-id">IBM QRadar DSM for Microsoft Entra ID</a></li>
+<li><a href="https://www.ibm.com/docs/en/dsm?topic=id-microsoft-entra-log-source-parameters">IBM QRadar Microsoft Entra ID log source parameters</a></li>
+<li><a href="https://www.ibm.com/docs/en/dsm?topic=options-configuring-microsoft-azure-event-hubs-communicate-qradar">IBM QRadar Microsoft Azure Event Hubs protocol setup</a></li>
+<li><a href="https://www.ibm.com/docs/SS42VS_DSM/com.ibm.dsm.doc/c_logsource_Microsoft_Azure_Event_Hubs_protocol.html">IBM QRadar Microsoft Azure Event Hubs protocol configuration options</a></li>
+<li><a href="https://www.ibm.com/docs/en/dsm?topic=configuration-qradar-supported-dsms">IBM QRadar supported DSMs</a></li>
+</ul>
+<p class="footer-note">Prepared for Elections Canada IM/IT RFC package. Export to PDF from a Chromium-based browser with paper size Letter, margins Default or Custom 0.65 in, background graphics enabled, and headers/footers enabled if browser-generated page numbering is required.</p>
+</section>
+</main>
+</body>
+</html>

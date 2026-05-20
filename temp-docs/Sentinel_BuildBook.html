@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Power Platform Microsoft Sentinel Security Monitoring Build Book</title>
+<style>
+:root{
+  --ec-burgundy:#6a0032;
+  --ec-burgundy-dark:#49001b;
+  --ec-teal:#036064;
+  --ec-navy:#1e384b;
+  --ec-olive:#8b9538;
+  --ec-gold:#c9862d;
+  --ec-purple:#60205c;
+  --ink:#202124;
+  --muted:#5f6368;
+  --border:#d7d9db;
+  --soft:#f5f6f7;
+  --soft-burgundy:#fbf4f7;
+  --soft-teal:#f0faf9;
+  --soft-gold:#fff8ec;
+}
+@page {
+  size: Letter;
+  margin: 0.70in 0.62in 0.76in 0.62in;
+  @bottom-left {
+    content: 'Elections Canada - IM/IT implementation build book';
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #666;
+  }
+  @bottom-right {
+    content: 'Page ' counter(page) ' of ' counter(pages);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #666;
+  }
+}
+@page cover {
+  size: Letter;
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+*{box-sizing:border-box;}
+html{font-family: Arial, Helvetica, sans-serif;color:var(--ink);font-size:10.6pt;line-height:1.45;background:#eef0f2;scroll-behavior:smooth;}
+body{margin:0;background:#eef0f2;}
+.document-shell{width:8.5in;margin:0.32in auto;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.10);overflow:hidden;}
+.content{padding:0.38in 0.58in 0.48in 0.58in;}
+a{color:var(--ec-burgundy);text-decoration:none;border-bottom:1px solid rgba(106,0,50,.22)}
+a:hover{text-decoration:underline;}
+p{margin:.36rem 0 .72rem;}
+h1,h2,h3,h4{font-family:Arial, Helvetica, sans-serif;line-height:1.18;break-after:avoid;page-break-after:avoid;color:var(--ec-navy);}
+h1{font-size:24pt;letter-spacing:-.02em;margin:.1in 0 .22in;border-bottom:5px solid var(--ec-burgundy);padding-bottom:.16in;color:#111;}
+h2{font-size:17pt;margin:.32in 0 .12in;border-bottom:1px solid #c7c9cc;padding-bottom:.08in;color:var(--ec-navy);}
+h3{font-size:13.2pt;margin:.22in 0 .08in;color:var(--ec-burgundy);}
+h4{font-size:11.5pt;margin:.18in 0 .06in;color:var(--ec-teal);}
+ul,ol{margin:.20rem 0 .72rem;padding-left:1.25rem;}
+li{margin:.10rem 0;}
+strong{color:#111;}
+code{font-family:'Courier New', monospace;background:#f3f4f5;border:1px solid #e0e2e4;border-radius:3px;padding:.04rem .18rem;font-size:9pt;white-space:normal;}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d2536;color:#fff;border-radius:8px;border-left:7px solid var(--ec-teal);padding:.14in .16in;font-size:8.5pt;line-height:1.34;break-inside:avoid;page-break-inside:avoid;}
+pre code{background:transparent;border:0;color:#fff;padding:0;font-size:inherit;}
+table{border-collapse:collapse;width:100%;margin:.16in 0 .25in;break-inside:auto;page-break-inside:auto;font-size:9.4pt;}
+th,td{border:1px solid var(--border);padding:.065in .085in;vertical-align:top;}
+th{background:var(--ec-navy);color:#fff;font-weight:700;}
+tr:nth-child(even) td{background:#fbfbfc;}
+blockquote{border-left:6px solid var(--ec-gold);padding:.08in .16in;margin:.18in 0;background:#fff8ec;color:#333;break-inside:avoid;}
+hr{border:0;border-top:1px solid var(--border);margin:.2in 0;}
+.cover{page:cover;break-after:page;page-break-after:always;position:relative;width:8.5in;height:11in;background:#fff;overflow:hidden;}
+.cover-graphic{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+.brand-wordmark{position:absolute;right:.58in;top:.48in;z-index:2;color:#222;font-weight:700;font-size:14pt;letter-spacing:.01em;}
+.brand-rule{position:absolute;right:.58in;top:.82in;z-index:2;width:1.9in;height:3px;background:var(--ec-burgundy);}
+.cover-card{position:absolute;right:.62in;top:3.08in;width:4.55in;z-index:2;background:rgba(255,255,255,.97);box-shadow:0 16px 36px rgba(0,0,0,.10);border-left:8px solid var(--ec-burgundy);padding:.34in .34in .30in;}
+.cover-badge{display:inline-block;background:var(--ec-burgundy);color:#fff;border-radius:999px;padding:.07in .15in;font-size:8.5pt;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin-bottom:.20in;}
+.cover-title{font-size:27pt;line-height:1.06;font-weight:700;letter-spacing:-.03em;color:#171717;margin:0 0 .17in;overflow-wrap:break-word;hyphens:none;}
+.cover-subtitle{font-size:12.2pt;color:var(--ec-burgundy);font-weight:700;margin-bottom:.18in;line-height:1.25;}
+.cover-meta{font-size:9.6pt;color:#404040;border-top:1px solid #aaa;padding-top:.16in;line-height:1.45;}
+.cover-meta div{margin:.04in 0;}
+.cover-footer{position:absolute;left:.58in;right:.58in;bottom:.42in;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;color:#6d6d6d;font-size:10pt;}
+.cover-footer .url{font-size:18pt;font-weight:700;letter-spacing:.03em;color:#777;}
+.toc{break-after:page;page-break-after:always;background:#fff;border:1px solid var(--border);border-left:8px solid var(--ec-burgundy);padding:.24in .28in;margin:.08in 0 .35in;}
+.toc h2{margin:0 0 .16in;border:0;border-bottom:1px solid var(--border);padding-bottom:.10in;color:#111;}
+.toc ol{list-style:none;margin:0;padding:0;}
+.toc li{margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}
+.toc a{display:grid;grid-template-columns:4.25rem minmax(0,1fr) 2.8rem;gap:.45rem;align-items:baseline;padding:.052in 0;border-bottom:1px dotted #c8cacc;color:#222;text-decoration:none;}
+.toc a:hover{color:var(--ec-burgundy);}
+.toc .toc-no{font-weight:700;color:var(--ec-burgundy);font-size:8.8pt;}
+.toc .toc-title{overflow-wrap:break-word;}
+.toc .toc-level-3 a{grid-template-columns:4.95rem minmax(0,1fr) 2.8rem;margin-left:.24in;font-size:9.2pt;color:#444;}
+.toc .toc-level-3 .toc-no{color:var(--ec-teal);}
+.toc .toc-page{font-size:8.5pt;color:#666;text-align:right;}
+.step{border:1px solid #d9dddf;border-left:7px solid var(--ec-teal);background:#fcfdfd;border-radius:6px;padding:.13in .16in;margin:.15in 0 .22in;break-inside:avoid;page-break-inside:avoid;}
+.step > :first-child{margin-top:0;}
+.step h3,.step h4{margin-top:0;}
+.evidence{position:relative;border:1px solid #dfc4d1;border-left:7px solid var(--ec-burgundy);background:#fff8fb;border-radius:6px;padding:.30in .16in .12in;margin:.12in 0 .18in;break-inside:avoid;page-break-inside:avoid;}
+.evidence:before{content:'Evidence screenshot required';position:absolute;left:.16in;top:.09in;font-size:8.5pt;text-transform:uppercase;letter-spacing:.04em;font-weight:700;color:var(--ec-burgundy);}
+.callout{border:1px solid var(--border);border-left:7px solid var(--ec-burgundy);background:#fbfbfc;border-radius:6px;padding:.11in .16in;margin:.16in 0;break-inside:avoid;}
+.small{font-size:9pt;color:#555;}
+.no-break{break-inside:avoid;page-break-inside:avoid;}
+.references, .refs{font-size:9.2pt;}
+@media screen{
+  .toc .toc-page::after{content:'link';font-size:8pt;color:#999;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  html,body{background:#fff !important;margin:0;padding:0;}
+  .document-shell{width:auto;margin:0;background:#fff;box-shadow:none;overflow:visible;}
+  .content{padding:0;}
+  .cover{width:8.5in;height:11in;min-height:11in;}
+  .cover-card{right:.52in;top:3.10in;width:4.65in;box-shadow:none;}
+  .cover-title{font-size:26pt;}
+  a{color:inherit;border-bottom:0;}
+  h1{break-before:auto;page-break-before:auto;}
+  h2,h3,h4{break-after:avoid;page-break-after:avoid;}
+  table,pre,.step,.evidence,.callout,blockquote{break-inside:avoid;page-break-inside:avoid;}
+  .toc a::after{content:target-counter(attr(href), page);justify-self:end;color:#666;font-size:8.5pt;}
+}
+</style>
+</head>
+<body>
+<div class="document-shell">
+<section class="cover">
+<svg aria-hidden="true" class="cover-graphic" preserveaspectratio="none" viewbox="0 0 850 1100" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#ffffff" height="1100" width="850"></rect>
+<polygon fill="#6a0032" points="-185,80 150,-255 535,130 190,475"></polygon>
+<polygon fill="#5a0027" opacity="0.42" points="-185,80 20,-125 335,190 125,400"></polygon>
+<polygon fill="#6a0032" points="176,471 377,672 190,860 -18,648"></polygon>
+<polygon fill="#ffffff" points="184,468 224,508 603,128 563,88"></polygon>
+<polygon fill="#036064" points="232,516 270,554 650,174 612,136"></polygon>
+<polygon fill="#c9862d" points="129,852 340,1063 107,1295 -105,1082"></polygon>
+<polygon fill="#8b9538" points="-88,760 -55,727 120,902 87,935"></polygon>
+<line stroke="#6a0032" stroke-width="8" x1="0" x2="850" y1="1096" y2="1096"></line>
+</svg>
+<div class="brand-wordmark">Elections Canada</div>
+<div class="brand-rule"></div>
+<div class="cover-card">
+<div class="cover-badge">Microsoft Sentinel</div>
+<div class="cover-title">Power Platform Microsoft Sentinel Security Monitoring Build Book</div>
+<div class="cover-subtitle">Standalone step-by-step implementation guide for IT Security / SOC</div>
+<div class="cover-meta">
+<div><strong>Audience:</strong> IT Security / SOC / Sentinel Administrators / Global Administrators</div>
+<div><strong>Author:</strong> Frederick Pearson, Platform Engineering</div>
+<div><strong>Document type:</strong> Standalone IM/IT ticket build book</div>
+<div><strong>Status:</strong> Draft for implementation</div>
+<div><strong>Date:</strong> 2026-04-21</div>
+</div>
+</div>
+<div class="cover-footer"><span class="url">elections.ca</span><span>Technical implementation guide</span></div>
+</section>
+<div class="content">
+<nav aria-label="Table of contents" class="toc"><h2>Table of contents</h2><ol><li class="toc-level-2"><a href="#document-control"><span class="toc-no">1</span><span class="toc-title">Document control</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#implementation-objective"><span class="toc-no">2</span><span class="toc-title">Implementation objective</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#execution-rules-for-the-administrator"><span class="toc-no">3</span><span class="toc-title">Execution rules for the
+administrator</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#placeholder-convention"><span class="toc-no">4</span><span class="toc-title">Placeholder convention</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#required-evidence-capture-standard"><span class="toc-no">5</span><span class="toc-title">Required evidence capture
+standard</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#prerequisites"><span class="toc-no">6</span><span class="toc-title">Prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#administrator-access"><span class="toc-no">6.1</span><span class="toc-title">Administrator access</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#platform-prerequisites"><span class="toc-no">6.2</span><span class="toc-title">Platform prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#implementation-artifact-placeholders"><span class="toc-no">7</span><span class="toc-title">Implementation artifact
+placeholders</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#build-steps"><span class="toc-no">8</span><span class="toc-title">Build steps</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#enable-microsoft-sentinel-on-the-log-analytics-workspace"><span class="toc-no"></span><span class="toc-title">Enable Microsoft Sentinel on the Log Analytics workspace</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#validate-purview-and-power-platform-audit-prerequisites"><span class="toc-no"></span><span class="toc-title">Validate Purview and Power Platform audit prerequisites</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#install-the-microsoft-business-applications-solution"><span class="toc-no"></span><span class="toc-title">Install the Microsoft Business Applications solution</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#configure-power-platform-data-connectors"><span class="toc-no"></span><span class="toc-title">Configure Power Platform data connectors</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#connect-entra-id-and-entra-external-id-logs-to-sentinel"><span class="toc-no"></span><span class="toc-title">Connect Entra ID and Entra External ID logs to Sentinel</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-sentinel-watchlists"><span class="toc-no"></span><span class="toc-title">Create Sentinel watchlists</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#enable-built-in-microsoft-business-applications-analytics-rules"><span class="toc-no"></span><span class="toc-title">Enable built-in Microsoft Business Applications analytics rules</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-elections-canada-custom-sentinel-analytics-rules"><span class="toc-no"></span><span class="toc-title">Create Elections Canada custom Sentinel analytics rules</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#configure-automation-and-notification-routing"><span class="toc-no"></span><span class="toc-title">Configure automation and notification routing</span><span class="toc-page"></span></a></li><li class="toc-level-3"><a href="#create-the-sentinel-workbook-view"><span class="toc-no"></span><span class="toc-title">Create the Sentinel workbook view</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#support-runbooks-for-sentinel-incidents"><span class="toc-no">9</span><span class="toc-title">Support runbooks for
+Sentinel incidents</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#final-validation-checklist"><span class="toc-no">10</span><span class="toc-title">Final validation checklist</span><span class="toc-page"></span></a></li><li class="toc-level-2"><a href="#official-references"><span class="toc-no">11</span><span class="toc-title">Official references</span><span class="toc-page"></span></a></li></ol></nav>
+<h1 id="elections-canada-microsoft-sentinel-security-monitoring-build-book">Elections
+Canada Microsoft Sentinel Security Monitoring Build Book</h1>
+<h2 id="document-control">Document control</h2>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Organization</td>
+<td>Elections Canada</td>
+</tr>
+<tr class="even">
+<td>Author</td>
+<td>Frederick Pearson, Platform Engineering</td>
+</tr>
+<tr class="odd">
+<td>Primary implementation team</td>
+<td>IT Security / SOC / Sentinel administrators / Global
+administrators</td>
+</tr>
+<tr class="even">
+<td>Implementer role</td>
+<td>Global Administrator or delegated administrator with the specified
+Azure, Power Platform, Entra, Sentinel, or QRadar permissions</td>
+</tr>
+<tr class="odd">
+<td>Environment scope</td>
+<td>Production Power Platform environments, production Dataverse
+environments, external-facing Power Pages sites, and Entra External ID
+tenants or applications used for external registration and sign-in</td>
+</tr>
+<tr class="even">
+<td>Evidence requirement</td>
+<td>Every implementation step that changes configuration must be
+captured with a screenshot and saved to the evidence folder named in
+this build book</td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-objective">Implementation objective</h2>
+<p>Elections Canada will implement Microsoft Sentinel as the security
+monitoring and SIEM layer for Power Platform, Dataverse, Power Automate,
+Power Pages, and Entra External ID. The implementation will enable
+Sentinel on the approved Log Analytics workspace, install Microsoft
+Business Applications security content, connect Power Platform and Entra
+logs, create watchlists, enable analytics rules, create custom
+detections, and document SOC runbooks.</p>
+<h2 id="execution-rules-for-the-administrator">Execution rules for the
+administrator</h2>
+<ul>
+<li>Use the placeholders exactly as written when reading the procedure;
+replace them with approved Elections Canada values in the RFC/ticket
+before implementation.</li>
+<li>Use the Azure portal, Power Platform admin center, Microsoft
+Defender portal, Microsoft Entra admin center, Microsoft Purview portal,
+or QRadar Console as specified for each step.</li>
+<li>Run optional Azure PowerShell commands only from an administrative
+workstation approved for tenant administration.</li>
+<li>Save command output and screenshots in the evidence folder for the
+ticket.</li>
+<li>Do not close the ticket until every validation query, alert test,
+and evidence screenshot in the final checklist has been completed.</li>
+</ul>
+<h2 id="placeholder-convention">Placeholder convention</h2>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Placeholder</th>
+<th>Meaning</th>
+<th>Suggested Elections Canada value pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-TENANT-ID&gt;</code></td>
+<td>Microsoft Entra tenant ID</td>
+<td><code>&lt;tenant-guid&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SUBSCRIPTION-ID&gt;</code></td>
+<td>Azure subscription ID used for monitoring resources</td>
+<td><code>&lt;subscription-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-LOCATION&gt;</code></td>
+<td>Azure region for monitoring resources</td>
+<td><code>canadacentral</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-RG-MONITORING&gt;</code></td>
+<td>Resource group for monitoring resources</td>
+<td><code>rg-ec-pp-monitoring-prod-cca-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-LAW-NAME&gt;</code></td>
+<td>Log Analytics workspace name</td>
+<td><code>law-ec-pp-monitoring-prod-cca-001</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-APPINSIGHTS-NAME&gt;</code></td>
+<td>Application Insights resource name</td>
+<td><code>appi-ec-pp-operational-prod-cca-001</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-ENVIRONMENT-NAME&gt;</code></td>
+<td>Power Platform environment display name</td>
+<td><code>EC-PowerPlatform-Prod</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-ENVIRONMENT-ID&gt;</code></td>
+<td>Power Platform environment GUID</td>
+<td><code>&lt;environment-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-POWERPAGES-URL&gt;</code></td>
+<td>Production Power Pages URL</td>
+<td><code>https://&lt;portal-name&gt;.powerappsportals.com</code> or
+approved custom domain</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EXTERNALID-TENANT-ID&gt;</code></td>
+<td>Entra External ID tenant ID</td>
+<td><code>&lt;external-tenant-guid&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-EXTERNALID-APP-ID&gt;</code></td>
+<td>App registration/client ID used by Power Pages
+sign-in/registration</td>
+<td><code>&lt;application-client-id&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-EVIDENCE-FOLDER&gt;</code></td>
+<td>Evidence folder for implementation screenshots</td>
+<td><code>EC-PP-Monitoring-RFC-&lt;ticket-number&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="required-evidence-capture-standard">Required evidence capture
+standard</h2>
+<ul>
+<li>Capture the full browser page or the relevant configuration pane
+after every configuration save.</li>
+<li>Ensure the screenshot shows the artifact name, tenant/subscription
+context, and final state.</li>
+<li>Name screenshots using the pattern
+<code>&lt;step-number&gt;-&lt;short-description&gt;-&lt;yyyy-mm-dd&gt;.png</code>.</li>
+<li>Capture command output by saving the PowerShell transcript to
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/powershell-transcript.txt</code>.</li>
+<li>Store exported CSV/JSON results from validation queries in
+<code>&lt;EC-EVIDENCE-FOLDER&gt;/validation-results/</code>.</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="administrator-access">Administrator access</h3>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Requirement</th>
+<th>Required value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Microsoft Entra role</td>
+<td>Global Administrator or Security Administrator for identity and
+connector configuration</td>
+</tr>
+<tr class="even">
+<td>Azure RBAC</td>
+<td>Contributor or Microsoft Sentinel Contributor on
+<code>&lt;EC-LAW-NAME&gt;</code> and
+<code>&lt;EC-RG-MONITORING&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>Microsoft Sentinel role</td>
+<td>Microsoft Sentinel Contributor for setup; Microsoft Sentinel Reader
+for SOC read-only validation</td>
+</tr>
+<tr class="even">
+<td>Power Platform role</td>
+<td>Power Platform Administrator or Dynamics 365 Administrator, plus
+Environment Administrator/System Administrator for each production
+Dataverse environment</td>
+</tr>
+<tr class="odd">
+<td>Microsoft Purview role</td>
+<td>Audit Logs or View-Only Audit Logs for validation; appropriate
+Purview admin role for audit configuration</td>
+</tr>
+<tr class="even">
+<td>Evidence access</td>
+<td>Write access to <code>&lt;EC-EVIDENCE-FOLDER&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="platform-prerequisites">Platform prerequisites</h3>
+<ul>
+<li>Log Analytics workspace <code>&lt;EC-LAW-NAME&gt;</code> is required
+and must be enabled for Microsoft Sentinel.</li>
+<li>Microsoft Purview audit logging is required for Power Platform audit
+and activity log collection.</li>
+<li>Production Dataverse environments must have auditing enabled where
+Dataverse audit monitoring is in scope.</li>
+<li>Power Platform environments in scope must be identified by approved
+environment names and IDs.</li>
+<li>Entra External ID logs must be routed to the workforce tenant Log
+Analytics workspace when the external tenant is separate.</li>
+</ul>
+<h2 id="implementation-artifact-placeholders">Implementation artifact
+placeholders</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Placeholder</th>
+<th>Suggested value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-SENTINEL-WORKSPACE&gt;</code></td>
+<td><code>&lt;EC-LAW-NAME&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SENTINEL-SOLUTION-NAME&gt;</code></td>
+<td><code>Microsoft Business Applications</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-SENTINEL-INCIDENT-RG&gt;</code></td>
+<td><code>&lt;EC-RG-MONITORING&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-WATCHLIST-APPROVED-ADMINS&gt;</code></td>
+<td><code>wl-ec-pp-approved-admins</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-WATCHLIST-APPROVED-COUNTRIES&gt;</code></td>
+<td><code>wl-ec-pp-approved-countries</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-WATCHLIST-CHANGE-WINDOWS&gt;</code></td>
+<td><code>wl-ec-pp-change-windows</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-SOC-ACTION-GROUP&gt;</code></td>
+<td><code>ag-ec-soc-sentinel-prod-001</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="build-steps">Build steps</h2>
+<h3 id="enable-microsoft-sentinel-on-the-log-analytics-workspace">Enable Microsoft Sentinel on the Log Analytics workspace</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Sign in to the Azure portal or Microsoft Defender portal using the
+approved admin account.</li>
+<li>Open <strong>Microsoft Sentinel</strong>.</li>
+<li>Select <strong>Create</strong> or <strong>Add</strong>.</li>
+<li>Select workspace <code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Add</strong>.</li>
+<li>Wait for the workspace to finish onboarding.</li>
+<li>Open Microsoft Sentinel and select workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+</ul>
+<p><strong>Optional Azure PowerShell / ARM deployment
+pattern</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a aria-hidden="true" href="#cb2-1" tabindex="-1"></a><span class="co"># Deploy Microsoft Sentinel enablement through ARM when approved by the tenant administration team.</span></span>
+<span id="cb2-2"><a aria-hidden="true" href="#cb2-2" tabindex="-1"></a><span class="co"># This pattern enables the SecurityInsights solution for the workspace.</span></span>
+<span id="cb2-3"><a aria-hidden="true" href="#cb2-3" tabindex="-1"></a><span class="va">$Template</span> <span class="op">=</span> <span class="vs">@'</span></span>
+<span id="cb2-4"><a aria-hidden="true" href="#cb2-4" tabindex="-1"></a><span class="vs">{</span></span>
+<span id="cb2-5"><a aria-hidden="true" href="#cb2-5" tabindex="-1"></a><span class="vs">  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",</span></span>
+<span id="cb2-6"><a aria-hidden="true" href="#cb2-6" tabindex="-1"></a><span class="vs">  "contentVersion": "1.0.0.0",</span></span>
+<span id="cb2-7"><a aria-hidden="true" href="#cb2-7" tabindex="-1"></a><span class="vs">  "resources": [</span></span>
+<span id="cb2-8"><a aria-hidden="true" href="#cb2-8" tabindex="-1"></a><span class="vs">    {</span></span>
+<span id="cb2-9"><a aria-hidden="true" href="#cb2-9" tabindex="-1"></a><span class="vs">      "type": "Microsoft.OperationsManagement/solutions",</span></span>
+<span id="cb2-10"><a aria-hidden="true" href="#cb2-10" tabindex="-1"></a><span class="vs">      "apiVersion": "2015-11-01-preview",</span></span>
+<span id="cb2-11"><a aria-hidden="true" href="#cb2-11" tabindex="-1"></a><span class="vs">      "name": "SecurityInsights(&lt;EC-LAW-NAME&gt;)",</span></span>
+<span id="cb2-12"><a aria-hidden="true" href="#cb2-12" tabindex="-1"></a><span class="vs">      "location": "&lt;EC-LOCATION&gt;",</span></span>
+<span id="cb2-13"><a aria-hidden="true" href="#cb2-13" tabindex="-1"></a><span class="vs">      "properties": {</span></span>
+<span id="cb2-14"><a aria-hidden="true" href="#cb2-14" tabindex="-1"></a><span class="vs">        "workspaceResourceId": "&lt;EC-LAW-RESOURCE-ID&gt;"</span></span>
+<span id="cb2-15"><a aria-hidden="true" href="#cb2-15" tabindex="-1"></a><span class="vs">      },</span></span>
+<span id="cb2-16"><a aria-hidden="true" href="#cb2-16" tabindex="-1"></a><span class="vs">      "plan": {</span></span>
+<span id="cb2-17"><a aria-hidden="true" href="#cb2-17" tabindex="-1"></a><span class="vs">        "name": "SecurityInsights(&lt;EC-LAW-NAME&gt;)",</span></span>
+<span id="cb2-18"><a aria-hidden="true" href="#cb2-18" tabindex="-1"></a><span class="vs">        "publisher": "Microsoft",</span></span>
+<span id="cb2-19"><a aria-hidden="true" href="#cb2-19" tabindex="-1"></a><span class="vs">        "product": "OMSGallery/SecurityInsights",</span></span>
+<span id="cb2-20"><a aria-hidden="true" href="#cb2-20" tabindex="-1"></a><span class="vs">        "promotionCode": ""</span></span>
+<span id="cb2-21"><a aria-hidden="true" href="#cb2-21" tabindex="-1"></a><span class="vs">      }</span></span>
+<span id="cb2-22"><a aria-hidden="true" href="#cb2-22" tabindex="-1"></a><span class="vs">    }</span></span>
+<span id="cb2-23"><a aria-hidden="true" href="#cb2-23" tabindex="-1"></a><span class="vs">  ]</span></span>
+<span id="cb2-24"><a aria-hidden="true" href="#cb2-24" tabindex="-1"></a><span class="vs">}</span></span>
+<span id="cb2-25"><a aria-hidden="true" href="#cb2-25" tabindex="-1"></a><span class="vs">'@</span></span>
+<span id="cb2-26"><a aria-hidden="true" href="#cb2-26" tabindex="-1"></a><span class="va">$Template</span> <span class="op">|</span> <span class="fu">Out-File</span> <span class="st">"</span><span class="va">$EvidenceRoot</span><span class="st">/powershell-output/enable-sentinel-template.json"</span> <span class="op">-</span>Encoding utf8</span>
+<span id="cb2-27"><a aria-hidden="true" href="#cb2-27" tabindex="-1"></a>New-AzResourceGroupDeployment <span class="op">-</span>ResourceGroupName <span class="st">"&lt;EC-RG-MONITORING&gt;"</span> <span class="op">-</span>TemplateFile <span class="st">"</span><span class="va">$EvidenceRoot</span><span class="st">/powershell-output/enable-sentinel-template.json"</span></span></code></pre></div>
+</div>
+<div class="evidence">
+<p>Capture <code>02-sentinel-workspace-enabled.png</code> showing
+<code>&lt;EC-LAW-NAME&gt;</code> in Microsoft Sentinel.</p>
+</div>
+<h3 id="validate-purview-and-power-platform-audit-prerequisites">Validate Purview and Power Platform audit prerequisites</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open the Microsoft Purview portal.</li>
+<li>Open <strong>Audit</strong> and verify audit search is available to
+the administrator.</li>
+<li>Open the Power Platform admin center.</li>
+<li>Select <strong>Manage</strong> &gt;
+<strong>Environments</strong>.</li>
+<li>Select production environment
+<code>&lt;EC-ENVIRONMENT-NAME&gt;</code>.</li>
+<li>Select <strong>Settings</strong>.</li>
+<li>Expand <strong>Product</strong>.</li>
+<li>Select <strong>Privacy + Security</strong>.</li>
+<li>Verify organization auditing is enabled.</li>
+<li>Enable <strong>Auditing</strong> if not already enabled.</li>
+<li>Enable the setting that allows Microsoft Purview audit access to the
+environment activity logs, when shown in the environment settings.</li>
+<li>Save the configuration.</li>
+</ul>
+<p><strong>Optional PowerShell note</strong></p>
+<ul>
+<li>This prerequisite is validated in the Power Platform admin center
+and Microsoft Purview portal. Capture portal evidence because the GUI
+state is the implementation evidence for the ticket.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>03-purview-audit-access.png</code> and
+<code>03-power-platform-environment-auditing.png</code>.</p>
+</div>
+<h3 id="install-the-microsoft-business-applications-solution">Install the Microsoft Business Applications solution</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Microsoft Sentinel for workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Content hub</strong>.</li>
+<li>Search for <strong>Microsoft Business Applications</strong>.</li>
+<li>Select the solution.</li>
+<li>Select <strong>Install</strong>.</li>
+<li>Wait for installation to complete.</li>
+<li>Open the solution details and confirm installed content includes
+data connectors, analytics rules, workbooks, hunting queries, playbooks,
+and parsers where available.</li>
+</ul>
+<p><strong>Optional Azure PowerShell note</strong></p>
+<ul>
+<li>Microsoft Sentinel content hub installation is performed through the
+Microsoft Sentinel portal/Defender portal. Export the installed solution
+details after installation for evidence.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture
+<code>04-content-hub-business-applications-installed.png</code>.</p>
+</div>
+<h3 id="configure-power-platform-data-connectors">Configure Power Platform data connectors</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In Microsoft Sentinel workspace <code>&lt;EC-LAW-NAME&gt;</code>,
+select <strong>Configuration</strong> &gt; <strong>Data
+connectors</strong>.</li>
+<li>Search for <strong>Microsoft Power Platform Admin
+Activity</strong>.</li>
+<li>Open the connector page.</li>
+<li>Select <strong>Open connector page</strong>.</li>
+<li>Follow the connector instructions and connect the data source.</li>
+<li>Repeat for <strong>Microsoft Dataverse</strong>.</li>
+<li>Repeat for <strong>Microsoft Power Automate</strong> when available
+in the installed solution.</li>
+<li>Confirm the connector status changes to <strong>Connected</strong>
+or shows data received.</li>
+</ul>
+<p><strong>Post-connection validation queries</strong></p>
+<pre class="kusto"><code>PowerPlatformAdminActivity
+| where TimeGenerated &gt; ago(24h)
+| summarize Records=count() by EventOriginalType, EnvironmentId
+| order by Records desc</code></pre>
+<pre class="kusto"><code>DataverseActivity
+| where TimeGenerated &gt; ago(24h)
+| summarize Records=count() by Operation, EntityName, ResultStatus
+| order by Records desc</code></pre>
+</div>
+<div class="evidence">
+<p>Capture <code>05-power-platform-connectors-connected.png</code> and
+export the query results as CSV.</p>
+</div>
+<h3 id="connect-entra-id-and-entra-external-id-logs-to-sentinel">Connect Entra ID and Entra External ID logs to Sentinel</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Microsoft Sentinel workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Content hub</strong>.</li>
+<li>Search for <strong>Microsoft Entra ID</strong> and install the
+content if not already installed.</li>
+<li>Select <strong>Data connectors</strong>.</li>
+<li>Open the <strong>Microsoft Entra ID</strong> connector page.</li>
+<li>Select the log types required for Power Pages and external identity
+investigation:
+<ul>
+<li><code>SigninLogs</code>.</li>
+<li><code>AuditLogs</code>.</li>
+<li><code>AADNonInteractiveUserSignInLogs</code> when available.</li>
+<li><code>AADServicePrincipalSignInLogs</code> when available.</li>
+<li>Risk-related sign-in or user risk tables when licensed and
+available.</li>
+</ul></li>
+<li>Apply changes.</li>
+<li>For Entra External ID customer tenants, route logs to
+<code>&lt;EC-LAW-NAME&gt;</code> in the workforce tenant first, then use
+Microsoft Sentinel against that workspace.</li>
+</ul>
+<p><strong>Validation query</strong></p>
+<pre class="kusto"><code>SigninLogs
+| where TimeGenerated &gt; ago(24h)
+| where AppId == "&lt;EC-EXTERNALID-APP-ID&gt;" or AppDisplayName has "&lt;EC-POWERPAGES-APP-DISPLAY-NAME&gt;"
+| summarize SignIns=count(), Failures=countif(ResultType != 0), Risky=countif(IsRisky == true) by AppDisplayName</code></pre>
+</div>
+<div class="evidence">
+<p>Capture <code>06-entra-id-connector-connected.png</code> and
+<code>06-external-id-signinlogs-validation.png</code>.</p>
+</div>
+<h3 id="create-sentinel-watchlists">Create Sentinel watchlists</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>In Microsoft Sentinel workspace <code>&lt;EC-LAW-NAME&gt;</code>,
+select <strong>Configuration</strong> &gt;
+<strong>Watchlist</strong>.</li>
+<li>Select <strong>New</strong>.</li>
+<li>Create watchlist <code>&lt;EC-WATCHLIST-APPROVED-ADMINS&gt;</code>
+with columns <code>UserPrincipalName</code>, <code>Role</code>,
+<code>Owner</code>, <code>Notes</code>.</li>
+<li>Upload the approved administrators CSV from the RFC package.</li>
+<li>Create watchlist
+<code>&lt;EC-WATCHLIST-APPROVED-COUNTRIES&gt;</code> with columns
+<code>CountryCode</code>, <code>CountryName</code>,
+<code>ApprovalReason</code>.</li>
+<li>Upload the approved geography CSV from the RFC package.</li>
+<li>Create watchlist <code>&lt;EC-WATCHLIST-CHANGE-WINDOWS&gt;</code>
+with columns <code>StartTimeUtc</code>, <code>EndTimeUtc</code>,
+<code>ChangeTicket</code>, <code>ApprovedBy</code>.</li>
+<li>Upload the approved change windows CSV.</li>
+</ul>
+<p><strong>Optional Azure PowerShell note</strong></p>
+<ul>
+<li>Watchlists can be deployed through Sentinel REST/ARM automation in a
+later automation package. For the initial ticket, upload and validate
+watchlists through the portal to establish evidence.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>07-sentinel-watchlists-created.png</code> showing all
+three watchlists.</p>
+</div>
+<h3 id="enable-built-in-microsoft-business-applications-analytics-rules">Enable built-in Microsoft Business Applications analytics rules</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Microsoft Sentinel workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Analytics</strong>.</li>
+<li>Select <strong>Rule templates</strong>.</li>
+<li>Filter by solution <strong>Microsoft Business
+Applications</strong>.</li>
+<li>Enable built-in templates relevant to Power Platform and Dataverse,
+including detections for anomalous Dataverse activity, suspicious Power
+Apps activity, suspicious data destruction, mass deletion, and Power
+Automate activity by departing users where available.</li>
+<li>For each rule:
+<ul>
+<li>Select the template.</li>
+<li>Select <strong>Create rule</strong>.</li>
+<li>Keep the rule enabled.</li>
+<li>Set severity according to the Elections Canada severity
+mapping.</li>
+<li>Map entities when prompted.</li>
+<li>Set incident creation to <strong>Enabled</strong>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Select <strong>Create</strong>.</li>
+</ul></li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>08-business-apps-analytics-rules-enabled.png</code>
+showing enabled rules.</p>
+</div>
+<h3 id="create-elections-canada-custom-sentinel-analytics-rules">Create Elections Canada custom Sentinel analytics rules</h3>
+<p>Create each custom rule using <strong>Analytics</strong> &gt;
+<strong>Create</strong> &gt; <strong>Scheduled query rule</strong>. Use
+workspace <code>&lt;EC-LAW-NAME&gt;</code>. Use incident creation
+<strong>Enabled</strong> for every rule below.</p>
+<h4 id="rule-s-01---power-platform-environment-deleted-or-created-outside-change-window">Rule
+S-01 - Power Platform environment deleted or created outside change
+window</h4>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-PP-ENV-CHANGE-OUTSIDE-WINDOW&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>High</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Impact / Defense Evasion</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+<tr class="even">
+<td>Entity mapping</td>
+<td>Account = <code>ActorName</code>; Cloud application or custom detail
+= <code>EnvironmentId</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>let ChangeWindow = _GetWatchlist('&lt;EC-WATCHLIST-CHANGE-WINDOWS&gt;');
+PowerPlatformAdminActivity
+| where TimeGenerated &gt; ago(15m)
+| where EventOriginalType has_any ("environment", "Environment")
+| where EventOriginalType has_any ("Create", "Delete", "Remove", "Update")
+| extend Actor=tostring(ActorName), Env=tostring(EnvironmentId), Activity=tostring(EventOriginalType)
+| extend InApprovedWindow = tobool(false)
+| project TimeGenerated, Actor, Env, Activity, EventOriginalUid, InApprovedWindow
+| where InApprovedWindow == false</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s01-env-change-rule.png</code>.</p>
+</div>
+<h4 id="rule-s-02---power-platform-dlp-policy-modified">Rule S-02 -
+Power Platform DLP policy modified</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-PP-DLP-POLICY-MODIFIED&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>High</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Defense Evasion</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>PowerPlatformAdminActivity
+| where TimeGenerated &gt; ago(15m)
+| where EventOriginalType has_any ("Dlp", "DLP", "Policy")
+| summarize Events=count(), Activities=make_set(EventOriginalType, 20) by ActorName, EnvironmentId, bin(TimeGenerated, 15m)
+| where Events &gt; 0</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s02-dlp-policy-rule.png</code>.</p>
+</div>
+<h4 id="rule-s-03---custom-connector-created-updated-or-deleted">Rule
+S-03 - Custom connector created, updated, or deleted</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-CUSTOM-CONNECTOR-CHANGE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Medium</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Persistence / Command and Control</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>PowerPlatformAdminActivity
+| where TimeGenerated &gt; ago(15m)
+| where EventOriginalType has_any ("Connector", "CustomConnector", "Connection")
+| where EventOriginalType has_any ("Create", "Update", "Delete", "Remove")
+| project TimeGenerated, ActorName, ActorUserType, EnvironmentId, EventOriginalType, EventOriginalUid</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s03-custom-connector-rule.png</code>.</p>
+</div>
+<h4 id="rule-s-04---power-pages-administrative-or-site-configuration-change">Rule
+S-04 - Power Pages administrative or site configuration change</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-POWERPAGES-CONFIG-CHANGE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>Medium</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Persistence / Initial Access</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>PowerPlatformAdminActivity
+| where TimeGenerated &gt; ago(15m)
+| where EventOriginalType has_any ("Power Pages", "PowerPages", "Portal", "Website")
+| where EventOriginalType has_any ("Create", "Update", "Delete", "Set", "Change")
+| project TimeGenerated, ActorName, EnvironmentId, EventOriginalType, EventOriginalUid</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s04-power-pages-config-rule.png</code>.</p>
+</div>
+<h4 id="rule-s-05---dataverse-high-volume-delete-or-destructive-activity">Rule
+S-05 - Dataverse high-volume delete or destructive activity</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-DATAVERSE-MASS-DELETE&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>High</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Impact</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>DataverseActivity
+| where TimeGenerated &gt; ago(15m)
+| where Operation in~ ("Delete", "DeleteMultiple") or Message has "Delete"
+| summarize DeleteCount=count() by SystemUserId, ClientIp, EntityName, bin(TimeGenerated, 15m)
+| where DeleteCount &gt;= &lt;EC-DATAVERSE-DELETE-THRESHOLD&gt;</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s05-dataverse-mass-delete-rule.png</code>.</p>
+</div>
+<h4 id="rule-s-06---entra-external-id-risky-sign-in-to-power-pages">Rule
+S-06 - Entra External ID risky sign-in to Power Pages</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-EXTID-RISKY-SIGNIN-POWERPAGES&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>High</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Initial Access / Credential Access</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>SigninLogs
+| where TimeGenerated &gt; ago(15m)
+| where AppId == "&lt;EC-EXTERNALID-APP-ID&gt;" or AppDisplayName has "&lt;EC-POWERPAGES-APP-DISPLAY-NAME&gt;"
+| where IsRisky == true or RiskLevelDuringSignIn in ("medium", "high") or RiskLevelAggregated in ("medium", "high")
+| project TimeGenerated, UserPrincipalName, IPAddress, Location, AppDisplayName, ResultType, RiskLevelDuringSignIn, RiskLevelAggregated, RiskState</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s06-external-id-risky-signin-rule.png</code>.</p>
+</div>
+<h4 id="rule-s-07---application-credential-or-secret-added-to-power-pages-identity-application">Rule
+S-07 - Application credential or secret added to Power Pages identity
+application</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rule name</td>
+<td><code>&lt;EC-SENTINEL-RULE-APP-CREDENTIAL-ADDED-POWERPAGES&gt;</code></td>
+</tr>
+<tr class="even">
+<td>Severity</td>
+<td>High</td>
+</tr>
+<tr class="odd">
+<td>Tactic</td>
+<td>Persistence / Credential Access</td>
+</tr>
+<tr class="even">
+<td>Query frequency</td>
+<td>15 minutes</td>
+</tr>
+<tr class="odd">
+<td>Lookup period</td>
+<td>15 minutes</td>
+</tr>
+</tbody>
+</table>
+<pre class="kusto"><code>AuditLogs
+| where TimeGenerated &gt; ago(15m)
+| where OperationName has_any ("Add service principal credentials", "Add application credentials", "Update application")
+| where tostring(TargetResources) has "&lt;EC-EXTERNALID-APP-ID&gt;" or tostring(TargetResources) has "&lt;EC-POWERPAGES-APP-DISPLAY-NAME&gt;"
+| project TimeGenerated, OperationName, InitiatedBy, TargetResources, Result</code></pre>
+<div class="evidence">
+<p>Capture <code>09-s07-app-credential-added-rule.png</code>.</p>
+</div>
+<h3 id="configure-automation-and-notification-routing">Configure automation and notification routing</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Microsoft Sentinel workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Automation</strong>.</li>
+<li>Select <strong>Create</strong> &gt; <strong>Automation
+rule</strong>.</li>
+<li>Name the rule
+<code>&lt;EC-SENTINEL-AUTO-ROUTE-PP-SECURITY-INCIDENTS&gt;</code>.</li>
+<li>Set trigger to <strong>When incident is created</strong>.</li>
+<li>Add condition for analytics rule name starts with
+<code>&lt;EC-SENTINEL-RULE-</code> or solution equals Microsoft Business
+Applications.</li>
+<li>Set action to assign owner
+<code>&lt;EC-SOC-QUEUE-OR-OWNER&gt;</code> or apply tag
+<code>PowerPlatform</code>.</li>
+<li>Add action to run playbook
+<code>&lt;EC-SENTINEL-PLAYBOOK-NOTIFY-SOC&gt;</code> if approved.</li>
+<li>Select <strong>Apply</strong>.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>10-sentinel-automation-routing-rule.png</code>.</p>
+</div>
+<h3 id="create-the-sentinel-workbook-view">Create the Sentinel workbook view</h3>
+<div class="step">
+<p><strong>Portal procedure</strong></p>
+<ul>
+<li>Open Microsoft Sentinel workspace
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Select <strong>Workbooks</strong>.</li>
+<li>Open the workbook installed by Microsoft Business Applications if
+available.</li>
+<li>Save a copy as
+<code>&lt;EC-SENTINEL-WORKBOOK-PP-SECURITY&gt;</code>.</li>
+<li>Add or validate tiles for:
+<ul>
+<li>Power Platform admin activity by operation.</li>
+<li>Dataverse destructive operations.</li>
+<li>Power Pages configuration changes.</li>
+<li>External ID sign-ins and failures for
+<code>&lt;EC-EXTERNALID-APP-ID&gt;</code>.</li>
+<li>Incidents by severity and rule.</li>
+</ul></li>
+<li>Save the workbook.</li>
+</ul>
+</div>
+<div class="evidence">
+<p>Capture <code>11-sentinel-workbook-security-view.png</code>.</p>
+</div>
+<h2 id="support-runbooks-for-sentinel-incidents">Support runbooks for
+Sentinel incidents</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Incident / rule</th>
+<th>First response</th>
+<th>Initial triage</th>
+<th>Escalation owner</th>
+<th>Closure criteria</th>
+<th>Tuning notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;EC-SENTINEL-RULE-PP-ENV-CHANGE-OUTSIDE-WINDOW&gt;</code></td>
+<td>SOC acknowledges incident and checks RFC/change window.</td>
+<td>Validate actor, environment ID, operation, and whether approved
+change exists.</td>
+<td>SOC to Power Platform Administrator; escalate to incident response
+if unauthorized.</td>
+<td>Change is matched to approved RFC or unauthorized action is
+contained and incident record is complete.</td>
+<td>Maintain current change-window watchlist.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SENTINEL-RULE-PP-DLP-POLICY-MODIFIED&gt;</code></td>
+<td>SOC acknowledges as high priority.</td>
+<td>Identify policy name, actor, before/after state if available, and
+affected environment.</td>
+<td>SOC to Power Platform governance owner.</td>
+<td>DLP change is approved or reverted; impact documented.</td>
+<td>Exclude approved automation/service principals only through
+watchlist approval.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-SENTINEL-RULE-CUSTOM-CONNECTOR-CHANGE&gt;</code></td>
+<td>SOC validates connector change.</td>
+<td>Review connector endpoint, authentication type, creator, and
+environment.</td>
+<td>SOC to Power Platform Administrator and API/security owner.</td>
+<td>Connector is approved or disabled/removed.</td>
+<td>Tune by approved connector owners and approved environments.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SENTINEL-RULE-POWERPAGES-CONFIG-CHANGE&gt;</code></td>
+<td>SOC checks whether change affects external-facing site.</td>
+<td>Review site, actor, configuration field, auth settings, and recent
+deployments.</td>
+<td>SOC to Power Pages owner and Identity team.</td>
+<td>Change is approved or rolled back; external exposure assessed.</td>
+<td>Separate production and non-production thresholds.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-SENTINEL-RULE-DATAVERSE-MASS-DELETE&gt;</code></td>
+<td>SOC treats as potential destructive activity.</td>
+<td>Validate user, IP, entity, delete count, and whether bulk operation
+was approved.</td>
+<td>SOC to Dataverse owner; escalate to IR for unauthorized destructive
+action.</td>
+<td>Activity is approved or contained and data recovery decision
+documented.</td>
+<td>Set thresholds by table criticality.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EC-SENTINEL-RULE-EXTID-RISKY-SIGNIN-POWERPAGES&gt;</code></td>
+<td>SOC checks user, IP, location, and risk details.</td>
+<td>Validate whether account is compromised, MFA/CA result, repeated
+failures, and geolocation.</td>
+<td>SOC to Identity team.</td>
+<td>Risk is remediated/dismissed with documented justification.</td>
+<td>Requires P2 risk fields for full fidelity; tune if hidden risk
+values dominate.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;EC-SENTINEL-RULE-APP-CREDENTIAL-ADDED-POWERPAGES&gt;</code></td>
+<td>SOC treats as high priority persistence signal.</td>
+<td>Identify credential type, app, actor, and approval record.</td>
+<td>SOC to Identity/application owner.</td>
+<td>Credential is approved and documented or removed; app secrets
+rotated if required.</td>
+<td>Maintain app allowlist and approved secret rotation windows.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="final-validation-checklist">Final validation checklist</h2>
+<ul>
+<li>Microsoft Sentinel is enabled on
+<code>&lt;EC-LAW-NAME&gt;</code>.</li>
+<li>Microsoft Business Applications solution is installed.</li>
+<li>Power Platform Admin Activity, Dataverse, and Power Automate
+connectors are connected where available.</li>
+<li>Microsoft Entra ID connector is connected and returns records for
+<code>&lt;EC-EXTERNALID-APP-ID&gt;</code>.</li>
+<li>Watchlists <code>&lt;EC-WATCHLIST-APPROVED-ADMINS&gt;</code>,
+<code>&lt;EC-WATCHLIST-APPROVED-COUNTRIES&gt;</code>, and
+<code>&lt;EC-WATCHLIST-CHANGE-WINDOWS&gt;</code> exist.</li>
+<li>Built-in Microsoft Business Applications analytics rules are
+enabled.</li>
+<li>Custom rules S-01 through S-07 are created and enabled.</li>
+<li>Automation rule
+<code>&lt;EC-SENTINEL-AUTO-ROUTE-PP-SECURITY-INCIDENTS&gt;</code> is
+enabled.</li>
+<li>Workbook <code>&lt;EC-SENTINEL-WORKBOOK-PP-SECURITY&gt;</code> is
+saved.</li>
+<li>Screenshots and query exports are saved to
+<code>&lt;EC-EVIDENCE-FOLDER&gt;</code>.</li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb13-1"><a aria-hidden="true" href="#cb13-1" tabindex="-1"></a><span class="fu">Stop-Transcript</span></span></code></pre></div>
+<h2 id="official-references">Official references</h2>
+<ul>
+<li>Microsoft Learn - Connect Microsoft Power Platform and Dynamics 365
+Customer Engagement to Microsoft Sentinel:
+https://learn.microsoft.com/en-us/azure/sentinel/business-applications/deploy-power-platform-solution</li>
+<li>Microsoft Learn - Microsoft Sentinel solution for Microsoft Business
+Apps:
+https://learn.microsoft.com/en-us/azure/sentinel/business-applications/solution-overview</li>
+<li>Microsoft Learn - Security content reference for Power Platform
+solution:
+https://learn.microsoft.com/en-us/azure/sentinel/business-applications/power-platform-solution-security-content</li>
+<li>Microsoft Learn - Send Microsoft Entra ID data to Microsoft
+Sentinel:
+https://learn.microsoft.com/en-us/azure/sentinel/connect-azure-active-directory</li>
+<li>Microsoft Learn - Configure Microsoft Entra diagnostic settings:
+https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-configure-diagnostic-settings</li>
+<li>Microsoft Learn - Set up Azure Monitor in external tenants:
+https://learn.microsoft.com/en-us/entra/external-id/customers/how-to-azure-monitor</li>
+<li>Microsoft Learn - Power Platform activity logs and auditing in
+Microsoft Purview:
+https://learn.microsoft.com/en-us/power-platform/admin/activity-logging-auditing/activity-logs-overview</li>
+<li>Microsoft Learn - PowerPlatformAdminActivity table:
+https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/powerplatformadminactivity</li>
+<li>Microsoft Learn - DataverseActivity table:
+https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/dataverseactivity</li>
+</ul>
+</div>
+</div>
+</body>
+</html>
