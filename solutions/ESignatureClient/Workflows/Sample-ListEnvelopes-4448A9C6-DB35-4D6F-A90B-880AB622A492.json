@@ -57,13 +57,13 @@
             "parameters": {
               "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
               "entityName": "cs_envelopes",
-              "$select": "cs_envelopeid,cs_name,cs_subject,cs_templateid,cs_preparedenvelopeid,statuscode,cs_sentdate,cs_completeddate,cs_cancelleddate",
+              "$select": "cs_envelopeid,cs_name,cs_subject,cs_templateid,cs_preparedenvelopeid,statuscode,cs_sentdate,cs_completeddate,cs_cancelleddate,cs_statuscheckrequestedon,cs_statuslastcheckedon",
               "$orderby": "createdon desc"
             },
             "authentication": "@parameters('$authentication')"
           },
           "runAfter": {},
-          "description": "Queries the broker environment for all envelopes regardless of status. Returns envelope ID, name, subject, template ID, Nintex envelope ID, status, and key dates."
+          "description": "Queries the broker environment for all envelopes regardless of status. Returns envelope ID, name, subject, template ID, Nintex envelope ID, status, key dates, and broker status-check timestamps."
         }
       }
     },

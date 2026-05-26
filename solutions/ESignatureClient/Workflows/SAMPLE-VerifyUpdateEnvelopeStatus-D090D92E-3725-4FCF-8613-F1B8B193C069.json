@@ -1,0 +1,332 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_esignbrokerconnection"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)": {
+          "defaultValue": "https://goc-wetv14.crm3.dynamics.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cs_BrokerServiceEnvironment",
+            "description": "The Dataverse environment URL for the E-Signature Broker Service"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Envelope ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "The cs_envelopeid of the envelope to verify",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_RequestedAt": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "RequestedAt",
+                "type": "string",
+                "value": "@{utcNow()}"
+              }
+            ]
+          },
+          "runAfter": {}
+        },
+        "Initialize_PollCount": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "PollCount",
+                "type": "integer",
+                "value": 0
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_RequestedAt": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_Envelope_Before": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetItemWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Initialize_PollCount": [
+              "Succeeded"
+            ]
+          },
+          "description": "Gets the envelope before requesting a broker status refresh so the sample can compare status reasons."
+        },
+        "Compose_Old_Status_Code": {
+          "type": "Compose",
+          "inputs": "@string(outputs('Get_Envelope_Before')?['body/statuscode'])",
+          "runAfter": {
+            "Get_Envelope_Before": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Compose_Old_Status_Label": {
+          "type": "Compose",
+          "inputs": "@coalesce(outputs('Get_Envelope_Before')?['body/statuscode@OData.Community.Display.V1.FormattedValue'], if(equals(outputs('Compose_Old_Status_Code'),'1'),'Draft',if(equals(outputs('Compose_Old_Status_Code'),'2'),'Inactive',if(or(equals(outputs('Compose_Old_Status_Code'),'3'),equals(outputs('Compose_Old_Status_Code'),'717640002')),'Ready to Send',if(or(equals(outputs('Compose_Old_Status_Code'),'4'),equals(outputs('Compose_Old_Status_Code'),'717640003')),'In Process',if(equals(outputs('Compose_Old_Status_Code'),'5'),'Completed',if(or(equals(outputs('Compose_Old_Status_Code'),'6'),equals(outputs('Compose_Old_Status_Code'),'717640005')),'Error',if(equals(outputs('Compose_Old_Status_Code'),'7'),'Pending Cancel',if(equals(outputs('Compose_Old_Status_Code'),'8'),'Cancelled',if(equals(outputs('Compose_Old_Status_Code'),'9'),'Cancel Error',if(equals(outputs('Compose_Old_Status_Code'),'10'),'Declined',if(equals(outputs('Compose_Old_Status_Code'),'11'),'Expired',if(equals(outputs('Compose_Old_Status_Code'),'717640001'),'Preparing',if(equals(outputs('Compose_Old_Status_Code'),'717640004'),'Completed (legacy active)',if(equals(outputs('Compose_Old_Status_Code'),'717640006'),'Cancelled (legacy active)',if(equals(outputs('Compose_Old_Status_Code'),'717640007'),'Cancel Error',if(equals(outputs('Compose_Old_Status_Code'),'717640008'),'Staled',if(equals(outputs('Compose_Old_Status_Code'),'717640009'),'Signer Authentication Failed',concat('Status ', outputs('Compose_Old_Status_Code')))))))))))))))))))",
+          "runAfter": {
+            "Compose_Old_Status_Code": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Request_Broker_Status_Check": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "UpdateRecordWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']",
+              "item/cs_statuscheckrequestedon": "@variables('RequestedAt')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Compose_Old_Status_Label": [
+              "Succeeded"
+            ]
+          },
+          "description": "Writes cs_statuscheckrequestedon to ask the broker environment to refresh this envelope from Nintex."
+        },
+        "Wait_For_Status_Change": {
+          "type": "Until",
+          "expression": "@or(not(equals(string(outputs('Get_Envelope_After_Try')?['body/statuscode']), outputs('Compose_Old_Status_Code'))), greaterOrEquals(variables('PollCount'), 5))",
+          "limit": {
+            "count": 5,
+            "timeout": "PT6M"
+          },
+          "actions": {
+            "Delay_1_Minute": {
+              "type": "Wait",
+              "inputs": {
+                "interval": {
+                  "count": 1,
+                  "unit": "Minute"
+                }
+              },
+              "runAfter": {}
+            },
+            "Get_Envelope_After_Try": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "GetItemWithOrganization",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+                  "entityName": "cs_envelopes",
+                  "recordId": "@triggerBody()?['text']"
+                },
+                "authentication": "@parameters('$authentication')"
+              },
+              "runAfter": {
+                "Delay_1_Minute": [
+                  "Succeeded"
+                ]
+              },
+              "description": "Reads the broker envelope after each one-minute wait so run history shows every verification attempt."
+            },
+            "Increment_PollCount": {
+              "type": "IncrementVariable",
+              "inputs": {
+                "name": "PollCount",
+                "value": 1
+              },
+              "runAfter": {
+                "Get_Envelope_After_Try": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Request_Broker_Status_Check": [
+              "Succeeded"
+            ]
+          },
+          "description": "Checks once per minute for a changed status reason, stopping after five tries."
+        },
+        "Get_Envelope_Final": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetItemWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Wait_For_Status_Change": [
+              "Succeeded"
+            ]
+          },
+          "description": "Gets the final envelope status after polling finishes."
+        },
+        "Compose_New_Status_Code": {
+          "type": "Compose",
+          "inputs": "@string(outputs('Get_Envelope_Final')?['body/statuscode'])",
+          "runAfter": {
+            "Get_Envelope_Final": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Compose_New_Status_Label": {
+          "type": "Compose",
+          "inputs": "@coalesce(outputs('Get_Envelope_Final')?['body/statuscode@OData.Community.Display.V1.FormattedValue'], if(equals(outputs('Compose_New_Status_Code'),'1'),'Draft',if(equals(outputs('Compose_New_Status_Code'),'2'),'Inactive',if(or(equals(outputs('Compose_New_Status_Code'),'3'),equals(outputs('Compose_New_Status_Code'),'717640002')),'Ready to Send',if(or(equals(outputs('Compose_New_Status_Code'),'4'),equals(outputs('Compose_New_Status_Code'),'717640003')),'In Process',if(equals(outputs('Compose_New_Status_Code'),'5'),'Completed',if(or(equals(outputs('Compose_New_Status_Code'),'6'),equals(outputs('Compose_New_Status_Code'),'717640005')),'Error',if(equals(outputs('Compose_New_Status_Code'),'7'),'Pending Cancel',if(equals(outputs('Compose_New_Status_Code'),'8'),'Cancelled',if(equals(outputs('Compose_New_Status_Code'),'9'),'Cancel Error',if(equals(outputs('Compose_New_Status_Code'),'10'),'Declined',if(equals(outputs('Compose_New_Status_Code'),'11'),'Expired',if(equals(outputs('Compose_New_Status_Code'),'717640001'),'Preparing',if(equals(outputs('Compose_New_Status_Code'),'717640004'),'Completed (legacy active)',if(equals(outputs('Compose_New_Status_Code'),'717640006'),'Cancelled (legacy active)',if(equals(outputs('Compose_New_Status_Code'),'717640007'),'Cancel Error',if(equals(outputs('Compose_New_Status_Code'),'717640008'),'Staled',if(equals(outputs('Compose_New_Status_Code'),'717640009'),'Signer Authentication Failed',concat('Status ', outputs('Compose_New_Status_Code')))))))))))))))))))",
+          "runAfter": {
+            "Compose_New_Status_Code": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Compose_Status_Change_Timestamp": {
+          "type": "Compose",
+          "inputs": "@utcNow()",
+          "runAfter": {
+            "Compose_New_Status_Label": [
+              "Succeeded"
+            ]
+          }
+        },
+        "If_Status_Changed": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "not": {
+                  "equals": [
+                    "@outputs('Compose_New_Status_Code')",
+                    "@outputs('Compose_Old_Status_Code')"
+                  ]
+                }
+              }
+            ]
+          },
+          "actions": {
+            "Create_Status_Update_Note": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "CreateRecordWithOrganization",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+                  "entityName": "annotations",
+                  "item/subject": "Envelope status updated",
+                  "item/notetext": "@{concat('Updated status from ', outputs('Compose_Old_Status_Label'), ' to ', outputs('Compose_New_Status_Label'), ' on ', outputs('Compose_Status_Change_Timestamp'))}",
+                  "item/objectid_cs_envelope@odata.bind": "@{concat('/cs_envelopes(', triggerBody()?['text'], ')')}"
+                },
+                "authentication": "@parameters('$authentication')"
+              },
+              "runAfter": {},
+              "description": "Creates a note only when the envelope status reason changed during verification."
+            }
+          },
+          "else": {
+            "actions": {}
+          },
+          "runAfter": {
+            "Compose_Status_Change_Timestamp": [
+              "Succeeded"
+            ]
+          },
+          "description": "No note is created if the status reason is unchanged after five one-minute attempts."
+        },
+        "Compose_Verification_Result": {
+          "type": "Compose",
+          "inputs": {
+            "envelopeId": "@triggerBody()?['text']",
+            "requestedAt": "@variables('RequestedAt')",
+            "attempts": "@variables('PollCount')",
+            "statusChanged": "@not(equals(outputs('Compose_New_Status_Code'), outputs('Compose_Old_Status_Code')))",
+            "oldStatusCode": "@outputs('Compose_Old_Status_Code')",
+            "oldStatus": "@outputs('Compose_Old_Status_Label')",
+            "newStatusCode": "@outputs('Compose_New_Status_Code')",
+            "newStatus": "@outputs('Compose_New_Status_Label')",
+            "statusLastCheckedOn": "@outputs('Get_Envelope_Final')?['body/cs_statuslastcheckedon']"
+          },
+          "runAfter": {
+            "If_Status_Changed": [
+              "Succeeded"
+            ]
+          },
+          "description": "Summarizes the verification outcome in the flow run history."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
