@@ -40,7 +40,7 @@ TARGET_WEBSITE_ID="${EC_WEBSITE_ID:-}"
 # ── Solution definitions (folder/filename_version) ────────────────────────
 # Order matters: Schema → Config → Broker → Client
 SOL_NAMES=("Schema"              "Config"                   "Broker"                       "Client")
-SOL_PATHS=("schema/nintex_1_0_0_4" "config/ESignatureConfig_1_0_0_0" "broker/ESignatureBroker_1_0_0_74" "client/ESignatureClient_1_0_0_17")
+SOL_PATHS=("schema/nintex_1_0_0_4" "config/ESignatureConfig_1_0_0_0" "broker/ESignatureBroker_1_0_0_74" "client/ESignatureClient_1_0_0_18")
 SOL_DESCS=("Tables & columns"   "Environment variables"    "Cloud flows (broker)"         "Cloud flows (client)")
 
 # ── Helper: yes/no prompt (returns 0=yes, 1=no) ──────────────────────────
