@@ -85,6 +85,22 @@
           "format": "DateAndTime"
         },
         {
+          "logicalName": "statuscheckrequestedon",
+          "schemaName": "StatusCheckRequestedOn",
+          "displayName": "Status Check Requested On",
+          "description": "Timestamp set by clients to request a Nintex status refresh",
+          "type": "DateTime",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "statuslastcheckedon",
+          "schemaName": "StatusLastCheckedOn",
+          "displayName": "Status Last Checked On",
+          "description": "Timestamp set by the broker after a Nintex status refresh",
+          "type": "DateTime",
+          "format": "DateAndTime"
+        },
+        {
           "logicalName": "daystoexpire",
           "schemaName": "DaysToExpire",
           "displayName": "Days to Expire",

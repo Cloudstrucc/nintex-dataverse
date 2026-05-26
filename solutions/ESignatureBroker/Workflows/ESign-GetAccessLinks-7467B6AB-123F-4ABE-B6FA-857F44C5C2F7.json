@@ -38,7 +38,7 @@
               "subscriptionRequest/entityname": "cs_envelope",
               "subscriptionRequest/scope": 4,
               "subscriptionRequest/filteringattributes": "statuscode",
-              "subscriptionRequest/filterexpression": "statuscode eq 717640004"
+              "subscriptionRequest/filterexpression": "statuscode eq 5"
             },
             "authentication": "@parameters('$authentication')"
           }

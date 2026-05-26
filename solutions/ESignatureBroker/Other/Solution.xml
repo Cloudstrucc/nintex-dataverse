@@ -8,7 +8,7 @@
     <Descriptions>
       <Description description="E-Signature Broker Service for Elections Canada" languagecode="1033" />
     </Descriptions>
-    <Version>1.0.0.73</Version>
+    <Version>1.0.0.74</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>cs</UniqueName>
@@ -31,6 +31,7 @@
       <RootComponent type="29" id="{7e4177f7-6f26-4f98-9c97-6d51f4f36792}" behavior="0" />
       <RootComponent type="29" id="{8182c764-ecd9-4913-bbe1-99c9d66232a1}" behavior="0" />
       <RootComponent type="29" id="{91e66ae6-0394-47f6-85b4-13198774440c}" behavior="0" />
+      <RootComponent type="29" id="{76cef562-9ab6-41f9-8c2d-cef103c03188}" behavior="0" />
       <RootComponent type="29" id="{a152fa6b-6c07-48b9-8d7b-d8c320531868}" behavior="0" />
       <RootComponent type="29" id="{be1a1128-b593-4fc7-aa22-de6394e9bbef}" behavior="0" />
       <RootComponent type="29" id="{c7cdbe9c-a9e8-4f91-a719-6b2a5e1e5e65}" behavior="0" />

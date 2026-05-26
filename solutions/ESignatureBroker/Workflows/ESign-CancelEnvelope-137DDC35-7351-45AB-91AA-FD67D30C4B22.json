@@ -38,7 +38,7 @@
               "subscriptionRequest/entityname": "cs_envelope",
               "subscriptionRequest/scope": 4,
               "subscriptionRequest/filteringattributes": "cs_iscancelled",
-              "subscriptionRequest/filterexpression": "cs_iscancelled eq true and statuscode ne 717640006"
+              "subscriptionRequest/filterexpression": "cs_iscancelled eq true and statecode eq 0"
             },
             "authentication": "@parameters('$authentication')"
           }
@@ -133,8 +133,9 @@
             "parameters": {
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
-              "item/statuscode": 717640006,
-              "item/cs_cancelleddate": "@{utcNow()}"
+              "item/statuscode": 8,
+              "item/cs_cancelleddate": "@{utcNow()}",
+              "item/statecode": 1
             },
             "authentication": "@parameters('$authentication')"
           },

@@ -103,7 +103,7 @@
                 "authentication": "@parameters('$authentication')"
               },
               "runAfter": {},
-              "description": "Setting cs_iscancelled to true triggers the broker's Cancel Envelope flow, which cancels via the Nintex API and sets statuscode to 717640006 (Cancelled)."
+              "description": "Setting cs_iscancelled to true triggers the broker's Cancel Envelope flow, which cancels via the Nintex API and sets statecode to 1 and statuscode to 8 (Cancelled)."
             }
           },
           "else": {

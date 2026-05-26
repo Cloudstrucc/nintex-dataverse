@@ -123,18 +123,7 @@
             },
             "Check_Status_Changed": {
               "type": "If",
-              "expression": {
-                "and": [
-                  {
-                    "not": {
-                      "equals": [
-                        "@body('HTTP_Get_Envelope_Status')?['result']?['status']",
-                        "@if(equals(items('Process_Each_Envelope')?['statuscode'],717640003),'iN_PROGRESS',if(equals(items('Process_Each_Envelope')?['statuscode'],717640004),'completed',if(equals(items('Process_Each_Envelope')?['statuscode'],717640006),'cancelled','iN_PROGRESS')))"
-                      ]
-                    }
-                  }
-                ]
-              },
+              "expression": "@not(or(equals(outputs('Normalize_Nintex_Status'),'in_progress'),equals(outputs('Normalize_Nintex_Status'),'signingstepinprogress'),equals(outputs('Normalize_Nintex_Status'),'created')))",
               "actions": {
                 "Update_Envelope_Status": {
                   "type": "OpenApiConnection",
@@ -147,9 +136,11 @@
                     "parameters": {
                       "entityName": "cs_envelopes",
                       "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
-                      "item/statuscode": "@{if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'completed'),717640004,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'cancelled'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'expired'),717640006,if(equals(body('HTTP_Get_Envelope_Status')?['result']?['status'],'declined'),717640006,717640003))))}",
-                      "item/cs_completeddate": "@if(empty(body('HTTP_Get_Envelope_Status')?['result']?['completedDate']),null,body('HTTP_Get_Envelope_Status')?['result']?['completedDate'])",
-                      "item/cs_cancelleddate": "@if(empty(body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate']),null,body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate'])"
+                      "item/statuscode": "@{if(equals(outputs('Normalize_Nintex_Status'),'completed'),5,if(equals(outputs('Normalize_Nintex_Status'),'cancelled'),8,if(equals(outputs('Normalize_Nintex_Status'),'declined'),10,if(equals(outputs('Normalize_Nintex_Status'),'expired'),11,if(equals(outputs('Normalize_Nintex_Status'),'staled'),717640008,if(equals(outputs('Normalize_Nintex_Status'),'signerauthenticationfailed'),717640009,717640003))))))}",
+                      "item/cs_completeddate": "@{if(equals(outputs('Normalize_Nintex_Status'),'completed'),coalesce(items('Process_Each_Envelope')?['cs_completeddate'],body('HTTP_Get_Envelope_Status')?['result']?['completedDate'],utcNow()),items('Process_Each_Envelope')?['cs_completeddate'])}",
+                      "item/cs_cancelleddate": "@{if(equals(outputs('Normalize_Nintex_Status'),'cancelled'),coalesce(items('Process_Each_Envelope')?['cs_cancelleddate'],body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate'],utcNow()),items('Process_Each_Envelope')?['cs_cancelleddate'])}",
+                      "item/statecode": "@{if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),equals(outputs('Normalize_Nintex_Status'),'cancelled'),equals(outputs('Normalize_Nintex_Status'),'declined'),equals(outputs('Normalize_Nintex_Status'),'expired'),equals(outputs('Normalize_Nintex_Status'),'staled'),equals(outputs('Normalize_Nintex_Status'),'signerauthenticationfailed')),1,0)}",
+                      "item/cs_statuslastcheckedon": "@{utcNow()}"
                     },
                     "authentication": "@parameters('$authentication')"
                   },
@@ -160,7 +151,7 @@
                 "actions": {}
               },
               "runAfter": {
-                "HTTP_Get_Envelope_Status": [
+                "Normalize_Nintex_Status": [
                   "Succeeded"
                 ]
               }
@@ -246,6 +237,15 @@
               },
               "runAfter": {
                 "HTTP_Get_Signing_Links": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Normalize_Nintex_Status": {
+              "type": "Compose",
+              "inputs": "@toLower(coalesce(body('HTTP_Get_Envelope_Status')?['result']?['status'], ''))",
+              "runAfter": {
+                "HTTP_Get_Envelope_Status": [
                   "Succeeded"
                 ]
               }

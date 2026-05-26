@@ -56,6 +56,118 @@
         }
       },
       "actions": {
+        "Initialize_RequestedAt": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "RequestedAt",
+                "type": "string",
+                "value": "@{utcNow()}"
+              }
+            ]
+          },
+          "runAfter": {}
+        },
+        "Initialize_PollCount": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "PollCount",
+                "type": "integer",
+                "value": 0
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_RequestedAt": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Request_Broker_Status_Check": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "UpdateRecordWithOrganization",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+              "entityName": "cs_envelopes",
+              "recordId": "@triggerBody()?['text']",
+              "item/cs_statuscheckrequestedon": "@variables('RequestedAt')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runAfter": {
+            "Initialize_PollCount": [
+              "Succeeded"
+            ]
+          },
+          "description": "Requests the broker environment to call Nintex and refresh this envelope status."
+        },
+        "Wait_For_Broker_Refresh": {
+          "type": "Until",
+          "expression": "@or(greaterOrEquals(ticks(coalesce(outputs('Get_Envelope_After_Refresh')?['body/cs_statuslastcheckedon'], '1900-01-01T00:00:00Z')), ticks(variables('RequestedAt'))), greaterOrEquals(variables('PollCount'), 12))",
+          "limit": {
+            "count": 12,
+            "timeout": "PT1M"
+          },
+          "actions": {
+            "Delay_5_Seconds": {
+              "type": "Wait",
+              "inputs": {
+                "interval": {
+                  "count": 5,
+                  "unit": "Second"
+                }
+              },
+              "runAfter": {}
+            },
+            "Get_Envelope_After_Refresh": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "GetItemWithOrganization",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
+                  "entityName": "cs_envelopes",
+                  "recordId": "@triggerBody()?['text']"
+                },
+                "authentication": "@parameters('$authentication')"
+              },
+              "runAfter": {
+                "Delay_5_Seconds": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Increment_PollCount": {
+              "type": "IncrementVariable",
+              "inputs": {
+                "name": "PollCount",
+                "value": 1
+              },
+              "runAfter": {
+                "Get_Envelope_After_Refresh": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Request_Broker_Status_Check": [
+              "Succeeded"
+            ]
+          },
+          "description": "Polls until the broker writes cs_statuslastcheckedon for this request, or until the bounded timeout is reached."
+        },
         "Get_Envelope": {
           "type": "OpenApiConnection",
           "inputs": {
@@ -71,8 +183,12 @@
             },
             "authentication": "@parameters('$authentication')"
           },
-          "runAfter": {},
-          "description": "Retrieves the envelope record. Check outputs for statuscode: 1=Draft, 717640001=Preparing, 717640002=Ready to Send, 717640003=In Process, 717640004=Completed, 717640005=Error, 717640006=Cancelled"
+          "runAfter": {
+            "Wait_For_Broker_Refresh": [
+              "Succeeded"
+            ]
+          },
+          "description": "Retrieves the refreshed envelope record. Terminal statuses use inactive reasons: 5=Completed, 8=Cancelled, 10=Declined, 11=Expired, 717640008=Staled, 717640009=Signer Authentication Failed."
         },
         "List_Signers": {
           "type": "OpenApiConnection",
