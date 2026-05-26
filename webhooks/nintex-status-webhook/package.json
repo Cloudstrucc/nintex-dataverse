@@ -1,0 +1,16 @@
+{
+  "name": "nintex-status-webhook",
+  "version": "1.0.0",
+  "description": "Azure Function webhook receiver for Nintex eSign DocumentTRAK envelope status events.",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.16.0"
+  }
+}

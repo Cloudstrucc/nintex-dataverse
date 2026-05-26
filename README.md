@@ -45,6 +45,7 @@ solutions/                              Dataverse solution source (pac unpack fo
 installer/                              .NET CLI installer (source + platform binaries)
 power-pages/                            Power Pages site configuration
 word-addin/                             Word Add-in for template authoring
+webhooks/                               Optional Azure Function webhook receivers
 scripts/                                Shell scripts for deployment and diagnostics
 docs/                                   Architecture and integration guides
 connectors/                             OpenAPI/Swagger connector definitions
@@ -194,6 +195,7 @@ Note: signing links uses **singular** `/envelope/`, all other endpoints use **pl
 |---|---|
 | [Broker Admin Guide](docs/broker-admin-guide.md) | Broker environment setup, monitoring, security |
 | [Client Integration Guide](docs/client-integration-guide.md) | Client environment setup, sample flows, testing |
+| [Nintex Webhook Azure Function](docs/nintex-webhook-azure-function.md) | Optional DocumentTRAK webhook receiver for immediate broker status updates |
 | [Solution Architecture (SADD)](docs/sadd-v2.md) | Full architecture and design document |
 | [Custom Connector Guide](docs/custom-connector-guide-v2.md) | Legacy custom connector documentation |
 

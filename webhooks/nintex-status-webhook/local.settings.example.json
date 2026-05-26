@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "DATAVERSE_ENVIRONMENT_URL": "https://your-broker.crm3.dynamics.com",
+    "DATAVERSE_TENANT_ID": "00000000-0000-0000-0000-000000000000",
+    "DATAVERSE_CLIENT_ID": "00000000-0000-0000-0000-000000000000",
+    "DATAVERSE_CLIENT_SECRET": "replace-with-secret",
+    "NINTEX_AUTH_URL": "https://account.assuresign.net/api/v3.7",
+    "NINTEX_API_BASE_URL": "https://sb.assuresign.net/api/documentnow/v3.7",
+    "NINTEX_API_USERNAME": "replace-with-api-user",
+    "NINTEX_API_KEY": "replace-with-api-key",
+    "NINTEX_CONTEXT_USERNAME": "replace-with-context-user",
+    "NINTEX_WEBHOOK_SECRET": "replace-with-a-long-random-value"
+  }
+}

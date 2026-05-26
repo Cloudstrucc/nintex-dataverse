@@ -138,6 +138,19 @@ Sends a reminder notification to the signer via Nintex API.
 
 Syncs the template list from Nintex API into the `cs_templates` table. Creates new records or updates existing ones by matching on `cs_templateid`.
 
+### Optional Nintex DocumentTRAK Webhook
+
+For near-real-time status updates, deploy the Azure Function in `webhooks/nintex-status-webhook` and configure a Nintex DocumentTRAK Custom Webhook to call it on envelope lifecycle events.
+
+The webhook receiver:
+
+1. Receives the Nintex envelope ID from DocumentTRAK
+2. Calls `GET /envelopes/{id}/status`
+3. Finds `cs_envelope` by `cs_preparedenvelopeid`
+4. Updates `statecode`, `statuscode`, `cs_statuslastcheckedon`, and terminal date fields where applicable
+
+See [Nintex Webhook Azure Function](nintex-webhook-azure-function.md) for deployment and Nintex configuration details.
+
 ---
 
 ## Client Onboarding
