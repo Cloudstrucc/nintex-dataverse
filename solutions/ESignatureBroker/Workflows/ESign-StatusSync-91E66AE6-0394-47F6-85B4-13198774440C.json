@@ -125,6 +125,78 @@
               "type": "If",
               "expression": "@not(or(equals(outputs('Normalize_Nintex_Status'),'in_progress'),equals(outputs('Normalize_Nintex_Status'),'signingstepinprogress'),equals(outputs('Normalize_Nintex_Status'),'created')))",
               "actions": {
+                "If_Nintex_Status_Completed": {
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "equals": [
+                          "@outputs('Normalize_Nintex_Status')",
+                          "completed"
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Update_Completed_Date": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_commondataserviceforapps",
+                          "operationId": "UpdateRecord",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                        },
+                        "parameters": {
+                          "entityName": "cs_envelopes",
+                          "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
+                          "item/cs_completeddate": "@{if(empty(items('Process_Each_Envelope')?['cs_completeddate']),coalesce(body('HTTP_Get_Envelope_Status')?['result']?['completedDate'],utcNow()),items('Process_Each_Envelope')?['cs_completeddate'])}"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      },
+                      "runAfter": {}
+                    }
+                  },
+                  "else": {
+                    "actions": {}
+                  },
+                  "runAfter": {}
+                },
+                "If_Nintex_Status_Cancelled": {
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "equals": [
+                          "@outputs('Normalize_Nintex_Status')",
+                          "cancelled"
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Update_Cancelled_Date": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_commondataserviceforapps",
+                          "operationId": "UpdateRecord",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                        },
+                        "parameters": {
+                          "entityName": "cs_envelopes",
+                          "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
+                          "item/cs_cancelleddate": "@{if(empty(items('Process_Each_Envelope')?['cs_cancelleddate']),coalesce(body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate'],utcNow()),items('Process_Each_Envelope')?['cs_cancelleddate'])}"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      },
+                      "runAfter": {}
+                    }
+                  },
+                  "else": {
+                    "actions": {}
+                  },
+                  "runAfter": {}
+                },
                 "Update_Envelope_Status": {
                   "type": "OpenApiConnection",
                   "inputs": {
@@ -137,14 +209,19 @@
                       "entityName": "cs_envelopes",
                       "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
                       "item/statuscode": "@{if(equals(outputs('Normalize_Nintex_Status'),'completed'),5,if(equals(outputs('Normalize_Nintex_Status'),'cancelled'),8,if(equals(outputs('Normalize_Nintex_Status'),'declined'),10,if(equals(outputs('Normalize_Nintex_Status'),'expired'),11,if(equals(outputs('Normalize_Nintex_Status'),'staled'),717640008,if(equals(outputs('Normalize_Nintex_Status'),'signerauthenticationfailed'),717640009,717640003))))))}",
-                      "item/cs_completeddate": "@{if(equals(outputs('Normalize_Nintex_Status'),'completed'),coalesce(items('Process_Each_Envelope')?['cs_completeddate'],body('HTTP_Get_Envelope_Status')?['result']?['completedDate'],utcNow()),items('Process_Each_Envelope')?['cs_completeddate'])}",
-                      "item/cs_cancelleddate": "@{if(equals(outputs('Normalize_Nintex_Status'),'cancelled'),coalesce(items('Process_Each_Envelope')?['cs_cancelleddate'],body('HTTP_Get_Envelope_Status')?['result']?['cancelledDate'],utcNow()),items('Process_Each_Envelope')?['cs_cancelleddate'])}",
                       "item/statecode": "@{if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),equals(outputs('Normalize_Nintex_Status'),'cancelled'),equals(outputs('Normalize_Nintex_Status'),'declined'),equals(outputs('Normalize_Nintex_Status'),'expired'),equals(outputs('Normalize_Nintex_Status'),'staled'),equals(outputs('Normalize_Nintex_Status'),'signerauthenticationfailed')),1,0)}",
                       "item/cs_statuslastcheckedon": "@{utcNow()}"
                     },
                     "authentication": "@parameters('$authentication')"
                   },
-                  "runAfter": {}
+                  "runAfter": {
+                    "If_Nintex_Status_Cancelled": [
+                      "Succeeded"
+                    ],
+                    "If_Nintex_Status_Completed": [
+                      "Succeeded"
+                    ]
+                  }
                 }
               },
               "else": {
