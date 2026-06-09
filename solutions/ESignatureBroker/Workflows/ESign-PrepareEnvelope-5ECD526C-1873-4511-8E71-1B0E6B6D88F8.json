@@ -175,7 +175,7 @@
               {
                 "name": "ValuesArray",
                 "type": "array",
-                "value": []
+                "value": "@if(empty(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'], '')), json('[]'), coalesce(first(json(outputs('Get_Envelope_Record')?['body/cs_envelopejson'])?['request']?['templates'])?['values'], json('[]')))"
               }
             ]
           },
