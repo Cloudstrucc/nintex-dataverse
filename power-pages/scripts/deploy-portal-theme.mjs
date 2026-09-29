@@ -38,7 +38,7 @@ const TGT = TARGETS[ENVNAME];
 if (!TGT) { console.error(`unknown env "${ENVNAME}" (use dev|test)`); process.exit(1); }
 const SITE = TGT.wsid;
 const bind = { "powerpagesiteid@odata.bind": `/powerpagesites(${SITE})` };
-const T = { PAGE: 2, PT: 6, SNIP: 7, WT: 8, SETTING: 9, ROLE: 11 };
+const T = { PUBSTATE: 1, PAGE: 2, FILE: 3, PT: 6, SNIP: 7, WT: 8, SETTING: 9, ROLE: 11, MARKER: 13, PERM: 18 };
 
 let _tok = null, _at = 0;
 async function token() {
@@ -99,16 +99,17 @@ async function appendInclude(name, includeName) {
   console.log(`  PATCH ${name} += include '${includeName}': HTTP ${r.status}${r.ok ? "" : " " + r.text.slice(0, 120)}`);
 }
 
-async function resolveHomePub() {
-  const pages = (await api("GET", `powerpagecomponents?$filter=_powerpagesiteid_value eq ${SITE} and powerpagecomponenttype eq ${T.PAGE} and name eq 'Home'&$select=powerpagecomponentid,content`)).json.value || [];
-  const home = pages.find((p) => { try { return JSON.parse(p.content || "{}").isroot === true; } catch { return false; } }) || pages[0];
-  const states = (await api("GET", `powerpagecomponents?$filter=_powerpagesiteid_value eq ${SITE} and powerpagecomponenttype eq 1&$select=powerpagecomponentid,content`)).json.value || [];
-  const pub = states.find((s) => { try { return JSON.parse(s.content || "{}").isdefault; } catch { return false; } }) || states[0];
-  return { HOME: home.powerpagecomponentid, PUB: pub.powerpagecomponentid };
+// Derive parentpageid + publishingstateid from an existing WORKING web file so a new file
+// serves correctly (ec-esign uses the contentdisposition shape; a wrong publishingstateid
+// leaves the file unserved / 404).
+async function webFileDefaults() {
+  const r = await api("GET", `powerpagecomponents?$filter=_powerpagesiteid_value eq ${SITE} and powerpagecomponenttype eq ${T.FILE} and name eq 'logo-invert.png'&$select=content`);
+  const c = JSON.parse(r.json.value[0].content);
+  return { parentpageid: c.parentpageid, publishingstateid: c.publishingstateid };
 }
-async function upsertFile(name, binPath, order = 5) {
-  const { HOME, PUB } = await resolveHomePub();
-  const content = JSON.stringify({ displayorder: order, enabletracking: false, excludefromsearch: true, hiddenfromsitemap: true, parentpageid: HOME, partialurl: name, publishingstateid: PUB });
+async function upsertFile(name, binPath) {
+  const d = await webFileDefaults();
+  const content = JSON.stringify({ contentdisposition: 756150000, excludefromsearch: false, hiddenfromsitemap: false, parentpageid: d.parentpageid, partialurl: name, publishingstateid: d.publishingstateid });
   const ex = await find(T.FILE, name);
   let id;
   if (ex) { backup(`FILE-${name}.before`, ex); await api("PATCH", `powerpagecomponents(${ex.powerpagecomponentid})`, { content }); id = ex.powerpagecomponentid; console.log(`  PATCH FILE ${name}`); }
@@ -203,7 +204,7 @@ async function main() {
   }
   if (PHASE === "logo" || PHASE === "all") {
     console.log("--- Phase 3a: header logo (from coe-dev-fp) ---");
-    await upsertFile("ec-logo.png", join(ROOT, "power-pages", "theme", "assets", "ec-logo.png"), 5);
+    await upsertFile("ec-logo.png", join(ROOT, "power-pages", "theme", "assets", "ec-logo.png"));
     await replaceInWT("CS-header", [["/logo-bw-contrast.png", "/ec-logo.png"], ["/logo-invert.png", "/ec-logo.png"]]);
   }
   if (PHASE === "landing" || PHASE === "all") {
