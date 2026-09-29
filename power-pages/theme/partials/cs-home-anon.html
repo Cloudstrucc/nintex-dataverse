@@ -1,0 +1,93 @@
+<!-- ══ Anonymous landing — coe-dev-fp design, scoped to e-signature. All copy via snippets. ══ -->
+<main class="ppep-app ppep-anon" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+
+  <!-- Hero: EC "Half-X" brand device (matches coe-dev-fp landing) -->
+  <section class="ec-hero" aria-labelledby="heroTitle">
+    <svg class="ec-hero-halfx" viewBox="0 0 1000 1140" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="burgMain" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a1244"/><stop offset="1" stop-color="#5f012e"/></linearGradient>
+        <linearGradient id="burgDark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d0424"/><stop offset="1" stop-color="#611031"/></linearGradient>
+      </defs>
+      <polygon points="65,0 690,0 400,625 695,895 545,1140 140,1140 0,895 0,300" fill="url(#burgMain)"/>
+      <polygon points="65,0 690,0 430,360 0,360 0,300" fill="url(#burgDark)"/>
+      <polygon points="725,0 865,0 591,590 451,590" fill="#036064"/>
+      <polygon points="720,940 900,1140 600,1140" fill="#c9862d"/>
+    </svg>
+    <div class="ec-hero-inner">
+      <div class="ec-hero-copy">
+        <h1 id="heroTitle">{{ snippets['ESIGN/HOME/TITLE'] | default: 'Electronic Signature Service' }}</h1>
+        <p class="ec-hero-sub">{{ snippets['ESIGN/HOME/SUBTITLE'] | default: 'Elections Canada — Secure e-Signature Portal' }}</p>
+        <p>{{ snippets['ESIGN/HOME/DESC'] | default: 'Securely send, sign, and manage legally binding electronic documents in accordance with the Canada Elections Act and Government of Canada IT security standards.' }}</p>
+        <div class="hero-actions" style="margin-top:1.2rem;">
+          <a href="/Account/Login" class="ec-btn">{{ snippets['ESIGN/HOME/SIGNIN'] | default: 'Sign in with Entra ID' }}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="esign-band" aria-labelledby="howTitle">
+    <div class="container">
+      <h2 id="howTitle" class="esign-sec-title">{{ snippets['ESIGN/HOWITWORKS/TITLE'] | default: 'How it works' }}</h2>
+      <div class="esign-grid">
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-burgundy,#6a0032);">1</span>
+          <h3>{{ snippets['ESIGN/STEP1/TITLE'] | default: 'Create an envelope' }}</h3>
+          <p>{{ snippets['ESIGN/STEP1/DESC'] | default: 'Start from an approved Nintex AssureSign template or upload your document.' }}</p>
+        </div>
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-teal,#036064);">2</span>
+          <h3>{{ snippets['ESIGN/STEP2/TITLE'] | default: 'Add signers' }}</h3>
+          <p>{{ snippets['ESIGN/STEP2/DESC'] | default: 'Set the signing order, authentication, and language for each recipient.' }}</p>
+        </div>
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-mustard,#c9862d);">3</span>
+          <h3>{{ snippets['ESIGN/STEP3/TITLE'] | default: 'Send for signature' }}</h3>
+          <p>{{ snippets['ESIGN/STEP3/DESC'] | default: 'Recipients are notified and sign securely from any device.' }}</p>
+        </div>
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-olive,#8b9538);">4</span>
+          <h3>{{ snippets['ESIGN/STEP4/TITLE'] | default: 'Track &amp; complete' }}</h3>
+          <p>{{ snippets['ESIGN/STEP4/DESC'] | default: 'Follow signing progress in real time and retrieve the completed, audited documents.' }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services" class="esign-band esign-band-alt" aria-labelledby="svcTitle">
+    <div class="container">
+      <h2 id="svcTitle" class="esign-sec-title">{{ snippets['ESIGN/SERVICES/TITLE'] | default: 'Services' }}</h2>
+      <div class="esign-grid esign-grid-3">
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-burgundy,#6a0032);"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></span>
+          <h3>{{ snippets['ESIGN/FEATURE1/TITLE'] | default: 'Send &amp; track envelopes' }}</h3>
+          <p>{{ snippets['ESIGN/FEATURE1/DESC'] | default: 'Initiate signature requests from approved templates and track signing progress in real time.' }}</p>
+        </div>
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-teal,#036064);"><i class="fa fa-files-o" aria-hidden="true"></i></span>
+          <h3>{{ snippets['ESIGN/FEATURE2/TITLE'] | default: 'Reusable templates' }}</h3>
+          <p>{{ snippets['ESIGN/FEATURE2/DESC'] | default: 'Upload documents once and re-use them as Nintex AssureSign templates across your team.' }}</p>
+        </div>
+        <div class="ec-card esign-cell">
+          <span class="esign-ico" style="--c:var(--ec-mustard,#c9862d);"><i class="fa fa-shield" aria-hidden="true"></i></span>
+          <h3>{{ snippets['ESIGN/FEATURE3/TITLE'] | default: 'Compliant &amp; auditable' }}</h3>
+          <p>{{ snippets['ESIGN/FEATURE3/DESC'] | default: 'Every signature event is logged with a tamper-evident audit trail meeting GC Protected B standards.' }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    /* Scoped helpers for classes the EC theme does not define (theme owns .ec-hero/.ec-card/.ec-btn). */
+    .ppep-anon .esign-band{padding:48px 0;}
+    .ppep-anon .esign-band-alt{background:var(--ec-grey-050,#f7f7f7);}
+    .ppep-anon .esign-sec-title{font-size:26px;font-weight:700;color:var(--ec-black,#000);margin:0 0 24px;}
+    .ppep-anon .esign-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;}
+    .ppep-anon .esign-cell{padding:24px;}
+    .ppep-anon .esign-cell h3{font-size:18px;margin:.5rem 0 .4rem;color:var(--ec-black,#000);}
+    .ppep-anon .esign-cell p{color:#444;margin:0;font-size:.95rem;}
+    .ppep-anon .esign-ico{width:52px;height:52px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--c,#6a0032);color:#fff;font-size:20px;font-weight:700;margin-bottom:12px;}
+  </style>
+
+</main>

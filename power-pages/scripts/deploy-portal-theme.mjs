@@ -144,6 +144,33 @@ async function upsertSetting(name, value) {
   return r.entityId?.match(/\(([^)]+)\)/)?.[1];
 }
 
+const LANG = { en: "00f8e6d9-91b2-4429-95e4-87fe6a85084e", fr: "1c59862a-d627-f111-88b5-7ced8da586db" };
+async function findSnip(name, langId) {
+  const r = await api("GET", `powerpagecomponents?$filter=_powerpagesiteid_value eq ${SITE} and powerpagecomponenttype eq ${T.SNIP} and name eq '${q(name)}' and _powerpagesitelanguageid_value eq ${langId}&$select=powerpagecomponentid,content`);
+  return r.json?.value?.[0] || null;
+}
+async function upsertSnip(name, langId, value) {
+  const content = JSON.stringify({ type: 756150000, value });
+  const ex = await findSnip(name, langId);
+  if (ex) { backup(`SNIP-${name.replace(/\//g, "_")}-${langId.slice(0, 4)}.before`, ex); const r = await api("PATCH", `powerpagecomponents(${ex.powerpagecomponentid})`, { content }); console.log(`  PATCH SNIP ${name} [${langId.slice(0, 4)}]: ${r.status}`); return ex.powerpagecomponentid; }
+  const r = await api("POST", "powerpagecomponents", { name, powerpagecomponenttype: T.SNIP, ...bind, "powerpagesitelanguageid@odata.bind": `/powerpagesitelanguages(${langId})`, content });
+  console.log(`  POST  SNIP ${name} [${langId.slice(0, 4)}]: ${r.status}${r.ok ? "" : " " + r.text.slice(0, 100)}`);
+  return r.entityId?.match(/\(([^)]+)\)/)?.[1];
+}
+// [name, en, fr] — new anon-landing snippets (created only if missing; existing ones untouched).
+const LANDING_SNIPPETS = [
+  ["ESIGN/HOWITWORKS/TITLE", "How it works", "Fonctionnement"],
+  ["ESIGN/SERVICES/TITLE", "Services", "Services"],
+  ["ESIGN/STEP1/TITLE", "Create an envelope", "Créer une enveloppe"],
+  ["ESIGN/STEP1/DESC", "Start from an approved Nintex AssureSign template or upload your document.", "Commencez à partir d'un modèle Nintex AssureSign approuvé ou téléversez votre document."],
+  ["ESIGN/STEP2/TITLE", "Add signers", "Ajouter des signataires"],
+  ["ESIGN/STEP2/DESC", "Set the signing order, authentication, and language for each recipient.", "Définissez l'ordre de signature, l'authentification et la langue de chaque destinataire."],
+  ["ESIGN/STEP3/TITLE", "Send for signature", "Envoyer pour signature"],
+  ["ESIGN/STEP3/DESC", "Recipients are notified and sign securely from any device.", "Les destinataires sont avisés et signent en toute sécurité depuis n'importe quel appareil."],
+  ["ESIGN/STEP4/TITLE", "Track & complete", "Suivre et terminer"],
+  ["ESIGN/STEP4/DESC", "Follow signing progress in real time and retrieve the completed, audited documents.", "Suivez la progression en temps réel et récupérez les documents complétés et vérifiés."],
+];
+
 // Theme-core web templates (dependency closure of EC-Base-Styles + EC-Scripts-Base).
 const CORE = [
   ["EC-Brand-Facelift", "EC-Brand-Facelift.html"],
@@ -178,6 +205,14 @@ async function main() {
     console.log("--- Phase 3a: header logo (from coe-dev-fp) ---");
     await upsertFile("ec-logo.png", join(ROOT, "power-pages", "theme", "assets", "ec-logo.png"), 5);
     await replaceInWT("CS-header", [["/logo-bw-contrast.png", "/ec-logo.png"], ["/logo-invert.png", "/ec-logo.png"]]);
+  }
+  if (PHASE === "landing" || PHASE === "all") {
+    console.log("--- Phase 4: anonymous landing (COE design, e-sign content) ---");
+    await upsertWT("CS-Home-WET", "CS-Home-WET.html");
+  }
+  if (PHASE === "snippets" || PHASE === "all") {
+    console.log("--- Phase 4b: anon-landing content snippets (EN/FR, editable) ---");
+    for (const [n, en, fr] of LANDING_SNIPPETS) { await upsertSnip(n, LANG.en, en); await upsertSnip(n, LANG.fr, fr); }
   }
   if (PHASE === "classfix" || PHASE === "all") {
     // ec-esign was forked from the COE lineage with a `pepp-` typo; the theme styles the
