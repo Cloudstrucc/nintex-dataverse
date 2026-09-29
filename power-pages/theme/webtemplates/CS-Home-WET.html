@@ -17,7 +17,26 @@
       {% if user %}<div class="fp">{{ user.firstname | slice: 0,1 }}{{ user.lastname | slice: 0,1 }}</div>{% endif %}
     </div>
 
-    <!-- My services (moved above filters/table per request) -->
+    <!-- KPI filter tiles (default = Total) -->
+    <div class="ews-stats">
+      <button class="ews-stat active" data-f="all" onclick="ecSetF(this)"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
+      <button class="ews-stat" data-f="proc" onclick="ecSetF(this)"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
+      <button class="ews-stat" data-f="done" onclick="ecSetF(this)"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/KPI/DONE'] | default: 'Completed' }}</div><div class="num" id="k-done">0</div></button>
+      <button class="ews-stat" data-f="err" onclick="ecSetF(this)"><div class="lab" style="--dot:#b3122b">{{ snippets['ESIGN/KPI/ERR'] | default: 'Action required' }}</div><div class="num" id="k-err">0</div></button>
+    </div>
+
+    <!-- My Envelopes table -->
+    <div class="ews-card" id="ecEnvCard">
+      <div class="ews-lsthd"><div><h4>{{ snippets['ESIGN/HOME/ENVTITLE'] | default: 'My Envelopes' }}</h4><div class="ews-subprev" id="ecFilterLabel"></div></div>
+        <button class="ews-fsbtn" title="Full screen" onclick="ecToggleFs()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
+      <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/HOME/ACTIVEVIEW'] | default: 'Active envelopes' }}</span>
+        <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}" oninput="ecRender()"></div>
+        <a class="ews-btn ews-primary ews-toolcta" href="/envelopes/edit-envelope/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/HOME/CREATE'] | default: 'Create envelope' }}</a></div>
+      <table class="ews-nt"><thead><tr><th></th><th>{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }}</th><th>{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }}</th><th>{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }}</th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
+      <div class="ews-pager" id="ecPager"></div>
+    </div>
+
+    <!-- My services (below the envelope table per request) -->
     <h3 class="ews-sec">{{ snippets['ESIGN/HOME/SERVICES'] | default: 'My services' }}</h3>
     <div class="ews-grid">
       <div class="ews-svc" style="--c:var(--ews-burg)"><div class="top"></div>
@@ -32,24 +51,6 @@
       <div class="ews-svc" style="--c:var(--ews-navy)"><div class="top"></div>
         <div class="hd"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v6c0 5 3.8 8.3 9 9 5.2-.7 9-4 9-9V7l-9-5Z"/></svg></span><div><h4>{{ snippets['ESIGN/SVC/HELP/T'] | default: 'Help &amp; support' }}</h4><div class="cnt">{{ snippets['ESIGN/SVC/HELP/C'] | default: 'Guidance and contact' }}</div></div></div>
         <ul><li><a href="/help/">{{ snippets['ESIGN/SVC/HELP/L1'] | default: 'How e-signing works' }} <span class="arw">&rsaquo;</span></a></li><li><a href="/help/">{{ snippets['ESIGN/SVC/HELP/L2'] | default: 'Contact support' }} <span class="arw">&rsaquo;</span></a></li></ul></div>
-    </div>
-
-    <!-- KPI filter tiles (default = Total) -->
-    <div class="ews-stats">
-      <button class="ews-stat active" data-f="all" onclick="ecSetF(this)"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
-      <button class="ews-stat" data-f="proc" onclick="ecSetF(this)"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
-      <button class="ews-stat" data-f="done" onclick="ecSetF(this)"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/KPI/DONE'] | default: 'Completed' }}</div><div class="num" id="k-done">0</div></button>
-      <button class="ews-stat" data-f="err" onclick="ecSetF(this)"><div class="lab" style="--dot:#b3122b">{{ snippets['ESIGN/KPI/ERR'] | default: 'Action required' }}</div><div class="num" id="k-err">0</div></button>
-    </div>
-
-    <!-- My Envelopes table -->
-    <div class="ews-card" id="ecEnvCard">
-      <div class="ews-lsthd"><div><h4>{{ snippets['ESIGN/HOME/ENVTITLE'] | default: 'My Envelopes' }}</h4><div class="ews-subprev" id="ecFilterLabel"></div></div>
-        <button class="ews-fsbtn" title="Full screen" onclick="ecToggleFs()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
-      <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/HOME/ACTIVEVIEW'] | default: 'Active envelopes' }}</span>
-        <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}" oninput="ecRender()"></div></div>
-      <table class="ews-nt"><thead><tr><th></th><th>{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }}</th><th>{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }}</th><th>{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }}</th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
-      <div class="ews-pager" id="ecPager"></div>
     </div>
 
   </div>

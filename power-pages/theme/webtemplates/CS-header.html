@@ -1,7 +1,13 @@
-{% comment %} e-Sign header — coe-dev-fp style: brand row + navy nav (auth/anon) + service pills. {% endcomment %}
+{% comment %} e-Sign header — coe-dev-fp style: brand row + navy nav (auth/anon).
+   Tool pages (edit-envelope / edit-template) are distraction-free: no nav menu,
+   logo pinned far-left and language toggle far-right. {% endcomment %}
 {% include 'EC-Base-Styles' %}
 
-<div class="ews-brandrow"><div class="ews-in">
+{% assign _p = request.path | downcase %}
+{% assign toolmode = false %}
+{% if _p contains 'edit-envelope' or _p contains 'edit-template' %}{% assign toolmode = true %}{% endif %}
+
+<div class="ews-brandrow{% if toolmode %} tool{% endif %}"><div class="ews-in">
   <div class="ews-b">
     <a href="/"><img class="ews-logo" src="/ec-logo.png" alt="Elections Canada"></a>
     <span class="ews-ttl"><b>{{ snippets['ESIGN/HEADER/ORG'] | default: 'Elections Canada' }}</b><span>{{ snippets['ESIGN/HEADER/APP'] | default: 'Electronic Signature Service' }}</span></span>
@@ -12,6 +18,7 @@
   {% endsubstitution %}
 </div></div>
 
+{% unless toolmode %}
 <nav class="ews-nav" aria-label="Primary"><div class="ews-in">
   {% if user %}
   {% fetchxml ews_unreadq %}
@@ -70,3 +77,4 @@ document.addEventListener('click',function(){var p=document.querySelector('.ews-
    if(h==='/' && (path===''||path==='/en'||path==='/fr')){a.classList.add('active');}});})();
 </script>
 {% endif %}
+{% endunless %}

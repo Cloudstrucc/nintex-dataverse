@@ -19,6 +19,8 @@
 .ews-brandrow .ews-ttl b{display:block;color:#111;font-size:15px}.ews-brandrow .ews-ttl span{color:var(--ews-muted);font-size:13px}
 .ews-brandrow .ews-lang{color:var(--ews-link);font-weight:700;text-decoration:underline;font-size:14px}
 .ews-brandrow img.ews-logo{max-height:44px;width:auto;display:block}
+/* tool pages (edit-envelope / edit-template): full-width brand row, logo far-left, language far-right */
+.ews-brandrow.tool .ews-in{max-width:100%;padding-left:20px;padding-right:20px}
 .ews-nav{background:var(--ews-navy);color:#fff}
 .ews-nav .ews-in{max-width:1170px;margin:0 auto;padding:0 15px;display:flex;align-items:center;justify-content:space-between}
 .ews-menu{display:flex;gap:4px;list-style:none;margin:0;padding:0}
@@ -54,7 +56,8 @@
 .ews-pill.done,.ews-pill.on{background:var(--ews-ok-bg);color:var(--ews-ok)}
 .ews-chip{display:inline-block;font-size:12px;font-weight:600;color:#3d4a55;background:#eef2f5;border:1px solid #e0e6ea;border-radius:7px;padding:3px 9px;white-space:nowrap}
 /* ---------- cards / hero / KPI stats / svc tiles ---------- */
-.ews-hero{background:linear-gradient(120deg,var(--ews-navy),var(--ews-navy-dk) 60%);color:#fff;border-radius:16px;margin-top:22px;padding:24px 30px;position:relative;overflow:hidden}
+.ews-hero{background:linear-gradient(120deg,var(--ews-navy),var(--ews-navy-dk) 60%);color:#fff;border-radius:16px;margin-top:22px;padding:24px 128px 24px 30px;position:relative;overflow:hidden}
+@media(max-width:560px){.ews-hero{padding:22px 20px}.ews-hero .fp{display:none}}
 .ews-hero .k{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#9fb4c4;font-weight:700}
 .ews-hero h1{margin:6px 0;font-size:29px;font-weight:800;color:#fff !important}.ews-hero p{margin:0;color:#c9d5de}
 .ews-hero .fp{position:absolute;right:34px;top:50%;transform:translateY(-50%);width:74px;height:74px;border-radius:50%;background:var(--ews-burg);display:grid;place-items:center;font-weight:800;font-size:23px;box-shadow:0 0 0 12px rgba(255,255,255,.05)}
@@ -85,6 +88,7 @@ h3.ews-sec{font-size:15px;font-weight:800;letter-spacing:.04em;text-transform:up
 .ews-fsbtn{width:38px;height:38px;border-radius:9px;border:1px solid var(--ews-line);background:#fff;cursor:pointer;display:grid;place-items:center;color:var(--ews-navy)}
 .ews-fsbtn:hover{border-color:var(--ews-burg);color:var(--ews-burg)}.ews-fsbtn svg{width:18px;height:18px;fill:currentColor}
 .ews-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 18px}
+.ews-tools .ews-toolcta{margin-left:auto}
 .ews-viewsel{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ews-line);border-radius:9px;padding:9px 13px;font-weight:600;color:var(--ews-navy);font-size:13.5px}
 .ews-search{position:relative;margin-left:auto;flex:0 1 360px}
 .ews-search input{width:100%;height:40px;border:2px solid #d7dce1;border-radius:10px;padding:0 14px 0 38px;font:inherit;font-size:14px}
