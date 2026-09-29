@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Activity &amp; history — e-Sign mockup</title>
+<style>
+:root{--navy:#1e384b;--navy-dk:#0d2536;--burg:#6a0032;--teal:#036064;--mustard:#c9862d;--olive:#8b9538;--line:#d5dbe0;--line-soft:#e6eaed;--ink:#33404a;--muted:#69727a;--page:#f4f6f8;--link:#174f84}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.5}
+.shell{max-width:1170px;margin:0 auto;padding:0 15px}
+.brandrow{background:#fff;border-bottom:3px solid var(--burg)}.brandrow .in{display:flex;align-items:center;justify-content:space-between;padding:12px 0}.brandrow .b{display:flex;align-items:center;gap:14px}.brandrow .logo{font-weight:800;color:var(--burg);font-size:20px}.brandrow .ttl b{display:block;color:#111;font-size:15px}.brandrow .ttl span{color:var(--muted);font-size:13px}.brandrow .lang{color:var(--link);font-weight:700;text-decoration:underline;font-size:14px}
+.appnav{background:var(--navy);color:#fff}.appnav .in{display:flex;align-items:center;justify-content:space-between}
+.menu{display:flex;gap:4px;list-style:none;margin:0;padding:0}.menu a{display:block;padding:15px 16px;color:#e8edf1;text-decoration:none;font-size:14.5px;font-weight:600;border-bottom:3px solid transparent}.menu a:hover{color:#fff}.menu a.on{color:#fff;border-bottom-color:var(--mustard)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.bell{position:relative;width:34px;height:34px;border-radius:9px;display:grid;place-items:center}.bell svg{width:20px;height:20px;fill:#fff}.badge{position:absolute;top:0;right:0;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--mustard);color:#3a2a00;font-size:11px;font-weight:800;display:grid;place-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--burg);font-weight:800;display:grid;place-items:center;font-size:13px}.chev{color:#e8edf1}
+.profile{display:flex;align-items:center;gap:6px;cursor:pointer;position:relative}
+.pmenu{display:none;position:absolute;top:44px;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.18);min-width:212px;padding:6px;z-index:50}.profile.open .pmenu{display:block}
+.pmenu a{display:block;padding:10px 12px;border-radius:8px;color:var(--navy);text-decoration:none;font-size:14px;font-weight:600}.pmenu a:hover{background:#f4f6f8}.pmenu a.on{background:#fbf2f6;color:var(--burg)}.pmenu .sep{height:1px;background:var(--line-soft);margin:6px 4px}
+.pillbar{background:#fff;border-bottom:1px solid var(--line)}.pillbar .in{display:flex;gap:8px;padding:10px 0;flex-wrap:wrap}
+.spill{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;font-weight:700;font-size:13.5px;color:var(--navy);text-decoration:none}.spill:hover{border-color:var(--burg);color:var(--burg)}
+h1.page{font-size:30px;font-weight:800;color:#111;margin:22px 0 4px}.lede{color:var(--muted);margin:0 0 18px;max-width:70ch}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:4px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px;cursor:pointer;text-align:left;font:inherit}.stat.active{border-color:var(--burg);box-shadow:inset 4px 0 0 var(--burg)}
+.stat .lab{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:flex;gap:6px;align-items:center}.stat .lab::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--dot,var(--muted))}.stat .num{font-size:24px;font-weight:800;color:var(--navy);margin-top:4px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.06);margin-top:16px;overflow:hidden}
+.lst-hd{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line-soft)}.lst-hd h4{margin:0;font-size:18px;font-weight:700;color:var(--navy)}
+.fs-btn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--navy)}
+.lst-tools{display:flex;gap:12px;align-items:center;padding:14px 18px}.viewsel{border:1px solid var(--line);border-radius:9px;padding:9px 13px;font-weight:600;color:var(--navy);font-size:13.5px}.search{margin-left:auto;flex:0 1 320px}.search input{width:100%;height:40px;border:2px solid #d7dce1;border-radius:10px;padding:0 14px;font:inherit}
+table.nt{width:100%;border-collapse:collapse;font-size:14px}table.nt thead th{background:var(--burg);color:#fff;text-align:left;font-weight:700;font-size:13px;padding:12px 16px;white-space:nowrap}table.nt tbody td{padding:12px 16px;border-bottom:1px solid var(--line-soft)}table.nt tbody tr:hover{background:#fafbfc}.s{color:var(--navy);font-weight:700}
+.type{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;color:#fff}
+.type.env{background:var(--burg)}.type.sig{background:var(--teal)}.type.tpl{background:var(--navy)}.type.doc{background:var(--olive)}
+.pager{display:flex;gap:8px;justify-content:center;padding:16px}.pager button{min-width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700;color:var(--navy)}.pager button.on{background:var(--burg);border-color:var(--burg);color:#fff}
+.card.fs{position:fixed;inset:12px;z-index:9999;margin:0;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}.fs-backdrop{display:none;position:fixed;inset:0;background:rgba(13,37,54,.45);z-index:9998}body.fs-on .fs-backdrop{display:block}
+.ftr{background:var(--navy);color:#c9d5de;border-top:3px solid var(--burg);margin-top:30px}.ftr .in{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;padding:20px 0;font-size:14px}.ftr a{color:#e8edf1;text-decoration:underline}.ftr b{color:#fff}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body>
+<div class="fs-backdrop" onclick="toggleFs(true)"></div>
+<div class="brandrow"><div class="shell in"><div class="b"><span class="logo">▟ Elections Canada</span><span class="ttl"><b>Elections Canada</b><span>Electronic Signature Service</span></span></div><a class="lang" href="#">Français</a></div></div>
+<nav class="appnav"><div class="shell in"><ul class="menu"><li><a href="my-workspace-mockup.html">My Workspace</a></li><li><a href="product-brief-mockup.html">Product brief</a></li><li><a href="help-guide-mockup.html">Help</a></li></ul>
+  <div class="nav-right"><span class="bell"><svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg><span class="badge">3</span></span>
+    <div class="profile" onclick="toggleMenu(event)"><span class="avatar">FP</span><span class="chev">▾</span><div class="pmenu"><a href="#">My profile</a><a href="#" class="on">Activity &amp; history</a><a href="notification-centre-mockup.html">Notifications</a><div class="sep"></div><a href="#">Sign out</a></div></div>
+  </div></div></nav>
+<div class="pillbar"><div class="shell in"><a href="service-landing-mockup.html" class="spill">Envelopes</a><a href="service-pages-mockup.html" class="spill">Templates</a><a href="service-pages-mockup.html" class="spill">Documents</a></div></div>
+
+<div class="shell">
+  <h1 class="page">Activity &amp; history</h1>
+  <p class="lede">A unified, polymorphic log of every action across your envelopes, signers, templates and documents.</p>
+  <div class="stats">
+    <button class="stat active" data-f="all" onclick="setF(this)"><div class="lab" style="--dot:var(--navy)">All activity</div><div class="num">24</div></button>
+    <button class="stat" data-f="env" onclick="setF(this)"><div class="lab" style="--dot:var(--burg)">Envelopes</div><div class="num">11</div></button>
+    <button class="stat" data-f="sig" onclick="setF(this)"><div class="lab" style="--dot:var(--teal)">Signers</div><div class="num">8</div></button>
+    <button class="stat" data-f="tpl" onclick="setF(this)"><div class="lab" style="--dot:var(--navy)">Templates</div><div class="num">2</div></button>
+    <button class="stat" data-f="doc" onclick="setF(this)"><div class="lab" style="--dot:var(--olive)">Documents</div><div class="num">3</div></button>
+  </div>
+  <div class="card" id="c"><div class="lst-hd"><h4>Activity log</h4><button class="fs-btn" onclick="toggleFs()">⛶</button></div>
+    <div class="lst-tools"><span class="viewsel">▤ All activity ▾</span><div class="search"><input id="q" placeholder="Type to filter rows..." oninput="render()"></div></div>
+    <table class="nt"><thead><tr><th>When</th><th>Type</th><th>Record</th><th>Action</th><th>By</th></tr></thead><tbody id="rows"></tbody></table>
+    <div class="pager" id="pg"></div>
+  </div>
+</div>
+<footer class="ftr"><div class="shell in"><div><b>elections.ca</b> · <a href="#">Privacy</a> · <a href="#">Terms of use</a></div><div>Internal use — Elections Canada Electronic Signature Service</div></div></footer>
+<script>
+var T={env:['env','Envelope'],sig:['sig','Signer'],tpl:['tpl','Template'],doc:['doc','Document']};
+var D=[
+ ['env','EN-2026-01845','Sent for signature','Frederick Pearson','Sep 29, 11:12 a.m.'],
+ ['sig','Jane Smith','Signed "Consent to appointment"','Jane Smith','Sep 29, 10:40 a.m.'],
+ ['env','EN-2026-01844','Created','Frederick Pearson','Sep 29, 09:40 a.m.'],
+ ['sig','Marc Tremblay','Viewed envelope','Marc Tremblay','Sep 28, 04:20 p.m.'],
+ ['env','EN-2026-01840','Error — signer auth failed','System','Sep 28, 04:15 p.m.'],
+ ['tpl','Nomination form 2026','Template published','Frederick Pearson','Sep 24, 10:20 a.m.'],
+ ['doc','Consent to appointment.pdf','Audit trail downloaded','Frederick Pearson','Sep 23, 03:02 p.m.'],
+ ['env','EN-2026-01838','Reminder sent','Frederick Pearson','Sep 28, 02:10 p.m.'],
+ ['sig','Alex Roy','Declined to sign','Alex Roy','Sep 27, 11:05 a.m.'],
+ ['doc','Officer declaration.pdf','Document sealed (SHA-256)','System','Sep 27, 05:22 p.m.'],
+ ['env','EN-2026-01835','Completed','System','Sep 27, 05:22 p.m.'],
+ ['tpl','Appointment consent','Template updated','Frederick Pearson','Sep 20, 09:10 a.m.'],
+ ['sig','Jane Smith','Authenticated via Entra ID','Jane Smith','Sep 21, 02:33 p.m.'],
+ ['env','EN-2026-01830','Sent for signature','Frederick Pearson','Sep 27, 10:03 a.m.']
+];
+var f='all',page=1,P=10;
+function setF(el){document.querySelectorAll('.stat').forEach(s=>s.classList.remove('active'));el.classList.add('active');f=el.dataset.f;page=1;render();}
+function toggleFs(force){var c=document.getElementById('c');var on=force===true?false:!c.classList.contains('fs');c.classList.toggle('fs',on);document.body.classList.toggle('fs-on',on);}
+function toggleMenu(e){e.stopPropagation();document.querySelector('.profile').classList.toggle('open');}
+document.addEventListener('click',function(){var p=document.querySelector('.profile');if(p)p.classList.remove('open');});
+function render(){var q=(document.getElementById('q').value||'').toLowerCase();
+ var rows=D.filter(r=>(f==='all'||r[0]===f)&&(!q||(r.join(' ')).toLowerCase().includes(q)));
+ var pages=Math.max(1,Math.ceil(rows.length/P));if(page>pages)page=pages;var sl=rows.slice((page-1)*P,page*P);
+ document.getElementById('rows').innerHTML=sl.map(r=>`<tr><td>${r[4]}</td><td><span class="type ${r[0]}">${T[r[0]][1]}</span></td><td class="s">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+ var pg=document.getElementById('pg');pg.innerHTML='';if(pages>1){for(var i=1;i<=pages;i++){var b=document.createElement('button');b.textContent=i;if(i===page)b.className='on';b.onclick=(function(x){return function(){page=x;render();}})(i);pg.appendChild(b);}var nx=document.createElement('button');nx.textContent='›';nx.onclick=function(){if(page<pages){page++;render();}};pg.appendChild(nx);}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')toggleFs(true);});
+render();
+</script>
+</body></html>

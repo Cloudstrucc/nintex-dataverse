@@ -1,0 +1,72 @@
+{% comment %} e-Sign header — coe-dev-fp style: brand row + navy nav (auth/anon) + service pills. {% endcomment %}
+{% include 'EC-Base-Styles' %}
+
+<div class="ews-brandrow"><div class="ews-in">
+  <div class="ews-b">
+    <a href="/"><img class="ews-logo" src="/ec-logo.png" alt="Elections Canada"></a>
+    <span class="ews-ttl"><b>{{ snippets['ESIGN/HEADER/ORG'] | default: 'Elections Canada' }}</b><span>{{ snippets['ESIGN/HEADER/APP'] | default: 'Electronic Signature Service' }}</span></span>
+  </div>
+  {% substitution %}
+  {% assign curlang = website.selected_language.code %}
+  {% if curlang contains 'fr' %}<a class="ews-lang" href="/?lang=en-US">English</a>{% else %}<a class="ews-lang" href="/?lang=fr-CA">Français</a>{% endif %}
+  {% endsubstitution %}
+</div></div>
+
+<nav class="ews-nav" aria-label="Primary"><div class="ews-in">
+  {% if user %}
+  {% fetchxml ews_unreadq %}
+  <fetch aggregate="true"><entity name="cs_portalmessage">
+    <attribute name="cs_portalmessageid" alias="cnt" aggregate="count"/>
+    <filter type="and">
+      <condition attribute="cs_readon" operator="null"/>
+      <condition attribute="statecode" operator="eq" value="0"/>
+      <condition attribute="cs_recipientcontactid" operator="eq" value="{{ user.contactid }}"/>
+    </filter>
+  </entity></fetch>
+  {% endfetchxml %}
+  {% assign ec_unread = ews_unreadq.results.entities[0].cnt | default: 0 %}
+  <ul class="ews-menu">
+    <li><a href="/">{{ snippets['ESIGN/NAV/WORKSPACE'] | default: 'My Workspace' }}</a></li>
+    <li><a href="/envelopes/">{{ snippets['ESIGN/PILL/ENVELOPES'] | default: 'Envelopes' }}</a></li>
+    <li><a href="/templates/">{{ snippets['ESIGN/PILL/TEMPLATES'] | default: 'Templates' }}</a></li>
+    <li><a href="/documents/">{{ snippets['ESIGN/PILL/DOCUMENTS'] | default: 'Documents' }}</a></li>
+    <li><a href="/product-brief/">{{ snippets['ESIGN/NAV/BRIEF'] | default: 'Product brief' }}</a></li>
+    <li><a href="/help/">{{ snippets['ESIGN/NAV/HELP'] | default: 'Help' }}</a></li>
+  </ul>
+  <div class="ews-navright">
+    <a class="ews-bell" href="/notifications/" title="{{ snippets['ESIGN/NAV/NOTIFICATIONS'] | default: 'Notifications' }}" aria-label="Notifications">
+      <svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg>
+      {% if ec_unread and ec_unread > 0 %}<span class="ews-badge">{{ ec_unread }}</span>{% endif %}
+    </a>
+    <div class="ews-profile" onclick="ecToggleMenu(event)">
+      <span class="ews-avatar">{{ user.firstname | slice: 0,1 }}{{ user.lastname | slice: 0,1 }}</span><span class="ews-chev">&#9662;</span>
+      <div class="ews-pmenu">
+        <a href="/profile/">{{ snippets['ESIGN/MENU/PROFILE'] | default: 'My profile' }}</a>
+        <a href="/activity/">{{ snippets['ESIGN/MENU/ACTIVITY'] | default: 'Activity &amp; history' }}</a>
+        <a href="/notifications/">{{ snippets['ESIGN/MENU/NOTIFICATIONS'] | default: 'Notifications' }}</a>
+        <div class="ews-sep"></div>
+        <a href="/Account/SignOut">{{ snippets['ESIGN/MENU/SIGNOUT'] | default: 'Sign out' }}</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <ul class="ews-menu">
+    <li><a href="/" class="active">{{ snippets['ESIGN/NAV/HOME'] | default: 'Home' }}</a></li>
+    <li><a href="/product-brief/">{{ snippets['ESIGN/NAV/BRIEF'] | default: 'Product brief' }}</a></li>
+    <li><a href="/help/">{{ snippets['ESIGN/NAV/HELP'] | default: 'Help' }}</a></li>
+    <li><a href="/get-access/">{{ snippets['ESIGN/NAV/GETACCESS'] | default: 'Get access' }}</a></li>
+  </ul>
+  {% endif %}
+</div></nav>
+
+{% if user %}
+<script>
+function ecToggleMenu(e){e.stopPropagation();var p=document.querySelector('.ews-profile');if(p)p.classList.toggle('open');}
+document.addEventListener('click',function(){var p=document.querySelector('.ews-profile');if(p)p.classList.remove('open');});
+/* mark the active nav item / service pill by current path */
+(function(){var path=location.pathname.replace(/\/$/,'').toLowerCase();
+ document.querySelectorAll('.ews-menu a,.ews-spill').forEach(function(a){var h=(a.getAttribute('href')||'').replace(/\/$/,'').toLowerCase();
+   if(h && h!=='/' && path.indexOf(h)===0){a.classList.add('active');}
+   if(h==='/' && (path===''||path==='/en'||path==='/fr')){a.classList.add('active');}});})();
+</script>
+{% endif %}

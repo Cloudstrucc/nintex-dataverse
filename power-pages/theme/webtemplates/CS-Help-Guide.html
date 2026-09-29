@@ -1,0 +1,30 @@
+{% comment %} Help guide — accordion sections + quick contact. {% endcomment %}
+<main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-md mrgn-bttm-lg">
+
+    <div class="ews-svcbanner mrgn-bttm-md">
+      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 2 3 7v6c0 5 3.8 8.3 9 9 5.2-.7 9-4 9-9V7l-9-5Z"/></svg></span>
+      <div><h1>{{ snippets['ESIGN/HELP/TITLE'] | default: 'Help guide' }}</h1>
+        <p>{{ snippets['ESIGN/HELP/SUB'] | default: 'Step-by-step guidance for using the Electronic Signature Service.' }}</p></div>
+    </div>
+
+    <div class="ews-acc">
+      <details open><summary>{{ snippets['ESIGN/HELP/Q1'] | default: 'Getting started' }}</summary>
+        <div class="bd"><p>Sign in with your Entra ID. Your workspace shows your envelopes, quick services and any notifications. Use <b>My services</b> to jump into Envelopes, Templates or Signed documents.</p></div></details>
+      <details><summary>{{ snippets['ESIGN/HELP/Q2'] | default: 'Create and send an envelope' }}</summary>
+        <div class="bd"><ol><li>Open <b>Envelopes</b> and choose <b>Create a new envelope</b>.</li><li>Pick an approved template or upload a document.</li><li>Add signers, set the signing order, authentication and language.</li><li>Review and send — signers are notified by email.</li></ol></div></details>
+      <details><summary>{{ snippets['ESIGN/HELP/Q3'] | default: 'Track signing progress' }}</summary>
+        <div class="bd"><p>The envelope table on <b>My Workspace</b> shows live status. Filter by <b>In process</b>, <b>Completed</b> or <b>Action required</b> using the tiles. Reminders can be sent to pending signers.</p></div></details>
+      <details><summary>{{ snippets['ESIGN/HELP/Q4'] | default: 'Retrieve signed documents' }}</summary>
+        <div class="bd"><p>When an envelope completes, its signed PDF and audit trail are available under <b>Signed documents</b>. Completed documents are retained per the Elections Canada retention schedule.</p></div></details>
+      <details><summary>{{ snippets['ESIGN/HELP/Q5'] | default: 'Templates' }}</summary>
+        <div class="bd"><p>Templates are reusable, pre-approved documents. Browse existing templates or create a new one from <b>Templates</b>. Only active templates appear when creating an envelope.</p></div></details>
+    </div>
+
+    <div class="ews-briefband mrgn-tp-md">
+      <h2>{{ snippets['ESIGN/HELP/CONTACT/T'] | default: 'Need more help?' }}</h2>
+      <p>{{ snippets['ESIGN/HELP/CONTACT/B'] | default: 'Contact the Electronic Signature support team for assistance with envelopes, templates or access.' }}</p>
+      <a class="ews-btn ews-primary" href="mailto:{{ snippets['ESIGN/HELP/CONTACT/EMAIL'] | default: 'esign-support@elections.ca' }}">{{ snippets['ESIGN/HELP/CONTACT/BTN'] | default: 'Contact support' }}</a>
+    </div>
+  </div>
+</main>

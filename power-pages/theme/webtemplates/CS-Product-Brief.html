@@ -1,0 +1,37 @@
+{% comment %} Product brief — coe-style content bands, scoped to e-signature. {% endcomment %}
+<main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-md mrgn-bttm-lg">
+
+    <div class="ews-hero mrgn-bttm-md">
+      <div class="k">{{ snippets['ESIGN/BRIEF/KICKER'] | default: 'Product brief' }}</div>
+      <h1>{{ snippets['ESIGN/BRIEF/TITLE'] | default: 'Electronic Signature Service' }}</h1>
+      <p>{{ snippets['ESIGN/BRIEF/SUB'] | default: 'A secure, GC-compliant way to send, sign and manage documents — built on the Nintex AssureSign platform and Microsoft Power Platform.' }}</p>
+    </div>
+
+    <div class="ews-briefband">
+      <h2>{{ snippets['ESIGN/BRIEF/WHAT/T'] | default: 'What it is' }}</h2>
+      <p>{{ snippets['ESIGN/BRIEF/WHAT/B'] | default: 'The Electronic Signature Service lets Elections Canada teams request legally binding signatures on official documents without printing, scanning or mailing. Envelopes are created from approved templates, routed to signers in order, and tracked to completion with a tamper-evident audit trail.' }}</p>
+    </div>
+
+    <h2 class="ews-sec">{{ snippets['ESIGN/BRIEF/FEATURES'] | default: 'Key capabilities' }}</h2>
+    <div class="ews-grid">
+      <div class="ews-svc" style="--c:var(--ews-burg)"><div class="top"></div><div class="hd"><span class="ic">1</span><div><h4>Template-driven</h4><div class="cnt">Approved, reusable forms</div></div></div><ul><li><span class="off">Consistent, pre-approved documents</span></li><li><span class="off">Faster envelope creation</span></li></ul></div>
+      <div class="ews-svc" style="--c:var(--ews-navy)"><div class="top"></div><div class="hd"><span class="ic">2</span><div><h4>Ordered signing</h4><div class="cnt">Multi-signer routing</div></div></div><ul><li><span class="off">Sequential or parallel signers</span></li><li><span class="off">Per-signer authentication &amp; language</span></li></ul></div>
+      <div class="ews-svc" style="--c:var(--ews-burg)"><div class="top"></div><div class="hd"><span class="ic">3</span><div><h4>Real-time tracking</h4><div class="cnt">Status &amp; reminders</div></div></div><ul><li><span class="off">Live status on My Workspace</span></li><li><span class="off">Automated signer reminders</span></li></ul></div>
+      <div class="ews-svc" style="--c:var(--ews-navy)"><div class="top"></div><div class="hd"><span class="ic">4</span><div><h4>Compliant &amp; auditable</h4><div class="cnt">GC Protected B</div></div></div><ul><li><span class="off">Tamper-evident audit trail</span></li><li><span class="off">Retained completed documents</span></li></ul></div>
+    </div>
+
+    <h2 class="ews-sec">{{ snippets['ESIGN/BRIEF/HOW'] | default: 'How it works' }}</h2>
+    <div class="ews-timeline">
+      <div class="ews-tl"><span class="n">1</span><div><b>Create an envelope</b><p>Start from an approved template or upload a document.</p></div></div>
+      <div class="ews-tl"><span class="n">2</span><div><b>Add signers</b><p>Set signing order, authentication and language per recipient.</p></div></div>
+      <div class="ews-tl"><span class="n">3</span><div><b>Send for signature</b><p>Recipients are notified and sign securely from any device.</p></div></div>
+      <div class="ews-tl"><span class="n">4</span><div><b>Track &amp; complete</b><p>Follow progress in real time and retrieve the audited documents.</p></div></div>
+    </div>
+
+    <div class="ews-briefband mrgn-tp-md">
+      <h2>{{ snippets['ESIGN/BRIEF/SEC/T'] | default: 'Security &amp; compliance' }}</h2>
+      <p>{{ snippets['ESIGN/BRIEF/SEC/B'] | default: 'All data is held in Dataverse within the Elections Canada tenant. Access is governed by Entra ID and Power Pages table permissions. Every signature event is logged, and completed documents carry a verifiable audit certificate meeting Government of Canada IT security standards.' }}</p>
+    </div>
+  </div>
+</main>

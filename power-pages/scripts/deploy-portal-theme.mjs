@@ -185,6 +185,7 @@ const CORE = [
   ["EC-Phone-Region-Labels", "EC-Phone-Region-Labels.html"],
   ["EC-Subgrid-Modern-Scripts", "EC-Subgrid-Modern-Scripts.html"],
   ["EC-Wizard-Tiles-Scripts", "EC-Wizard-Tiles-Scripts.html"],
+  ["EC-Workspace-Styles", "EC-Workspace-Styles.html"],
   // aggregators last (they {% include %} the partials above)
   ["EC-Base-Styles", "EC-Base-Styles.html"],
   ["EC-Scripts-Base", "EC-Scripts-Base.html"],
@@ -196,6 +197,7 @@ async function main() {
   if (PHASE === "core" || PHASE === "all") {
     console.log("--- Phase 1: theme-core web templates ---");
     for (const [n, f] of CORE) await upsertWT(n, f);
+    await appendInclude("EC-Base-Styles", "EC-Workspace-Styles"); // load workspace CSS site-wide
   }
   if (PHASE === "header-footer" || PHASE === "all") {
     console.log("--- Phase 2: load theme via bound header/footer ---");
@@ -223,6 +225,24 @@ async function main() {
     for (const n of ["CS-header", "CS-Home-WET", "CS-Envelopes", "CS-Envelope-Editor", "CS Template Editor", "CS Templates", "Templates"]) {
       await replaceInWT(n, [["pepp-", "ppep-"]]);
     }
+  }
+  if (PHASE === "headerfooter" || PHASE === "all") {
+    console.log("--- header/footer (coe nav + footer) ---");
+    await upsertWT("CS-header", "CS-header.html");
+    await upsertWT("CS-footer", "CS-footer.html");
+  }
+  if (PHASE === "dashboard" || PHASE === "all") {
+    console.log("--- My Workspace dashboard + landing ---");
+    await upsertWT("CS-Home-WET", "CS-Home-WET.html");
+  }
+  if (PHASE === "pages" || PHASE === "all") {
+    // Content-only redeploy of the workspace feature pages. The page-template + web-page
+    // records are created once by scripts/create-portal-pages.mjs; this re-pushes their source.
+    console.log("--- feature-page web templates (notifications, brief, help, activity) ---");
+    await upsertWT("CS-Notifications", "CS-Notifications.html");
+    await upsertWT("CS-Product-Brief", "CS-Product-Brief.html");
+    await upsertWT("CS-Help-Guide", "CS-Help-Guide.html");
+    await upsertWT("CS-Activity-History", "CS-Activity-History.html");
   }
   console.log("done.");
 }

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notification Centre — e-Sign (mockup)</title>
+<style>
+:root{
+  --navy:#1e384b; --burg:#6a0032; --burg-dk:#520026; --teal:#036064;
+  --line:#d5dbe0; --line-soft:#e6eaed; --ink:#33404a; --muted:#69727a; --page:#f4f6f8;
+  --ok:#0c6b4f; --ok-bg:#e3f3ec; --danger:#b3122b; --danger-bg:#fdecee;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.5}
+.shell{max-width:1170px;margin:0 auto;padding:0 15px}
+.brand{background:#fff;border-bottom:1px solid var(--line-soft);padding:12px 0}
+.brand .logo{display:inline-flex;align-items:center;gap:10px;font-weight:800;color:var(--burg);font-size:20px}
+.appbar{background:var(--navy);color:#fff}
+.appbar .in{display:flex;justify-content:space-between;align-items:center;padding:13px 0}
+.appbar .right{display:flex;align-items:center;gap:16px}
+.bell{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.16)}
+.bell svg{width:20px;height:20px;fill:#fff}
+.crumbs{padding:14px 0;font-size:13.5px;color:var(--muted)}
+.crumbs a{color:#174f84;text-decoration:none}
+h2.page{font-size:30px;font-weight:700;color:var(--navy);margin:6px 0 14px}
+.claim{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--muted);margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.06);overflow:hidden}
+.ntoolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line-soft)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{border:0;background:transparent;font:inherit;font-size:13.5px;font-weight:700;color:var(--muted);padding:8px 13px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.tab:hover{background:#f1f4f6;color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--burg);color:#fff}
+.tab .cnt{font-size:11.5px;font-weight:800;background:rgba(0,0,0,.09);border-radius:99px;padding:1px 7px}
+.tab[aria-selected="true"] .cnt{background:rgba(255,255,255,.25)}
+.tab.urgent .cnt{background:var(--danger-bg);color:var(--danger)}
+.search{position:relative;flex:1 1 300px;max-width:420px}
+.search input{width:100%;height:42px;border:2px solid #d7dce1;border-radius:10px;padding:0 14px 0 38px;font:inherit;font-size:14px}
+.search input:focus{outline:0;border-color:var(--burg);box-shadow:0 0 0 3px rgba(106,0,50,.12)}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:var(--muted)}
+.btn{appearance:none;font:inherit;font-size:13.5px;font-weight:700;border-radius:9px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--burg);color:var(--burg)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.high{background:var(--danger-bg);color:var(--danger)}
+.pill.fyi{background:#eef1f3;color:#5f6b75}
+.chip-svc{display:inline-block;font-size:12px;font-weight:600;color:#3d4a55;background:#eef2f5;border:1px solid #e0e6ea;border-radius:7px;padding:3px 9px;white-space:nowrap}
+table.nt{width:100%;border-collapse:collapse;font-size:14px}
+table.nt thead th{background:var(--burg);color:#fff;text-align:left;font-weight:700;font-size:13.5px;padding:13px 16px;white-space:nowrap}
+table.nt tbody td{padding:14px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+table.nt tbody tr:last-child td{border-bottom:0}
+table.nt tbody tr.unread td:first-child{box-shadow:inset 4px 0 0 var(--burg)}
+table.nt tbody tr.unread.high td:first-child{box-shadow:inset 4px 0 0 var(--danger)}
+table.nt tbody tr:hover{background:#fafbfc}
+.s{color:var(--navy);font-weight:600}
+table.nt tbody tr.unread .s{font-weight:800}
+.sub-prev{display:block;font-size:12.5px;color:var(--muted);font-weight:400;margin-top:3px}
+.dt .rel{display:block;font-weight:600;color:var(--ink)}
+.dt .abs{display:block;font-size:12px;color:var(--muted)}
+.rowacts{display:flex;gap:6px;justify-content:flex-end}
+</style></head>
+<body>
+<div class="brand"><div class="shell"><span class="logo">▟ Elections Canada</span></div></div>
+<div class="appbar"><div class="shell in"><span>Electronic Signature Service</span>
+  <span class="right">👤 Frederick Pearson ▾ <span class="bell"><svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg></span></span>
+</div></div>
+
+<div class="shell">
+  <div class="crumbs"><a href="#">Home</a> / My Notifications</div>
+  <h2 class="page">My Notifications</h2>
+  <div class="claim">Missing something? <a class="btn" href="#">🔒 Enter a claim code</a></div>
+
+  <div class="card">
+    <div class="ntoolbar">
+      <div class="tabs">
+        <button class="tab" aria-selected="true">All <span class="cnt">6</span></button>
+        <button class="tab">Unread <span class="cnt">2</span></button>
+        <button class="tab urgent">Action required <span class="cnt">1</span></button>
+        <button class="tab">Archived <span class="cnt">5</span></button>
+      </div>
+      <div class="search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input placeholder="Type to filter..."></div>
+      <button class="btn">Mark all read</button>
+    </div>
+    <table class="nt">
+      <thead><tr><th>Priority</th><th>Service</th><th>Subject</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        <tr class="unread high">
+          <td><span class="pill high">Immediate action required</span></td>
+          <td><span class="chip-svc">Signers</span></td>
+          <td><span class="s">Action required: signer authentication failed</span><span class="sub-prev">A signer could not be verified for envelope EN-2026-01845. Re-send required…</span></td>
+          <td class="dt"><span class="rel">4 hours ago</span><span class="abs">Sep 29, 2026, 11:12 a.m.</span></td>
+          <td><div class="rowacts"><a class="btn" href="#">View</a><button class="btn">Archive</button></div></td>
+        </tr>
+        <tr class="unread">
+          <td><span class="pill fyi">For your information</span></td>
+          <td><span class="chip-svc">Envelopes</span></td>
+          <td><span class="s">Envelope EN-2026-01845 was sent for signature</span><span class="sub-prev">Your envelope has been sent to 3 signers. You'll be notified as they sign…</span></td>
+          <td class="dt"><span class="rel">1 day ago</span><span class="abs">Sep 28, 2026, 09:04 a.m.</span></td>
+          <td><div class="rowacts"><a class="btn" href="#">View</a><button class="btn">Archive</button></div></td>
+        </tr>
+        <tr>
+          <td><span class="pill fyi">For your information</span></td>
+          <td><span class="chip-svc">Signers</span></td>
+          <td><span class="s">Jane Smith signed "Consent to appointment"</span><span class="sub-prev">1 of 3 signers complete on envelope EN-2026-01845…</span></td>
+          <td class="dt"><span class="rel">2 days ago</span><span class="abs">Sep 27, 2026, 02:41 p.m.</span></td>
+          <td><div class="rowacts"><a class="btn" href="#">View</a><button class="btn">Archive</button></div></td>
+        </tr>
+        <tr>
+          <td><span class="pill fyi">For your information</span></td>
+          <td><span class="chip-svc">Templates</span></td>
+          <td><span class="s">Template "Nomination form 2026" is now active</span><span class="sub-prev">The template was published and is available for new envelopes…</span></td>
+          <td class="dt"><span class="rel">5 days ago</span><span class="abs">Sep 24, 2026, 10:20 a.m.</span></td>
+          <td><div class="rowacts"><a class="btn" href="#">View</a><button class="btn">Archive</button></div></td>
+        </tr>
+        <tr>
+          <td><span class="pill fyi">For your information</span></td>
+          <td><span class="chip-svc">Envelopes</span></td>
+          <td><span class="s">Envelope EN-2026-01790 completed</span><span class="sub-prev">All signers have signed. The completed document and audit trail are ready…</span></td>
+          <td class="dt"><span class="rel">1 week ago</span><span class="abs">Sep 22, 2026, 04:55 p.m.</span></td>
+          <td><div class="rowacts"><a class="btn" href="#">View</a><button class="btn">Archive</button></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body></html>

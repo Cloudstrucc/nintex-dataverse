@@ -1,0 +1,76 @@
+
+<!-- ══ My Workspace (authenticated dashboard) — e-Sign ══ -->
+<main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-md mrgn-bttm-lg">
+
+    <div class="ews-hero">
+      <div class="k">{{ snippets['ESIGN/HOME/PORTAL'] | default: 'My Elections Canada Portal' }}</div>
+      <h1>{{ snippets['ESIGN/HOME/WORKSPACE'] | default: 'My Workspace' }}</h1>
+      <p>{{ snippets['ESIGN/HOME/WELCOME'] | default: 'Welcome back' }}{% if user %}, <strong>{{ user.firstname }}</strong>{% endif %}. {{ snippets['ESIGN/HOME/DESC'] | default: 'Track your signature requests and open a service below.' }}</p>
+      {% if user %}<div class="fp">{{ user.firstname | slice: 0,1 }}{{ user.lastname | slice: 0,1 }}</div>{% endif %}
+    </div>
+
+    <!-- KPI filter tiles (default = Total) -->
+    <div class="ews-stats">
+      <button class="ews-stat active" data-f="all" onclick="ecSetF(this)"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
+      <button class="ews-stat" data-f="proc" onclick="ecSetF(this)"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
+      <button class="ews-stat" data-f="done" onclick="ecSetF(this)"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/KPI/DONE'] | default: 'Completed' }}</div><div class="num" id="k-done">0</div></button>
+      <button class="ews-stat" data-f="err" onclick="ecSetF(this)"><div class="lab" style="--dot:#b3122b">{{ snippets['ESIGN/KPI/ERR'] | default: 'Action required' }}</div><div class="num" id="k-err">0</div></button>
+    </div>
+
+    <!-- My Envelopes table -->
+    <div class="ews-card" id="ecEnvCard">
+      <div class="ews-lsthd"><div><h4>{{ snippets['ESIGN/HOME/ENVTITLE'] | default: 'My Envelopes' }}</h4><div class="ews-subprev" id="ecFilterLabel"></div></div>
+        <button class="ews-fsbtn" title="Full screen" onclick="ecToggleFs()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
+      <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/HOME/ACTIVEVIEW'] | default: 'Active envelopes' }}</span>
+        <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}" oninput="ecRender()"></div></div>
+      <table class="ews-nt"><thead><tr><th></th><th>{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }}</th><th>{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }}</th><th>{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }}</th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
+      <div class="ews-pager" id="ecPager"></div>
+    </div>
+
+    <!-- Services (4 tiles, one row) -->
+    <h3 class="ews-sec">{{ snippets['ESIGN/HOME/SERVICES'] | default: 'Services' }}</h3>
+    <div class="ews-grid">
+      <div class="ews-svc" style="--c:var(--ews-burg)"><div class="top"></div>
+        <div class="hd"><span class="ic"><svg viewBox="0 0 24 24"><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6Zm2 .4V18h16V6.4l-8 5-8-5Z"/></svg></span><div><h4>{{ snippets['ESIGN/SVC/ENV/T'] | default: 'Envelopes' }}</h4><div class="cnt" id="svc-env-cnt"></div></div></div>
+        <ul><li><a href="/envelopes/">{{ snippets['ESIGN/SVC/ENV/L1'] | default: 'View my envelopes' }} <span class="arw">&rsaquo;</span></a></li><li><a href="/envelopes/edit-envelope/">{{ snippets['ESIGN/SVC/ENV/L2'] | default: 'Create a new envelope' }} <span class="arw">&rsaquo;</span></a></li></ul></div>
+      <div class="ews-svc" style="--c:var(--ews-navy)"><div class="top"></div>
+        <div class="hd"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7 12h10v1.6H7V12Zm0 4h10v1.6H7V16Z"/></svg></span><div><h4>{{ snippets['ESIGN/SVC/TPL/T'] | default: 'Templates' }}</h4><div class="cnt">{{ snippets['ESIGN/SVC/TPL/C'] | default: 'Reusable templates' }}</div></div></div>
+        <ul><li><a href="/templates/">{{ snippets['ESIGN/SVC/TPL/L1'] | default: 'Browse templates' }} <span class="arw">&rsaquo;</span></a></li><li><a href="/edit-template/">{{ snippets['ESIGN/SVC/TPL/L2'] | default: 'Create a template' }} <span class="arw">&rsaquo;</span></a></li></ul></div>
+      <div class="ews-svc" style="--c:var(--ews-burg)"><div class="top"></div>
+        <div class="hd"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6V2Zm7 1.5V7h3.5L13 3.5ZM9 13l2 2 4-4 1 1-5 5-3-3 1-1Z"/></svg></span><div><h4>{{ snippets['ESIGN/SVC/DOC/T'] | default: 'Signed documents' }}</h4><div class="cnt" id="svc-doc-cnt"></div></div></div>
+        <ul><li><a href="/documents/">{{ snippets['ESIGN/SVC/DOC/L1'] | default: 'View signed documents' }} <span class="arw">&rsaquo;</span></a></li><li><a href="/documents/">{{ snippets['ESIGN/SVC/DOC/L2'] | default: 'Download audit trail' }} <span class="arw">&rsaquo;</span></a></li></ul></div>
+      <div class="ews-svc" style="--c:var(--ews-navy)"><div class="top"></div>
+        <div class="hd"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v6c0 5 3.8 8.3 9 9 5.2-.7 9-4 9-9V7l-9-5Z"/></svg></span><div><h4>{{ snippets['ESIGN/SVC/HELP/T'] | default: 'Help &amp; support' }}</h4><div class="cnt">{{ snippets['ESIGN/SVC/HELP/C'] | default: 'Guidance and contact' }}</div></div></div>
+        <ul><li><a href="/help/">{{ snippets['ESIGN/SVC/HELP/L1'] | default: 'How e-signing works' }} <span class="arw">&rsaquo;</span></a></li><li><a href="/help/">{{ snippets['ESIGN/SVC/HELP/L2'] | default: 'Contact support' }} <span class="arw">&rsaquo;</span></a></li></ul></div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var STAT={1:['Draft','draft','other'],717640001:['Preparing','proc','proc'],717640002:['Ready to Send','proc','proc'],717640003:['In Process','proc','proc'],717640004:['Completed','done','done'],717640005:['Error','err','err'],717640006:['Cancelled','off','other'],717640007:['Cancel Error','err','err']};
+  var DATA=[],filter='all',page=1,PAGE=10;
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
+  window.ecSetF=function(el){document.querySelectorAll('.ews-stat').forEach(function(s){s.classList.remove('active');});el.classList.add('active');filter=el.dataset.f;page=1;document.getElementById('ecFilterLabel').textContent='Showing: '+el.querySelector('.lab').textContent;ecRender();};
+  window.ecToggleFs=function(force){var c=document.getElementById('ecEnvCard');var on=force===true?false:!c.classList.contains('fs');c.classList.toggle('fs',on);document.body.classList.toggle('ews-fson',on);};
+  window.ecRender=function(){
+    var q=(document.getElementById('ecQ').value||'').toLowerCase();
+    var rows=DATA.filter(function(r){return (filter==='all'||r.g===filter)&&(!q||(r.name+' '+r.subj+' '+r.stl).toLowerCase().indexOf(q)>=0);});
+    var pages=Math.max(1,Math.ceil(rows.length/PAGE));if(page>pages)page=pages;var sl=rows.slice((page-1)*PAGE,page*PAGE);
+    var tb=document.getElementById('ecRows');
+    tb.innerHTML=sl.length?sl.map(function(r){return '<tr><td><button class="ews-rowact" title="Open" onclick="location.href=\''+r.url+'\'">&#8942;</button></td><td class="s">'+esc(r.name)+'</td><td>'+esc(r.subj)+'</td><td><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td>'+esc(r.mod)+'</td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No envelopes match this filter.</td></tr>';
+    var pg=document.getElementById('ecPager');pg.innerHTML='';if(pages>1){for(var i=1;i<=pages;i++){var b=document.createElement('button');b.textContent=i;if(i===page)b.className='on';b.onclick=(function(x){return function(){page=x;ecRender();};})(i);pg.appendChild(b);}var nx=document.createElement('button');nx.textContent='›';nx.onclick=function(){if(page<pages){page++;ecRender();}};pg.appendChild(nx);}
+  };
+  function kpis(){var t=DATA.length,p=0,d=0,e=0;DATA.forEach(function(r){if(r.g==='proc')p++;else if(r.g==='done')d++;else if(r.g==='err')e++;});
+    document.getElementById('k-all').textContent=t;document.getElementById('k-proc').textContent=p;document.getElementById('k-done').textContent=d;document.getElementById('k-err').textContent=e;
+    var ec=document.getElementById('svc-env-cnt');if(ec)ec.textContent=t+' total · '+p+' in process';var dc=document.getElementById('svc-doc-cnt');if(dc)dc.textContent=d+' completed';}
+  fetch('/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode&$orderby=modifiedon desc&$top=200',{headers:{'Accept':'application/json'},credentials:'same-origin'})
+    .then(function(r){return r.ok?r.json():{value:[]};})
+    .then(function(j){DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];return {name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:v.cs_subject||'',stl:st[0],cls:st[1],g:st[2],mod:fmt(v.modifiedon),url:'/envelopes/edit-envelope/?id='+v.cs_envelopeid};});
+      document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';kpis();ecRender();})
+    .catch(function(){document.getElementById('ecRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load envelopes.</td></tr>';});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')ecToggleFs(true);});
+})();
+</script>

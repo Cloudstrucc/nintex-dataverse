@@ -1,19 +1,8 @@
 <!-- ══ Anonymous landing — coe-dev-fp design, scoped to e-signature. All copy via snippets. ══ -->
 <main class="ppep-app ppep-anon" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
 
-  <!-- Hero: EC "Half-X" brand device (matches coe-dev-fp landing) -->
+  <!-- Hero (background graphic removed per request — copy tile only) -->
   <section class="ec-hero" aria-labelledby="heroTitle">
-    <svg class="ec-hero-halfx" viewBox="0 0 900 1090" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="burgMain" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a1244"/><stop offset="1" stop-color="#5f012e"/></linearGradient>
-        <linearGradient id="burgDark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d0424"/><stop offset="1" stop-color="#611031"/></linearGradient>
-      </defs>
-      <polygon points="185,0 745,0 300,445 560,790 345,1090 0,760 0,210" fill="url(#burgMain)"/>
-      <polygon points="185,0 745,0 400,345 0,345 0,210" fill="url(#burgDark)"/>
-      <polygon points="800,0 852,0 327,525 275,525" fill="#036064"/>
-      <polygon points="600,790 810,1090 393,1090" fill="#c9862d"/>
-      <polygon points="0,806 0,862 238,1090 297,1090" fill="#8b9538"/>
-    </svg>
     <div class="ec-hero-inner">
       <div class="ec-hero-copy">
         <h1 id="heroTitle">{{ snippets['ESIGN/HOME/TITLE'] | default: 'Electronic Signature Service' }}</h1>
@@ -80,11 +69,10 @@
   </section>
 
   <style>
-    /* Compact the hero so the tiles below are visible on load (theme default is min-height:680px). */
-    .ppep-anon .ec-hero{min-height:420px;}
+    /* No background graphic — hero hugs the copy tile. */
+    .ppep-anon .ec-hero{min-height:auto;background:var(--ec-grey-050,#f7f7f7);}
     .ppep-anon .ec-hero-inner{padding:2.4rem 15px 2.4rem;}
     .ppep-anon .ec-hero-copy{transform:none;}
-    @media (max-width:900px){ .ppep-anon .ec-hero{min-height:auto;} }
     /* Scoped helpers for classes the EC theme does not define (theme owns .ec-hero/.ec-card/.ec-btn). */
     .ppep-anon .esign-band{padding:48px 0;}
     .ppep-anon .esign-band-alt{background:var(--ec-grey-050,#f7f7f7);}

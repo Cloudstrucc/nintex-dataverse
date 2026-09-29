@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Service pages — e-Sign mockup</title>
+<style>
+:root{--navy:#1e384b;--navy-dk:#0d2536;--burg:#6a0032;--teal:#036064;--mustard:#c9862d;--line:#d5dbe0;--line-soft:#e6eaed;--ink:#33404a;--muted:#69727a;--page:#f4f6f8;--ok:#0c6b4f;--ok-bg:#e3f3ec;--warn-bg:#fff4d6;--warn-ink:#7a5600;--link:#174f84}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.5}
+.shell{max-width:1170px;margin:0 auto;padding:0 15px}
+.brandrow{background:#fff;border-bottom:3px solid var(--burg)}.brandrow .in{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+.brandrow .b{display:flex;align-items:center;gap:14px}.brandrow .logo{width:150px;height:44px;background:linear-gradient(90deg,#111 0 34%,var(--burg) 34% 100%);border-radius:3px;color:#fff;display:grid;place-items:center;font-weight:800;font-size:12px}
+.brandrow .ttl b{display:block;color:#111;font-size:15px}.brandrow .ttl span{color:var(--muted);font-size:13px}.brandrow .lang{color:var(--link);font-weight:700;text-decoration:underline;font-size:14px}
+.appnav{background:var(--navy);color:#fff}.appnav .in{display:flex;align-items:center;justify-content:space-between}
+.menu{display:flex;gap:4px;list-style:none;margin:0;padding:0}.menu a{display:block;padding:15px 16px;color:#e8edf1;text-decoration:none;font-size:14.5px;font-weight:600;border-bottom:3px solid transparent}.menu a:hover{color:#fff}.menu a.on{color:#fff;border-bottom-color:var(--mustard)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.bell{position:relative;width:34px;height:34px;border-radius:9px;display:grid;place-items:center}.bell svg{width:20px;height:20px;fill:#fff}.bell .badge{position:absolute;top:0;right:0;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--mustard);color:#3a2a00;font-size:11px;font-weight:800;display:grid;place-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--burg);font-weight:800;display:grid;place-items:center;font-size:13px}.chev{color:#e8edf1}
+/* mockup page switcher */
+.switch{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.switch .in{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0}
+.switch button{border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13.5px;color:var(--navy);border-radius:99px;padding:8px 15px;cursor:pointer}
+.switch button.on{background:var(--burg);border-color:var(--burg);color:#fff}
+.switch .spill{border:1px solid var(--line);background:#fff;font-weight:700;font-size:13.5px;color:var(--navy);border-radius:99px;padding:8px 15px;text-decoration:none}
+.switch .spill:hover{border-color:var(--burg);color:var(--burg)}
+.profile{display:flex;align-items:center;gap:6px;cursor:pointer;position:relative}
+.pmenu{display:none;position:absolute;top:44px;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.18);min-width:212px;padding:6px;z-index:50}
+.profile.open .pmenu{display:block}
+.pmenu a{display:block;padding:10px 12px;border-radius:8px;color:var(--navy);text-decoration:none;font-size:14px;font-weight:600}.pmenu a:hover{background:#f4f6f8}
+.pmenu .sep{height:1px;background:var(--line-soft);margin:6px 4px}
+.crumbs{padding:14px 0;font-size:13.5px;color:var(--muted)}.crumbs a{color:var(--link);text-decoration:none}
+.svcbanner{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-left:6px solid var(--burg);border-radius:14px;padding:18px 22px}
+.svcbanner .av{width:52px;height:52px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--burg) 12%,#fff);color:var(--burg);font-size:24px}
+.svcbanner h1{margin:0;font-size:24px;font-weight:800;color:var(--navy)}.svcbanner p{margin:2px 0 0;color:var(--muted);font-size:13.5px}
+.svcbanner .cta{margin-left:auto;display:flex;gap:10px}
+.btn{appearance:none;font:inherit;font-size:14px;font-weight:700;border-radius:10px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);text-decoration:none;display:inline-flex;gap:8px;align-items:center}
+.btn:hover{border-color:var(--burg);color:var(--burg)}.btn.primary{background:var(--burg);border-color:var(--burg);color:#fff}.btn.primary:hover{filter:brightness(.9);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px}.stat.active{border-color:var(--burg);box-shadow:inset 4px 0 0 var(--burg)}
+.stat .lab{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:flex;gap:7px;align-items:center}.stat .lab::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--dot,var(--muted))}
+.stat .num{font-size:28px;font-weight:800;color:var(--navy);margin-top:6px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.06);margin-top:18px;overflow:hidden}
+.lst-hd{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line-soft)}.lst-hd h4{margin:0;font-size:18px;font-weight:700;color:var(--navy)}
+.fs-btn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--navy)}
+.lst-tools{display:flex;gap:12px;align-items:center;padding:14px 18px}.viewsel{border:1px solid var(--line);border-radius:9px;padding:9px 13px;font-weight:600;color:var(--navy);font-size:13.5px}.search{margin-left:auto;flex:0 1 320px}.search input{width:100%;height:40px;border:2px solid #d7dce1;border-radius:10px;padding:0 14px;font:inherit}
+table.nt{width:100%;border-collapse:collapse;font-size:14px}table.nt thead th{background:var(--burg);color:#fff;text-align:left;font-weight:700;font-size:13px;padding:12px 16px;white-space:nowrap}table.nt tbody td{padding:13px 16px;border-bottom:1px solid var(--line-soft)}table.nt tbody tr:hover{background:#fafbfc}.s{color:var(--navy);font-weight:700}
+.chip{display:inline-block;font-size:12px;font-weight:600;color:#3d4a55;background:#eef2f5;border:1px solid #e0e6ea;border-radius:7px;padding:3px 9px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px}.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.pill.on{background:var(--ok-bg);color:var(--ok)}.pill.off{background:#eef1f3;color:#5f6b75}.pill.done{background:var(--ok-bg);color:var(--ok)}
+.pager{display:flex;gap:8px;justify-content:center;padding:16px}.pager b{min-width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;font-weight:700;color:var(--navy)}.pager b.on{background:var(--burg);border-color:var(--burg);color:#fff}
+/* form */
+.form{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.06);padding:26px 30px;max-width:760px}
+.form .row{margin-bottom:18px}.form label{display:block;font-weight:700;color:var(--navy);margin-bottom:6px;font-size:14px}
+.form input,.form select,.form textarea{width:100%;border:2px solid #d7dce1;border-radius:10px;padding:10px 12px;font:inherit;font-size:14px}
+.form input:focus,.form select:focus,.form textarea:focus{outline:0;border-color:var(--burg);box-shadow:0 0 0 3px rgba(106,0,50,.12)}
+.form .drop{border:2px dashed #c3ccd4;border-radius:12px;padding:26px;text-align:center;color:var(--muted);background:#fafbfc}
+.form .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.hint{font-size:12.5px;color:var(--muted);margin-top:5px}
+/* audit timeline */
+.timeline{list-style:none;margin:0;padding:8px 4px}
+.timeline li{display:grid;grid-template-columns:26px 1fr;gap:12px;padding:12px 14px;position:relative}
+.timeline li::before{content:"";position:absolute;left:24px;top:30px;bottom:-6px;width:2px;background:var(--line-soft)}
+.timeline li:last-child::before{display:none}
+.tl-dot{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--burg) 12%,#fff);color:var(--burg);display:grid;place-items:center;font-size:13px;font-weight:800;z-index:1}
+.tl-b{font-weight:700;color:var(--navy)}.tl-m{font-size:12.5px;color:var(--muted)}
+.page{display:none}.page.on{display:block}
+.ftr{background:var(--navy);color:#c9d5de;border-top:3px solid var(--burg);margin-top:30px}.ftr .in{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;padding:20px 0;font-size:14px}.ftr a{color:#e8edf1;text-decoration:underline}.ftr b{color:#fff}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body>
+<div class="brandrow"><div class="shell in"><div class="b"><span class="logo">ELECTIONS CANADA</span><span class="ttl"><b>Elections Canada</b><span>Electronic Signature Service</span></span></div><a class="lang" href="#">Français</a></div></div>
+<nav class="appnav"><div class="shell in"><ul class="menu"><li><a href="my-workspace-mockup.html">My Workspace</a></li><li><a href="#">Product brief</a></li><li><a href="help-guide-mockup.html">Help</a></li></ul>
+  <div class="nav-right"><span class="bell"><svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg><span class="badge">3</span></span>
+    <div class="profile" onclick="toggleMenu(event)"><span class="avatar">FP</span><span class="chev">▾</span>
+      <div class="pmenu"><a href="#">My profile</a><a href="activity-history-mockup.html">Activity &amp; history</a><a href="notification-centre-mockup.html">Notifications</a><div class="sep"></div><a href="#">Sign out</a></div></div>
+  </div></div></nav>
+
+<div class="switch"><div class="shell in">
+  <a class="spill" href="service-landing-mockup.html">Envelopes</a>
+  <button class="on" onclick="show('tpl')">Templates</button>
+  <button onclick="show('doc')">Documents</button>
+</div></div>
+
+<div class="shell">
+  <!-- TEMPLATES DASHBOARD -->
+  <div class="page on" id="tpl">
+    <div class="crumbs"><a href="my-workspace-mockup.html">My Workspace</a> / Templates</div>
+    <div class="svcbanner"><span class="av">▤</span><div><h1>Templates</h1><p>Reusable Nintex AssureSign templates for your envelopes.</p></div><div class="cta"><a class="btn" href="my-workspace-mockup.html">‹ Back to workspace</a><a class="btn primary" href="#" onclick="show('new',document.querySelectorAll('.switch button')[1]);return false;">＋ Create a template</a></div></div>
+    <div class="stats">
+      <div class="stat active"><div class="lab" style="--dot:var(--navy)">All templates</div><div class="num">5</div></div>
+      <div class="stat"><div class="lab" style="--dot:var(--ok)">Active</div><div class="num">4</div></div>
+      <div class="stat"><div class="lab" style="--dot:#5f6b75">Inactive</div><div class="num">1</div></div>
+      <div class="stat"><div class="lab" style="--dot:var(--mustard)">Categories</div><div class="num">3</div></div>
+    </div>
+    <div class="card"><div class="lst-hd"><h4>My templates</h4><button class="fs-btn">⛶</button></div>
+      <div class="lst-tools"><span class="viewsel">▤ Active templates ▾</span><div class="search"><input placeholder="Type to filter rows..."></div></div>
+      <table class="nt"><thead><tr><th>Template</th><th>Category</th><th>Description</th><th>Status</th><th>Modified</th><th></th></tr></thead><tbody>
+        <tr><td class="s">Nomination form 2026</td><td><span class="chip">Nomination</span></td><td>Standard nomination consent</td><td><span class="pill on">Active</span></td><td>Sep 24, 2026</td><td><a class="btn" href="#">Use</a></td></tr>
+        <tr><td class="s">Appointment consent</td><td><span class="chip">Appointments</span></td><td>Consent to appointment (EN/FR)</td><td><span class="pill on">Active</span></td><td>Sep 20, 2026</td><td><a class="btn" href="#">Use</a></td></tr>
+        <tr><td class="s">Auditor engagement</td><td><span class="chip">Financial</span></td><td>Auditor engagement letter</td><td><span class="pill on">Active</span></td><td>Sep 18, 2026</td><td><a class="btn" href="#">Use</a></td></tr>
+        <tr><td class="s">Officer declaration</td><td><span class="chip">Appointments</span></td><td>Party officer declaration</td><td><span class="pill on">Active</span></td><td>Sep 12, 2026</td><td><a class="btn" href="#">Use</a></td></tr>
+        <tr><td class="s">Third party (2025)</td><td><span class="chip">Registration</span></td><td>Legacy third party consent</td><td><span class="pill off">Inactive</span></td><td>Jun 03, 2026</td><td><a class="btn" href="#">Use</a></td></tr>
+      </tbody></table><div class="pager"><b class="on">1</b></div>
+    </div>
+  </div>
+
+  <!-- CREATE A TEMPLATE -->
+  <div class="page" id="new">
+    <div class="crumbs"><a href="my-workspace-mockup.html">My Workspace</a> / Templates / Create a template</div>
+    <div class="svcbanner"><span class="av">＋</span><div><h1>Create a template</h1><p>Upload a document and define its signature fields once for reuse.</p></div><div class="cta"><a class="btn" href="#" onclick="show('tpl',document.querySelectorAll('.switch button')[0]);return false;">‹ Back to templates</a></div></div>
+    <div class="card" style="padding:0"><form class="form" style="border:0;box-shadow:none;max-width:none">
+      <div class="row"><label>Template name</label><input placeholder="e.g. Nomination form 2026"></div>
+      <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div><label>Category</label><select><option>Nomination</option><option>Appointments</option><option>Financial</option><option>Registration</option></select></div>
+        <div><label>Status</label><select><option>Active</option><option>Inactive</option></select></div>
+      </div>
+      <div class="row"><label>Description</label><textarea rows="3" placeholder="Short description shown when choosing a template"></textarea></div>
+      <div class="row"><label>Document (PDF)</label><div class="drop">📄 Drag &amp; drop a PDF here, or <a href="#">browse</a><div class="hint">Signature and form fields are placed after upload in the field editor.</div></div></div>
+      <div class="actions"><a class="btn" href="#">Cancel</a><a class="btn primary" href="#">Save template</a></div>
+    </form></div>
+  </div>
+
+  <!-- DOCUMENTS DASHBOARD -->
+  <div class="page" id="doc">
+    <div class="crumbs"><a href="my-workspace-mockup.html">My Workspace</a> / Signed documents</div>
+    <div class="svcbanner"><span class="av">🖹</span><div><h1>Signed documents</h1><p>Completed, legally binding documents and their audit trails.</p></div><div class="cta"><a class="btn" href="my-workspace-mockup.html">‹ Back to workspace</a></div></div>
+    <div class="stats">
+      <div class="stat active"><div class="lab" style="--dot:var(--navy)">All documents</div><div class="num">7</div></div>
+      <div class="stat"><div class="lab" style="--dot:var(--ok)">This month</div><div class="num">3</div></div>
+      <div class="stat"><div class="lab" style="--dot:var(--mustard)">Awaiting file</div><div class="num">0</div></div>
+      <div class="stat"><div class="lab" style="--dot:var(--teal)">With audit trail</div><div class="num">7</div></div>
+    </div>
+    <div class="card"><div class="lst-hd"><h4>Completed documents</h4><button class="fs-btn">⛶</button></div>
+      <div class="lst-tools"><span class="viewsel">▤ All documents ▾</span><div class="search"><input placeholder="Type to filter rows..."></div></div>
+      <table class="nt"><thead><tr><th>Document</th><th>Envelope</th><th>Signed by</th><th>Completed</th><th>Status</th><th></th></tr></thead><tbody>
+        <tr><td class="s">Consent to appointment.pdf</td><td><span class="chip">EN-2026-01790</span></td><td>2 signers</td><td>Sep 22, 2026</td><td><span class="pill done">Completed</span></td><td><div style="display:flex;gap:6px;justify-content:flex-end"><a class="btn" href="#">Download</a><a class="btn" href="#" onclick="show('aud',document.querySelectorAll('.switch button')[3]);return false;">Audit trail</a></div></td></tr>
+        <tr><td class="s">Officer declaration.pdf</td><td><span class="chip">EN-2026-01835</span></td><td>1 signer</td><td>Sep 27, 2026</td><td><span class="pill done">Completed</span></td><td><div style="display:flex;gap:6px;justify-content:flex-end"><a class="btn" href="#">Download</a><a class="btn" href="#" onclick="show('aud',document.querySelectorAll('.switch button')[3]);return false;">Audit trail</a></div></td></tr>
+        <tr><td class="s">Third party consent.pdf</td><td><span class="chip">EN-2026-01830</span></td><td>2 signers</td><td>Sep 27, 2026</td><td><span class="pill done">Completed</span></td><td><div style="display:flex;gap:6px;justify-content:flex-end"><a class="btn" href="#">Download</a><a class="btn" href="#" onclick="show('aud',document.querySelectorAll('.switch button')[3]);return false;">Audit trail</a></div></td></tr>
+      </tbody></table><div class="pager"><b class="on">1</b></div>
+    </div>
+  </div>
+
+  <!-- DOWNLOAD AUDIT TRAIL -->
+  <div class="page" id="aud">
+    <div class="crumbs"><a href="my-workspace-mockup.html">My Workspace</a> / Signed documents / Audit trail</div>
+    <div class="svcbanner"><span class="av">🛡</span><div><h1>Audit trail — EN-2026-01790</h1><p>Tamper-evident record of every signature event for this envelope.</p></div><div class="cta"><a class="btn" href="#" onclick="show('doc',document.querySelectorAll('.switch button')[2]);return false;">‹ Back to documents</a><a class="btn primary" href="#">⬇ Download audit trail (PDF)</a></div></div>
+    <div class="card"><div class="lst-hd"><h4>Consent to appointment — event history</h4><span class="pill done">Completed</span></div>
+      <ul class="timeline">
+        <li><span class="tl-dot">✦</span><div><div class="tl-b">Envelope created</div><div class="tl-m">Frederick Pearson · Sep 20, 2026, 09:04 a.m. · IP 10.12.4.9</div></div></li>
+        <li><span class="tl-dot">➤</span><div><div class="tl-b">Sent for signature to 2 signers</div><div class="tl-m">System · Sep 20, 2026, 09:05 a.m.</div></div></li>
+        <li><span class="tl-dot">👁</span><div><div class="tl-b">Viewed by Jane Smith</div><div class="tl-m">Sep 21, 2026, 02:30 p.m. · IP 172.16.8.2</div></div></li>
+        <li><span class="tl-dot">✍</span><div><div class="tl-b">Signed by Jane Smith</div><div class="tl-m">Sep 21, 2026, 02:33 p.m. · Entra ID authenticated</div></div></li>
+        <li><span class="tl-dot">✍</span><div><div class="tl-b">Signed by Marc Tremblay</div><div class="tl-m">Sep 22, 2026, 04:50 p.m. · Entra ID authenticated</div></div></li>
+        <li><span class="tl-dot">✓</span><div><div class="tl-b">Envelope completed — document sealed</div><div class="tl-m">Sep 22, 2026, 04:55 p.m. · SHA-256 hash recorded</div></div></li>
+      </ul>
+    </div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+<footer class="ftr"><div class="shell in"><div><b>elections.ca</b> · <a href="#">Privacy</a> · <a href="#">Terms of use</a></div><div>Internal use — Elections Canada Electronic Signature Service</div></div></footer>
+<script>
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.getElementById(id).classList.add('on');
+  var parent={tpl:0,'new':0,doc:1,aud:1}[id];document.querySelectorAll('.switch button').forEach((b,i)=>b.classList.toggle('on',i===parent));window.scrollTo(0,0);}
+function toggleMenu(e){e.stopPropagation();document.querySelector('.profile').classList.toggle('open');}
+document.addEventListener('click',function(){var p=document.querySelector('.profile');if(p)p.classList.remove('open');});
+</script>
+</body></html>

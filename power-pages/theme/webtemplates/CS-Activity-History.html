@@ -1,0 +1,54 @@
+{% comment %} Activity & history — polymorphic feed across envelopes, templates, documents, notifications. {% endcomment %}
+<main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-md mrgn-bttm-lg">
+
+    <div class="ews-svcbanner mrgn-bttm-md">
+      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M13 3a9 9 0 1 0 8.94 10H19.9A7 7 0 1 1 13 5v4l5-5-5-5v4Zm-1 5h1.5v4.25l3.5 2.08-.75 1.23L12 13V8Z"/></svg></span>
+      <div><h1>{{ snippets['ESIGN/ACT/TITLE'] | default: 'Activity &amp; history' }}</h1>
+        <p>{{ snippets['ESIGN/ACT/SUB'] | default: 'A combined record of your envelopes, templates, documents and notifications.' }}</p></div>
+    </div>
+
+    <div class="ews-card">
+      <div class="ews-tabs" role="tablist">
+        <button class="ews-tab" data-t="all" aria-selected="true" onclick="acFilter(this)">All</button>
+        <button class="ews-tab" data-t="env" aria-selected="false" onclick="acFilter(this)">Envelopes</button>
+        <button class="ews-tab" data-t="tpl" aria-selected="false" onclick="acFilter(this)">Templates</button>
+        <button class="ews-tab" data-t="doc" aria-selected="false" onclick="acFilter(this)">Documents</button>
+        <button class="ews-tab" data-t="ntf" aria-selected="false" onclick="acFilter(this)">Notifications</button>
+      </div>
+      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th>{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }}</th></tr></thead>
+        <tbody id="acRows"><tr><td colspan="4" class="ews-empty">Loading…</td></tr></tbody></table>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var CID="{{ user.contactid }}";
+  var DATA=[],flt='all';
+  var LABEL={env:'Envelope',tpl:'Template',doc:'Document',ntf:'Notification'};
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
+  function get(url){return $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).then(function(j){return j.value||[];},function(){return [];});}
+  function render(){
+    var rows=DATA.filter(function(r){return flt==='all'||r.t===flt;}).sort(function(a,b){return (b.when||'').localeCompare(a.when||'');});
+    var tb=document.getElementById('acRows');
+    tb.innerHTML=rows.length?rows.map(function(r){return '<tr><td><span class="ews-type '+r.t+'">'+esc(LABEL[r.t][0])+'</span> '+esc(LABEL[r.t])+'</td><td class="s">'+esc(r.title)+'</td><td>'+esc(r.detail||'')+'</td><td>'+esc(fmt(r.when))+'</td></tr>';}).join(''):'<tr><td colspan="4" class="ews-empty">No activity yet.</td></tr>';
+  }
+  window.acFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.t;render();};
+  $(function(){
+    $.when(
+      get("/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode,modifiedon&$orderby=modifiedon desc&$top=50"),
+      get("/_api/cs_templates?$select=cs_templateid,cs_name,modifiedon&$orderby=modifiedon desc&$top=50"),
+      get("/_api/cs_documents?$select=cs_documentid,cs_filename,modifiedon&$orderby=modifiedon desc&$top=50"),
+      get("/_api/cs_portalmessages?$select=cs_portalmessageid,cs_subject,cs_service,createdon&$filter=statecode eq 0"+(CID?" and _cs_recipientcontactid_value eq "+CID:"")+"&$orderby=createdon desc&$top=50")
+    ).done(function(env,tpl,doc,ntf){
+      (env||[]).forEach(function(v){DATA.push({t:'env',title:v.cs_name||'Envelope',detail:v['statuscode@OData.Community.Display.V1.FormattedValue']||v.cs_subject||'',when:v.modifiedon});});
+      (tpl||[]).forEach(function(v){DATA.push({t:'tpl',title:v.cs_name||'Template',detail:'Template updated',when:v.modifiedon});});
+      (doc||[]).forEach(function(v){DATA.push({t:'doc',title:v.cs_filename||'Document',detail:'Document',when:v.modifiedon});});
+      (ntf||[]).forEach(function(v){DATA.push({t:'ntf',title:v.cs_subject||'Notification',detail:v.cs_service||'',when:v.createdon});});
+      render();
+    });
+  });
+})();
+</script>
