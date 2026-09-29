@@ -15,8 +15,8 @@
 <nav class="ews-nav" aria-label="Primary"><div class="ews-in">
   {% if user %}
   {% fetchxml ews_unreadq %}
-  <fetch aggregate="true"><entity name="cs_portalmessage">
-    <attribute name="cs_portalmessageid" alias="cnt" aggregate="count"/>
+  <fetch count="99" no-lock="true"><entity name="cs_portalmessage">
+    <attribute name="cs_portalmessageid"/>
     <filter type="and">
       <condition attribute="cs_readon" operator="null"/>
       <condition attribute="statecode" operator="eq" value="0"/>
@@ -24,7 +24,7 @@
     </filter>
   </entity></fetch>
   {% endfetchxml %}
-  {% assign ec_unread = ews_unreadq.results.entities[0].cnt | default: 0 %}
+  {% assign ec_unread = ews_unreadq.results.entities.size %}
   <ul class="ews-menu">
     <li><a href="/">{{ snippets['ESIGN/NAV/WORKSPACE'] | default: 'My Workspace' }}</a></li>
     <li><a href="/envelopes/">{{ snippets['ESIGN/PILL/ENVELOPES'] | default: 'Envelopes' }}</a></li>
