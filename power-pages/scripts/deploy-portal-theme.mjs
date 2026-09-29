@@ -244,6 +244,12 @@ async function main() {
     await upsertWT("CS-Help-Guide", "CS-Help-Guide.html");
     await upsertWT("CS-Activity-History", "CS-Activity-History.html");
   }
+  if (PHASE === "lists" || PHASE === "all") {
+    // Facelifted service list pages (envelopes + templates) to match the workspace design.
+    console.log("--- service list pages (envelopes, templates) ---");
+    await upsertWT("CS-Envelopes", "CS-Envelopes.html");
+    await upsertWT("Templates", "Templates.html");
+  }
   console.log("done.");
 }
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -1,0 +1,121 @@
+{% comment %}
+  Elections Canada – ESIGN — Templates (/templates)
+  Facelifted to the My Workspace design: KPI filter tiles + ews-nt table +
+  full-screen + windowed pager + ellipsis row menu. CSP-safe (no inline on*).
+{% endcomment %}
+
+{% if user %}
+
+<main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-md mrgn-bttm-lg">
+
+    <div class="ews-svcbanner mrgn-bttm-md">
+      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7 12h10v1.6H7V12Zm0 4h10v1.6H7V16Z"/></svg></span>
+      <div><h1>{{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Templates' }}</h1>
+        <p>{{ snippets['ESIGN/TEMPLATES/DESC'] | default: 'Browse approved signature templates. Use one to send an envelope, or download the source document.' }}</p></div>
+    </div>
+
+    <!-- KPI filter tiles -->
+    <div class="ews-stats">
+      <button class="ews-stat active" data-f="all"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/TKPI/TOTAL'] | default: 'Total templates' }}</div><div class="num" id="k-all">0</div></button>
+      <button class="ews-stat" data-f="active"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/TKPI/ACTIVE'] | default: 'Active' }}</div><div class="num" id="k-active">0</div></button>
+      <button class="ews-stat" data-f="inactive"><div class="lab" style="--dot:#8a95a1">{{ snippets['ESIGN/TKPI/INACTIVE'] | default: 'Inactive' }}</div><div class="num" id="k-inactive">0</div></button>
+      <button class="ews-stat" data-f="doc"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/TKPI/DOC'] | default: 'With document' }}</div><div class="num" id="k-doc">0</div></button>
+    </div>
+
+    <div class="ews-card" id="tplCard">
+      <div class="ews-lsthd"><div><h4>{{ snippets['ESIGN/TEMPLATES/TABLE_HEADING'] | default: 'Signature Templates' }}</h4><div class="ews-subprev" id="tplFilterLabel"></div></div>
+        <button class="ews-fsbtn" id="tplFs" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
+      <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/TEMPLATES/ACTIVEVIEW'] | default: 'All templates' }}</span>
+        <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="tplQ" placeholder="{{ snippets['ESIGN/TEMPLATES/SEARCH_PH'] | default: 'Search templates...' }}"></div>
+        <a class="ews-btn ews-primary ews-toolcta" href="/templates/edit-template/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/TEMPLATES/CREATE_BTN'] | default: 'Create template' }}</a></div>
+      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/TEMPLATES/COL_NAME'] | default: 'Template' }}</th><th>{{ snippets['ESIGN/TEMPLATES/COL_CAT'] | default: 'Category' }}</th><th>{{ snippets['ESIGN/TEMPLATES/COL_STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Modified' }}</th><th></th></tr></thead>
+        <tbody id="tplRows"><tr><td colspan="5" class="ews-empty">{{ snippets['ESIGN/TEMPLATES/LOADING'] | default: 'Loading…' }}</td></tr></tbody></table>
+      <div class="ews-pager" id="tplPager"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Template detail modal -->
+<div id="esignTplModal" class="ews-modal" style="display:none"><div class="box">
+  <div class="hd"><strong id="esignTplModalTitle">Template</strong><button type="button" class="esign-modal-close" aria-label="Close">&times;</button></div>
+  <div id="esignTplModalBody"></div></div></div>
+
+<script>
+(function(){
+  'use strict';
+  var API='/_api/cs_templates',EDITOR='/templates/edit-template/',USE='/envelopes/edit-envelope/';
+  var COLS='cs_templateid,cs_name,cs_description,cs_category,cs_isactive,cs_templatejson,statecode,statuscode,modifiedon,createdon';
+  var DATA=[],filter='all',page=1,PAGE=10;
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso;}}
+  function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json'}});}
+  function label(el){document.querySelectorAll('.ews-stat').forEach(function(s){s.classList.remove('active');});el.classList.add('active');filter=el.dataset.f;page=1;document.getElementById('tplFilterLabel').textContent='Showing: '+el.querySelector('.lab').textContent;render();}
+  function kpis(){var t=DATA.length,a=0,i=0,d=0;DATA.forEach(function(r){if(r.active)a++;else i++;if(r.hasDoc)d++;});
+    document.getElementById('k-all').textContent=t;document.getElementById('k-active').textContent=a;document.getElementById('k-inactive').textContent=i;document.getElementById('k-doc').textContent=d;}
+  function rows(){var q=(document.getElementById('tplQ').value||'').toLowerCase();
+    return DATA.filter(function(r){var g=filter==='all'||(filter==='active'&&r.active)||(filter==='inactive'&&!r.active)||(filter==='doc'&&r.hasDoc);
+      return g&&(!q||(r.name+' '+r.desc+' '+r.cat).toLowerCase().indexOf(q)>=0);});}
+  function render(){
+    var rs=rows(),pages=Math.max(1,Math.ceil(rs.length/PAGE));if(page>pages)page=pages;
+    var sl=rs.slice((page-1)*PAGE,page*PAGE),tb=document.getElementById('tplRows');
+    tb.innerHTML=sl.length?sl.map(function(r){
+      var menu='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a><a href="'+USE+'?templateId='+esc(r.id)+'">✉ Use template</a>';
+      menu+='<div class="sep"></div>'+(r.hasDoc?'<button type="button" class="tpl-dl" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⬇ Download PDF</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⬇ Download PDF</button>');
+      return '<tr><td class="s"><a href="#" class="tpl-open" data-id="'+esc(r.id)+'" style="color:var(--ews-navy);text-decoration:none">'+esc(r.name)+'</a>'+(r.desc?'<div class="ews-subprev">'+esc(r.desc)+'</div>':'')+'</td>'+
+        '<td>'+esc(r.cat||'—')+'</td><td><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td>'+esc(r.mod)+'</td>'+
+        '<td><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact tpl-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
+    }).join(''):'<tr><td colspan="5" class="ews-empty">'+((document.getElementById('tplQ').value)?'No templates match your search.':'No templates yet. <a href="'+EDITOR+'">Create your first template</a>.')+'</td></tr>';
+    pager(rs.length,pages);kpis();
+  }
+  function pager(n,pages){var pg=document.getElementById('tplPager');pg.innerHTML='';
+    function mk(txt,goto,o){var b=document.createElement('button');b.textContent=txt;if(o&&o.on)b.className='on';if(o&&o.dis){b.disabled=true;b.classList.add('dis');}b.addEventListener('click',function(){if(goto>=1&&goto<=pages&&goto!==page){page=goto;render();}});return b;}
+    function ell(){var e=document.createElement('span');e.className='ews-ell';e.textContent='…';return e;}
+    if(pages>1){pg.appendChild(mk('‹',page-1,{dis:page===1}));
+      var start=Math.max(1,page-2),end=Math.min(pages,start+4);start=Math.max(1,end-4);
+      if(start>1){pg.appendChild(mk('1',1));if(start>2)pg.appendChild(ell());}
+      for(var i=start;i<=end;i++)pg.appendChild(mk(String(i),i,{on:i===page}));
+      if(end<pages){if(end<pages-1)pg.appendChild(ell());pg.appendChild(mk(String(pages),pages));}
+      pg.appendChild(mk('›',page+1,{dis:page===pages}));}
+    var lbl=document.createElement('span');lbl.className='ews-pginfo';lbl.textContent='Page '+page+' of '+pages+' · '+n+' result'+(n===1?'':'s');pg.appendChild(lbl);}
+  function byId(id){for(var i=0;i<DATA.length;i++)if(DATA[i].id===id)return DATA[i];return null;}
+  function tplModal(id){var t=byId(id);if(!t)return;var nx='';try{nx=JSON.parse(t.json||'{}').nintexTemplateId||'';}catch(e){}
+    document.getElementById('esignTplModalTitle').textContent=t.name||'Template';
+    document.getElementById('esignTplModalBody').innerHTML='<table class="ews-kv"><tr><td>Name</td><td>'+esc(t.name)+'</td></tr><tr><td>Description</td><td>'+esc(t.desc||'—')+'</td></tr><tr><td>Category</td><td>'+esc(t.cat||'—')+'</td></tr><tr><td>Status</td><td>'+(t.active?'Active':'Inactive')+'</td></tr><tr><td>Nintex ID</td><td style="font-family:monospace">'+esc(nx||'Not synced')+'</td></tr></table><div class="ft"><a class="ews-btn" href="'+EDITOR+'?id='+esc(id)+'">Edit</a> <a class="ews-btn ews-primary" href="'+USE+'?templateId='+esc(id)+'">Use template</a></div>';
+    document.getElementById('esignTplModal').style.display='flex';}
+  function download(id,name){
+    get("/_api/annotations?$filter=_objectid_value eq "+id+" and subject eq 'TemplateSourcePDF'&$select=documentbody,filename&$top=1").done(function(nd){
+      if(nd&&nd.value&&nd.value[0]&&nd.value[0].documentbody){trigger(nd.value[0].documentbody,nd.value[0].filename||name);return;}
+      get(API+'('+id+')?$select=cs_templatejson').done(function(d){try{var j=JSON.parse(d.cs_templatejson||'{}');if(j.pdfBase64){trigger(j.pdfBase64,j.pdfFilename||name);return;}}catch(e){}alert('No PDF document found for this template.');}).fail(function(){alert('Failed to fetch PDF.');});
+    }).fail(function(){alert('Failed to fetch PDF (annotations permission?).');});}
+  function trigger(b64,filename){var bin=atob(b64),by=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);
+    var url=URL.createObjectURL(new Blob([by],{type:'application/pdf'})),a=document.createElement('a');
+    a.href=url;a.download=((filename||'template').replace(/\.pdf$/i,''))+'.pdf';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},5000);}
+  function load(){
+    get(API+'?$orderby=cs_name asc&$select='+COLS).done(function(d){
+      DATA=(d.value||[]).map(function(t){return {id:t.cs_templateid,name:t.cs_name||'Untitled',desc:t.cs_description||'',cat:t.cs_category||'',active:t.cs_isactive!==false,hasDoc:!!t.cs_templatejson,json:t.cs_templatejson,mod:fmt(t.modifiedon)};});
+      render();
+    }).fail(function(x){document.getElementById('tplRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load templates (HTTP '+x.status+').</td></tr>';});}
+  $(function(){
+    document.querySelectorAll('.ews-stat').forEach(function(b){b.addEventListener('click',function(){label(this);});});
+    document.getElementById('tplQ').addEventListener('input',function(){page=1;render();});
+    document.getElementById('tplFs').addEventListener('click',function(){var c=document.getElementById('tplCard');var on=!c.classList.contains('fs');c.classList.toggle('fs',on);document.body.classList.toggle('ews-fson',on);});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){var c=document.getElementById('tplCard');c.classList.remove('fs');document.body.classList.remove('ews-fson');document.getElementById('esignTplModal').style.display='none';document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});}});
+    document.getElementById('esignTplModal').addEventListener('click',function(e){if(e.target.id==='esignTplModal'||e.target.classList.contains('esign-modal-close'))this.style.display='none';});
+    document.getElementById('tplRows').addEventListener('click',function(e){
+      var mb=e.target.closest('.tpl-menu');
+      if(mb){e.stopPropagation();var wrap=mb.closest('.ews-rowwrap');var open=wrap.classList.contains('open');
+        document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});
+        if(!open){wrap.classList.add('open');var m=wrap.querySelector('.ews-rowmenu');m.classList.remove('flip-up');if(m.getBoundingClientRect().bottom>window.innerHeight-10)m.classList.add('flip-up');}return;}
+      var op=e.target.closest('.tpl-open');if(op){e.preventDefault();tplModal(op.dataset.id);return;}
+      var dl=e.target.closest('.tpl-dl');if(dl){e.preventDefault();download(dl.dataset.id,dl.dataset.name);return;}
+    });
+    document.addEventListener('click',function(){document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});});
+    load();
+  });
+})();
+</script>
+
+{% else %}
+<script>window.location.href='/Account/Login?returnUrl='+encodeURIComponent(window.location.pathname);</script>
+{% endif %}
