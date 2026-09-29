@@ -1,0 +1,136 @@
+{% comment %}
+  Political Entities Service Centre (EC) - Header Template
+  Minimalist application header
+{% endcomment %}
+
+{% if user %}
+
+{% include 'EC-Base-Styles' %}
+<nav>
+  <ul id="wb-tphp" class="wb-init wb-disable-inited">
+    <li class="wb-slc"><a class="wb-sl" href="#wb-cont">Skip to main content</a></li>
+    <li class="wb-slc visible-sm visible-md visible-lg"><a class="wb-sl" href="#wb-info">Skip to About this site</a></li>
+    <li class="wb-slc"><a class="wb-sl" href="?wbdisable=true" rel="alternate">Switch to basic HTML version</a></li>
+  </ul>
+</nav>
+
+<header>
+  <div id="wb-bnr" class="container">
+    <div class="row">
+      <!-- Logo - comes first in DOM -->
+      <div class="col-xs-9 col-sm-5 col-md-4" property="publisher" typeof="GovernmentOrganization">
+        <a href="/" property="url">
+          <img src="/ec-logo.png" alt="Elections Canada" property="logo">
+          <span class="wb-inv"> / <span lang="fr">Élections Canada</span></span>
+        </a>
+        <meta property="name" content="Elections Canada">
+        <meta property="areaServed" typeof="Country" content="Canada">
+      </div>
+      
+      <!-- Language toggle -->
+      <section id="wb-lng" class="col-xs-3 col-sm-7 col-md-8 text-right">
+        <h2 class="wb-inv">Language selection</h2>
+        <ul class="list-inline mrgn-bttm-0">
+          {% comment %}
+          <li>
+            <a lang="fr" hreflang="fr" href="{{ page.adx_partialurl }}fr">
+              <span class="hidden-xs" translate="no">Français</span>
+              <abbr title="Français" translate="no" class="visible-xs h3 mrgn-tp-sm mrgn-bttm-0 text-uppercase">fr</abbr>
+            </a>
+          </li>
+          {% endcomment %}
+          {% assign ordered_languages = page.languages | order_by: "name" %}
+          {% for language in ordered_languages %}
+          {% if language.name != website.selected_language.name %}
+          <li>
+            <a lang="{{ language.code }}" hreflang="{{ language.code }}" href="/{{ language.url_substitution }}">
+                <span class="hidden-xs" translate="no">{{ language.name }}</span>
+                <abbr title="{{ language.name }}" translate="no"
+                  class="visible-xs h3 mrgn-tp-sm mrgn-bttm-0 text-uppercase">{{ language.code }}</abbr>
+            </a>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+  </div>
+</header>
+
+<section class="application-bar">
+  <div class="container">
+    <div class="application-bar-content">
+      <h2><a href="/">{{ snippets['EC/APP/TITLE'] | default: 'EC Portal' }}</a></h2>
+      <div class="profile-menu">
+        <button class="profile-menu-toggle" tabindex="0">
+          <i class="fa fa-user profile-icon"></i>
+          <span>{{ user.fullname }}</span>
+          <i class="fa fa-caret-down profile-caret"></i>
+        </button>
+        <div class="profile-menu-content">
+          {% assign weblink_set = weblinks["Profile Navigation"] %}
+          {% for link in weblink_set.weblinks %}
+            {% comment %}<a href="{{ link.url | h }}{{ request.query }}" title="{{ link.tooltip | h }}">{{ link.name | h }}</a> {% endcomment %}
+            <a href="{{ link.url | h }}" title="{{ link.tooltip | h }}">{{ link.name | h }}</a>
+          {% endfor %}
+          {% case website.selected_language.code %}{% when "fr-CA","fr-FR","fr" %}{% assign lomkt = "fr-FR" %}{% else %}{% assign lomkt = "en-US" %}{% endcase %}
+          <a href="/Account/Login/LogOff?returnUrl=%2Fentra-signout%3Fmkt%3D{{ lomkt }}" title="{{ snippets['EC/HOME/LOGOUTBUTTON'] | default: 'Logout' }}">{{ snippets['EC/HOME/LOGOUTBUTTON'] | default: 'Logout' }}</a>
+        </div>
+      </div>
+      {% include "PERS - Communication Hub - Check For Unread Messages" %}
+    </div>
+  </div>
+</section>
+
+{% else %}
+
+{% comment %} Anonymous user - minimal header, no menu, no breadcrumb {% endcomment %}
+{% include 'EC-Base-Styles' %}
+
+<nav>
+  <ul id="wb-tphp" class="wb-init wb-disable-inited">
+    <li class="wb-slc"><a class="wb-sl" href="#wb-cont">Skip to main content</a></li>
+    <li class="wb-slc"><a class="wb-sl" href="?wbdisable=true" rel="alternate">Switch to basic HTML version</a></li>
+  </ul>
+</nav>
+
+<header class="ppep-anon-header mrgn-tp-md">
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-6">
+        <a href="/" class="">
+          {% if user %}
+          <img src="/ec-logo.png" alt="Elections Canada">
+          {% else %}
+          <img src="/ec-logo.png" alt="Elections Canada">
+          {% endif %}
+        </a>
+      </div>
+      <div id="wb-lng" class="col-xs-6 text-right">
+        {% comment %}
+        <a lang="fr" hreflang="fr" href="{{ page.adx_partialurl }}-fr" class="lang-link">
+          <span class="hidden-xs" translate="no">Français</span>
+          <abbr title="Français" translate="no" class="visible-xs">FR</abbr>
+        </a>
+        {% endcomment %}
+        <h2 class="wb-inv">Language selection</h2>
+        <ul class="list-inline mrgn-bttm-0">
+        {% assign ordered_languages = page.languages | order_by: "name" %}
+          {% for language in ordered_languages %}
+          {% if language.name != website.selected_language.name %}
+          <li>
+            <a class="light" lang="{{ language.code }}" hreflang="{{ language.code }}" href="/{{ language.url_substitution }}">
+                <span class="hidden-xs" translate="no">{{ language.name }}</span>
+                <abbr title="{{ language.name }}" translate="no"
+                  class="visible-xs h3 mrgn-tp-sm mrgn-bttm-0 text-uppercase">{{ language.code }}</abbr>
+            </a>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+{% endif %}

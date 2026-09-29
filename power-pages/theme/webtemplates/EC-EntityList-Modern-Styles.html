@@ -1,0 +1,231 @@
+{% comment %}
+  EC-EntityList-Modern-Styles  (global; loaded once from EC-Base-Styles)
+  Modern restyle of the OOB Power Pages entity list + basic-form subgrids.
+  Companion JS: EC-EntityList-Modern-Scripts (actions-first column, badges, "Not provided",
+  fullscreen, and portalling the row-actions menu to <body> so nothing can clip it).
+  !important is used where EC-Brand-Facelift forces transparent backgrounds on tables and
+  where the OOB writes inline styles (its search input-group is inline display:table).
+{% endcomment %}
+<style>
+.entitylist .entity-grid{--ec-burg:#6a0032;--ec-burg-dk:#520026;--ec-navy:#1e384b;--ec-teal:#036064;
+  --ec-line:#d5dbe0;--ec-line-soft:#e6eaed;--ec-ink:#33404a;--ec-muted:#69727a;--ec-rowh:#f7f4f6;--ec-inset:12px}
+
+.entitylist{margin-top:-4px !important}
+/* flex column + explicit order => the control bar is ALWAYS above the toolbar regardless of the
+   order the OOB grid injects its pieces (it re-renders on sort/page/search). */
+.entitylist .entity-grid{background:#fff !important;border:1px solid var(--ec-line);border-radius:14px;
+  box-shadow:0 6px 22px rgba(0,0,0,.06);margin:0 0 4px;overflow:visible;position:relative;
+  display:flex;flex-direction:column}
+.entitylist .entity-grid>.ec-list-bar{order:1}
+.entitylist .entity-grid>.view-toolbar{order:2}
+.entitylist .entity-grid>.ai-summary,.entitylist .entity-grid>[class*="ai-insight"]{order:3}
+.entitylist .entity-grid>.view-grid{order:4}
+.entitylist .entity-grid>.view-pagination{order:5}
+.entitylist .entity-grid>.view-loading{order:6}
+
+/* control bar: relocated list title (left) + fullscreen toggle (right, flush with the table edge) */
+.entitylist .entity-grid .ec-list-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:16px var(--ec-inset) 10px}
+.entitylist .entity-grid .ec-list-bar .ec-list-title{margin:0 !important;font-size:20px;font-weight:800;color:var(--ec-navy);text-align:left;line-height:1.2}
+.ec-hidden-title{display:none !important}
+.ec-sr{position:absolute !important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.entitylist .entity-grid thead th.sort-disabled .ec-actions-h{font-size:13px;font-weight:700;color:#fff}
+.entitylist .entity-grid .ec-fs-btn{flex:0 0 auto;width:40px;height:36px;border:1px solid var(--ec-line);background:#fff;border-radius:9px;display:inline-grid;place-items:center;cursor:pointer;color:var(--ec-navy);margin:0 0 0 auto}
+.entitylist .entity-grid .ec-fs-btn:hover{border-color:var(--ec-burg);color:var(--ec-burg)}
+.entitylist .entity-grid .ec-fs-btn svg{width:18px;height:18px;fill:currentColor}
+.entitylist .entity-grid .ec-fs-btn .i-min{display:none}
+.entitylist .entity-grid.ec-fs .ec-fs-btn .i-exp{display:none}
+.entitylist .entity-grid.ec-fs .ec-fs-btn .i-min{display:block}
+
+/* toolbar rows: [actions] then [view selector .... search] */
+.entitylist .entity-grid .view-toolbar.grid-actions,
+.entitylist .entity-grid .view-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;row-gap:10px;
+  padding:6px var(--ec-inset) 18px;margin:0;min-height:0;background:#fff !important;row-gap:16px}
+.entitylist .entity-grid .view-toolbar::before,.entitylist .entity-grid .view-toolbar::after{content:none}
+/* Some OOB list versions nest the search INSIDE .toolbar-actions and leave that wrapper at
+   flex-direction:column; the search's flex-basis then applies to the MAIN (vertical) axis and
+   inflates it to ~340px tall — a big empty gap above the rows (the floating clear-✕ sits at its
+   centre). Force row so flex-basis is width again and the toolbar hugs its content. */
+.entitylist .entity-grid .view-toolbar .toolbar-actions{order:1;flex:1 1 100%;display:flex;flex-direction:row !important;flex-wrap:wrap;justify-content:flex-end;gap:10px;align-items:center;float:none;margin:0}
+.entitylist .entity-grid .view-toolbar .toolbar-actions:empty{display:none}
+.entitylist .entity-grid .view-toolbar .view-select,
+.entitylist .entity-grid .view-toolbar .nav-pills{order:2;float:none;margin:0;width:auto;max-width:100%}
+.entitylist .entity-grid .view-search.entitylist-search{order:3;margin:0 0 0 auto}
+
+/* search: the OOB writes inline display:table / table-cell, so these need !important */
+.entitylist .entity-grid .view-search.entitylist-search{position:relative;display:flex !important;flex:0 1 340px;min-width:220px;width:auto !important}
+.entitylist .entity-grid .entitylist-search .query.form-control{display:block !important;width:auto !important;flex:1 1 auto;min-width:0;
+  height:42px;border:2px solid #d7dce1;border-radius:10px 0 0 10px;font-size:14px;box-shadow:none;background:#fff !important}
+.entitylist .entity-grid .entitylist-search .query.form-control:focus{border-color:var(--ec-burg);box-shadow:0 0 0 3px rgba(106,0,50,.12)}
+.entitylist .entity-grid .entitylist-search .input-group-btn{display:flex !important;width:auto !important;flex:0 0 auto;vertical-align:top}
+.entitylist .entity-grid .entitylist-search .input-group-btn>.btn,
+/* search button matches the list header colour (navy), globally — not area-tinted */
+.entitylist .entity-grid .entitylist-search .btn.btn-default{height:42px;border:2px solid var(--ec-navy);background:var(--ec-navy) !important;color:#fff;border-radius:0 10px 10px 0 !important;padding:0 16px;font-weight:700;margin:0}
+.entitylist .entity-grid .entitylist-search .btn.btn-default:hover{background:#2e5274 !important;border-color:#2e5274}
+.entitylist .entity-grid .entitylist-search .btn.btn-default .fa-search{color:#fff}
+/* clear (x) sits INSIDE the field instead of floating loose in the toolbar */
+.entitylist .entity-grid .entitylist-search .search-clear-btn{position:absolute;right:62px;top:50%;transform:translateY(-50%);
+  border:0;background:none;color:#9aa3ab;cursor:pointer;padding:0 4px;line-height:1;z-index:3}
+.entitylist .entity-grid .entitylist-search .search-clear-btn:hover{color:var(--ec-burg)}
+
+.entitylist .entity-grid .view-select,
+.entitylist .entity-grid select.form-control{height:42px;border:2px solid #d7dce1;border-radius:10px;padding:0 12px;background:#fff !important;font-size:14px}
+.entitylist .entity-grid .toolbar-actions .btn,
+.entitylist .entity-grid a.btn.create-action,
+.entitylist .entity-grid .entitylist-filter>.btn{height:42px;border-radius:10px;font-weight:700;padding:0 18px;border:2px solid var(--ec-burg);background:var(--ec-burg) !important;color:#fff;display:inline-flex;align-items:center;gap:7px}
+.entitylist .entity-grid a.btn.create-action:hover,.entitylist .entity-grid .toolbar-actions .btn:hover{background:var(--ec-burg-dk) !important;border-color:var(--ec-burg-dk)}
+.entitylist .entity-grid .entitylist-filter>.btn{background:#fff !important;color:var(--ec-burg)}
+
+/* table wrapper: same inset both sides so the expand button lines up with the table edge */
+.entitylist .entity-grid>.view-grid{padding:0 !important}
+.entitylist .entity-grid .view-grid.table-responsive{overflow-x:auto;overflow-y:hidden;border:0;scrollbar-width:thin;
+  margin:0 var(--ec-inset);box-sizing:border-box}
+.entitylist .entity-grid table.table{width:100% !important;min-width:100%;border-collapse:collapse;margin:0;font-size:14px;table-layout:auto;background:transparent !important}
+/* never split a word (IDs, dates); wrap at spaces only */
+.entitylist .entity-grid table.table th,.entitylist .entity-grid table.table td{white-space:normal;word-break:normal;overflow-wrap:normal}
+
+.entitylist .entity-grid thead th{background:var(--ec-navy) !important;color:#fff !important;text-align:left;font-weight:700;font-size:14px;letter-spacing:.01em;padding:13px 16px;border:0;vertical-align:middle}
+.entitylist .entity-grid thead th:first-child{border-top-left-radius:13px}
+.entitylist .entity-grid thead th:last-child{border-top-right-radius:13px}
+.entitylist .entity-grid thead th a[role="button"]{color:#fff !important;text-decoration:none;font-weight:700}
+.entitylist .entity-grid thead th .fa,.entitylist .entity-grid thead th .glyphicon{display:none !important}
+/* sort indicators: larger + high-contrast (unsorted = bold white double-arrow; active = yellow triangle).
+   Applies to every list + basic-form subgrid site-wide. */
+.entitylist .entity-grid thead th.sort-enabled a[role="button"]::after,
+.entity-subgrid thead th.sort-enabled a[role="button"]::after{content:"\21C5";font-size:18px;line-height:1;opacity:.95;color:#fff;margin-left:8px;font-weight:700;display:inline-block;vertical-align:-3px}
+.entitylist .entity-grid thead th.sort-enabled a[role="button"]:hover::after,
+.entitylist .entity-grid thead th.sort-enabled a[role="button"]:focus::after,
+.entity-subgrid thead th.sort-enabled a[role="button"]:hover::after,
+.entity-subgrid thead th.sort-enabled a[role="button"]:focus::after{opacity:1;color:#ffda00}
+.entitylist .entity-grid thead th.sort-asc a[role="button"]::after,
+.entity-subgrid thead th.sort-asc a[role="button"]::after{content:"\25B2";opacity:1;color:#ffda00;font-size:15px;vertical-align:0}
+.entitylist .entity-grid thead th.sort-desc a[role="button"]::after,
+.entity-subgrid thead th.sort-desc a[role="button"]::after{content:"\25BC";opacity:1;color:#ffda00;font-size:15px;vertical-align:0}
+
+.entitylist .entity-grid tbody td{padding:14px 16px;border:0;border-bottom:1px solid var(--ec-line) !important;vertical-align:middle;color:var(--ec-ink);background:transparent !important}
+.entitylist .entity-grid table.table.table-striped>tbody>tr:nth-of-type(odd)>td{background:transparent !important}
+.entitylist .entity-grid tbody tr:hover>td{background:var(--ec-rowh) !important}
+.entitylist .entity-grid tbody tr:last-child>td{border-bottom:0 !important}
+.entitylist .entity-grid tbody td[data-attribute$="name"] a{color:var(--ec-burg);font-weight:700;text-decoration:none}
+.entitylist .entity-grid tbody td[data-attribute$="name"] a:hover{text-decoration:underline}
+.entitylist .entity-grid .ec-empty-val{color:#9aa3ab;font-style:italic}
+
+/* status badges */
+.entitylist .entity-grid .ec-badge,.entity-subgrid .ec-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;white-space:nowrap;background:#eef1f3;color:#5f6b75}
+.entitylist .entity-grid .ec-badge::before,.entity-subgrid .ec-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.entitylist .entity-grid .ec-badge.is-progress{background:#e2f0f0;color:#036064}
+.entitylist .entity-grid .ec-badge.is-review{background:#fbecd6;color:#9a6410}
+.entitylist .entity-grid .ec-badge.is-approved{background:#e6f2e3;color:#3b6d11}
+.entitylist .entity-grid .ec-badge.is-rejected{background:#fbe7e7;color:#a3241f}
+
+/* actions column (moved first by the JS) */
+.entitylist .entity-grid thead th.sort-disabled{text-align:center;white-space:nowrap}
+.entitylist .entity-grid tbody td.ec-actions-cell{text-align:center;white-space:nowrap;width:1%}
+.entitylist .entity-grid td .dropdown.action>button.btn,
+.entity-subgrid td .dropdown.action>button.btn{width:40px;height:38px;padding:0;border-radius:9px;border:2px solid #d5dbe0;background:#fff !important;color:#1e384b;display:inline-flex;align-items:center;justify-content:center}
+.entitylist .entity-grid td .dropdown.action>button.btn .fa-chevron-down,
+.entity-subgrid td .dropdown.action>button.btn .fa-chevron-down{display:none}
+.entitylist .entity-grid td .dropdown.action>button.btn::before,
+.entity-subgrid td .dropdown.action>button.btn::before{content:"\22EF";font-size:22px;line-height:1;font-weight:700}
+.entitylist .entity-grid td .dropdown.action>button.btn:hover,
+.entitylist .entity-grid td .dropdown.action.show>button.btn{border-color:var(--ec-burg);color:var(--ec-burg)}
+
+/* row-actions menu. It stays in the DOM (so the OOB edit/delete handlers keep working); the
+   companion JS temporarily un-clips the scroll wrapper while a menu is open so nothing cuts it
+   off — which also removes the phantom scrollbar that used to appear on open. */
+.entity-grid .dropdown.action .dropdown-menu,
+.entity-subgrid .dropdown.action .dropdown-menu{min-width:196px;border:1px solid #d5dbe0;border-radius:12px;
+  box-shadow:0 16px 40px rgba(0,0,0,.22);padding:6px;background:#fff !important;z-index:5000}
+.entity-grid .dropdown.action .dropdown-item,
+.entity-subgrid .dropdown.action .dropdown-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;font-size:13.5px;color:#33404a;white-space:nowrap}
+.entity-grid .dropdown.action .dropdown-item:hover,.entity-grid .dropdown.action .dropdown-item:focus{background:#f4f6f7;color:#6a0032}
+.entity-grid .dropdown.action .dropdown-item.delete-link,
+.entity-subgrid .dropdown.action .dropdown-item.delete-link{color:#a3241f}
+.entity-grid .dropdown.action .dropdown-item.delete-link:hover{background:#fbe7e7;color:#8a1f1a}
+.entity-grid .dropdown.action .dropdown-item:focus-visible{outline:3px solid #ffda00;outline-offset:2px}
+/* while a row menu is open the wrapper must not clip (set by the JS) */
+.entitylist .entity-grid .view-grid.table-responsive.ec-menu-open{overflow:visible !important}
+
+/* pagination — centered (override per list with justify-content if ever needed) */
+.entitylist .entity-grid .view-pagination{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--ec-line-soft);background:#fbfcfc !important;border-radius:0 0 14px 14px}
+.entitylist .entity-grid .view-pagination .pagination{display:inline-flex;gap:6px;margin:0}
+.entitylist .entity-grid .view-pagination .pagination>li>a,
+.entitylist .entity-grid .view-pagination .pagination>li>span{min-width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;border-radius:9px;border:1px solid var(--ec-line);background:#fff !important;color:var(--ec-ink);font-weight:700;text-decoration:none}
+.entitylist .entity-grid .view-pagination .pagination>li>a:hover{border-color:#1e384b;color:#1e384b}
+/* active page = neutral navy primary; on hover/focus it reverses (white bg, navy text) */
+.entitylist .entity-grid .view-pagination .pagination>li.active>a,
+.entitylist .entity-grid .view-pagination .pagination>li.active>span{background:#1e384b !important;border-color:#1e384b;color:#fff}
+.entitylist .entity-grid .view-pagination .pagination>li.active>a:hover,
+.entitylist .entity-grid .view-pagination .pagination>li.active>a:focus{background:#fff !important;color:#1e384b !important;border-color:#1e384b}
+.entitylist .entity-grid .view-pagination .pagination>li.disabled>a{opacity:.4}
+
+.entitylist .entity-grid .view-loading{padding:36px;text-align:center;color:var(--ec-muted)}
+.entitylist .entity-grid .view-empty,.entitylist .entity-grid .message.text-muted{padding:40px 20px;text-align:center;color:var(--ec-muted);font-size:14px}
+/* EMPTY LIST (JS adds .ecw-empty): collapse to the relocated title + the "no records" message —
+   hide the table, pagination and expand button. Message is sized to match the tile labels (16px).
+   The view TOOLBAR is kept visible (see below) so the view picker stays reachable. */
+.entitylist .entity-grid.ecw-empty>.view-grid,
+.entitylist .entity-grid.ecw-empty>.view-pagination,
+.entitylist .entity-grid.ecw-empty .ec-fs-btn{display:none !important}
+/* Keep the view toolbar (view picker + search) visible on an empty list so the user can switch
+   back to a view that HAS data. Previously the whole toolbar was hidden, trapping the user on the
+   empty view until a full page reload. */
+.entitylist .entity-grid.ecw-empty>.view-toolbar{display:flex !important}
+.entitylist .entity-grid.ecw-empty>.view-empty{order:4;display:block !important;font-size:16px;padding:28px 20px 24px}
+.entitylist .entity-grid .ai-summary,.entitylist .entity-grid [class*="ai-insight"]{border:1px solid #e7d9e0;background:#faf5f7 !important;border-radius:12px;margin:0 var(--ec-inset) 14px;padding:14px 16px;color:var(--ec-ink)}
+
+.entitylist .entity-grid a:focus-visible,.entitylist .entity-grid button:focus-visible,
+.entitylist .entity-grid .form-control:focus-visible{outline:3px solid #ffda00;outline-offset:2px}
+
+/* ---- basic-form subgrids (lists added as form metadata) get the same look ---- */
+.entity-subgrid table.table,.crmEntityFormView .subgrid table.table{border-collapse:collapse;font-size:14px;background:transparent !important}
+.entity-subgrid thead th,.crmEntityFormView .subgrid thead th{background:#1e384b !important;color:#fff !important;font-weight:700;font-size:13.5px;padding:12px 14px;border:0;text-align:left}
+.entity-subgrid thead th a,.crmEntityFormView .subgrid thead th a{color:#fff !important;text-decoration:none}
+.entity-subgrid tbody td,.crmEntityFormView .subgrid tbody td{padding:12px 14px;border:0;border-bottom:1px solid #d5dbe0 !important;background:transparent !important;color:#33404a}
+.entity-subgrid tbody tr:hover>td,.crmEntityFormView .subgrid tbody tr:hover>td{background:#f7f4f6 !important}
+.entity-subgrid .view-pagination,.crmEntityFormView .subgrid .view-pagination{display:flex;justify-content:center;padding:12px}
+
+/* fullscreen (expand) */
+.ec-fs-backdrop{position:fixed;inset:0;background:rgba(15,25,40,.5);z-index:2900;animation:ecFsFade .2s ease}
+body.ec-fs-open{overflow:hidden}
+.entitylist .entity-grid.ec-fs{position:fixed;inset:24px;z-index:3000;margin:0;max-width:none;display:flex;flex-direction:column;overflow:hidden;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.4);padding:0 12px 12px;animation:ecFsIn .28s cubic-bezier(.2,.7,.2,1)}
+.entitylist .entity-grid.ec-fs .view-grid.table-responsive{flex:1 1 auto;overflow:auto !important;border:1px solid var(--ec-line-soft);border-radius:12px;margin:0}
+.entitylist .entity-grid.ec-fs .ec-list-bar,.entitylist .entity-grid.ec-fs .view-toolbar{padding-left:0;padding-right:0}
+@keyframes ecFsIn{from{opacity:.5;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes ecFsFade{from{opacity:0}to{opacity:1}}
+
+/* modals */
+.modal-form.modal-form-insert .modal-content,.modal-form.modal-form-edit .modal-content,
+.modal-form.modal-form-delete .modal-content,.modal-form.modal-form-details .modal-content{border:0;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+.modal-form .modal-header{background:var(--ec-pe-area,#1e384b) !important;color:#fff;border:0;padding:16px 20px}
+.modal-form .modal-header .modal-title,.modal-form .modal-header .fa{color:#fff}
+.modal-form .modal-header .btn-close{filter:invert(1) grayscale(1);opacity:.9}
+.modal-form .modal-body{padding:22px}
+.modal-form .modal-footer .btn-primary{background:#1e384b !important;border-color:#1e384b !important;border-radius:10px;font-weight:700}
+.modal-form .modal-footer .btn-primary:hover,.modal-form .modal-footer .btn-primary:focus{background:#fff !important;border-color:#1e384b !important;color:#1e384b !important}
+
+/* ---- mobile: rows become cards (label bold above value); actions pinned top-right ---- */
+@media (max-width:820px){
+  /* card mode: inset the cards with PADDING (not margin) + kill the desktop min-width:100% so
+     they sit symmetrically INSIDE the panel instead of overflowing its right edge. padding needs
+     !important to beat the desktop `.entity-grid>.view-grid{padding:0 !important}` rule. */
+  .entitylist .entity-grid .view-grid.table-responsive{overflow:visible !important;margin:0 !important;padding:0 10px !important;box-sizing:border-box}
+  .entitylist .entity-grid table.table{min-width:0 !important}
+  .entitylist .entity-grid .view-search.entitylist-search{flex:1 1 100%;margin-left:0}
+  /* right-align the row menu on small screens so it never runs off the edge */
+  .entity-grid .dropdown.action .dropdown-menu{right:0;left:auto !important;max-width:calc(100vw - 32px)}
+  .entitylist .entity-grid table.table,.entitylist .entity-grid table.table tbody,
+  .entitylist .entity-grid table.table tbody tr,.entitylist .entity-grid table.table tbody td{display:block;width:100% !important}
+  .entitylist .entity-grid table.table thead{position:absolute;left:-9999px;top:-9999px}
+  .entitylist .entity-grid tbody tr{position:relative;border:1px solid var(--ec-line);border-radius:12px;margin:12px 0;padding:14px 16px 4px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .entitylist .entity-grid tbody td{border:0 !important;border-bottom:1px solid var(--ec-line-soft) !important;padding:10px 2px;display:block;text-align:left}
+  .entitylist .entity-grid tbody tr>td:last-child{border-bottom:0 !important}
+  .entitylist .entity-grid tbody td[data-th]::before{content:attr(data-th);display:block;font-weight:700;color:var(--ec-navy);font-size:12px;letter-spacing:.02em;margin-bottom:3px}
+  /* `table.table` in the selector out-specifies the `td{width:100% !important}` card rule above so
+     width:auto wins — otherwise the actions cell spans the full card and the centred ⋯ lands mid-card
+     instead of pinned to the right. left:auto keeps it anchored to right:10px. */
+  .entitylist .entity-grid table.table tbody td.ec-actions-cell{position:absolute;top:8px;right:10px;left:auto;padding:0 !important;border:0 !important;width:auto !important}
+  .entitylist .entity-grid tbody td.ec-actions-cell::before{display:none}
+  .entitylist .entity-grid tbody tr>td:nth-child(2){padding-right:52px}
+}
+</style>

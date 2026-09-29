@@ -1,0 +1,221 @@
+{% comment %}
+  Political Entities Service Centre (EC) - Home Page Template
+  Minimalist web application portal design
+{% endcomment %}
+
+{% if user %}
+
+<main class="ppep-app" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-lg mrgn-bttm-lg">
+    
+    <!-- Quick Actions   -->
+    <section class="row mrgn-bttm-lg">
+      <div class="col-md-12">
+        <h2 class="mrgn-tp-0 mrgn-bttm-md">{{ snippets['EC/SERVICES/TITLE'] | default: 'Services' }}</h2>
+      </div>
+      {% include 'Page Copy' %}
+      {% comment %}
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <a href="/items" class="ppep-card" style="display: block; text-decoration: none;">
+          <div class="panel panel-default" style="border-left: 4px solid #005a70; transition: box-shadow 0.2s;">
+            <div class="panel-body text-center" style="padding: 30px 20px;">
+              <span class="fa fa-folder-open-o" style="font-size: 2.5rem; color: #005a70; margin-bottom: 15px; display: block;"></span>
+              <h3 class="h5 mrgn-tp-0" style="color: #333;">{{ snippets['EC/CARD2/TITLE'] | default: 'Entity List Example' }}</h3>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['EC/CARD2/DESC'] | default: 'View and manage submissions' }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <a href="/create-item" class="ppep-card" style="display: block; text-decoration: none;">
+          <div class="panel panel-default" style="border-left: 4px solid #26374A; transition: box-shadow 0.2s;">
+            <div class="panel-body text-center" style="padding: 30px 20px;">
+              <span class="fa fa-file-text-o" style="font-size: 2.5rem; color: #26374A; margin-bottom: 15px; display: block;"></span>
+              <h3 class="h5 mrgn-tp-0" style="color: #333;">{{ snippets['EC/CARD1/TITLE'] | default: 'Basic Form Example' }}</h3>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['EC/CARD1/DESC'] | default: 'Submit a new filing or report' }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <a href="{{ sitemarkers['EntityProfile'].url }}" class="ppep-card" style="display: block; text-decoration: none;">
+          <div class="panel panel-default" style="border-left: 4px solid #d83b01; transition: box-shadow 0.2s;">
+            <div class="panel-body text-center" style="padding: 30px 20px;">
+              <span class="fa fa-building-o" style="font-size: 2.5rem; color: #d83b01; margin-bottom: 15px; display: block;"></span>
+              <h3 class="h5 mrgn-tp-0" style="color: #333;">{{ snippets['EC/CARD3/TITLE'] | default: 'Form Wizard Example' }}</h3>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['EC/CARD3/DESC'] | default: 'Update entity information' }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endcomment %}
+      {%comment %}
+      <div class="col-lg-3 col-md-6 col-sm-6 mrgn-bttm-md">
+        <a href="{{ sitemarkers['Support'].url }}" class="ppep-card" style="display: block; text-decoration: none;">
+          <div class="panel panel-default" style="border-left: 4px solid #1a5336; transition: box-shadow 0.2s;">
+            <div class="panel-body text-center" style="padding: 30px 20px;">
+              <span class="fa fa-life-ring" style="font-size: 2.5rem; color: #1a5336; margin-bottom: 15px; display: block;"></span>
+              <h3 class="h5 mrgn-tp-0" style="color: #333;">{{ snippets['EC/CARD4/TITLE'] | default: 'Support' }}</h3>
+              <p class="small text-muted mrgn-bttm-0">{{ snippets['EC/CARD4/DESC'] | default: 'Get help and resources' }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endcomment %}
+    </section>
+{% comment %}
+   
+    <section class="row">
+      <div class="col-md-8 mrgn-bttm-md">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background: #f5f5f5; border-bottom: 1px solid #ddd;">
+            <h3 class="panel-title" style="font-weight: 600;">Recent Activity</h3>
+          </div>
+          <div class="panel-body">
+            {% assign activities = entities['ppep_activities'] | where: 'ppep_contactid', user.id | order_by: 'createdon', 'desc' | take: 5 %}
+            {% if activities.size > 0 %}
+              <ul class="list-unstyled mrgn-bttm-0">
+                {% for activity in activities %}
+                <li class="mrgn-bttm-sm" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                  <span class="fa fa-circle text-{{ activity.ppep_statuscolor | default: 'muted' }}" style="font-size: 0.6rem; vertical-align: middle;"></span>
+                  <span style="margin-left: 10px;">{{ activity.ppep_description }}</span>
+                  <span class="pull-right small text-muted">{{ activity.createdon | date: "%b %d, %Y" }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mrgn-bttm-0"><em>No recent activity</em></p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mrgn-bttm-md">
+        <div class="panel panel-default">
+          <div class="panel-heading" style="background: #f5f5f5; border-bottom: 1px solid #ddd;">
+            <h3 class="panel-title" style="font-weight: 600;">Quick Links</h3>
+          </div>
+          <div class="panel-body">
+            <ul class="list-unstyled mrgn-bttm-0">
+              <li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink1'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['EC/QUICKLINK1'] | default: 'Filing Guidelines' }}</a></li>
+              <li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink2'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['EC/QUICKLINK2'] | default: 'Compliance Calendar' }}</a></li>
+              <li class="mrgn-bttm-sm"><a href="{{ sitemarkers['QuickLink3'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['EC/QUICKLINK3'] | default: 'Contact Support' }}</a></li>
+              <li><a href="{{ sitemarkers['QuickLink4'].url }}"><span class="fa fa-angle-right mrgn-rght-sm"></span>{{ snippets['EC/QUICKLINK4'] | default: 'FAQs' }}</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endcomment %}
+  </div>
+</main>
+
+{% else %}
+
+<!-- Anonymous User View -->
+<main class="ppep-app ppep-anon" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  
+  <!-- Hero: EC "Half-X" brand device (matches design/ec-ppep-landing-page.html) -->
+  <section class="ec-hero" aria-labelledby="heroTitle">
+    <svg class="ec-hero-halfx" viewBox="0 0 1000 1140" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="burgMain" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a1244"/><stop offset="1" stop-color="#5f012e"/></linearGradient>
+        <linearGradient id="burgDark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d0424"/><stop offset="1" stop-color="#611031"/></linearGradient>
+      </defs>
+      <polygon points="65,0 690,0 400,625 695,895 545,1140 140,1140 0,895 0,300" fill="url(#burgMain)"/>
+      <polygon points="65,0 690,0 430,360 0,360 0,300" fill="url(#burgDark)"/>
+      <polygon points="725,0 865,0 591,590 451,590" fill="#036064"/>
+      <polygon points="720,940 900,1140 600,1140" fill="#c9862d"/>
+    </svg>
+    <div class="ec-hero-inner">
+      <div class="ec-hero-copy">
+        <h1 id="heroTitle">{{ snippets['EC/HOME/TITLE'] | default: 'Elections Canada' }}</h1>
+        <p class="ec-hero-sub">{{ snippets['EC/HOME/SUBTITLE'] | default: 'Political Entities Registration Service' }}</p>
+        <p>{{ snippets['EC/HOME/DESC'] | default: 'This secure online portal offers access to a comprehensive suite of services provided by Elections Canada.' }}</p>
+        <div class="hero-actions" style="margin-top:1.2rem;">
+          {% comment %}
+          <a href="/Account/Login" class="ec-btn">{{ snippets['EC/HOME/REGISTERBUTTON'] | default: 'Register' }} / {{ snippets['EC/HOME/SIGNINBUTTON'] | default: 'Sign In' }}</a>
+        {% endcomment %}
+        
+        {% assign ssodef = request.params['idp'] | default: settings['EC/SSO/Default'] | default: 'ExternalID' %}
+        {% assign ssokey = 'EC/SSO/' | append: ssodef | append: '/Authority' %}
+        {% assign provider = settings[ssokey] | default: settings['EC/SSO/Authority'] | default: 'https://369ef81d-9561-4f78-95cd-155b8451714b.ciamlogin.com/369ef81d-9561-4f78-95cd-155b8451714b/v2.0' %}
+{% case website.selected_language.code %}
+ {% when "fr-CA", "fr-FR", "fr" %}{% assign mkt = "fr-CA" %}
+ {% else %}{% assign mkt = "en-CA" %}
+{% endcase %}
+<form id="ec-login" method="post"
+     action="/Account/Login/ExternalLogin?ReturnUrl=%2F&provider={{ provider | url_encode }}&mkt={{ mkt }}">
+<input type="hidden" name="__RequestVerificationToken" />
+<button type="submit" class="ec-btn">
+   {{ snippets['EC/HOME/REGISTERBUTTON'] | default: 'Register' }} / {{ snippets['EC/HOME/SIGNINBUTTON'] | default: 'Sign In' }}
+</button>
+</form>
+<script>
+ (function () {
+   var form  = document.getElementById('ec-login');
+   var field = form.querySelector('input[name="__RequestVerificationToken"]');
+   form.addEventListener('submit', function (e) {
+     if (field.value) return;                 // already set, let it post
+     e.preventDefault();                      // hold the submit
+     shell.getTokenDeferred().done(function (token) {
+       field.value = token;                   // fresh token at click time
+       form.submit();
+     });
+   });
+ })();
+</script>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- <section class="pagedetails container">
+    <h2 class="wb-inv">Page details</h2>
+    <dl id="wb-dtmd">
+      <dt>Date modified:</dt>
+      <dd><time property="dateModified">{{ page.adx_contentmodifiedon | date: "%Y-%m-%d" }}</time></dd>
+    </dl>
+  </section> -->
+</main>
+
+{% endif %}
+
+
+<style>
+  /* EC App Styles */
+  .ppep-app {
+    background: #f9f9f9;
+    /* min-height removed: the flex sticky footer in EC-Base-Styles handles page height */
+  }
+  
+  .ppep-hero {
+    position: relative;
+  }
+  
+  .ppep-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(38, 55, 74, 0.6);
+  }
+  
+  .ppep-hero .container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .ppep-card .panel:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .panel {
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+</style>

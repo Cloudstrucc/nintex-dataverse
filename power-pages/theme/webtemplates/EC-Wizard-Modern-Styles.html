@@ -1,0 +1,513 @@
+{% comment %}
+  EC-Wizard-Modern-Styles
+  Modern EC restyle for the REAL data-driven multi-step form (#pers-multistep).
+  CSS-only: does not change the tab/step logic, the entityform rendering, save, or validation.
+  Included from PERS - Form Template so registration + modify + regular-update + annual-confirmation
+  (all of which extend it) inherit the modern look. Read-only wizards inherit it too.
+{% endcomment %}
+<style>
+.pers-multistep-container{--w-burg:var(--ec-pe-area,#6a0032);--w-burg-dk:#520026;--w-navy:#1e384b;--w-teal:#036064;--w-line:#e3e6ea;--w-ink:#33404a;--w-muted:#69727a}
+.pers-multistep-container{max-width:1360px;margin:8px auto 0;padding:0 8px 56px}
+
+/* ---- no FOUC: hide the pre-wizard page cruft BEFORE first paint ----
+   This stylesheet loads in <head> (via EC-Base-Styles), so these rules apply immediately -
+   the standalone Instructions accordion, the Application-Number row and the page title (all
+   folded into the navy hero by the wizard JS) never flash in on load. .ecw-prewiz is set on the
+   two standalone blocks in the form template; the page title is the Page Header's <h1>. */
+.ecw-prewiz{display:none !important}
+body:has(#pers-multistep) .page-header{display:none !important}
+/* breathing room so the tiles never crowd the footer */
+#pers-multistep.ecw{padding-bottom:64px}
+
+/* ---- stepper nav (was Bootstrap nav-tabs) ---- */
+.pers-multistep-container .pers-tabs.nav-tabs{border:0;display:flex;flex-wrap:wrap;gap:8px;padding:6px;margin:0 0 22px;
+  background:#fff;border:1px solid var(--w-line);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.pers-multistep-container .pers-tabs>li{margin:0}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab{border:1px solid transparent;border-radius:10px;
+  padding:10px 16px;font-size:13.5px;font-weight:700;color:var(--w-navy);background:#f4f6f7;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:8px;transition:background .15s,color .15s,border-color .15s;text-decoration:none}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab:hover{background:#eaeef0;border-color:var(--w-line)}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab::before{content:"";width:9px;height:9px;border-radius:50%;background:#c7ced4}
+/* in-progress / needs-attention (OOB adds .warning), and active step */
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.warning::before{background:var(--w-teal)}
+/* NOTE: EC-Brand-Facelift sets `.nav-tabs .nav-link.active{color:var(--ec-burgundy)!important}`,
+   which made the active label burgundy-on-burgundy (invisible). Force white here. */
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.active,
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab[aria-selected="true"]{background:var(--w-burg) !important;color:#fff !important;border-color:var(--w-burg)}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.active::before,
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab[aria-selected="true"]::before{background:#ffda00}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.active::after,
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab[aria-selected="true"]::after{color:#ffda00 !important}
+/* non-active tabs: keep the label legible (the OOB `.warning` orange is too light on grey) */
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.warning{color:var(--w-navy)}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.warning::before{background:var(--w-teal)}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.complete{color:#2e7d32}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab.complete::before{background:#2e7d32}
+.pers-multistep-container .pers-tabs .nav-link.multistep-tab:focus-visible{outline:3px solid #ffda00;outline-offset:2px}
+
+/* ---- step content panel ---- */
+.pers-multistep-container .tab-section{background:#fff;border:1px solid var(--w-line);border-left:5px solid var(--w-burg);
+  border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.05);padding:24px 26px 28px}
+.pers-multistep-container .tab-section>.container{max-width:none;padding:0}
+.pers-multistep-container .tab-section details.instr,
+.pers-multistep-container .tab-section details{border:1px solid var(--w-line);border-radius:10px;background:#faf7f8;margin:0 0 20px;overflow:hidden}
+.pers-multistep-container .tab-section details>summary{cursor:pointer;padding:14px 18px;font-weight:700;color:var(--w-navy);list-style:none}
+.pers-multistep-container .tab-section details>summary::-webkit-details-marker{display:none}
+.pers-multistep-container .tab-section details .section,
+.pers-multistep-container .tab-section details .form-group{padding:0 18px 16px;color:var(--w-ink);line-height:1.6}
+
+/* ---- entityform fields (keeps native rendering; modern look) ---- */
+.pers-multistep-container legend,.pers-multistep-container .section-title{font-size:17px;font-weight:800;color:var(--w-navy);border:0;border-bottom:2px solid #eef0f2;padding-bottom:10px;margin:6px 0 18px;width:100%}
+.pers-multistep-container label,.pers-multistep-container .control-label{font-weight:700;color:var(--w-ink);font-size:14.5px;margin-bottom:6px}
+/* ---- Instructions accordion (id-scoped, fully self-contained so neither the generic bare-<details>
+   rule nor the browser default can bleed in). One visible background that is the SAME collapsed and
+   expanded; a clean custom caret (no native marker box); and no border/outline line on click. Section
+   titles + field cells share the accordion's 18px inset so everything lines up. Global to every form. */
+#pers-multistep .tab-section details{width:100% !important;max-width:100% !important;margin:0 0 20px !important;
+  border:1px solid #d7d8da !important;border-radius:10px !important;background:#e8e9eb !important;overflow:hidden !important;box-shadow:none !important}
+/* the SUMMARY itself gets the same visible background (not transparent) so the collapsed state can
+   never render white regardless of what paints behind it */
+#pers-multistep .tab-section details>summary{list-style:none !important;display:flex !important;align-items:center !important;
+  justify-content:space-between !important;gap:10px !important;padding:14px 18px !important;margin:0 !important;
+  background:#e8e9eb !important;border:0 !important;outline:none !important;box-shadow:none !important;
+  font-weight:700 !important;font-size:16px !important;color:var(--w-navy) !important;cursor:pointer !important}
+#pers-multistep .tab-section details[open]>summary{border-bottom:0 !important}
+/* keyboard focus stays visible (inset yellow ring); a plain mouse click shows no border */
+#pers-multistep .tab-section details>summary:focus-visible{outline:3px solid #ffda00 !important;outline-offset:-3px !important}
+/* body shares the box background (so collapsed == expanded) and the 18px inset */
+#pers-multistep .tab-section details>*:not(summary){padding:0 18px 14px !important;margin:0 !important;border:0 !important;background:#e8e9eb !important}
+#pers-multistep .tab-section details .section,#pers-multistep .tab-section details .form-group{padding:0 !important;margin:0 !important;border:0 !important;background:transparent !important}
+/* section titles + field cells align to the same 18px inset */
+#pers-multistep .tab-section .section-title,
+#pers-multistep .tab-section legend{padding-left:18px !important;padding-right:18px !important}
+#pers-multistep .tab-section .cell,
+#pers-multistep .tab-section td.cell{padding-left:18px !important;padding-right:18px !important}
+.pers-multistep-container .control input.form-control,.pers-multistep-container input.form-control,
+.pers-multistep-container select.form-control,.pers-multistep-container textarea.form-control{min-height:44px;border:2px solid #d7dce1;border-radius:10px;font-size:15px;padding:9px 13px;background:#fff}
+.pers-multistep-container input.form-control:focus,.pers-multistep-container select.form-control:focus,.pers-multistep-container textarea.form-control:focus{border-color:var(--w-burg);box-shadow:0 0 0 3px rgba(106,0,50,.12);outline:none}
+.pers-multistep-container .required,.pers-multistep-container [aria-required="true"]~.required,.pers-multistep-container abbr[title="required"]{color:#c0392b}
+/* OOB validation UI is suppressed further down (see "#pers-multistep .validation-summary-errors") */
+
+/* ---- action buttons ---- */
+.pers-multistep-container .actions,.pers-multistep-container .form-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:22px;border-top:1px solid #eef0f2;padding-top:20px}
+.pers-multistep-container .btn.btn-primary,.pers-multistep-container button[type="submit"],.pers-multistep-container input[type="submit"].btn,
+.pers-multistep-container .btn.button1,.pers-multistep-container .next-btn,.pers-multistep-container .submit-btn{background:#1e384b !important;border:2px solid #1e384b !important;color:#fff !important;border-radius:10px;padding:11px 24px;font-weight:700}
+.pers-multistep-container .btn.btn-primary:hover,.pers-multistep-container .btn.btn-primary:focus,.pers-multistep-container button[type="submit"]:hover,.pers-multistep-container button[type="submit"]:focus,.pers-multistep-container .next-btn:hover,.pers-multistep-container .next-btn:focus{background:#fff !important;border-color:#1e384b !important;color:#1e384b !important}
+.pers-multistep-container .btn.btn-default,.pers-multistep-container .btn.button2,.pers-multistep-container .prev-btn,.pers-multistep-container .btn-secondary{background:#fff !important;border:2px solid var(--w-burg) !important;color:var(--w-burg) !important;border-radius:10px;padding:11px 24px;font-weight:700}
+.pers-multistep-container .btn.btn-default:hover,.pers-multistep-container .prev-btn:hover{background:#f7eef2 !important}
+
+/* ---- read-only wizard fields (Details/readonly render as .readonly / disabled) ---- */
+.pers-multistep-container .readonly .form-control,.pers-multistep-container input[readonly],.pers-multistep-container .form-control[disabled]{background:#f4f6f7;color:#4b5560;border-color:#e3e6ea}
+
+/* ---- mobile: stepper stacks vertically (never a strange horizontal scroll) ---- */
+@media (max-width:820px){
+  .pers-multistep-container .pers-tabs.nav-tabs{flex-direction:column;gap:6px}
+  .pers-multistep-container .pers-tabs .nav-link.multistep-tab{width:100%;justify-content:flex-start}
+  .pers-multistep-container .tab-section{padding:18px 16px 22px}
+}
+</style>
+<style>
+/* ==========================================================================
+   TILED WIZARD — the approved POC design (hero + big ring, sticky segmented
+   progress, % ring tiles with badges/help/modal, Grid<->Focused morph) applied
+   to the REAL multi-step form. Presentational only: the original <ul.pers-tabs>
+   stays in the DOM (hidden) and tiles proxy clicks to it.
+   ========================================================================== */
+#pers-multistep.ecw{--ec-navy:#1e384b;--ec-burg:var(--ec-pe-area,#6a0032);--ec-teal:var(--ec-pe-area,#036064);--ec-focus:#ffda00;
+  --ec-success:#2e7d32;--ec-error:#c0392b;--g100:#eef1f3;--g200:#e3e6ea;--g300:#d7dce1;--muted:#69727a;
+  display:grid;gap:20px;align-items:start;max-width:1360px;margin:0 auto;padding:0 0 64px}
+#pers-multistep.ecw>.pers-tabs{display:none !important}
+#pers-multistep.ecw>.ecw-prog{grid-column:1/-1;grid-row:1}
+#pers-multistep.ecw>.ecw-hero{grid-column:1/-1;grid-row:2}
+#pers-multistep.ecw>.ecw-tiles{grid-row:3}
+#pers-multistep.ecw>.tab-section{grid-row:3;min-width:0}
+#pers-multistep.ecw-overview{grid-template-columns:1fr}
+#pers-multistep.ecw-overview>.ecw-tiles{grid-column:1/-1;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+#pers-multistep.ecw-overview>.tab-section{display:none !important}
+#pers-multistep.ecw-focus{grid-template-columns:300px minmax(0,1fr)}
+#pers-multistep.ecw-focus>.ecw-tiles{grid-column:1;grid-template-columns:1fr;gap:8px}
+#pers-multistep.ecw-focus>.tab-section{grid-column:2}
+/* sticky form: pin the active form just beneath the sticky progress bar once the hero scrolls out
+   of view. No height cap / no internal scroll — the form always shows in full; a form taller than
+   the tiles column simply has no room to travel and flows normally (never a scrollbar on the form).
+   JS keeps --ecw-prog-h in sync and toggles .ecw-pinned (shadow) while the hero is out of view.
+   Focus + desktop only. (.tab-section keeps overflow:hidden from below, so horizontal stays clean.) */
+#pers-multistep.ecw-focus>.tab-section{position:sticky;top:var(--ecw-prog-h,88px);align-self:start}
+#pers-multistep.ecw-pinned.ecw-focus>.tab-section{box-shadow:0 12px 30px rgba(15,25,40,.14)}
+
+/* sticky segmented progress bar */
+.ecw-prog{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--g200);
+  box-shadow:0 2px 6px rgba(0,0,0,.05);padding:11px 16px;border-radius:12px 12px 0 0}
+/* the sticky progress bar sits in the wizard's own stacking context, so it can paint over an open
+   modal (subgrid create/edit). Hide it while a modal is open so the modal is always in front. */
+body.modal-open #pers-multistep .ecw-prog{visibility:hidden !important}
+.ecw-prog .ecw-ptop{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted);margin-bottom:7px;gap:14px;flex-wrap:wrap}
+.ecw-prog .ecw-ptop b{color:var(--ec-navy)}
+.ecw-view{display:inline-flex;border:1px solid var(--g300);border-radius:99px;overflow:hidden}
+.ecw-view button{border:0;background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:5px 15px;cursor:pointer}
+.ecw-view button[aria-pressed="true"]{background:var(--ec-burg);color:#fff}
+.ecw-view button:focus-visible{outline:3px solid var(--ec-focus);outline-offset:2px}
+.ecw-segs{display:flex;gap:3px}
+.ecw-seg{flex:1;height:9px;border-radius:99px;background:var(--g100);border:0;padding:0;cursor:pointer;position:relative;overflow:hidden}
+.ecw-seg>span{position:absolute;inset:0;width:0;background:var(--ec-teal);transition:width .35s}
+.ecw-seg[data-s="complete"]>span{width:100% !important;background:var(--ec-success)}
+.ecw-seg:hover{outline:2px solid var(--g300);outline-offset:1px}
+
+/* navy hero with the big conic progress ring */
+.ecw-hero{background:linear-gradient(120deg,var(--ec-navy),#0f2233);color:#fff;border-radius:14px}
+.ecw-hero .ecw-hero-in{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:20px 22px}
+.ecw-hero *{color:#fff}
+.ecw-bigring{width:88px;height:88px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--ec-teal) calc(var(--p,0)*1%),rgba(255,255,255,.2) 0);transition:background .4s}
+.ecw-bigring::before{content:"";position:absolute;inset:9px;background:var(--ec-navy);border-radius:50%}
+.ecw-bigring b{position:relative;font-size:19px;font-weight:800}
+.ecw-hero .ecw-meta{min-width:0}
+.ecw-hero .ecw-meta h2{margin:0 0 4px;font-size:21px;font-weight:800;color:#fff}
+.ecw-hero .ecw-meta p{margin:0;color:#cdd6df;font-size:14px}
+.ecw-hero .ecw-recid{opacity:.85;font-size:12.5px;margin-top:5px !important;word-break:break-all}
+.ecw-hero .ecw-appno{margin-left:auto;text-align:right;color:#cdd6df;font-size:13px}
+.ecw-hero .ecw-appno b{color:#fff;font-size:14px}
+
+/* tiles */
+.ecw-tiles{display:grid;gap:16px;align-content:start}
+.ecw-tile{position:relative;background:#fff;border:1px solid var(--g200);border-radius:14px;padding:18px 16px 14px;
+  text-align:left;cursor:pointer;font:inherit;color:#33404a;width:100%;box-shadow:0 2px 10px rgba(0,0,0,.05);
+  transition:transform .2s,box-shadow .2s,border-color .2s,padding .35s;display:block}
+.ecw-tile:hover{transform:translateY(-6px) scale(1.025);box-shadow:0 22px 44px rgba(0,0,0,.20);background:#f2f6f9;border-color:#b9c7d2;z-index:2}
+.ecw-tile:focus-visible{outline:3px solid var(--ec-focus);outline-offset:2px}
+.ecw-tile::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:var(--accent,var(--ec-teal));border-radius:14px 14px 0 0}
+.ecw-tile .ecw-top{display:flex;align-items:center;gap:14px}
+.ecw-tile .ecw-ring{width:56px;height:56px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--accent,var(--ec-teal)) calc(var(--p,0)*1%),var(--g100) 0);transition:width .35s,height .35s}
+.ecw-tile .ecw-ring::before{content:"";position:absolute;inset:6px;background:#fff;border-radius:50%}
+.ecw-tile .ecw-ring span{position:relative;font-size:13px;font-weight:800;color:var(--accent,var(--ec-navy))}
+.ecw-tile .ecw-head{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.ecw-tile .ecw-h{font-weight:800;color:var(--ec-navy);font-size:16px;line-height:1.2;margin:0}
+.ecw-tile .ecw-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--g100);color:var(--accent,var(--muted))}
+.ecw-tile .ecw-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.ecw-tile .ecw-help{margin:11px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ecw-tile.ecw-exp .ecw-help{-webkit-line-clamp:unset;overflow:visible}
+.ecw-tile .ecw-more{margin-top:6px;background:none;border:0;color:var(--ec-navy);font:inherit;font-size:13px;font-weight:700;text-decoration:underline;cursor:pointer;padding:0}
+.ecw-tile .ecw-q{position:absolute;top:11px;right:11px;width:28px;height:28px;border-radius:50%;border:2px solid var(--g300);
+  background:#fff;color:var(--ec-navy);font-weight:800;cursor:pointer;line-height:1;display:grid;place-items:center}
+.ecw-tile .ecw-q:hover{border-color:var(--ec-burg);color:var(--ec-burg)}
+/* reserve space on the right of the title so a long step name wraps before the absolute "?" button
+   instead of running under it. Scoped to tiles that actually have a "?" (help) via :has(). */
+.ecw-tile:has(.ecw-q) .ecw-h{padding-right:32px}
+.ecw-tile[data-state="complete"]{border-color:#bfe0c0}
+.ecw-tile[data-state="complete"] .ecw-ring{background:var(--ec-success)}
+/* complete: the ✓ sits on the white centre of the ring, so it must be green (was #fff = invisible) */
+.ecw-tile[data-state="complete"] .ecw-ring span{color:var(--ec-success);font-size:17px;line-height:1}
+/* icon indicator mode (default): the incomplete ring border takes the area colour (--accent),
+   but the ⚠ glyph keeps the Bootstrap warning colour (not the area colour) */
+#pers-multistep.ecw-ind-icon .ecw-tile:not([data-state="complete"]) .ecw-ring span{color:#997404;font-size:17px;line-height:1}
+.ecw-tile[data-state="complete"] .ecw-badge{background:#e6f2e3;color:var(--ec-success)}
+/* incomplete tiles: one consistent dark pill on every step (not the per-persona accent), high contrast */
+.ecw-tile:not([data-state="complete"]) .ecw-badge{background:#e7ebf0 !important;color:#243244 !important}
+.ecw-tile[data-state="disabled"]{opacity:.55;cursor:not-allowed}
+/* current step = FILLED accent (Proposal C): the active tile fills with the area/persona accent
+   so "where am I" is unmistakable; text/ring/badge invert to stay legible. aria-current drives it. */
+.ecw-tile[aria-current="step"]{background:var(--accent,var(--ec-navy)) !important;border-color:var(--accent,var(--ec-navy)) !important;box-shadow:0 12px 28px rgba(0,0,0,.22);transform:translateX(4px)}
+.ecw-tile[aria-current="step"]::before{display:none}
+.ecw-tile[aria-current="step"] .ecw-h,.ecw-tile[aria-current="step"] .ecw-help,.ecw-tile[aria-current="step"] .ecw-more{color:#fff !important}
+.ecw-tile[aria-current="step"] .ecw-more{text-decoration-color:rgba(255,255,255,.7)}
+/* help "?" on the filled tile: solid white circle with the accent-coloured "?" (was white-on-white).
+   White circle keeps good contrast on every area accent, including the lighter mustard/olive. */
+.ecw-tile[aria-current="step"] .ecw-q{background:#fff !important;border-color:#fff;color:var(--accent,var(--ec-navy)) !important}
+.ecw-tile[aria-current="step"] .ecw-q:hover{background:#eef1f4 !important;border-color:#fff;color:var(--accent,var(--ec-navy)) !important}
+.ecw-tile[aria-current="step"] .ecw-badge{background:rgba(255,255,255,.2) !important;color:#fff !important}
+/* ring inverts on the filled tile (white progress on translucent track, accent centre); complete tiles keep their green ring */
+#pers-multistep .ecw-tile[aria-current="step"]:not([data-state="complete"]) .ecw-ring{background:conic-gradient(#fff calc(var(--p,0)*1%),rgba(255,255,255,.35) 0)}
+#pers-multistep .ecw-tile[aria-current="step"]:not([data-state="complete"]) .ecw-ring::before{background:var(--accent,var(--ec-navy))}
+#pers-multistep .ecw-tile[aria-current="step"]:not([data-state="complete"]) .ecw-ring span{color:#fff}
+/* compact tiles in the focused left menu */
+#pers-multistep.ecw-focus .ecw-tile{padding:9px 11px}
+#pers-multistep.ecw-focus .ecw-tile .ecw-ring{width:38px;height:38px}
+#pers-multistep.ecw-focus .ecw-tile .ecw-ring::before{inset:5px}
+/* focused-menu tiles keep the SAME text sizes as grid view (ring 13px, heading 16px, badge 11.5px);
+   only the ring diameter + padding stay compact */
+#pers-multistep.ecw-focus .ecw-tile .ecw-help,
+#pers-multistep.ecw-focus .ecw-tile .ecw-more,
+#pers-multistep.ecw-focus .ecw-tile .ecw-q{display:none}
+/* keep the status badge (Not started / % done / Complete) visible in focused mode */
+#pers-multistep.ecw-focus .ecw-tile .ecw-badge{padding:1px 7px;margin-top:2px}
+
+/* help modal */
+.ecw-modal-back{position:fixed;inset:0;background:rgba(15,25,40,.55);display:none;place-items:center;z-index:4000;padding:16px}
+.ecw-modal-back.open{display:grid}
+.ecw-modal{background:#fff;border-radius:14px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);border-top:5px solid var(--ec-pe-area,#6a0032);animation:ecwPop .25s ease}
+@keyframes ecwPop{from{transform:translateY(12px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.ecw-modal header{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid #e3e6ea}
+.ecw-modal header h2{margin:0;font-size:18px;color:#1e384b;flex:1}
+.ecw-modal .ecw-x{border:0;background:none;font-size:22px;cursor:pointer;color:#69727a;line-height:1}
+.ecw-modal .ecw-body{padding:16px 18px;color:#33404a;line-height:1.6;max-height:60vh;overflow:auto}
+.ecw-modal footer{padding:0 18px 18px;text-align:right}
+.ecw-modal footer button{background:var(--ec-pe-area,#6a0032);color:#fff;border:2px solid var(--ec-pe-area,#6a0032);border-radius:10px;padding:10px 22px;font-weight:700;cursor:pointer}
+
+@media(prefers-reduced-motion:reduce){#pers-multistep.ecw *{transition:none !important;animation:none !important}}
+@media (max-width:820px){
+  #pers-multistep.ecw,#pers-multistep.ecw-focus,#pers-multistep.ecw-overview{grid-template-columns:1fr !important}
+  /* single-column (stacked) layout: no room to pin, so keep the form in normal flow */
+  #pers-multistep.ecw-focus>.tab-section{position:static !important;box-shadow:none !important}
+  #pers-multistep.ecw>.ecw-tiles,#pers-multistep.ecw>.tab-section{grid-column:1 !important}
+  #pers-multistep.ecw-overview>.ecw-tiles{grid-template-columns:1fr}
+  #pers-multistep.ecw-focus>.ecw-tiles{grid-row:3}
+  #pers-multistep.ecw-focus>.tab-section{grid-row:4}
+  .ecw-hero .ecw-appno{margin-left:0;text-align:left;width:100%}
+}
+</style>
+<style>
+/* ==== anti-FOUC + gap removal + POC validation look ==== */
+/* raw OOB tab bar is replaced by tiles - hide it immediately so the old design never flashes */
+#pers-multistep .pers-tabs.nav-tabs{display:none !important}
+/* the pre-wizard title / standalone instructions / "Application Number" row are folded into the
+   hero; the JS tags them so they collapse (removes the big gap under the page header) */
+.ecw-hide{display:none !important}
+#pers-multistep.ecw{margin-top:0 !important}
+/* no yellow focus bar on the (empty) step containers - only real controls keep a focus ring */
+#pers-multistep .tab-section:focus,#pers-multistep [tabindex="-1"]:focus,#pers-multistep .ecw-formstart:focus{outline:none !important;box-shadow:none !important}
+
+/* red "(required)" / format hints to the RIGHT of the label (POC behaviour) */
+#pers-multistep .ecw-req,#pers-multistep .ecw-fmt{color:#b10e1e;font-weight:700;margin-left:6px;font-size:.9em;white-space:nowrap}
+
+/* ---- POC validation is the primary layer ----
+   Our JS runs first and blocks the OOB postback on any invalid step, so on a normal Save/Next
+   only OUR accessible, focus-linked summary + field messages render. The OOB validation only
+   ever surfaces for a rule OUR client layer does not cover (e.g. a server-side/business rule or
+   the final cross-step submit check) - so we STYLE it to match the POC rather than hide it (hiding
+   it would make a genuinely-needed error invisible - a WCAG regression). A JS dedupe net also
+   removes the OOB summary/field message whenever OUR equivalent is already present. */
+#pers-multistep .validation-summary-errors,#pers-multistep .alert-danger.error{border:2px solid #b10e1e;background:#fef3f3;color:#8a1020;border-radius:12px;padding:15px 18px;margin:0 0 18px;scroll-margin-top:96px}
+#pers-multistep .validation-summary-errors:focus{outline:3px solid #ffda00;outline-offset:2px}
+#pers-multistep .validation-summary-errors h2,#pers-multistep .validation-summary-errors > span{display:block;color:#b10e1e;font-size:1.05rem;font-weight:800;margin:0 0 .4rem}
+#pers-multistep .validation-summary-errors ul{margin:.25rem 0 0;padding-left:1.2rem}
+#pers-multistep .validation-summary-errors li,#pers-multistep .validation-summary-errors a{color:#b10e1e;font-weight:600}
+#pers-multistep .field-validation-error,#pers-multistep .help-block.error{display:block;color:#b10e1e;font-weight:600;font-size:.9rem;margin-top:.3rem}
+/* invalid-field styling (matches the POC: red border + pale red fill) - applied by OUR JS (.ec-inv)
+   and any OOB error class */
+#pers-multistep input.input-validation-error,#pers-multistep select.input-validation-error,#pers-multistep textarea.input-validation-error,
+#pers-multistep .control.error input.form-control,#pers-multistep .control.error select.form-control{border-color:#b10e1e !important;background:#fff6f6}
+</style>
+<style>
+/* ==== client-side validation (POC) error summary + invalid fields ==== */
+#pers-multistep .ecw-errsum{border:2px solid #b10e1e;background:#fef3f3;border-radius:12px;padding:16px 18px;margin:0 0 20px;scroll-margin-top:96px}
+#pers-multistep .ecw-errsum:focus{outline:3px solid #ffda00;outline-offset:2px}
+#pers-multistep .ecw-errsum h2{margin:.1rem 0 .5rem;color:#b10e1e;font-size:1.05rem;font-weight:800}
+#pers-multistep .ecw-errsum p{margin:0 0 .25rem;color:#33404a}
+#pers-multistep .ecw-errsum ol{margin:.25rem 0 0;padding-left:1.2rem}
+#pers-multistep .ecw-errsum a{color:#b10e1e;font-weight:600}
+#pers-multistep .ecw-field-err{display:block;color:#b10e1e;font-weight:600;font-size:14.5px;margin-top:.3rem}
+#pers-multistep .ec-inv,#pers-multistep input.ec-inv,#pers-multistep select.ec-inv,#pers-multistep textarea.ec-inv{border-color:#b10e1e !important;background:#fff6f6}
+
+/* ==== keep the step content INSIDE its panel in focused mode (was overflowing right) ==== */
+#pers-multistep.ecw .tab-section{min-width:0;overflow:hidden}
+#pers-multistep.ecw .tab-section>.container,
+#pers-multistep.ecw .tab-section .columnBlockLayout,
+#pers-multistep.ecw .tab-section .col-lg-12{max-width:100% !important;min-width:0 !important;width:100% !important;padding-left:0 !important;padding-right:0 !important;margin-left:0 !important;margin-right:0 !important}
+#pers-multistep.ecw .tab-section .container{display:block !important}
+#pers-multistep.ecw .tab-section details{max-width:100%}
+#pers-multistep.ecw .tab-section .table-responsive,
+#pers-multistep.ecw .tab-section .entity-subgrid,
+#pers-multistep.ecw .tab-section .cell{max-width:100%;overflow-x:auto}
+</style>
+<style>
+/* ==========================================================================
+   EC HALF X — brand backdrop for the registration wizard.
+   Per the EC Visual Identity Guide (Graphic Components > Half X, p.18-19):
+   the half X is the focal point of EC's identity; it sits on a white / light-grey
+   background, stands UPRIGHT on the LEFT of the page, BLEEDS off the top and
+   bottom, and uses corporate BURGUNDY as the focal colour with approved-palette
+   accents (teal, olive, ochre). This layer is drawn entirely in CSS (no text and
+   no images), so it is purely decorative and is exposed to assistive tech as
+   background only — the accessible treatment the guide asks for.
+   Colours are the guide's RGB values: burgundy 106/0/50 #6a0032, teal 3/96/100
+   #036064, olive 139/149/56 #8b9538, ochre 201/134/45 #c9862d.
+   ========================================================================== */
+html:has(#pers-multistep){background:#f2f0f1}           /* light-grey ground (Half X sits on white/light-grey) */
+body:has(#pers-multistep){background:transparent}
+.pers-multistep-container{position:relative;z-index:1}  /* the wizard renders above the backdrop */
+
+/* the burgundy half X: upright, anchored left, bleeding top -> bottom */
+body:has(#pers-multistep)::before{
+  content:"";position:fixed;top:0;bottom:0;left:0;z-index:-1;pointer-events:none;
+  width:clamp(220px,26vw,440px);
+  background:linear-gradient(135deg,#7a0039 0%,#6a0032 48%,#520026 100%);
+  clip-path:polygon(0 0, 58% 0, 100% 50%, 58% 100%, 0 100%);
+}
+/* approved-palette accents: thin teal + olive diagonals and an ochre corner triangle */
+body:has(#pers-multistep)::after{
+  content:"";position:fixed;top:0;bottom:0;left:0;z-index:-1;pointer-events:none;
+  width:clamp(220px,26vw,440px);
+  background:
+    linear-gradient(135deg, transparent 61.5%, #036064 61.5% 62.4%, transparent 62.4%),
+    linear-gradient(135deg, transparent 67.5%, #8b9538 67.5% 68.2%, transparent 68.2%),
+    linear-gradient(45deg, #c9862d 0 52px, transparent 52px) left bottom / 104px 104px no-repeat;
+}
+/* On narrower viewports the centred form fills the width and would fully cover the
+   motif, leaving only a stray sliver — so drop it and keep a clean light ground. */
+@media (max-width:1100px){
+  body:has(#pers-multistep)::before,
+  body:has(#pers-multistep)::after{display:none}
+  html:has(#pers-multistep){background:#f4f6f7}
+}
+</style>
+<style>
+/* ============================================================
+   STEP COMPLETION UX (Save & complete / lock / Reactivate / submit gate),
+   RESPONSIVE STEP MENU (mobile numbered strip + wheel drawer + current-step
+   header) and SCROLL-TO-TOP. Desktop keeps the sticky tiles menu unchanged;
+   the mobile widgets only exist below 820px.
+   ============================================================ */
+:root{--ecw-ok:#12734f;--ecw-ok-bg:#e5f3ec;--ecw-warn:#8a5a00;--ecw-warn-bg:#fbf1dd}
+
+/* --- "Save & complete" with the "?" help icon INSIDE the button --- */
+.ecw-savewrap{position:relative;display:inline-flex;align-items:center}
+.ecw-savewrap>.btn,.ecw-savewrap>input,.ecw-savewrap>button,.ecw-savewrap>a{padding-right:44px !important}
+.ecw-qin{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;
+  border:1.5px solid #fff;color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;cursor:help;line-height:1;z-index:2}
+.ecw-savewrap:hover .ecw-qin{border-color:#1e384b;color:#1e384b}
+.ecw-qin:focus-visible{outline:3px solid #ffda00;outline-offset:2px}
+.ecw-qtip{display:none !important}
+/* "?" flyout - body-level, position:fixed (the form panel's overflow:hidden cannot clip it), lighter charcoal;
+   the arrow follows the "?" via --ax; .below flips it under the button when there is no room above */
+.ecw-qfly{position:fixed;z-index:1300;background:#3b4754;color:#fff;padding:11px 13px;border-radius:9px;font-size:13.5px;line-height:1.45;font-weight:500;
+  text-align:left;box-shadow:0 10px 26px rgba(0,0,0,.28);opacity:0;visibility:hidden;transition:opacity .15s;pointer-events:none;white-space:normal}
+.ecw-qfly.show{opacity:1;visibility:visible}
+.ecw-qfly::after{content:"";position:absolute;left:var(--ax,50%);top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:#3b4754}
+.ecw-qfly.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#3b4754}
+
+/* OOB top Save/Saved action bar + success flash: never shown on wizard steps */
+#pers-multistep .ecw-hide-oob{display:none !important}
+
+/* --- completed step: read-only + banner + Reactivate --- */
+#pers-multistep .tab-section.ecw-steplocked input:not([type=hidden]),
+#pers-multistep .tab-section.ecw-steplocked select,
+#pers-multistep .tab-section.ecw-steplocked textarea{background:#eef0f2 !important;color:#5c6a76 !important;pointer-events:none}
+#pers-multistep .tab-section.ecw-steplocked .ecw-savewrap{display:none !important}
+/* the whole locked step is inert to the mouse; only the banner, navigation and Instructions
+   re-enable themselves (pointer-events:auto on a descendant overrides the ancestor's none) */
+#pers-multistep .tab-section.ecw-steplocked{pointer-events:none}
+#pers-multistep .tab-section.ecw-steplocked .ecw-locked-banner,
+#pers-multistep .tab-section.ecw-steplocked .ecw-lock-allow{pointer-events:auto}
+#pers-multistep .tab-section.ecw-steplocked .ecw-lockedctl:not(input):not(select):not(textarea):not(label){opacity:.45 !important;cursor:not-allowed !important}
+.ecw-locked-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--ecw-ok-bg);border:1px solid #bfe0cf;border-radius:10px;padding:12px 14px;margin:0 0 18px}
+.ecw-locked-banner .ecw-lbic{font-size:18px;color:var(--ecw-ok);font-weight:800}
+.ecw-locked-banner .ecw-lbt{flex:1;min-width:200px;color:#22303c}
+.ecw-locked-banner .ecw-lbt b{color:#1e384b}
+.ecw-reactivate{background:#fff !important;color:#1e384b !important;border:2px solid #1e384b !important;border-radius:10px !important;padding:9px 16px !important;font-weight:700 !important;cursor:pointer}
+.ecw-reactivate:hover,.ecw-reactivate:focus{background:#1e384b !important;color:#fff !important}
+
+/* --- submit gate (last step): disabled until every prior step is complete --- */
+.ecw-btn-disabled,#pers-multistep [data-ecwsubmit="1"][disabled]{opacity:.5 !important;cursor:not-allowed !important;background:#9aa6b1 !important;border-color:#9aa6b1 !important;color:#fff !important}
+.ecw-submit-hint{font-size:13.5px;color:var(--ecw-warn);font-weight:600;margin:8px 0 0}
+
+/* smart-sticky tiles menu (desktop Focused): translated by JS, so hint the compositor */
+#pers-multistep.ecw-focus>.ecw-tiles{will-change:transform}
+
+/* --- mobile-only widgets (hidden on desktop) --- */
+.ecw-mob,.ecw-stephead{display:none}
+.ecw-drawer-back{position:fixed;inset:0;background:rgba(15,25,40,.45);z-index:1200;opacity:0;visibility:hidden;transition:opacity .18s}
+.ecw-drawer-back.open{opacity:1;visibility:visible}
+.ecw-drawer{position:absolute;left:0;top:0;bottom:0;width:280px;max-width:84vw;background:#f3f5f7;box-shadow:8px 0 26px rgba(0,0,0,.25);
+  transform:translateX(-100%);transition:transform .2s;padding:14px;overflow:auto}
+.ecw-drawer-back.open .ecw-drawer{transform:none}
+.ecw-drawer .ecw-dh{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 12px;color:#1e384b}
+.ecw-drawer .ecw-dx{background:none;border:0;font-size:24px;cursor:pointer;color:#1e384b;line-height:1}
+.ecw-dstep{position:relative;display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:#fff;border:1px solid #dfe3e7;
+  border-radius:12px;padding:12px 12px 12px 16px;margin:0 0 10px;cursor:pointer;font:inherit;color:inherit}
+.ecw-dstep::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:12px 0 0 12px;background:var(--ec-pe-area,#6a0032);opacity:.25}
+.ecw-dstep.active{background:#e8e9eb;border-color:#c7ccd2}.ecw-dstep.active::before{opacity:1}
+.ecw-dring{width:34px;height:34px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#eef0f2;color:#5b6b78}
+.ecw-dstep.done .ecw-dring{background:var(--ecw-ok-bg);color:var(--ecw-ok)}.ecw-dstep.inc .ecw-dring{background:var(--ecw-warn-bg);color:var(--ecw-warn)}
+.ecw-dtxt b{color:#1e384b;font-size:14.5px}
+.ecw-dbadge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;background:#eef0f2;color:#5b6b78;margin-top:3px}
+.ecw-dbadge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.ecw-dstep.done .ecw-dbadge{background:var(--ecw-ok-bg);color:var(--ecw-ok)}.ecw-dstep.inc .ecw-dbadge{background:var(--ecw-warn-bg);color:var(--ecw-warn)}
+
+/* --- scroll-to-top (returns to the top of the current step) --- */
+.ecw-fab{position:fixed;right:22px;bottom:22px;width:52px;height:52px;border-radius:50%;background:#6a0032;color:#fff;border:0;cursor:pointer;
+  box-shadow:0 8px 22px rgba(15,25,40,.32);font-size:22px;display:none;place-items:center;z-index:1100}
+.ecw-fab.show{display:grid}
+.ecw-fab:hover{background:#520026}
+.ecw-fab:focus-visible{outline:3px solid #ffda00;outline-offset:2px}
+
+@media (max-width:820px){
+  /* Focused mode on small screens: replace the stacked tiles menu (which overflowed the form
+     on scroll) with the compact strip + wheel drawer, and always show the current step above the form. */
+  #pers-multistep.ecw-focus>.ecw-tiles{display:none !important}
+  #pers-multistep.ecw>.ecw-mob{display:flex;grid-column:1 !important;grid-row:2 !important;position:sticky;top:var(--ecw-prog-h,88px);z-index:19;
+    background:#fff;border:1px solid #d8dde2;border-radius:12px;padding:8px 10px;align-items:center;gap:10px;margin:0 0 8px}
+  #pers-multistep.ecw>.ecw-hero{grid-row:3 !important}
+  #pers-multistep.ecw>.ecw-tiles{grid-row:4 !important}
+  #pers-multistep.ecw-focus>.ecw-stephead{display:flex;grid-column:1 !important;grid-row:5 !important;align-items:center;gap:12px;
+    background:#1e384b;color:#fff;border-radius:12px;padding:12px 16px;margin:0 0 12px}
+  #pers-multistep.ecw>.tab-section{grid-row:6 !important}
+  .ecw-wheel{flex:0 0 auto;background:#1e384b;color:#fff;border:0;border-radius:9px;padding:8px 12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .ecw-nums{display:flex;gap:8px;overflow-x:auto;padding:2px;min-width:0}
+  .ecw-num{position:relative;flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:2px solid #dfe3e7;background:#fff;color:#5b6b78;font-weight:800;cursor:pointer;display:grid;place-items:center}
+  .ecw-num.active{border-color:#1e384b;box-shadow:0 0 0 3px rgba(30,56,75,.12)}
+  .ecw-num.done{border-color:var(--ecw-ok);background:var(--ecw-ok-bg);color:var(--ecw-ok)}
+  .ecw-num.inc{border-color:var(--ecw-warn);background:var(--ecw-warn-bg);color:var(--ecw-warn)}
+  .ecw-num:focus-visible{outline:3px solid #ffda00;outline-offset:2px}
+  .ecw-nt{position:absolute;top:120%;left:50%;transform:translateX(-50%);white-space:nowrap;background:#1e384b;color:#fff;font-size:12px;font-weight:600;
+    padding:4px 8px;border-radius:6px;opacity:0;visibility:hidden;transition:opacity .12s;z-index:5;pointer-events:none}
+  .ecw-num:hover .ecw-nt,.ecw-num:focus .ecw-nt{opacity:1;visibility:visible}
+  .ecw-stephead .ecw-sh-n{width:30px;height:30px;border-radius:50%;background:#fff;color:#1e384b;font-weight:800;display:grid;place-items:center;flex:0 0 auto}
+  .ecw-stephead .ecw-sh-t{font-weight:700;flex:1;min-width:0}
+  .ecw-stephead .ecw-sh-b{font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 10px;background:rgba(255,255,255,.2)}
+  .ecw-stephead.done .ecw-sh-b{background:var(--ecw-ok-bg);color:var(--ecw-ok)}
+  .ecw-stephead.inc .ecw-sh-b{background:var(--ecw-warn-bg);color:var(--ecw-warn)}
+}
+</style>
+
+<style>
+/* ============================================================
+   Register a New Political Party - START view (create mode).
+   Mirrors the Privacy Notice component; colour follows the PE area token
+   (teal for Political Party, olive for EDA), so no per-area overrides needed.
+   ============================================================ */
+.ecw-start{--sarea:var(--ec-pe-area,#036064);max-width:940px;margin:8px auto 0;padding:8px;box-sizing:border-box}
+.ecw-shero{position:relative;overflow:hidden;border-radius:16px;color:#fff;padding:36px 34px;display:flex;gap:24px;align-items:center;
+  background:linear-gradient(120deg,var(--sarea),#0f2233)}
+.ecw-shero::after{content:"";position:absolute;right:-50px;top:-50px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none}
+.ecw-shero-ic{position:relative;z-index:1;flex:0 0 auto;width:74px;height:74px;display:grid;place-items:center;background:rgba(255,255,255,.12);border-radius:18px}
+.ecw-shero-tx{position:relative;z-index:1}
+.ecw-shero-tx h1{margin:0 0 8px;font-size:26px;font-weight:800;color:#fff;line-height:1.15}
+.ecw-shero-tx p{margin:0;color:#eaf3f3;font-size:15px;line-height:1.5;max-width:600px}
+
+.ecw-scard{position:relative;background:#fff;border:1px solid #e3e6ea;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.06);padding:30px 34px 44px;margin-top:22px;overflow:hidden}
+.ecw-scard::before{content:"";position:absolute;top:0;left:0;bottom:0;width:6px;background:var(--sarea)}
+.ecw-start-steps{list-style:none;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0;margin:0 0 18px}
+.ecw-start-steps .ess{display:inline-flex;align-items:center;gap:9px;font-weight:700;color:#5b6b78;font-size:14.5px}
+.ecw-start-steps .ess.on{color:#1e384b}
+.ecw-start-steps .essn{width:28px;height:28px;border-radius:50%;background:#eef0f2;color:#5b6b78;display:grid;place-items:center;font-size:13px;font-weight:800}
+.ecw-start-steps .ess.on .essn{background:var(--sarea);color:#fff}
+.ecw-start-steps .essarrow{color:#b9c1c9;font-weight:800}
+.ecw-slede{font-size:15.5px;line-height:1.6;color:#33404a;margin:0 0 24px;max-width:64ch}
+
+/* reflow the OOB entityform table into a 2-column grid WITH a real gutter */
+.ecw-startform table{width:100% !important;border-collapse:separate !important}
+.ecw-startform table>tbody{display:grid;grid-template-columns:1fr 1fr;gap:18px 30px}
+.ecw-startform table>tbody>tr{display:contents}
+.ecw-startform td.cell,.ecw-startform .cell{display:block !important;width:auto !important;max-width:none !important;float:none !important;padding:0 !important;margin:0 !important}
+.ecw-startform .ecw-hidecell{display:none !important}
+@media(max-width:680px){.ecw-startform table>tbody{grid-template-columns:1fr}}
+.ecw-startform .control,.ecw-startform .info{width:auto !important}
+.ecw-startform label{display:block;font-weight:700;color:#1e384b;font-size:15px;margin:0 0 7px}
+.ecw-startform .required{display:none !important}   /* all Start fields are required - no marker per design */
+.ecw-startform .form-control{width:100% !important;padding:12px 14px !important;border:1px solid #b9c1c9 !important;border-radius:10px !important;font:inherit !important;height:auto !important;box-shadow:none !important}
+.ecw-startform .form-control:focus{outline:3px solid #ffda00 !important;outline-offset:1px;border-color:var(--sarea) !important}
+/* action bar: Save (OOB) + Cancel (injected) */
+.ecw-startform .actions,.ecw-startform .form-actions,.ecw-startform .crmEntityFormView .actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:12px !important;padding-top:16px;border-top:1px solid #eceff2}
+/* trim the OOB form's trailing whitespace so the buttons hug the last field */
+.ecw-startform>*:last-child,.ecw-startform .entity-form,.ecw-startform .crmEntityFormView{margin-bottom:0 !important}
+.ecw-startform table.section{margin-bottom:0 !important}
+.ecw-startform tr:last-child td.cell,.ecw-startform .cell:last-child{padding-bottom:0 !important}
+.ecw-startform input[type='submit'],.ecw-startform button[type='submit'],.ecw-startform .submit-btn{background:var(--sarea) !important;border:2px solid var(--sarea) !important;color:#fff !important;border-radius:12px !important;padding:14px 28px !important;font-weight:700 !important;font-size:16px !important;height:auto !important;box-shadow:none !important;cursor:pointer}
+.ecw-startform input[type='submit']:hover,.ecw-startform button[type='submit']:hover,.ecw-startform .submit-btn:hover{filter:brightness(.92)}
+.ecw-cancel{font-size:16px;font-weight:700;border-radius:12px;padding:13px 26px;border:2px solid var(--sarea);color:var(--sarea);background:#fff;text-decoration:none;display:inline-flex;align-items:center;line-height:1}
+.ecw-cancel:hover{background:#eef6f6;color:var(--sarea)}
+.ecw-startform .message,.ecw-startform .alert-success{display:none !important}   /* no OOB "Saved" flash */
+@media(max-width:640px){.ecw-shero{flex-direction:column;text-align:center;padding:30px 22px}.ecw-shero-tx p{max-width:none}}
+</style>

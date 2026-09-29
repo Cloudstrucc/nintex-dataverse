@@ -1,0 +1,90 @@
+{% comment %}
+  EC-Subgrid-Modern-Styles  (global; included once from EC-Base-Styles)
+  Restyles ONLY basic-form subgrids (.entity-grid.subgrid) — NOT entity lists elsewhere.
+  Two views, toggled by the injected .ecw-sg-bar (see EC-Subgrid-Modern-Scripts):
+    - Cards  (.ecw-sg-cards): the OOB table is transformed into vertical label/value cards
+             so nothing is truncated on a narrow form. DEFAULT.
+    - Table  (.ecw-sg-table): a normal table showing the first N columns; the rest are added
+             on demand from the "Columns" menu, with horizontal scroll only when needed.
+  data-ecw-modal="1" -> this block is also copied into modal-form iframes (subgrids in modals).
+  Progressive enhancement: OOB row-action handlers and pagination are left intact.
+{% endcomment %}
+<style data-ecw-modal="1">
+/* the subgrid becomes a styled card (mockup look): left accent + radius + soft shadow.
+   position:relative anchors nothing now (menu is a fixed overlay) but is kept harmless. */
+.entity-grid.subgrid{position:relative;background:#fff;border:1px solid #e7ebef;border-left:5px solid var(--ec-pe-area,#2b4380);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,40,60,.08)}
+
+/* hide the OOB toolbar; the Add button is proxied into our bar so it lines up with the pills */
+.entity-grid.subgrid .toolbar-actions{display:none !important}
+
+/* --- injected control bar: [Cards | Table]  [Add], right-aligned on one row --- */
+.entity-grid.subgrid .ecw-sg-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.ecw-sg-toggle{display:inline-flex;background:#eef1f4;border-radius:999px;padding:4px;gap:2px}
+.ecw-sg-toggle button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;color:#5a6570;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.2}
+.ecw-sg-toggle button[aria-pressed="true"]{background:var(--ec-pe-area,#2b4380);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.ecw-sg-toggle svg{width:14px;height:14px;fill:currentColor}
+.ecw-sg-add{border:1px solid var(--ec-pe-area,#2b4380);background:var(--ec-pe-area,#2b4380);color:#fff;border-radius:10px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;line-height:1.2}
+.ecw-sg-add:hover{background:#22345f;border-color:#22345f}
+
+/* column add/remove menu — FIXED overlay so it never grows the grid or triggers scrollbars */
+.ecw-sg-menu{position:fixed;z-index:3000;min-width:220px;max-height:320px;overflow:auto;background:#fff;border:1px solid #e2e6ea;border-radius:10px;box-shadow:0 8px 26px rgba(20,40,60,.20);padding:6px}
+
+/* the ⋮ control lives in the Actions column header itself */
+.ecw-sg-table .view-grid thead th.ecw-sg-actcell{text-align:right;white-space:nowrap}
+.ecw-sg-hcolbtn{border:0;background:transparent;color:inherit;cursor:pointer;font-size:18px;font-weight:800;line-height:1;padding:0 2px;opacity:.9}
+.ecw-sg-hcolbtn:hover{opacity:1}
+
+/* compact the OOB row-action control (was a 72x49 btn-md) into a proportional icon button */
+.entity-grid.subgrid td.ecw-sg-actcell .dropdown.action{display:inline-block !important;width:auto !important;height:auto !important}
+.entity-grid.subgrid td.ecw-sg-actcell .dropdown.action > .btn,
+.entity-grid.subgrid td.ecw-sg-actcell .btn.btn-default{
+  width:32px !important;height:32px !important;min-width:0 !important;padding:0 !important;
+  display:inline-flex !important;align-items:center;justify-content:center;line-height:1;border-radius:8px !important;
+  background:transparent !important;border-color:transparent !important;box-shadow:none !important}
+.entity-grid.subgrid td.ecw-sg-actcell .btn.btn-default:hover{background:rgba(20,40,60,.08) !important}
+
+/* Table: the WHOLE row (incl. the actions column) picks up one consistent hover background */
+.ecw-sg-table .view-grid tbody tr:hover > td{background:#f4f7fa !important}
+.ecw-sg-table .view-grid td.ecw-sg-actcell,.ecw-sg-table .view-grid th.ecw-sg-actcell{min-width:48px}
+.ecw-sg-menu-hd{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#5a6570;font-weight:800;padding:6px 10px 4px}
+.ecw-sg-menu label{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:13.5px;color:#22303a;cursor:pointer}
+.ecw-sg-menu label:hover{background:#f0f4f7}
+.ecw-sg-menu label.locked{opacity:.55;cursor:default}
+.ecw-sg-menu input{accent-color:var(--ec-pe-area,#2b4380);width:16px;height:16px}
+
+/* --- TABLE mode: hide non-selected columns; kill the OOB inline % widths so the visible
+       columns fill the container (no phantom horizontal scrollbar) --- */
+.ecw-sg-table .ecw-hidecol{display:none !important}
+.ecw-sg-table .view-grid{overflow-x:auto}
+.ecw-sg-table .view-grid table{width:100% !important;min-width:0 !important;table-layout:auto !important}
+.ecw-sg-table .view-grid th,.ecw-sg-table .view-grid td{width:auto !important}   /* beats inline width:XX% */
+
+/* --- CARDS mode: transform the OOB table into vertical cards --- */
+.ecw-sg-cards .view-grid{overflow:visible}
+.ecw-sg-cards .view-grid table,.ecw-sg-cards .view-grid tbody{display:block;width:100% !important}
+/* keep the header row for assistive tech but out of view (cards use per-cell labels) */
+.ecw-sg-cards .view-grid thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* auto-fit (not auto-fill): a lone card in a row expands to fill it instead of leaving an empty column */
+.ecw-sg-cards .view-grid tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.ecw-sg-cards .view-grid tr{position:relative !important;display:block;border:1px solid #e2e6ea;border-radius:12px;background:#fff;padding:14px 44px 14px 16px;margin:0;box-shadow:0 1px 2px rgba(20,40,60,.05);transition:background .12s,border-color .12s,box-shadow .12s}
+.ecw-sg-cards .view-grid tbody tr:hover{background:#f7fafc;border-color:#cfd6dc;box-shadow:0 2px 8px rgba(20,40,60,.10)}
+/* let the hover fill the WHOLE card: force every cell + the actions cell/dropdown transparent so the
+   tr's hover background shows through the caret column too (some theme td/dropdown bgs are opaque) */
+.ecw-sg-cards .view-grid tbody tr:hover td,
+.ecw-sg-cards .view-grid tbody tr:hover td.ecw-sg-actcell,
+.ecw-sg-cards .view-grid tbody tr:hover td.ecw-sg-actcell .dropdown.action,
+.ecw-sg-cards .view-grid tbody tr:hover td.ecw-sg-actcell .dropdown.action > .btn,
+.ecw-sg-cards .view-grid tbody tr:hover td.ecw-sg-actcell .btn.btn-default{background:transparent !important}
+.ecw-sg-cards .view-grid td{display:flex !important;flex-direction:column;gap:2px;padding:7px 0;border:0;border-bottom:1px dashed #eef1f4;white-space:normal;width:auto !important}
+.ecw-sg-cards .view-grid td:last-child{border-bottom:0}
+/* label comes from a JS-set attribute (OOB cells have no data-th) */
+.ecw-sg-cards .view-grid td[data-ecw-label]::before{content:attr(data-ecw-label);font-size:11px;text-transform:uppercase;letter-spacing:.02em;color:#5a6570;font-weight:800}
+/* first data column becomes the card title */
+.ecw-sg-cards .view-grid td.ecw-sg-primary{padding-top:0;margin:0 0 6px 0}
+.ecw-sg-cards .view-grid td.ecw-sg-primary,.ecw-sg-cards .view-grid td.ecw-sg-primary *{font-size:15.5px;font-weight:800;color:#1e384b}
+.ecw-sg-cards .view-grid td.ecw-sg-primary::before{display:none !important}
+/* row-action cell floats to the card's top-right; never gets a label; ignore OOB inline width */
+.ecw-sg-cards .view-grid td.ecw-sg-actcell{position:absolute !important;top:10px !important;right:10px !important;left:auto !important;width:auto !important;max-width:none !important;padding:0 !important;border:0 !important;flex-direction:row !important}
+.ecw-sg-cards .view-grid td.ecw-sg-actcell::before{display:none !important}
+.ecw-sg-cards .view-grid .view-empty{display:block}
+</style>

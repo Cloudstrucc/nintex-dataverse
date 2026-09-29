@@ -1,0 +1,725 @@
+{% comment %}
+  EC-Wizard-Tiles-Scripts (global, from EC-Scripts-Base)
+  Applies the approved tile-wizard design to the REAL multi-step form (#pers-multistep):
+  navy hero + big progress ring, sticky segmented progress bar, Grid<->Focused toggle, and
+  tiles with live % rings, status badges, truncated help + Read more, and a ? help modal.
+  Presentational only - the original <ul.pers-tabs> stays in the DOM (hidden by CSS) and every
+  tile/segment click proxies to its original tab anchor, so OOB step switching, entityform
+  rendering, save and validation are untouched.
+{% endcomment %}
+<script>
+(function(){
+  "use strict";
+  var ACCENTS=["#036064","#c9862d","#8b9538","#1e384b","#60205c","#6a0032"];
+  /* static UI text — snippet-driven (bilingual, editable) with English fallbacks so translators
+     can change wording without touching code. */
+  var S_READMORE="{{ snippets['EC/Wizard/ReadMore'] | default: 'Read more' }}";
+  var S_SHOWLESS="{{ snippets['EC/Wizard/ShowLess'] | default: 'Show less' }}";
+  var S_COMPLETE="{{ snippets['EC/Wizard/StatusComplete'] | default: 'Complete' }}";
+  var S_NOTSTARTED="{{ snippets['EC/Wizard/StatusNotStarted'] | default: 'Not started' }}";
+  /* what the tile ring shows in its centre: 'icon' (default) = ✓ complete / ⚠ incomplete;
+     'percent' = ✓ complete / N% incomplete. Set snippet EC/Wizard/TileIndicator to 'percent' to switch. */
+  var TILE_IND=("{{ snippets['EC/Wizard/TileIndicator'] | default: 'icon' }}"||"icon").toLowerCase();
+  var S_LOCKED="{{ snippets['EC/Wizard/StatusLocked'] | default: 'Locked' }}";
+  var S_DONE="{{ snippets['EC/Wizard/PercentDone'] | default: 'done' }}";
+  var S_INCOMPLETE="{{ snippets['EC/Wizard/StatusIncomplete'] | default: 'Incomplete' }}";
+  var S_GRID="{{ snippets['EC/Wizard/ViewGrid'] | default: 'Grid' }}";
+  var S_FOCUSED="{{ snippets['EC/Wizard/ViewFocused'] | default: 'Focused' }}";
+  var S_INSTRUCTIONS="{{ snippets['EC/Wizard/Instructions'] | default: 'Instructions' }}";
+  var S_GOTIT="{{ snippets['EC/Wizard/GotIt'] | default: 'Got it' }}";
+  var S_HEROSUB="{{ snippets['EC/Wizard/HeroSubtitle'] | default: 'Open any section to begin. Progress saves as you go.' }}";
+  var S_RECORDID="{{ snippets['EC/Wizard/RecordId'] | default: 'Record ID:' }}";
+  var S_APPNUM="{{ snippets['EC/Wizard/ApplicationNumber'] | default: 'Application Number' }}";
+  var S_APPTITLE="{{ snippets['EC/Wizard/AppTitleFallback'] | default: 'Application' }}";
+  /* ---- completion / responsive-menu feature snippets (bilingual, editable) ---- */
+  var S_SAVECOMPLETE="{{ snippets['EC/Wizard/BtnSaveComplete'] | default: 'Save & complete' }}";
+  var S_PREV="{{ snippets['EC/Wizard/BtnPrevious'] | default: 'Previous' }}";
+  var S_NEXT="{{ snippets['EC/Wizard/BtnNext'] | default: 'Next' }}";
+  var S_REACT="{{ snippets['EC/Wizard/BtnReactivate'] | default: 'Reactivate to make changes' }}";
+  var S_SUBMIT="{{ snippets['EC/Wizard/BtnSubmit'] | default: 'Submit application' }}";
+  var S_SAVEHELP="{{ snippets['EC/Wizard/SaveCompleteHelp'] | default: 'Once saved, this step is marked complete and locked. You can return and choose \"Reactivate to make changes\", but you will then need to complete the step again before you can submit.' }}";
+  var S_LOCKT="{{ snippets['EC/Wizard/StepLockedTitle'] | default: 'This step is complete and locked.' }}";
+  var S_LOCKS="{{ snippets['EC/Wizard/StepLockedSub'] | default: 'Reactivate it to make changes.' }}";
+  var S_STEPS="{{ snippets['EC/Wizard/StepsLabel'] | default: 'Steps' }}";
+  var S_SUBMITHINT="{{ snippets['EC/Wizard/SubmitHint'] | default: 'Submit unlocks once every step shows Complete.' }}";
+  var REQ='input[aria-required="true"],select[aria-required="true"],textarea[aria-required="true"],'+
+          '.required input.form-control,.required select.form-control,.required textarea.form-control';
+  function txt(el){return el?(el.textContent||"").replace(/\s+/g," ").trim():"";}
+
+  function init(){
+    var root=document.getElementById("pers-multistep");
+    if(!root||root.getAttribute("data-ecw")==="1")return;
+    var tabs=[].slice.call(root.querySelectorAll(".pers-tabs .multistep-tab"));
+    if(!tabs.length)return;
+    root.setAttribute("data-ecw","1");root.classList.add("ecw");
+    root.classList.add(TILE_IND==="percent"?"ecw-ind-percent":"ecw-ind-icon");
+
+    /* ---- explicit step-completion state (per record, session-scoped) ---- */
+    var ECW_DKEY="ecwDone:"+((location.search.match(/[?&]id=([^&]+)/)||[])[1]||location.pathname.replace(/\/+$/,""));
+    function ecwGetDone(){try{return JSON.parse(sessionStorage.getItem(ECW_DKEY)||"{}")||{};}catch(e){return {};}}
+    function ecwIsDone(k){return !!(k&&ecwGetDone()[k]);}
+    function ecwMarkDone(k,v){try{var o=ecwGetDone();if(v)o[k]=1;else delete o[k];sessionStorage.setItem(ECW_DKEY,JSON.stringify(o));}catch(e){}}
+    var ecwTouch={};   /* steps edited since load (dirty) */
+
+    /* ---------- sticky progress bar ---------- */
+    var prog=document.createElement("div");prog.className="ecw-prog";
+    prog.innerHTML='<div class="ecw-ptop"><span class="ecw-label"></span>'+
+      '<span class="ecw-view" role="group" aria-label="Change view">'+
+      '<button type="button" data-v="overview" aria-pressed="false">&#9638; '+S_GRID+'</button>'+
+      '<button type="button" data-v="focus" aria-pressed="true">&#9776; '+S_FOCUSED+'</button>'+
+      '</span></div><div class="ecw-segs" role="group" aria-label="Section progress"></div>';
+    root.insertBefore(prog,root.firstChild);
+
+    /* ---------- navy hero ---------- */
+    var pageTitle=txt(document.querySelector(".page-header h1,.page-heading h1,.wrapper-body h1,main h1"))||S_APPTITLE;
+    var appNo="",m=(document.body.innerText||"").match(/Application Number[:\s]*([A-Z]{2}-[\w-]+)/i);
+    if(m)appNo=m[1];
+    var recId=(location.search.match(/[?&]id=([^&]+)/)||[])[1]||"";
+    var hero=document.createElement("div");hero.className="ecw-hero";
+    hero.innerHTML='<div class="ecw-hero-in">'+
+      '<div class="ecw-bigring" role="img"><b>0%</b></div>'+
+      '<div class="ecw-meta"><h2></h2><p>'+S_HEROSUB+'</p>'+
+      (recId?'<p class="ecw-recid">'+S_RECORDID+' '+recId.replace(/[<>"]/g,"")+'</p>':'')+'</div>'+
+      (appNo?'<div class="ecw-appno">'+S_APPNUM+'<br><b>'+appNo+'</b></div>':'')+'</div>';
+    hero.querySelector(".ecw-meta h2").textContent=pageTitle;
+    hero.querySelector(".ecw-bigring").setAttribute("aria-label","Overall completion");
+    root.insertBefore(hero,prog.nextSibling);
+
+    var tilesEl=document.createElement("div");tilesEl.className="ecw-tiles";tilesEl.setAttribute("role","list");
+    root.insertBefore(tilesEl,hero.nextSibling);
+
+    /* ---------- help modal ---------- */
+    var back=document.createElement("div");back.className="ecw-modal-back";
+    back.innerHTML='<div class="ecw-modal" role="dialog" aria-modal="true" aria-labelledby="ecw-mt">'+
+      '<header><h2 id="ecw-mt">'+S_INSTRUCTIONS+'</h2><button type="button" class="ecw-x" aria-label="Close">&times;</button></header>'+
+      '<div class="ecw-body"></div><footer><button type="button">'+S_GOTIT+'</button></footer></div>';
+    document.body.appendChild(back);
+    function closeModal(){back.classList.remove("open");}
+    back.addEventListener("click",function(e){if(e.target===back)closeModal();});
+    back.querySelector(".ecw-x").addEventListener("click",closeModal);
+    back.querySelector("footer button").addEventListener("click",closeModal);
+    document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal();});
+    function openModal(title,body){
+      back.querySelector("#ecw-mt").textContent=title||"Instructions";
+      back.querySelector(".ecw-body").textContent=body||"No additional instructions for this section.";
+      back.classList.add("open");back.querySelector(".ecw-x").focus();
+    }
+
+    /* ---------- per-step data ---------- */
+    function sectionFor(a){
+      var k=a.getAttribute("data-tab");
+      return k?root.querySelector('.tab-section[data-tab="'+k+'"]'):null;
+    }
+    function helpFor(sec){
+      if(!sec)return "";
+      var d=sec.querySelector("details .form-group,details .section,details");
+      return txt(d).replace(/^Instructions\s*/i,"");
+    }
+    function pctFor(a,sec){
+      if(a.classList.contains("complete"))return 100;
+      if(!sec)return 0;
+      var req=sec.querySelectorAll(REQ);
+      if(!req.length)return 0;
+      var filled=0;
+      for(var i=0;i<req.length;i++){var v=req[i].value;if(v!=null&&String(v).trim()!=="")filled++;}
+      return Math.round(filled/req.length*100);
+    }
+    /* Completion is EXPLICIT (set by "Save & complete"), persisted per record in sessionStorage,
+       and cleared when a step is edited (dirty) or Reactivated. States are binary:
+       complete (✓) / incomplete (everything else). */
+    function stateOf(a,p){
+      if(a.classList.contains("disabled"))return "disabled";
+      return ecwIsDone(a.getAttribute("data-tab"))?"complete":"incomplete";
+    }
+    /* status is deliberately binary: Complete (✓) or Incomplete (everything else) */
+    function badgeText(s,p){return s==="complete"?S_COMPLETE:S_INCOMPLETE;}
+
+    function centreActive(){
+      var sec=root.querySelector(".tab-section.active")||root;
+      var y=sec.getBoundingClientRect().top+window.pageYOffset-96;   /* sit just under the sticky bar */
+      window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
+      addHints(sec);
+    }
+    /* The PERS form script owns the active step: it reads ?step=<key> from the URL on ready and
+       switches tabs through a delegated jQuery click handler. Our navigation therefore speaks the
+       same contract - set the URL step param and apply the active classes directly (so PERS lands
+       on our target if its ready handler runs AFTER us), and delegate to the real tab click only
+       once its handler is bound (so its own extras, e.g. the Submit tab, still run). */
+    function ecwActivate(a){
+      if(!a||a.classList.contains("disabled"))return;
+      var k=a.getAttribute("data-tab");if(!k)return;
+      try{var u=new URL(window.location.href);u.searchParams.set("step",k);window.history.replaceState({},"",u.toString());}catch(e){}
+      /* fire the real tab click so whichever script owns the tabs (PERS jQuery handler, once
+         bound) does its own work; strip the href during the dispatch so an unhandled click can
+         never hash-navigate/jump. If nothing consumed it, activate the step ourselves. */
+      var handled=false;
+      try{
+        var href=a.getAttribute("href");a.removeAttribute("href");
+        handled=!a.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+        if(href!=null)a.setAttribute("href",href);
+      }catch(e){}
+      if(!handled||!a.classList.contains("active")){
+        var secs=[].slice.call(root.querySelectorAll(".tab-section"));
+        var inlineDisp=secs.some(function(x){return !!x.style.display;});
+        tabs.forEach(function(t){t.classList.remove("active");t.setAttribute("aria-selected","false");});
+        a.classList.add("active");a.setAttribute("aria-selected","true");
+        secs.forEach(function(x){var on=x.getAttribute("data-tab")===k;x.classList.toggle("active",on);x.setAttribute("aria-hidden",on?"false":"true");
+          if(inlineDisp)x.style.display=on?"":"none";});
+      }
+    }
+    function go(a){
+      if(a.classList.contains("disabled"))return;
+      ecwActivate(a);setMode("focus");
+      setTimeout(centreActive,70);
+    }
+    /* fold the pre-wizard page title / standalone instructions / App-Number row into the hero
+       (removes the big gap under the page header and the duplicate content) */
+    function hideCruft(){
+      try{
+        var h=document.querySelector(".page-heading h1,.wrapper-body .container h1");
+        if(h)h.classList.add("ecw-hide");
+        var sib=root.previousElementSibling,guard=0;
+        while(sib&&guard++<8){
+          var prev=sib.previousElementSibling;
+          if(sib.querySelector&&(sib.querySelector("details")||/Application Number/i.test(sib.textContent||"")))
+            sib.classList.add("ecw-hide");
+          sib=prev;
+        }
+      }catch(e){}
+    }
+    /* red "(required)" and format hints to the right of the label - POC behaviour */
+    var FMT={postal:"(A1A 1A1)",phone:"(613-555-0123)",email:"(name@example.ca)",url:"(https://example.ca)"};
+    function addHints(scope){
+      try{
+        var fields=(scope||root).querySelectorAll("input.form-control,select.form-control,textarea.form-control");
+        for(var i=0;i<fields.length;i++){
+          var el=fields[i];if(el.getAttribute("data-ecw-h")==="1")continue;el.setAttribute("data-ecw-h","1");
+          var container=el.closest(".cell")||el.closest(".control")||el.closest(".form-group")||el.parentNode;
+          var info=container&&container.querySelector&&container.querySelector(".table-info");
+          var lab=(info&&info.querySelector("label"))||(container&&container.querySelector("label"));if(!lab)continue;
+          var nm=(el.getAttribute("id")||el.getAttribute("name")||"").toLowerCase();
+          /* phone + postal hints are owned by EC-Phone-Region-Labels (region-aware); here only email/url */
+          var key=/mail/.test(nm)?"email":/website|url/.test(nm)?"url":"";
+          var req=el.getAttribute("aria-required")==="true"||!!(info&&/(^|\s)required(\s|$)/.test(info.className))||!!(container&&container.querySelector&&container.querySelector("[id*='RequiredFieldValidator'],.required"));
+          if(key&&FMT[key]&&!lab.querySelector(".ecw-fmt")){var f=document.createElement("span");f.className="ecw-fmt";f.textContent=FMT[key];lab.appendChild(f);}
+          /* "(required)" auto-suffix intentionally DISABLED for this implementation: every field is
+             mandatory, so an aria-required-driven marker adds no information. Format hints (.ecw-fmt)
+             above are unaffected. (req is still computed above but no longer appends a label suffix.) */
+        }
+      }catch(e){}
+    }
+    /* per-field dedupe: when OUR inline message is present on a control, drop the OOB one.
+       (Summaries are handled globally by ecwDecorateSummaries below.) */
+    function wireValidation(){
+      try{
+        var mo=new MutationObserver(function(){
+          var sec=root.querySelector(".tab-section.active");if(!sec)return;
+          [].forEach.call(sec.querySelectorAll(".ecw-field-err"),function(mine){
+            var ctrl=mine.closest(".control")||mine.parentNode;
+            if(ctrl){[].forEach.call(ctrl.querySelectorAll(".field-validation-error,.help-block.error"),function(d){
+              d.parentNode&&d.parentNode.removeChild(d);});}
+          });
+        });
+        mo.observe(root,{childList:true,subtree:true});
+      }catch(e){}
+    }
+    function setMode(mo){
+      root.classList.toggle("ecw-focus",mo==="focus");
+      root.classList.toggle("ecw-overview",mo!=="focus");
+      var bs=prog.querySelectorAll(".ecw-view button");
+      for(var i=0;i<bs.length;i++)bs[i].setAttribute("aria-pressed",String(bs[i].getAttribute("data-v")===mo));
+      /* re-measure the help clamp at THIS mode's final tile width so "Read more" is shown only on
+         tiles whose instructions are actually truncated (double rAF: after the grid reflows). */
+      if(typeof trimMore==="function")requestAnimationFrame(function(){requestAnimationFrame(trimMore);});
+      if(typeof ecwSmartSticky==="function")requestAnimationFrame(function(){requestAnimationFrame(ecwSmartSticky);});
+    }
+
+    function render(){
+      var total=0,segs=prog.querySelector(".ecw-segs");
+      tilesEl.innerHTML="";segs.innerHTML="";
+      /* if a PE area theme is active (an ancestor sets --ec-pe-area), ALL tiles use that one colour;
+         otherwise fall back to the per-section ACCENTS rotation */
+      var AREA="";try{AREA=(getComputedStyle(root).getPropertyValue("--ec-pe-area")||"").trim();}catch(e){}
+      tabs.forEach(function(a,i){
+        var sec=sectionFor(a),p=pctFor(a,sec),st=stateOf(a,p),accent=AREA||ACCENTS[i%ACCENTS.length];
+        total+=p;
+        var label=txt(a),help=helpFor(sec);
+        var t=document.createElement("div");
+        t.className="ecw-tile";t.setAttribute("role","listitem");t.setAttribute("tabindex","0");
+        t.setAttribute("data-state",st);
+        t.style.setProperty("--accent",accent);t.style.setProperty("--p",p);
+        if(a.classList.contains("active"))t.setAttribute("aria-current","step");
+        t.innerHTML=(help?'<button class="ecw-q" type="button" aria-label="Instructions">?</button>':'')+
+          '<div class="ecw-top"><span class="ecw-ring"><span></span></span>'+
+          '<span class="ecw-head"><span class="ecw-h"></span><span class="ecw-badge"></span></span></div>'+
+          (help?'<p class="ecw-help"></p><button class="ecw-more" type="button">'+S_READMORE+'</button>':'');
+        t.querySelector(".ecw-ring span").textContent=
+          (TILE_IND==="percent") ? (st==="complete"?"✓":p+"%")      /* percentages */
+                                 : (st==="complete"?"✓":"⚠︎");  /* icons (default): ✓ / ⚠ */
+        t.querySelector(".ecw-h").textContent=label;
+        t.querySelector(".ecw-badge").textContent=badgeText(st,p);
+        if(help)t.querySelector(".ecw-help").textContent=help;
+        t.addEventListener("click",function(e){
+          if(e.target.closest(".ecw-q")||e.target.closest(".ecw-more"))return;
+          go(a);
+        });
+        t.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go(a);}});
+        var q=t.querySelector(".ecw-q");
+        if(q)q.addEventListener("click",function(e){e.stopPropagation();openModal(label,help);});
+        var mo=t.querySelector(".ecw-more");
+        if(mo)mo.addEventListener("click",function(e){
+          e.stopPropagation();var ex=t.classList.toggle("ecw-exp");
+          mo.textContent=ex?S_SHOWLESS:S_READMORE;
+        });
+        tilesEl.appendChild(t);
+
+        var s=document.createElement("button");
+        s.type="button";s.className="ecw-seg";s.setAttribute("data-s",st);
+        s.setAttribute("aria-label",label+", "+badgeText(st,p));
+        s.innerHTML='<span style="width:'+p+'%"></span>';
+        s.addEventListener("click",function(){go(a);});
+        segs.appendChild(s);
+      });
+      /* overall = completed steps / total (matches the explicit-completion model) */
+      var doneN=0;tabs.forEach(function(a){if(ecwIsDone(a.getAttribute("data-tab")))doneN++;});
+      var overall=tabs.length?Math.round(doneN/tabs.length*100):0;
+      prog.querySelector(".ecw-label").innerHTML=(pageTitle.length>46?"Application progress":pageTitle)+" &mdash; <b>"+overall+"%</b> complete";
+      var br=hero.querySelector(".ecw-bigring");
+      br.style.setProperty("--p",overall);br.querySelector("b").textContent=overall+"%";
+      requestAnimationFrame(trimMore);   /* hide "Read more" on tiles whose help fits in <=2 lines */
+      if(typeof ecwSyncMobile==="function")ecwSyncMobile();
+      if(typeof ecwSmartSticky==="function")requestAnimationFrame(ecwSmartSticky);
+    }
+
+    var bs=prog.querySelectorAll(".ecw-view button");
+    for(var i=0;i<bs.length;i++)(function(b){b.addEventListener("click",function(){setMode(b.getAttribute("data-v"));});})(bs[i]);
+
+    hideCruft();
+    render();
+    addHints(root);
+    wireValidation();      /* dedupe/enhance any OOB validation UI */
+
+    /* Only show a tile's "Read more" when its help actually overflows the 2-line clamp.
+       (hoisted; render() calls it after each rebuild.) */
+    function trimMore(){
+      var ts=tilesEl.querySelectorAll(".ecw-tile");
+      for(var i=0;i<ts.length;i++){
+        if(ts[i].classList.contains("ecw-exp"))continue;   /* only measure the clamped state */
+        var h=ts[i].querySelector(".ecw-help"),m=ts[i].querySelector(".ecw-more");
+        if(!h||!m)continue;
+        m.style.display=(h.scrollHeight>h.clientHeight+2)?"":"none";
+      }
+    }
+    /* Sticky form: pin the active .tab-section beneath the sticky progress bar; JS keeps
+       --ecw-prog-h in sync and toggles .ecw-pinned (shadow) while the hero is scrolled out. */
+    function setProgVar(){root.style.setProperty("--ecw-prog-h",(Math.round(prog.getBoundingClientRect().height)+20)+"px");}
+    setProgVar();
+    window.addEventListener("resize",function(){setProgVar();trimMore();},{passive:true});
+    try{
+      new IntersectionObserver(function(e){root.classList.toggle("ecw-pinned",!e[0].isIntersecting);},
+        {threshold:0,rootMargin:"-"+(Math.round(prog.getBoundingClientRect().height)+24)+"px 0px 0px 0px"}).observe(hero);
+    }catch(e){}
+
+    /* Entry mode: a FRESH load opens on the Grid overview. After a server-side Save / Save & next
+       postback (flag set on the click), reopen in Focused mode - on the NEXT tile for "next",
+       or the same tile for a plain Save - instead of resetting to Grid. */
+    var nav=null,from=null,ecwEntryTarget=null;
+    try{nav=sessionStorage.getItem("ecwNav");from=sessionStorage.getItem("ecwFrom");sessionStorage.removeItem("ecwNav");sessionStorage.removeItem("ecwFrom");}catch(e){}
+    function tabIdx(k){for(var i=0;i<tabs.length;i++)if(tabs[i].getAttribute("data-tab")===k)return i;return -1;}
+    function nextAfter(i){for(var j=i+1;j<tabs.length;j++)if(!tabs[j].classList.contains("disabled"))return tabs[j];return null;}
+    if(nav){
+      setMode("focus");
+      if(nav==="next"){
+        var fi=from?tabIdx(from):-1;
+        if(fi<0){for(var ti=0;ti<tabs.length;ti++){if(tabs[ti].classList.contains("active")){fi=ti;break;}}}
+        var nextA=nextAfter(fi);
+        if(nextA){go(nextA);ecwEntryTarget=nextA;}else{setTimeout(centreActive,70);}
+      }else{setTimeout(centreActive,70);}
+    }else{
+      /* fresh load (direct link, back from a subgrid edit...): the default active step is the
+         FIRST INCOMPLETE one, else the last (Submit) step. A brand-new application (nothing
+         complete yet) keeps the Grid overview landing; an in-progress one reopens Focused on it.
+         EXCEPTION: an explicit ?step= in the URL is a deep link to a step (the create flow redirects
+         to ?id=<new>&step=core after the record is created) - open that step in Focused mode so the
+         user lands straight in the form, not the Grid overview. */
+      var stepQS=(location.search.match(/[?&]step=([^&#]+)/)||[])[1],qsTab=null;
+      if(stepQS){var si=tabIdx(decodeURIComponent(stepQS));if(si>=0&&!tabs[si].classList.contains("disabled"))qsTab=tabs[si];}
+      if(qsTab){go(qsTab);ecwEntryTarget=qsTab;}    /* go() sets Focused mode + activates the step */
+      else{
+        var target=null,anyDone=false;
+        for(var fj=0;fj<tabs.length;fj++){
+          if(ecwIsDone(tabs[fj].getAttribute("data-tab")))anyDone=true;
+          else if(!target&&!tabs[fj].classList.contains("disabled"))target=tabs[fj];
+        }
+        if(!target)target=tabs[tabs.length-1];
+        if(anyDone){go(target);}
+        else{setMode("overview");ecwActivate(target);}
+        ecwEntryTarget=target;
+      }
+    }
+    /* beat a later "active step" reset by the form script: re-assert our entry target after load,
+       but ONLY while the user has not navigated themselves (a tile/tab click cancels it). */
+    var ecwUserNav=false;
+    root.addEventListener("click",function(e){if(e.target.closest&&e.target.closest(".ecw-tile,.multistep-tab,.ecw-seg,.ecw-num,.ecw-dstep"))ecwUserNav=true;},true);
+    function ecwReassert(){if(!ecwUserNav&&ecwEntryTarget&&!ecwEntryTarget.classList.contains("active"))ecwActivate(ecwEntryTarget);}
+    window.addEventListener("load",function(){ecwReassert();setTimeout(ecwReassert,300);});
+
+    /* live % as the user fills the form, and re-sync when the OOB switches steps.
+       Editing a step (dirty) marks it touched and clears its completed flag. */
+    function ecwDirty(e){
+      var sec=(e&&e.target&&e.target.closest&&e.target.closest(".tab-section"))||root.querySelector(".tab-section.active");
+      if(!sec||sec.classList.contains("ecw-steplocked"))return;
+      var k=sec.getAttribute("data-tab");
+      if(k){ecwTouch[k]=1;if(ecwIsDone(k))ecwMarkDone(k,false);}
+    }
+    var deb=null;
+    root.addEventListener("input",function(e){ecwDirty(e);clearTimeout(deb);deb=setTimeout(function(){render();ecwGateSubmit();addHints(root.querySelector(".tab-section.active"));},250);});
+    root.addEventListener("change",function(e){ecwDirty(e);clearTimeout(deb);deb=setTimeout(function(){render();ecwGateSubmit();},250);});
+    try{
+      var obs=new MutationObserver(function(){render();ecwStepUX();addHints(root.querySelector(".tab-section.active"));});
+      tabs.forEach(function(a){obs.observe(a,{attributes:true,attributeFilter:["class","aria-selected"]});});
+    }catch(e){}
+
+    /* ============================================================================
+       STEP COMPLETION UX + RESPONSIVE MENU + SCROLL-TO-TOP
+       ============================================================================ */
+    function ecwBtnLabel(b){return ((b.value||b.textContent||b.getAttribute("aria-label")||"")+"").toLowerCase();}
+    function ecwSetLabel(b,t){ if(b.tagName==="INPUT")b.value=t; else {var q=b.querySelector(".ecw-qin");b.textContent=t;if(q)b.appendChild(q);} }
+    function ecwStepBtns(sec){return [].slice.call(sec.querySelectorAll("a.btn,button,input[type='submit'],input[type='button']"));}
+
+    /* The basic form's own SubmitAction ("Save" + "Saved" success flash) is rendered ABOVE the
+       form on wizard steps. It is redundant with Save & complete + the locked banner, so hide the
+       whole top bar (largest ancestor of that plain Save that does not contain the fields). A plain
+       Save placed BELOW the fields is left alone (it becomes the Save & complete button). */
+    function ecwHideTopSaveBar(sec){
+      var firstField=sec.querySelector(".cell,table,fieldset,.form-group,.control");
+      ecwStepBtns(sec).forEach(function(b){
+        var lbl=ecwBtnLabel(b).trim();
+        var plain=/^(save|enregistrer)$/.test(lbl);
+        if(!plain)return;
+        var top=!firstField||!!(b.compareDocumentPosition(firstField)&Node.DOCUMENT_POSITION_FOLLOWING);
+        if(!top)return;
+        var box=b;
+        while(box.parentNode&&box.parentNode!==sec&&!(firstField&&box.parentNode.contains(firstField)))box=box.parentNode;
+        box.classList.add("ecw-hide-oob");
+      });
+      [].forEach.call(sec.querySelectorAll(".alert-success,[id*='MessageLabel'],.message-success"),function(m){m.classList.add("ecw-hide-oob");});
+    }
+    /* relabel Previous / Save & complete (with in-button "?") / Submit on the active step */
+    function ecwDecorateButtons(){
+      var sec=root.querySelector(".tab-section.active")||root.querySelector(".tab-section");if(!sec)return;
+      ecwHideTopSaveBar(sec);
+      ecwStepBtns(sec).forEach(function(b){
+        if(b.getAttribute("data-ecwbtn")==="1")return;
+        if(b.closest(".ecw-hide-oob"))return;   /* inside the hidden OOB top bar */
+        var lbl=ecwBtnLabel(b);
+        if(/(prev|previous|back|préc)/.test(lbl)){ecwSetLabel(b,S_PREV);b.setAttribute("data-ecwbtn","1");return;}
+        if(/(submit|soumettre)/.test(lbl)||(b.id&&/submit/i.test(b.id))){ecwSetLabel(b,S_SUBMIT);b.setAttribute("data-ecwbtn","1");b.setAttribute("data-ecwsubmit","1");return;}
+        if(ecwIsSaveBtn(b)){ecwMakeSaveComplete(b);b.setAttribute("data-ecwbtn","1");return;}
+      });
+    }
+    function ecwMakeSaveComplete(b){
+      ecwSetLabel(b,S_SAVECOMPLETE);
+      if(b.parentNode&&b.parentNode.classList&&b.parentNode.classList.contains("ecw-savewrap"))return;
+      var wrap=document.createElement("span");wrap.className="ecw-savewrap";
+      b.parentNode.insertBefore(wrap,b);wrap.appendChild(b);
+      var q=document.createElement("span");q.className="ecw-qin";q.setAttribute("tabindex","0");q.setAttribute("role","button");q.setAttribute("aria-label","About saving this step");
+      q.textContent="?";q.setAttribute("data-tip",S_SAVEHELP);
+      q.addEventListener("click",function(e){e.stopPropagation();e.preventDefault();if(qCur===q&&qfly&&qfly.classList.contains("show"))ecwHideQ();else ecwShowQ(q);});
+      q.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();ecwShowQ(q);}if(e.key==="Escape")ecwHideQ();});
+      q.addEventListener("mouseenter",function(){ecwShowQ(q);});q.addEventListener("mouseleave",ecwHideQ);
+      q.addEventListener("focus",function(){ecwShowQ(q);});q.addEventListener("blur",ecwHideQ);
+      wrap.appendChild(q);
+    }
+    /* body-level flyout for the "?" (position:fixed, so the form's overflow:hidden cannot clip it).
+       Sits above the button, centred on the "?", clamped inside the form panel (never over the
+       step menu) and the viewport; flips below when there is no room under the progress bar. */
+    var qfly=null,qCur=null;
+    function ecwShowQ(q){
+      if(!qfly){qfly=document.createElement("div");qfly.className="ecw-qfly";qfly.setAttribute("role","tooltip");document.body.appendChild(qfly);}
+      qCur=q;qfly.textContent=q.getAttribute("data-tip")||S_SAVEHELP;
+      var r=q.getBoundingClientRect(),sec=q.closest(".tab-section"),sr=sec?sec.getBoundingClientRect():{left:8,right:window.innerWidth-8};
+      var w=Math.min(320,Math.max(220,(sr.right-sr.left)-24));qfly.style.width=w+"px";qfly.classList.add("show");
+      var h=qfly.offsetHeight,progH=Math.round(prog.getBoundingClientRect().height)+8;
+      var left=r.left+r.width/2-w/2;left=Math.max(sr.left+12,Math.min(left,sr.right-w-12));left=Math.max(8,Math.min(left,window.innerWidth-w-8));
+      var top=r.top-h-12,below=false;if(top<progH){top=r.bottom+12;below=true;}
+      qfly.style.left=left+"px";qfly.style.top=top+"px";qfly.classList.toggle("below",below);
+      qfly.style.setProperty("--ax",Math.round(r.left+r.width/2-left)+"px");
+    }
+    function ecwHideQ(){if(qfly)qfly.classList.remove("show");qCur=null;}
+    window.addEventListener("scroll",function(){if(qCur&&qfly&&qfly.classList.contains("show"))ecwShowQ(qCur);},{passive:true});
+    document.addEventListener("click",function(e){if(qCur&&!(e.target.closest&&e.target.closest(".ecw-qin")))ecwHideQ();});
+    /* lock a completed step (read-only) with a banner + Reactivate button */
+    function ecwLockActive(){
+      var sec=root.querySelector(".tab-section.active")||root.querySelector(".tab-section");if(!sec)return;
+      var k=sec.getAttribute("data-tab"),locked=ecwIsDone(k);
+      sec.classList.toggle("ecw-steplocked",locked);
+      [].forEach.call(sec.querySelectorAll("input,select,textarea"),function(el){
+        if(el.type==="hidden")return;
+        if(locked){el.setAttribute("aria-disabled","true");if(el.tagName==="INPUT"&&!/checkbox|radio|file/.test(el.type||"text"))el.setAttribute("readonly","readonly");}
+        else{el.removeAttribute("aria-disabled");el.removeAttribute("readonly");}
+      });
+      /* a completed step is fully non-interactive: subgrid Add/edit/delete, lookups, file
+         upload/delete, links, custom widgets... Only the locked banner (Reactivate), the
+         multistep Previous/Next/Submit navigation and the Instructions accordion stay usable. */
+      var FOC="a[href],button,input,select,textarea,[tabindex],[role='button'],summary,label";
+      var ALLOW=".ecw-locked-banner,.ecw-lock-allow";
+      if(locked){
+        [].forEach.call(sec.querySelectorAll("[data-ecwbtn='1']"),function(b){b.classList.add("ecw-lock-allow");});
+        [].forEach.call(sec.querySelectorAll("details.instr,details.pp-instr,details.hm-instr,.tab-section>details,details:not([class])"),function(d){d.classList.add("ecw-lock-allow");});
+        [].forEach.call(sec.querySelectorAll(FOC),function(el){
+          if(el.closest(ALLOW))return;
+          if(el.getAttribute("data-ecwti")==null)el.setAttribute("data-ecwti",el.getAttribute("tabindex")==null?"":el.getAttribute("tabindex"));
+          el.setAttribute("tabindex","-1");el.setAttribute("aria-disabled","true");el.classList.add("ecw-lockedctl");
+        });
+      }else{
+        [].forEach.call(sec.querySelectorAll("[data-ecwti]"),function(el){
+          var t=el.getAttribute("data-ecwti");if(t==="")el.removeAttribute("tabindex");else el.setAttribute("tabindex",t);
+          el.removeAttribute("data-ecwti");el.removeAttribute("aria-disabled");el.classList.remove("ecw-lockedctl");
+        });
+      }
+      var banner=sec.querySelector(".ecw-locked-banner");
+      if(locked){
+        if(!banner){
+          banner=document.createElement("div");banner.className="ecw-locked-banner";
+          banner.innerHTML='<span class="ecw-lbic">✓</span><span class="ecw-lbt"></span><button type="button" class="btn ecw-reactivate"></button>';
+          sec.insertBefore(banner,sec.firstChild);
+          banner.querySelector(".ecw-reactivate").addEventListener("click",function(){
+            ecwMarkDone(k,false);ecwTouch[k]=1;ecwLockActive();render();ecwSyncMobile();ecwGateSubmit();
+          });
+        }
+        banner.querySelector(".ecw-lbt").innerHTML="<b>"+S_LOCKT+"</b> "+S_LOCKS;
+        banner.querySelector(".ecw-reactivate").textContent="↻ "+S_REACT;
+        banner.style.display="";
+      }else if(banner){banner.style.display="none";}
+    }
+    /* submit is enabled only when every prior step is complete (last step only) */
+    function ecwGateSubmit(){
+      var sec=root.querySelector(".tab-section.active")||root.querySelector(".tab-section");if(!sec)return;
+      var t=sec.getAttribute("data-tab");
+      if(!tabs.length||tabs[tabs.length-1].getAttribute("data-tab")!==t)return;
+      var ok=true;for(var i=0;i<tabs.length-1;i++){if(!ecwIsDone(tabs[i].getAttribute("data-tab"))){ok=false;break;}}
+      var sbtn=sec.querySelector("[data-ecwsubmit='1']")||sec.querySelector(".submit-btn,[id$='SubmitButton'],input[type='submit'],button[type='submit']");
+      if(!sbtn)return;
+      sbtn.disabled=!ok;sbtn.classList.toggle("ecw-btn-disabled",!ok);
+      var host=sbtn.closest(".ecw-savewrap")||sbtn,hint=sec.querySelector(".ecw-submit-hint");
+      if(!ok){if(!hint){hint=document.createElement("p");hint.className="ecw-submit-hint";host.insertAdjacentElement("afterend",hint);}hint.textContent=S_SUBMITHINT;hint.style.display="";}
+      else if(hint){hint.style.display="none";}
+    }
+    /* mobile: numbered strip + wheel drawer + current-step header (desktop unaffected) */
+    function ecwBuildMobile(){
+      if(root._ecwMob)return;
+      var mob=document.createElement("div");mob.className="ecw-mob";
+      mob.innerHTML='<button type="button" class="ecw-wheel">&#9776; <span>'+S_STEPS+'</span></button><div class="ecw-nums" role="group" aria-label="'+S_STEPS+'"></div>';
+      var sh=document.createElement("div");sh.className="ecw-stephead";sh.innerHTML='<span class="ecw-sh-n"></span><span class="ecw-sh-t"></span><span class="ecw-sh-b"></span>';
+      var db=document.createElement("div");db.className="ecw-drawer-back";
+      db.innerHTML='<nav class="ecw-drawer" aria-label="'+S_STEPS+'"><div class="ecw-dh"><b>'+S_STEPS+'</b><button type="button" class="ecw-dx" aria-label="Close">&times;</button></div><div class="ecw-dlist"></div></nav>';
+      document.body.appendChild(db);
+      root.insertBefore(mob,prog.nextSibling);
+      var firstSec=root.querySelector(".tab-section");if(firstSec)root.insertBefore(sh,firstSec);else root.appendChild(sh);
+      mob.querySelector(".ecw-wheel").addEventListener("click",function(){db.classList.add("open");});
+      db.querySelector(".ecw-dx").addEventListener("click",function(){db.classList.remove("open");});
+      db.addEventListener("click",function(e){if(e.target===db)db.classList.remove("open");});
+      document.addEventListener("keydown",function(e){if(e.key==="Escape")db.classList.remove("open");});
+      root._ecwMob={mob:mob,sh:sh,db:db};
+    }
+    function ecwSyncMobile(){
+      var m=root._ecwMob;if(!m)return;
+      var nums=m.mob.querySelector(".ecw-nums"),dlist=m.db.querySelector(".ecw-dlist");
+      nums.innerHTML="";dlist.innerHTML="";
+      tabs.forEach(function(a,i){
+        var sec=sectionFor(a),p=pctFor(a,sec),st=stateOf(a,p),label=txt(a),cls=st==="complete"?"done":"inc";
+        var n=document.createElement("button");n.type="button";n.className="ecw-num "+(a.classList.contains("active")?"active ":"")+cls;
+        n.innerHTML=(st==="complete"?"✓":(i+1))+'<span class="ecw-nt">'+label+'</span>';
+        n.addEventListener("click",function(){go(a);});nums.appendChild(n);
+        var d=document.createElement("button");d.type="button";d.className="ecw-dstep "+(a.classList.contains("active")?"active ":"")+cls;
+        d.innerHTML='<span class="ecw-dring">'+(st==="complete"?"✓":(i+1))+'</span><span class="ecw-dtxt"><b>'+label+'</b><br><span class="ecw-dbadge">'+badgeText(st,p)+'</span></span>';
+        d.addEventListener("click",function(){go(a);m.db.classList.remove("open");});dlist.appendChild(d);
+      });
+      var act=null,ai=0;for(var i=0;i<tabs.length;i++){if(tabs[i].classList.contains("active")){act=tabs[i];ai=i;break;}}
+      if(!act){act=tabs[0];ai=0;}
+      var sec=sectionFor(act),p=pctFor(act,sec),st=stateOf(act,p);
+      m.sh.className="ecw-stephead "+(st==="complete"?"done":"inc");
+      m.sh.querySelector(".ecw-sh-n").textContent=st==="complete"?"✓":(ai+1);
+      m.sh.querySelector(".ecw-sh-t").textContent=txt(act);
+      m.sh.querySelector(".ecw-sh-b").textContent=badgeText(st,p);
+    }
+    /* floating scroll-to-top (returns to the top of the current step) */
+    function ecwFab(){
+      if(document.querySelector(".ecw-fab"))return;
+      var f=document.createElement("button");f.className="ecw-fab";f.type="button";f.setAttribute("aria-label","Back to top of step");f.innerHTML="&#8593;";
+      document.body.appendChild(f);
+      f.addEventListener("click",function(){var sec=root.querySelector(".tab-section.active")||root;var y=sec.getBoundingClientRect().top+window.pageYOffset-96;window.scrollTo({top:Math.max(0,y),behavior:"smooth"});});
+      window.addEventListener("scroll",function(){f.classList.toggle("show",window.pageYOffset>260);},{passive:true});
+    }
+    /* hard guard: nothing inside a locked step can be activated (mouse or keyboard), except the
+       banner/Reactivate, the multistep navigation and the Instructions accordion */
+    function ecwLockGuard(e){
+      var t=e.target;if(!t||!t.closest)return;
+      var sec=t.closest(".tab-section.ecw-steplocked");if(!sec)return;
+      if(t.closest(".ecw-locked-banner,.ecw-lock-allow"))return;
+      if(e.type==="keydown"&&!(e.key==="Enter"||e.key===" "))return;
+      e.preventDefault();e.stopImmediatePropagation();
+    }
+    root.addEventListener("click",ecwLockGuard,true);
+    root.addEventListener("mousedown",ecwLockGuard,true);
+    root.addEventListener("keydown",ecwLockGuard,true);
+    /* Smart-sticky step menu (desktop, Focused mode): the tiles column scrolls WITH the page and
+       never leaves the window - no scrollbar. Scrolling down it moves with the content until its
+       bottom meets the window edge, then follows; scrolling up it moves until its top meets the
+       progress bar, then pins. Reset in Grid view and on small screens (tiles are hidden there). */
+    var ecwOff=0;
+    function ecwSmartSticky(){
+      if(!root.classList.contains("ecw-focus")||window.innerWidth<=820){if(ecwOff){ecwOff=0;tilesEl.style.transform="";}return;}
+      var vh=window.innerHeight,mh=tilesEl.offsetHeight;
+      var progH=Math.round(prog.getBoundingClientRect().height)+20,GAP=12,maxTop=progH+GAP;
+      var fits=(mh+maxTop+GAP)<=vh,minTop=fits?maxTop:(vh-mh-GAP);
+      var r=tilesEl.getBoundingClientRect(),vt=r.top,docTop=r.top+window.pageYOffset-ecwOff;
+      if(vt<minTop)ecwOff+=(minTop-vt);else if(vt>maxTop)ecwOff-=(vt-maxTop);
+      if(ecwOff<0)ecwOff=0;
+      var rootBottom=root.getBoundingClientRect().bottom+window.pageYOffset-64;   /* root padding-bottom */
+      var maxOff=Math.max(0,rootBottom-docTop-mh);
+      if(ecwOff>maxOff)ecwOff=maxOff;
+      tilesEl.style.transform=ecwOff?"translateY("+ecwOff+"px)":"";
+    }
+    window.addEventListener("scroll",ecwSmartSticky,{passive:true});
+    window.addEventListener("resize",ecwSmartSticky,{passive:true});
+    /* re-run the per-step decorations whenever the active step changes */
+    function ecwStepUX(){try{ecwDecorateButtons();ecwLockActive();ecwGateSubmit();ecwSyncMobile();}catch(e){}}
+
+    ecwBuildMobile();ecwFab();ecwStepUX();ecwSmartSticky();
+  }
+  /* ---------- POC client-side validation (WCAG): required + postal/phone/email/url,
+     error summary at the top of the step with links that focus the offending field ---------- */
+  var V={
+    postal:{re:/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/,fmt:"A1A 1A1",msg:"Enter a valid postal code in the format A1A 1A1.",
+      /* region-aware (US ZIP vs CA postal) via EC-Phone-Region-Labels; falls back to CA regex */
+      test:function(v,input){return window.ecwPostalValid?window.ecwPostalValid(v,input):this.re.test(v);},
+      msgFor:function(input){return window.ecwPostalMsg?window.ecwPostalMsg(input):this.msg;}},
+    phone:{re:/^\(?\d{3}\)?[ .-]?\d{3}[ .-]?\d{4}$/,fmt:"613-555-0123",msg:"Enter a valid 10-digit telephone number.",
+      /* region-aware (NANP vs E.164) via EC-Phone-Region-Labels; falls back to 10-digit regex */
+      test:function(v,input){return window.ecwPhoneValid?window.ecwPhoneValid(v,input):this.re.test(v);},
+      msgFor:function(input){return window.ecwPhoneMsg?window.ecwPhoneMsg(input):this.msg;}},
+    email:{re:/^[^@\s]+@[^@\s]+\.[^@\s]+$/,fmt:"name@example.ca",msg:"Enter a valid email address."},
+    url:{re:/^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/,fmt:"https://example.ca",msg:"Enter a valid website address."}
+  };
+  function ecwType(n){n=(n||"").toLowerCase();
+    if(/postal|zip/.test(n))return "postal";
+    /* telephone fields, but NOT extension fields (those live in their own field) */
+    if(/phone|tel(ephone)?|fax/.test(n)&&!/ext(ension)?|poste|pste/.test(n))return "phone";
+    if(/mail/.test(n))return "email";
+    if(/website|url/.test(n))return "url";
+    return "";}
+  function ecwFields(sec){
+    var out=[],ctrls=sec.querySelectorAll(".control[data-logical-name]");
+    for(var i=0;i<ctrls.length;i++){
+      var c=ctrls[i],name=c.getAttribute("data-logical-name");
+      var input=c.querySelector("input.form-control,select.form-control,textarea.form-control,input[type='text'],input[type='email'],input[type='tel'],input[type='url'],textarea,select");
+      if(!input||input.type==="hidden")continue;
+      var cell=c.closest(".cell")||c.parentNode,info=cell?cell.querySelector(".table-info"):null;
+      var req=!!(info&&/(^|\s)required(\s|$)/.test(info.className))||input.getAttribute("aria-required")==="true"
+              ||!!(cell&&cell.querySelector&&cell.querySelector("[id*='RequiredFieldValidator'],.required"));
+      var lab=(info&&info.querySelector("label"))||(cell&&cell.querySelector("label"));
+      out.push({name:name,input:input,req:req,label:(lab?txt(lab):name).replace(/\*/g,"").trim(),cell:cell});
+    }
+    return out;}
+  function ecwClear(sec){
+    [].forEach.call(sec.querySelectorAll(".ec-inv"),function(e){e.classList.remove("ec-inv");e.removeAttribute("aria-invalid");});
+    [].forEach.call(sec.querySelectorAll(".ecw-field-err"),function(e){if(e.parentNode)e.parentNode.removeChild(e);});
+    var s=sec.querySelector(".ecw-errsum");if(s&&s.parentNode)s.parentNode.removeChild(s);}
+  function ecwValidate(sec){
+    ecwClear(sec);var errs=[];
+    ecwFields(sec).forEach(function(f){
+      var v=(f.input.value||"").trim(),t=ecwType(f.name),bad=false,msg="";
+      if(f.req&&!v){bad=true;msg="This field is required.";}
+      else if(v&&t){
+        var ok=V[t].test?V[t].test(v,f.input):V[t].re.test(v);
+        if(!ok){bad=true;msg=V[t].msgFor?V[t].msgFor(f.input):V[t].msg;}
+      }
+      if(bad){
+        if(!f.input.id)f.input.id="ecwf-"+Math.random().toString(36).slice(2);
+        errs.push({id:f.input.id,label:f.label,msg:msg});
+        f.input.classList.add("ec-inv");f.input.setAttribute("aria-invalid","true");
+        var e=document.createElement("span");e.className="ecw-field-err";e.setAttribute("role","alert");e.textContent=msg;
+        (f.input.parentNode||f.cell).appendChild(e);
+      }
+    });
+    if(errs.length){
+      var sum=document.createElement("div");sum.className="ecw-errsum";sum.setAttribute("role","alert");sum.setAttribute("aria-labelledby","ecw-errh");sum.setAttribute("tabindex","-1");
+      sum.innerHTML='<h2 id="ecw-errh">The form could not be saved because '+errs.length+' error'+(errs.length>1?"s were":" was")+' found.</h2><p>Please correct the following and try again:</p><ol></ol>';
+      var ol=sum.querySelector("ol");
+      errs.forEach(function(er,n){
+        var li=document.createElement("li"),a=document.createElement("a");a.href="#"+er.id;
+        a.textContent="Error "+(n+1)+": "+er.label+" - "+er.msg;
+        a.addEventListener("click",function(ev){ev.preventDefault();var t=document.getElementById(er.id);if(t){try{t.focus();}catch(e){}t.scrollIntoView({block:"center",behavior:"smooth"});}});
+        li.appendChild(a);ol.appendChild(li);
+      });
+      sec.insertBefore(sum,sec.firstChild);
+      var y=sum.getBoundingClientRect().top+window.pageYOffset-96;window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
+      setTimeout(function(){try{sum.focus();}catch(e){}},350);
+    }
+    return errs.length===0;}
+  /* which .tab-section is being saved/submitted */
+  function ecwActiveSection(el){
+    var root=document.getElementById("pers-multistep");if(!root)return null;
+    return (el&&el.closest&&el.closest(".tab-section"))
+      ||root.querySelector(".tab-section.active")
+      ||root.querySelector(".tab-section");
+  }
+  /* is this a Save / Next / Submit button (NOT Previous/Back/Cancel)? */
+  function ecwIsSaveBtn(btn){
+    if(!btn||!btn.closest||!btn.closest("#pers-multistep"))return false;
+    if(btn.matches&&btn.matches(".submit-btn,.next-btn,input[id='UpdateButton'],input[id='NextButton'],[id='SubmitButton'],input[type='submit'],button[type='submit']"))return true;
+    var lbl=((btn.value||btn.textContent||btn.getAttribute&&btn.getAttribute("aria-label")||"")+"").toLowerCase();
+    if(/(prev|previous|back|cancel|close)/.test(lbl))return false;
+    return /(save|next|submit|continue|suivant|enregistrer|soumettre)/.test(lbl);
+  }
+  /* does this button advance to the next step (Save & next / Next), vs a plain Save on the step? */
+  function ecwIsNextBtn(btn){
+    if(btn&&btn.matches&&btn.matches(".next-btn,input[id='NextButton']"))return true;
+    var lbl=((btn&&(btn.value||btn.textContent)||(btn&&btn.getAttribute&&btn.getAttribute("aria-label"))||"")+"").toLowerCase();
+    return /(next|suivant)/.test(lbl);
+  }
+  /* Intercept Save/Next/Submit in the CAPTURE phase and block the OOB postback when OUR
+     validation fails. This runs before the button's inline onclick, so the OOB's own
+     validation display never fires on a blocked step (and the OOB UI is also CSS-hidden).
+     When our validation passes we let the click proceed and the OOB save runs normally. */
+  document.addEventListener("click",function(e){
+    var btn=e.target.closest&&e.target.closest("button,input[type='submit'],input[type='button'],a.btn,a.button");
+    if(!btn||!ecwIsSaveBtn(btn))return;
+    var sec=ecwActiveSection(btn);
+    if(sec&&!ecwValidate(sec)){e.preventDefault();e.stopImmediatePropagation();return;}
+    /* validation passed: "Save & complete" - persist this step as COMPLETE (per record, session
+       scoped) so it renders locked/complete after the postback reload. */
+    try{
+      var dk=sec&&sec.getAttribute("data-tab");
+      if(dk){var kk="ecwDone:"+((location.search.match(/[?&]id=([^&]+)/)||[])[1]||location.pathname.replace(/\/+$/,""));
+        var oo={};try{oo=JSON.parse(sessionStorage.getItem(kk)||"{}")||{};}catch(_){}
+        oo[dk]=1;sessionStorage.setItem(kk,JSON.stringify(oo));}
+    }catch(_){}
+    /* the save postback reloads the page: "Save & complete" auto-advances to the NEXT step
+       (Submit stays). Remember which step was saved so the next one is computed from it. */
+    try{
+      var isSub=btn.getAttribute("data-ecwsubmit")==="1"||(btn.id&&/submit/i.test(btn.id))||/(submit|soumettre)/.test(((btn.value||btn.textContent||"")+"").toLowerCase());
+      sessionStorage.setItem("ecwNav",isSub?"stay":"next");
+      if(dk)sessionStorage.setItem("ecwFrom",dk);
+    }catch(_){}
+  },true);
+  /* Backstop: every OOB postback ultimately fires a form submit - block it too when invalid,
+     so no save path can slip past our validation regardless of which control triggered it. */
+  document.addEventListener("submit",function(e){
+    var form=e.target;
+    if(!form||!form.closest||!form.closest("#pers-multistep"))return;
+    var sec=ecwActiveSection(form);
+    if(sec&&!ecwValidate(sec)){e.preventDefault();e.stopImmediatePropagation();}
+  },true);
+  /* clear a field's error state as the user corrects it */
+  document.addEventListener("input",function(e){
+    var el=e.target;if(el&&el.classList&&el.classList.contains("ec-inv")){el.classList.remove("ec-inv");el.removeAttribute("aria-invalid");
+      var err=el.parentNode&&el.parentNode.querySelector(".ecw-field-err");if(err)err.parentNode.removeChild(err);}
+  },true);
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+  setTimeout(init,700);setTimeout(init,2000);
+})();
+</script>

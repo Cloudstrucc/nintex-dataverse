@@ -1,0 +1,172 @@
+{% comment %}
+  EC-Subgrid-Modern-Scripts  (global; included once from EC-Scripts-Base)
+  Progressive enhancement for basic-form subgrids ONLY (.entity-grid.subgrid). Adds a Cards/Table
+  toggle and (in Table mode) an add/remove-columns menu. DOM-only, idempotent, re-applied on each
+  grid re-render (pagination fires the entitygrid "loaded" event / mutates .view-grid), so OOB
+  pagination and the OOB row-action handlers are reused as-is — presentation only, no new CRUD.
+  data-ecw-modal="1" -> also injected into modal-form iframes so subgrids in modals match.
+
+  Configurable via content snippets (English fallbacks so it works before they exist):
+    EC/Subgrid/ViewCards, EC/Subgrid/ViewTable, EC/Subgrid/Columns  -> button labels
+    EC/Subgrid/DefaultView    -> 'cards' (default) | 'table'
+    EC/Subgrid/InitialColumns -> how many columns Table shows before the menu (default 2)
+  Page size is NOT set here — it stays whatever the subgrid's own "Records per page" is.
+{% endcomment %}
+<script data-ecw-modal="1">
+(function(){
+  "use strict";
+  var CARDS="{{ snippets['EC/Subgrid/ViewCards'] | default: 'Cards' }}";
+  var TABLE="{{ snippets['EC/Subgrid/ViewTable'] | default: 'Table' }}";
+  var COLS ="{{ snippets['EC/Subgrid/Columns']   | default: 'Columns' }}";
+  var DEFVIEW=("{{ snippets['EC/Subgrid/DefaultView'] | default: 'cards' }}"||"cards").toLowerCase();
+  var INIT=parseInt("{{ snippets['EC/Subgrid/InitialColumns'] | default: '3' }}",10); if(!(INIT>=1)) INIT=3;
+  var GRID_SEL=".entity-grid.subgrid";
+
+  function actionColIndex(table){
+    var ths=table.querySelectorAll("thead th");
+    for(var i=0;i<ths.length;i++){ if(ths[i].classList&&ths[i].classList.contains("sort-disabled")) return i; }
+    var tr=table.querySelector("tbody tr");                 /* fallback: the column holding the actions dropdown */
+    if(tr){ for(var j=0;j<tr.children.length;j++){ var td=tr.children[j]; if(td.querySelector&&td.querySelector(".dropdown.action, .dropdown")) return j; } }
+    return -1;
+  }
+  function dataColIndexes(table, actIdx){
+    var ths=table.querySelectorAll("thead th"), out=[];
+    for(var i=0;i<ths.length;i++){ if(i===actIdx) continue; out.push(i); }
+    return out;
+  }
+  function thLabel(th,idx){
+    var raw=(th&&(th.getAttribute("data-th")||th.textContent))||("Column "+(idx+1));
+    raw=String(raw).replace(/<[^>]*>/g," ");                       /* data-th can be an HTML string (e.g. Actions span) */
+    raw=raw.replace(/\s+/g," ");
+    raw=raw.replace(/\.?\s*(activate to sort|sort).*$/i,"");      /* OOB header carries "... sort ascending/descending" */
+    raw=raw.replace(/[↑↓▲▼]/g,"");              /* sort arrows */
+    return raw.trim();
+  }
+
+  function apply(grid){
+    try{
+      var table=grid.querySelector("table"); if(!table) return;
+      var st=grid.__ecwSg; if(!st){ st=grid.__ecwSg={mode:(DEFVIEW==="table"?"table":"cards"), visible:null}; }
+      var actIdx=actionColIndex(table);
+      var dcols=dataColIndexes(table, actIdx);
+      if(!st.visible){ st.visible={}; for(var i=0;i<dcols.length&&i<INIT;i++){ st.visible[dcols[i]]=true; } }
+
+      grid.classList.add("ecw-sg");
+      grid.classList.toggle("ecw-sg-cards", st.mode==="cards");
+      grid.classList.toggle("ecw-sg-table", st.mode==="table");
+
+      var ths=table.querySelectorAll("thead th");
+      var labels=[]; for(var L=0;L<ths.length;L++){ labels[L]=thLabel(ths[L],L); }
+      for(var h=0;h<ths.length;h++){ tagCell(ths[h], h, actIdx, dcols[0], st); }
+      var rows=table.querySelectorAll("tbody tr");
+      for(var r=0;r<rows.length;r++){ var cells=rows[r].children;
+        for(var c=0;c<cells.length;c++){
+          tagCell(cells[c], c, actIdx, dcols[0], st);
+          /* OOB data cells have no data-th; supply the card label ourselves (not on the title/action cell) */
+          if(c!==actIdx && c!==dcols[0] && cells[c].setAttribute) cells[c].setAttribute("data-ecw-label", labels[c]||"");
+          else if(cells[c].removeAttribute) cells[c].removeAttribute("data-ecw-label");
+        }
+      }
+
+      buildBar(grid, table);
+      ensureHeaderColBtn(grid, table);
+    }catch(e){}
+  }
+  function tagCell(cell, idx, actIdx, primaryIdx, st){
+    if(!cell||!cell.classList) return;
+    cell.classList.remove("ecw-hidecol","ecw-sg-primary","ecw-sg-actcell");
+    if(idx===actIdx) cell.classList.add("ecw-sg-actcell");
+    else if(idx===primaryIdx) cell.classList.add("ecw-sg-primary");
+    if(st.mode==="table" && idx!==actIdx && !st.visible[idx]) cell.classList.add("ecw-hidecol");
+  }
+
+  function buildBar(grid, table){
+    var st=grid.__ecwSg;
+    var bar=grid.querySelector(":scope > .ecw-sg-bar");
+    if(!bar){
+      bar=document.createElement("div"); bar.className="ecw-sg-bar";
+      bar.innerHTML=
+        '<div class="ecw-sg-toggle" role="group" aria-label="Subgrid view">'
+        +'<button type="button" data-m="cards" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>'+CARDS+'</button>'
+        +'<button type="button" data-m="table" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 5h18v3H3zM3 10.5h18v3H3zM3 16h18v3H3z"/></svg>'+TABLE+'</button>'
+        +'</div>'
+        +'<button type="button" class="ecw-sg-add"></button>';       /* proxies the OOB create action */
+      grid.insertBefore(bar, grid.firstChild);
+      bar.querySelector('[data-m="cards"]').addEventListener("click",function(){ st.mode="cards"; closeMenus(); apply(grid); });
+      bar.querySelector('[data-m="table"]').addEventListener("click",function(){ st.mode="table"; closeMenus(); apply(grid); });
+      bar.querySelector(".ecw-sg-add").addEventListener("click",function(e){
+        e.preventDefault();
+        var oob=grid.querySelector("a.create-action, .toolbar-actions a.btn, .toolbar-actions button");
+        if(oob) oob.click();                                          /* reuse the exact OOB create handler */
+      });
+    }
+    bar.querySelector('[data-m="cards"]').setAttribute("aria-pressed", st.mode==="cards");
+    bar.querySelector('[data-m="table"]').setAttribute("aria-pressed", st.mode==="table");
+    /* label the proxy Add from the OOB button so it stays localized (Add / Ajouter) */
+    var oob=grid.querySelector("a.create-action, .toolbar-actions a.btn, .toolbar-actions button");
+    var addBtn=bar.querySelector(".ecw-sg-add");
+    var lbl=(oob&&(oob.textContent||"").trim())||"Add";
+    addBtn.textContent="+ "+lbl;
+    addBtn.style.display = oob ? "" : "none";                          /* hide if the grid has no create action */
+  }
+
+  /* the add/remove-columns control is a ⋮ in the Actions column header (table mode only) */
+  function ensureHeaderColBtn(grid, table){
+    var st=grid.__ecwSg, actTh=table.querySelector("thead th.ecw-sg-actcell"); if(!actTh) return;
+    var hb=actTh.querySelector(".ecw-sg-hcolbtn");
+    if(st.mode==="table"){
+      if(!hb){
+        hb=document.createElement("button"); hb.type="button"; hb.className="ecw-sg-hcolbtn";
+        hb.setAttribute("aria-haspopup","true"); hb.setAttribute("aria-label",COLS); hb.textContent="⋮";
+        hb.addEventListener("click",function(e){ e.stopPropagation(); openColMenu(grid, hb); });
+        actTh.appendChild(hb);
+      }
+    } else if(hb && hb.parentNode){ hb.parentNode.removeChild(hb); }
+  }
+
+  function openColMenu(grid, anchor){
+    if(document.querySelector(".ecw-sg-menu")){ closeMenus(); return; }   /* toggle off */
+    var table=grid.querySelector("table"); if(!table) return;
+    var st=grid.__ecwSg, actIdx=actionColIndex(table), dcols=dataColIndexes(table, actIdx);
+    var ths=table.querySelectorAll("thead th");
+    var m=document.createElement("div"); m.className="ecw-sg-menu";
+    var html='<div class="ecw-sg-menu-hd">'+COLS+'</div>';
+    dcols.forEach(function(idx,order){
+      var locked=order<INIT, on=locked||!!st.visible[idx];
+      html+='<label'+(locked?' class="locked"':'')+'><input type="checkbox" '+(on?"checked":"")+(locked?" disabled":"")+' data-idx="'+idx+'"> '+thLabel(ths[idx],idx)+'</label>';
+    });
+    m.innerHTML=html;
+    document.body.appendChild(m);                            /* fixed overlay on <body>: never affects grid layout/scroll */
+    var ar=(anchor||grid).getBoundingClientRect();
+    m.style.top=Math.round(ar.bottom+4)+"px";
+    m.style.left=Math.round(Math.max(4, Math.min(ar.right-m.offsetWidth, window.innerWidth-m.offsetWidth-8)))+"px";
+    m.addEventListener("click",function(e){ e.stopPropagation(); });
+    m.addEventListener("change",function(e){
+      var cb=e.target; if(!cb||cb.type!=="checkbox") return;
+      var idx=parseInt(cb.getAttribute("data-idx"),10);
+      if(cb.checked) st.visible[idx]=true; else delete st.visible[idx];
+      apply(grid);
+    });
+    /* close when the page scrolls (a fixed menu would otherwise detach from its ⋮) */
+    var onScroll=function(){ closeMenus(); window.removeEventListener("scroll", onScroll, true); };
+    setTimeout(function(){ window.addEventListener("scroll", onScroll, true); },0);
+  }
+  function closeMenus(){ var ms=document.querySelectorAll(".ecw-sg-menu"); for(var i=0;i<ms.length;i++){ if(ms[i].parentNode) ms[i].parentNode.removeChild(ms[i]); } }
+  document.addEventListener("click", closeMenus);
+
+  function run(){
+    var grids=document.querySelectorAll(GRID_SEL);
+    for(var i=0;i<grids.length;i++){ (function(g){
+      apply(g);
+      if(g.getAttribute("data-ecw-sg-obs")!=="1"){
+        g.setAttribute("data-ecw-sg-obs","1");
+        try{ var t=null,mo=new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ apply(g); },40); });
+             mo.observe(g.querySelector(".view-grid")||g,{childList:true,subtree:true}); }catch(e){}
+        if(window.jQuery){ try{ window.jQuery(g).on("loaded", function(){ setTimeout(function(){ apply(g); },0); }); }catch(e){} }
+      }
+    })(grids[i]); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", run); else run();
+  setTimeout(run,600); setTimeout(run,1500); setTimeout(run,3000);
+})();
+</script>

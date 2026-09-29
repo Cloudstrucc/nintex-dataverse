@@ -1,0 +1,192 @@
+{% comment %}
+  EC-Phone-Region-Labels  (global, reusable - included once from EC-Scripts-Base)
+
+  Region-aware telephone / postal / province handling for EVERY PP & EDA form on the site,
+  driven by the COUNTRY value the Google address autocomplete writes (ISO-2 short_name, e.g.
+  "US" / "CA"). No per-form code:
+
+    * TELEPHONE fields (NOT extension fields): validated with the approved North-American
+      (NANP) pattern when the governing country is US/CA (or any NANP country); a non-NANP
+      country falls back to E.164 (7-15 digits, optional +). A field with no country chosen
+      yet accepts either, so nobody is blocked. Extension fields are left alone.
+    * The telephone label gets a format hint matching the region (NA sample vs international).
+    * POSTAL fields: US -> label becomes "ZIP code" + ZIP validation/hint; CA (or other) keeps
+      the original server label + A1A 1A1.
+    * PROVINCE/TERRITORY fields: US -> label becomes "State"; CA keeps the original label.
+
+  Runs on the main page AND inside modal form iframes (tagged data-ecw-modal, injected by
+  EC-Scripts-Base) so subgrid appointee/address forms get the same behaviour. The wizard's
+  own client validation (EC-Wizard-Tiles-Scripts) delegates its phone/postal rule to the
+  window.ecwPhoneValid / window.ecwPostalValid helpers defined here.
+
+  ZIP/State strings come from bilingual content snippets so FR pages read "Code ZIP" / "État".
+{% endcomment %}
+<style data-ecw-modal="1">
+/* format hint - unscoped so it also styles hints inside modal iframes (the wizard's own
+   #pers-multistep .ecw-fmt rule is more specific and still wins inside the wizard) */
+.ecw-fmt.ecw-rgn{color:#b10e1e;font-weight:700;margin-left:6px;font-size:.9em;white-space:nowrap}
+</style>
+<script data-ecw-modal="1">
+(function(){
+  "use strict";
+  /* bilingual US label swaps (snippet-driven; resolved for THIS page's language) */
+  var L_ZIP="{{ snippets['EC/Region/ZipLabel'] | default: 'ZIP code' }}";
+  var L_STATE="{{ snippets['EC/Region/StateLabel'] | default: 'State' }}";
+  /* format hints - language-neutral sample in parens (matches the existing .ecw-fmt convention) */
+  var H_PHONE_NA="(e.g. 613-555-0123)",H_PHONE_INTL="(e.g. +44 20 7946 0958)",H_ZIP="(12345)",H_POSTAL="(A1A 1A1)";
+  var MSG_NA="Enter a valid North American telephone number, e.g. 613-555-0123.";
+  var MSG_INTL="Enter a valid telephone number (7 to 15 digits).";
+  var MSG_ZIP="Enter a valid ZIP code, e.g. 12345.";
+  var MSG_POSTAL="Enter a valid postal code in the format A1A 1A1.";
+
+  /* North American Numbering Plan countries (ISO-2) */
+  var NANP={US:1,CA:1,AG:1,AI:1,AS:1,BB:1,BM:1,BS:1,DM:1,DO:1,GD:1,GU:1,JM:1,KN:1,KY:1,LC:1,MP:1,MS:1,PR:1,SX:1,TC:1,TT:1,VC:1,VG:1,VI:1};
+
+  /* NA telephone - the approved pattern: 10-digit body, optional +cc, optional (parens),
+     optional inline extension tail. (case-insensitive so EXT/Poste work) */
+  var RE_NA=/^(\+?\d{1,10}?[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?:[-.\s]*(?:ext|xt|e|x|poste|pste|po)[-.\s]*\d{1,5})?$/i;
+  var RE_ZIP=/^\d{5}(-\d{4})?$/;
+  var RE_CA=/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/;
+
+  function fieldVal(el){return el?(el.value==null?"":String(el.value)):"";}
+  function normCountry(v){
+    v=(v||"").trim().toUpperCase();if(!v)return "";
+    if(v.length===2)return v;                              /* ISO-2 from the picker */
+    if(/UNITED STATES|U\.?S\.?A?\.?$|AMERICA/.test(v))return "US";
+    if(/CANADA/.test(v))return "CA";
+    return v;                                               /* full name of some other country */
+  }
+  function isNANP(iso){return iso?!!NANP[iso]:true;}        /* blank -> treat as NANP (picker is US/CA) */
+
+  /* the country field governing this input, within its address block */
+  function govCountry(input){
+    if(!input)return "";
+    var ctrl=input.closest&&input.closest(".control[data-logical-name]");
+    var ln=(ctrl&&ctrl.getAttribute("data-logical-name")||"").toLowerCase();
+    var scope=(input.closest&&(input.closest("table")||input.closest("form")))||document;
+    var cs=scope.querySelectorAll?scope.querySelectorAll('.control[data-logical-name*="country"] input,.control[data-logical-name*="country"] select'):[];
+    if(!cs.length)return "";
+    if(cs.length===1)return fieldVal(cs[0]);
+    var tok=(ln.match(/(books|comms|mailing|mail|physical|hq|res)/)||[])[0];   /* same block token */
+    function clnOf(el){var c=el.closest(".control[data-logical-name]");return (c&&c.getAttribute("data-logical-name")||"").toLowerCase();}
+    var i;
+    if(tok){for(i=0;i<cs.length;i++){if(clnOf(cs[i]).indexOf(tok)>=0&&fieldVal(cs[i]))return fieldVal(cs[i]);}}
+    for(i=0;i<cs.length;i++){if(/comms|hq|mail/.test(clnOf(cs[i]))&&fieldVal(cs[i]))return fieldVal(cs[i]);}
+    for(i=0;i<cs.length;i++){if(fieldVal(cs[i]))return fieldVal(cs[i]);}
+    return fieldVal(cs[0]);
+  }
+  function regionOf(input){return isNANP(normCountry(govCountry(input)))?"na":"intl";}
+
+  /* ---- shared, region-aware validity (the wizard's V.phone / V.postal delegate to these) ---- */
+  function phoneValid(v,input){
+    v=(v||"").trim();if(!v)return true;                     /* required-ness handled elsewhere */
+    var digits=v.replace(/[^\d]/g,"");
+    var e164=/^\+?[0-9][0-9().\-\s]{5,}$/.test(v)&&digits.length>=7&&digits.length<=15;
+    var iso=normCountry(govCountry(input));
+    if(iso&&!isNANP(iso))return e164;                       /* non-NANP country -> E.164 */
+    if(!iso)return RE_NA.test(v)||e164;                     /* nothing chosen yet -> lenient */
+    return RE_NA.test(v);                                   /* US/CA -> strict NANP */
+  }
+  function postalValid(v,input){
+    v=(v||"").trim();if(!v)return true;
+    var iso=normCountry(govCountry(input));
+    if(iso==="US")return RE_ZIP.test(v);
+    if(iso==="CA")return RE_CA.test(v);
+    if(!iso)return RE_CA.test(v)||RE_ZIP.test(v);
+    return true;                                            /* other country -> don't block format */
+  }
+  window.ecwPhoneValid=function(v,input){return phoneValid(v,input);};
+  window.ecwPostalValid=function(v,input){return postalValid(v,input);};
+  window.ecwPhoneMsg=function(input){return regionOf(input)==="intl"?MSG_INTL:MSG_NA;};
+  window.ecwPostalMsg=function(input){return normCountry(govCountry(input))==="US"?MSG_ZIP:MSG_POSTAL;};
+  window.ecwPhoneRegion=regionOf;
+
+  /* ---- label + hint decoration ---- */
+  function isExt(s){return /ext(ension)?|poste|pste/i.test(s||"");}
+  function labelEl(ctrl){var info=ctrl.querySelector(".table-info");return (info&&info.querySelector("label"))||ctrl.querySelector("label");}
+  function baseLabel(lab){
+    if(lab.getAttribute("data-ecw-base")==null){
+      var c=lab.cloneNode(true);
+      [].forEach.call(c.querySelectorAll(".ecw-fmt,.ecw-req"),function(n){if(n.parentNode)n.parentNode.removeChild(n);});
+      lab.setAttribute("data-ecw-base",(c.textContent||"").replace(/\s+/g," ").replace(/\*/g,"").trim());
+    }
+    return lab.getAttribute("data-ecw-base");
+  }
+  function setHint(lab,text){
+    if(!lab)return;var f=lab.querySelector(".ecw-fmt.ecw-rgn");
+    if(!f){f=document.createElement("span");f.className="ecw-fmt ecw-rgn";lab.appendChild(f);}
+    var t=" "+text;if(f.textContent!==t)f.textContent=t;
+  }
+  function setLabelText(lab,text){                          /* replace visible text, keep hint/req spans */
+    baseLabel(lab);
+    var kept=[].slice.call(lab.querySelectorAll(".ecw-fmt,.ecw-req"));
+    lab.textContent="";
+    lab.appendChild(document.createTextNode(text+" "));
+    kept.forEach(function(k){lab.appendChild(k);});
+  }
+  function restoreLabel(lab){var b=lab.getAttribute("data-ecw-base");if(b!=null)setLabelText(lab,b);}
+
+  function decorate(){
+    var ctrls=document.querySelectorAll(".control[data-logical-name]");
+    for(var i=0;i<ctrls.length;i++){
+      var ctrl=ctrls[i],ln=(ctrl.getAttribute("data-logical-name")||"").toLowerCase();
+      var lab=labelEl(ctrl);if(!lab)continue;
+      var input=ctrl.querySelector("input.form-control,select.form-control,input[type='text'],input[type='tel'],input[type='email'],select,textarea");
+      var base=baseLabel(lab);
+      if(/phone|telephone|(^|[^a-z])tel([^a-z]|$)|fax|phonenumber/.test(ln)&&!isExt(ln)&&!isExt(base)){
+        setHint(lab,regionOf(input)==="intl"?H_PHONE_INTL:H_PHONE_NA);
+      }else if(/postal|postcode|zip/.test(ln)){
+        if(normCountry(govCountry(input))==="US"){setLabelText(lab,L_ZIP);setHint(lab,H_ZIP);}
+        else{restoreLabel(lab);setHint(lab,H_POSTAL);}
+      }else if(/province|provincestate|territor|(^|[^a-z])state([^a-z]|$)/.test(ln)){
+        if(normCountry(govCountry(input))==="US")setLabelText(lab,L_STATE);
+        else restoreLabel(lab);
+      }
+    }
+  }
+  window.ecwRegionDecorate=decorate;
+
+  function reDecorate(){setTimeout(decorate,0);}
+  function wire(){
+    /* re-run when a country changes or the address autocomplete fills fields (.val() fires no
+       change, so it dispatches ec:address-populated) */
+    document.addEventListener("change",function(e){
+      if(e.target&&e.target.closest&&e.target.closest('.control[data-logical-name*="country"]'))reDecorate();
+    },true);
+    document.addEventListener("ec:address-populated",reDecorate,true);
+
+    /* standalone / modal forms (no wizard on this document): the wizard's ecwValidate is absent,
+       so attach region-aware phone + postal validation on blur */
+    if(!document.getElementById("pers-multistep")){
+      document.addEventListener("blur",function(e){
+        var el=e.target;if(!el||!el.closest)return;
+        var ctrl=el.closest(".control[data-logical-name]");if(!ctrl)return;
+        var ln=(ctrl.getAttribute("data-logical-name")||"").toLowerCase();
+        var lab=labelEl(ctrl),base=lab?baseLabel(lab):"";
+        var isPhone=/phone|telephone|(^|[^a-z])tel([^a-z]|$)|fax|phonenumber/.test(ln)&&!isExt(ln)&&!isExt(base);
+        var isPostal=/postal|postcode|zip/.test(ln);
+        if(!isPhone&&!isPostal)return;
+        var v=(el.value||"").trim();
+        var ex=ctrl.querySelector(".ecw-field-err.ecw-rgn");if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);
+        el.classList.remove("ec-inv");el.removeAttribute("aria-invalid");
+        var ok=isPhone?phoneValid(v,el):postalValid(v,el);
+        if(v&&!ok){
+          el.classList.add("ec-inv");el.setAttribute("aria-invalid","true");
+          var s=document.createElement("span");s.className="ecw-field-err ecw-rgn";s.setAttribute("role","alert");
+          s.textContent=isPhone?window.ecwPhoneMsg(el):window.ecwPostalMsg(el);
+          (el.parentNode||ctrl).appendChild(s);
+        }
+      },true);
+      document.addEventListener("input",function(e){
+        var el=e.target;if(el&&el.classList&&el.classList.contains("ec-inv")){
+          el.classList.remove("ec-inv");el.removeAttribute("aria-invalid");
+          var ctrl=el.closest&&el.closest(".control[data-logical-name]");
+          var ex=ctrl&&ctrl.querySelector(".ecw-field-err.ecw-rgn");if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);
+        }
+      },true);
+    }
+    decorate();setTimeout(decorate,600);setTimeout(decorate,1500);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wire);else wire();
+})();
+</script>

@@ -1,0 +1,75 @@
+{% comment %}
+  EC-Notice-Scripts  (global; included once from EC-Scripts-Base)
+  Rewraps every Power Pages / GCWeb .alert into the GCDS "notice" structure (see EC-Notice-Styles).
+  DOM-only, idempotent, observer-driven so it also catches alerts injected after AJAX / inside modals.
+  Runs inside every same-site page — including basic-form iframes — because both this and the styles
+  load from the shared EC-Scripts-Base / EC-Base-Styles includes.
+{% endcomment %}
+<script data-ecw-modal="1">
+(function(){
+  "use strict";
+  var ECW_DISMISS="{{ snippets['EC/Notice/Dismiss'] | default: 'Dismiss' }}";  /* close-button aria-label (translatable) */
+  var ICONS={
+    danger:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1.1 15h-2.2v-2.2h2.2V17zm0-4h-2.2V7h2.2v6z"/></svg>',
+    warning:'<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+    info:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1.1 15h-2.2v-6h2.2v6zm0-8h-2.2V7h2.2v2z"/></svg>',
+    success:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1.8 15l-5-5 1.5-1.5 3.5 3.5 7-7L18.7 8.5 10.2 17z"/></svg>'
+  };
+  var XSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z"/></svg>';
+  function roleOf(el){
+    var c=" "+(el.className||"")+" ";
+    if(/alert-danger|alert-error/.test(c))return "danger";
+    if(/alert-warning/.test(c))return "warning";
+    if(/alert-success/.test(c))return "success";
+    return "info";   /* alert-info + untyped alerts */
+  }
+  function skip(a){
+    if(a.getAttribute("data-ecw-notice")==="1")return true;
+    var cl=a.classList;
+    /* our validation summary owns .validation-summary / .ecw-errsum; never touch sr-only live regions */
+    if(cl.contains("ecw-errsum")||cl.contains("validation-summary")||cl.contains("validation-summary-errors"))return true;
+    if(cl.contains("visually-hidden")||cl.contains("sr-only"))return true;
+    return false;
+  }
+  function decorate(root){
+    var alerts=(root||document).querySelectorAll(".alert");
+    for(var i=0;i<alerts.length;i++){
+      var a=alerts[i];
+      if(skip(a))continue;
+      /* pull the message: clone, strip close/icon/script, keep remaining HTML (preserves links) */
+      var clone=a.cloneNode(true);
+      [].forEach.call(clone.querySelectorAll('.close,[data-dismiss],button,.fa,.glyphicon,.wb-inv,svg,script,style,i[aria-hidden]'),
+        function(n){if(n.parentNode)n.parentNode.removeChild(n);});
+      var bodyHtml=clone.innerHTML.replace(/^(\s|&nbsp;|&times;|x|×)+/i,"").trim();
+      var bodyText=(clone.textContent||"").replace(/\s+/g," ").trim();
+      if(!bodyText){a.setAttribute("data-ecw-notice","1");continue;}   /* empty alert -> leave, don't loop */
+      var role=roleOf(a);
+      var hadClose=!!a.querySelector('[data-dismiss="alert"], .close, button.close');
+      var dismissible=hadClose||/alert-dismissible/.test(a.className);
+      var hasHeading=!!a.querySelector("h1,h2,h3,h4,h5,.ecw-notice__title");
+      a.setAttribute("data-ecw-notice","1");
+      a.classList.add("ecw-notice","ecw-notice--"+role);
+      if(!hasHeading)a.classList.add("ecw-notice--single");
+      a.innerHTML='<div class="ecw-notice__icon" aria-hidden="true">'+ICONS[role]+'</div>'+
+                  '<div class="ecw-notice__body"><div class="ecw-notice__text">'+bodyHtml+'</div></div>';
+      if(dismissible){
+        var btn=document.createElement("button");
+        btn.type="button";btn.className="ecw-notice__close";btn.setAttribute("aria-label",ECW_DISMISS);btn.innerHTML=XSVG;
+        btn.addEventListener("click",function(e){
+          var n=e.currentTarget.closest(".ecw-notice");
+          if(n){n.style.display="none";n.setAttribute("aria-hidden","true");}
+        });
+        a.appendChild(btn);
+      }
+    }
+  }
+  try{
+    var t=null,obs=new MutationObserver(function(){clearTimeout(t);t=setTimeout(function(){decorate(document);},40);});
+    function observeBody(){if(document.body)obs.observe(document.body,{childList:true,subtree:true});}
+    if(document.body)observeBody();else document.addEventListener("DOMContentLoaded",observeBody);
+  }catch(e){}
+  if(document.readyState!=="loading")decorate(document);
+  else document.addEventListener("DOMContentLoaded",function(){decorate(document);});
+  setTimeout(function(){decorate(document);},600);setTimeout(function(){decorate(document);},1800);
+})();
+</script>

@@ -1,0 +1,269 @@
+{% comment %}
+  EC-GCWeb-Validation  (global, reusable - included once from EC-Scripts-Base)
+
+  Makes EVERY Power Pages Basic Form / entityform on the site produce a WCAG 2.1 /
+  GCWeb (WET-BOEW) accessible error experience, with NO per-form or per-field code.
+
+  A maker just adds a Basic Form and sets the field's validation in Dataverse
+  (Required, or a validation rule). Power Pages renders standard ASP.NET validators;
+  this module then, on each failed validation:
+
+    1. Replaces the plain ASP.NET validation summary with a WET-BOEW error summary -
+       role="alert", an <h2> stating the error count, and an ordered list of IN-PAGE
+       LINKS. Clicking a link moves focus to (and scrolls to) the offending field.
+    2. Marks each invalid field aria-invalid="true" + a red "invalid" style, and links
+       it to its message via aria-describedby.
+
+  Field -> message mapping uses ASP.NET's own Page_Validators registry
+  (validator.controltovalidate = the input id), so it is reliable regardless of the
+  summary markup, with a label-text fallback. Opt a form out with class
+  "no-gcweb-validate" on the form (or any ancestor).
+{% endcomment %}
+<style data-ecw-modal="1">
+/* WET-BOEW / Canada.ca error summary + invalid field - global (unscoped) so any Basic Form gets it */
+.ecw-errsum{border:2px solid #b10e1e;background:#fef3f3;border-radius:12px;padding:16px 18px;margin:0 0 20px;scroll-margin-top:96px}
+.ecw-errsum:focus{outline:3px solid #ffda00;outline-offset:2px}
+/* NOTE: sizes here are PX not rem — the form/wizard area runs at html{font-size:62.5%} (10px root),
+   so rem renders at half. Field labels are 16px; error messages match that, header slightly larger
+   (!important so the GCWeb/WET theme's own h2 sizing can't shrink it). */
+.ecw-errsum h2{margin:.1rem 0 .6rem;color:#b10e1e;font-size:19px !important;font-weight:800;line-height:1.3}
+.ecw-errsum p{margin:0 0 .5rem;color:#33404a}
+/* no visible list numbers — each line already starts with "Error N:" (list kept as <ol> for a11y) */
+.ecw-errsum ol{margin:.25rem 0 0;padding:0 !important;list-style:none}
+.ecw-errsum li{margin:.35rem 0;font-size:16px;padding:0;list-style:none}
+/* WCAG 2.2 (2.5.8) target size: keep each error link tall enough to be an easy touch target */
+.ecw-errsum a{color:#b10e1e;font-weight:600;font-size:16px;display:inline-block;padding:4px 0;min-height:24px;line-height:1.5}
+.ecw-errsum a:hover,.ecw-errsum a:focus{text-decoration:underline}
+.ecw-field-err{display:block;color:#b10e1e;font-weight:600;font-size:14px;margin-top:.3rem}
+.ec-inv,input.ec-inv,select.ec-inv,textarea.ec-inv{border-color:#b10e1e !important;background:#fff6f6}
+/* WIZARD: never paint the raw ASP.NET summary inside the multistep wizard. Its content is always
+   either rebuilt as our .ecw-errsum (real errors) or suppressed as a cross-step postback artifact,
+   so showing it directly only produces a brief flash on each save before JS hides it. Keep it in the
+   DOM as screen-reader-only (NOT display:none, so decorate() can still read its text and offsetParent
+   stays non-null) - this removes the flicker while preserving the accessible replacement summary. */
+#pers-multistep .validation-summary:not(.ecw-errsum),
+#pers-multistep .validation-summary-errors:not(.ecw-errsum){
+  position:absolute !important;width:1px;height:1px;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px}
+</style>
+<script data-ecw-modal="1">
+(function(){
+  "use strict";
+  /* header static text comes from content snippets (bilingual, editable) with safe fallbacks.
+     Rendered as: "{PREFIX} {n} {SUFFIX}" e.g. "The form could not be saved because 2 error(s) were found." */
+  var ECW_SUM_PREFIX="{{ snippets['EC/Validation/SummaryPrefix'] | default: 'The form could not be saved because' }}";
+  var ECW_SUM_SUFFIX="{{ snippets['EC/Validation/SummarySuffix'] | default: 'error(s) were found.' }}";
+  /* per-line static text — also snippet-driven so translators can edit without touching code.
+     Line format: "{ERR_PREFIX} {n}: {field label} - {message}". Messages default to REQUIRED/INVALID. */
+  var ECW_ERR_PREFIX="{{ snippets['EC/Validation/ErrorPrefix'] | default: 'Error' }}";
+  var ECW_MSG_REQUIRED="{{ snippets['EC/Validation/FieldRequired'] | default: 'This field is required.' }}";
+  var ECW_MSG_INVALID="{{ snippets['EC/Validation/FieldInvalid'] | default: 'This field is invalid.' }}";
+  var scrollPending=false,scrollAt=0,ecwSubmitClicked=false;
+  function clean(s){return (s||"").replace(/\s+/g," ").trim();}
+  function optedOut(el){return !!(el&&el.closest&&el.closest(".no-gcweb-validate"));}
+  function cleanLabel(el){
+    if(!el)return "";var c=el.cloneNode(true);
+    [].forEach.call(c.querySelectorAll(".ecw-fmt,.ecw-req"),function(n){n.parentNode&&n.parentNode.removeChild(n);});
+    return clean(c.textContent).replace(/[*]/g,"").replace(/\s*:\s*$/,"").trim();
+  }
+  function labelForInput(input){
+    if(!input)return "";var lab=null;
+    if(input.id)lab=document.querySelector('label[for="'+input.id+'"]');
+    if(!lab){var cell=input.closest&&(input.closest(".cell")||input.closest(".control")||input.parentNode);
+      var info=cell&&cell.querySelector&&cell.querySelector(".table-info");
+      lab=(info&&info.querySelector("label"))||(cell&&cell.querySelector&&cell.querySelector("label"));}
+    return cleanLabel(lab);
+  }
+  function normLabel(s){return (s||"").replace(/\s+/g," ").replace(/[*:]/g,"").replace(/\((required|optional|obligatoire|facultatif)\)/ig,"").trim().toLowerCase();}
+  function findLabelInScope(scope,label){
+    var want=normLabel(label);if(!want)return null;var r=(scope&&scope.querySelectorAll)?scope:document;
+    var labs=r.querySelectorAll("label");
+    for(var i=0;i<labs.length;i++){if(normLabel(cleanLabel(labs[i]))===want){   /* cleanLabel drops our .ecw-fmt/.ecw-req hint */
+      var f=labs[i].getAttribute("for"),input=f?document.getElementById(f):null;
+      if(!input){var cell=labs[i].closest(".cell")||labs[i].parentNode;input=cell&&cell.querySelector("input,select,textarea");}
+      return input;}}
+    return null;
+  }
+  function makeLink(input,text){
+    var a=document.createElement("a");a.href="#"+((input&&input.id)||"");a.textContent=text;
+    a.addEventListener("click",function(ev){ev.preventDefault();if(!input)return;try{input.focus();}catch(e){}
+      if(input.scrollIntoView)input.scrollIntoView({block:"center",behavior:"smooth"});});
+    return a;
+  }
+  /* preferred: ASP.NET's own validator registry (reliable field id + message) */
+  function errsFromValidators(scope){
+    var out=[],seen={},pv=window.Page_Validators;
+    if(!pv||!pv.length)return out;
+    for(var i=0;i<pv.length;i++){var v=pv[i];if(!v||v.isvalid!==false)continue;
+      var id=v.controltovalidate;if(!id||seen[id])continue;
+      var input=document.getElementById(id);if(!input)continue;
+      if(scope&&scope!==document&&scope.contains&&!scope.contains(input))continue;
+      if(optedOut(input))continue;
+      seen[id]=1;
+      var isReq=/required/i.test(v.evaluationfunction||"")||/required|obligatoire/i.test(v.errormessage||"");
+      out.push({input:input,label:labelForInput(input),msg:isReq?ECW_MSG_REQUIRED:(clean(v.errormessage)||ECW_MSG_INVALID)});
+    }
+    return out;
+  }
+  /* fallback: parse the summary's own "<Field> is a required field" lines */
+  function errsFromText(sumEl,scope){
+    var out=[],seen={},items=sumEl.querySelectorAll("li");
+    var lineOf=function(node){var c=node.cloneNode(true);
+      [].forEach.call(c.querySelectorAll(".ecw-fmt,.ecw-req"),function(n){n.parentNode&&n.parentNode.removeChild(n);});
+      return clean(c.textContent);};
+    var lines=items.length?[].map.call(items,lineOf)
+              :clean(sumEl.textContent).replace(/^.*?reasons?:\s*/i,"").split(/(?<=\.)\s+(?=[A-Z0-9])/);
+    lines.forEach(function(full){
+      if(!full||/could not be (submitted|saved)|following reasons/i.test(full))return;
+      var label=full.replace(/\s+(is\s+(a\s+)?(required field|invalid|required)|est\s+(un\s+champ\s+)?obligatoire|n'est\s+pas\s+valide).*$/i,"").trim();
+      var input=findLabelInScope(scope,label);if(!input||optedOut(input))return;
+      var key=input.id||label;if(seen[key])return;seen[key]=1;
+      out.push({input:input,label:labelForInput(input)||label,msg:/invalid|valide/i.test(full)?ECW_MSG_INVALID:ECW_MSG_REQUIRED});
+    });
+    return out;
+  }
+  /* empty MANDATORY fields — even when no client RequiredFieldValidator fires for them (their
+     required-ness is enforced server-side via the Dataverse column level, so a client-side format
+     validator would otherwise block the save and hide the required errors). We detect "required"
+     from aria-required="true" or the OOB `.required` cell class that Power Pages renders. */
+  function isEmptyVal(el){
+    if(!el)return false;
+    if(el.type==="checkbox"||el.type==="radio")return !el.checked;
+    var v=el.value==null?"":String(el.value);
+    return clean(v)==="";
+  }
+  function errsFromRequired(scope){
+    var out=[],seen={},r=(scope&&scope.querySelectorAll)?scope:document;
+    var sel='input[aria-required="true"],select[aria-required="true"],textarea[aria-required="true"],'+
+            '.required input.form-control,.required select.form-control,.required textarea.form-control,'+
+            '.required input[type="file"]';
+    var els=r.querySelectorAll(sel);
+    for(var i=0;i<els.length;i++){var el=els[i];
+      if(!el||el.disabled||optedOut(el))continue;
+      var id=el.id||el.name;if(id&&seen[id])continue;
+      if(el.type!=="file"&&el.offsetParent===null)continue;   /* not visible on this step */
+      if(!isEmptyVal(el))continue;                            /* has a value -> fine */
+      if(id)seen[id]=1;
+      out.push({input:el,label:labelForInput(el),msg:ECW_MSG_REQUIRED});
+    }
+    return out;
+  }
+  function decorate(){
+    /* Power Pages entityforms render this as `.validation-summary` (with .alert-danger); older
+       Web Form themes use `.validation-summary-errors`. Match both. */
+    var sums=document.querySelectorAll(".validation-summary,.validation-summary-errors");
+    for(var s=0;s<sums.length;s++){
+      var oob=sums[s];
+      if(optedOut(oob)||oob.getAttribute("data-ecw-oob"))continue;
+      if(oob.classList&&oob.classList.contains("ecw-errsum"))continue;
+      if(oob.offsetParent===null||!clean(oob.textContent))continue;            /* not currently shown */
+      var scope=(oob.closest&&(oob.closest(".tab-section")||oob.closest("form")))||document;
+      var mine=scope.querySelector&&scope.querySelector(".ecw-errsum:not([data-ecw-oob])");
+      if(mine){oob.style.display="none";continue;}                            /* a client summary already wins */
+      /* WIZARD: ecwValidate (EC-Wizard-Tiles-Scripts) is the authority inside #pers-multistep - it
+         validates on a real Save/Next/Submit click. A summary present with NO submit yet on this page
+         is a server-postback artifact (e.g. step 2's empty required fields render as errors after
+         step 1's save redirects to step 2) - suppress it. A genuine per-step save error arrives via
+         AJAX with no reload, so ecwSubmitClicked is still true and it shows normally. Across the
+         redirect/reload the flag resets, so on-load artifacts are hidden. */
+      if(oob.closest&&oob.closest("#pers-multistep")&&!ecwSubmitClicked){
+        oob.style.display="none";oob.setAttribute("data-ecw-oob","1");continue;
+      }
+      var errs=errsFromValidators(scope);
+      /* ALSO include empty mandatory fields (server-side-required ones a client validator never
+         surfaced), so required + format errors appear together — deduped against the validator list */
+      var reqErrs=errsFromRequired(scope),seenR={};
+      errs.forEach(function(e){if(e.input&&e.input.id)seenR[e.input.id]=1;});
+      reqErrs.forEach(function(e){var id=e.input&&e.input.id;if(id&&seenR[id])return;if(id)seenR[id]=1;errs.push(e);});
+      if(!errs.length)errs=errsFromText(oob,scope);
+      if(!errs.length){
+        /* Errors don't map to the CURRENT step. If a fresh user submit just produced this summary,
+           leave it (safety - never hide a real just-submitted error we couldn't map). Otherwise it
+           is a stale server render or a cross-step aggregate (e.g. Address/Website errors shown on
+           the locked first step after the create redirect) - hide it; those errors surface on their
+           own step. */
+        var fresh=scrollPending&&(Date.now()-scrollAt)<1500;
+        if(!fresh){oob.style.display="none";oob.setAttribute("data-ecw-oob","1");}
+        continue;
+      }
+      /* order the summary top-to-bottom to match the fields' visual order */
+      errs.sort(function(a,b){if(!a.input||!b.input)return 0;
+        return (a.input.compareDocumentPosition(b.input)&Node.DOCUMENT_POSITION_FOLLOWING)?-1:1;});
+      var prev=scope.querySelector&&scope.querySelector(".ecw-errsum[data-ecw-oob]");
+      if(prev&&prev.parentNode)prev.parentNode.removeChild(prev);             /* rebuild fresh each attempt */
+      var uid="gcw-"+Math.random().toString(36).slice(2,8);
+      var box=document.createElement("section");
+      box.className="ecw-errsum";box.setAttribute("data-ecw-oob","1");box.setAttribute("role","alert");
+      box.setAttribute("aria-labelledby",uid);box.setAttribute("tabindex","-1");
+      box.innerHTML='<h2 id="'+uid+'">'+ECW_SUM_PREFIX+' '+errs.length+' '+ECW_SUM_SUFFIX+'</h2><ol></ol>';
+      var ol=box.querySelector("ol");
+      errs.forEach(function(er,n){
+        if(er.input&&!er.input.id)er.input.id="gcwf-"+Math.random().toString(36).slice(2);
+        var li=document.createElement("li");
+        li.appendChild(makeLink(er.input,ECW_ERR_PREFIX+" "+(n+1)+": "+(er.label?er.label+" - ":"")+er.msg));
+        ol.appendChild(li);
+        if(er.input){er.input.classList.add("ec-inv");er.input.setAttribute("aria-invalid","true");}
+      });
+      oob.style.display="none";
+      oob.parentNode.insertBefore(box,oob);
+      if(scrollPending&&(Date.now()-scrollAt)<1500){scrollPending=false;
+        var y=box.getBoundingClientRect().top+window.pageYOffset-96;window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
+        (function(b){setTimeout(function(){try{b.focus();}catch(e){}},250);})(box);
+      }
+    }
+  }
+  /* catch a summary that is INSERTED (childList) - debounced */
+  try{
+    var t=null,obs=new MutationObserver(function(){clearTimeout(t);t=setTimeout(decorate,30);});
+    function observeBody(){if(document.body)obs.observe(document.body,{childList:true,subtree:true});}
+    if(document.body)observeBody();else document.addEventListener("DOMContentLoaded",observeBody);
+  }catch(e){}
+  /* WIZARD STEP SCOPING - each wizard step (.tab-section) renders its OWN entityform, but every
+     form on the page shares ASP.NET's single global Page_Validators array. A "Save & complete" on
+     one step would otherwise run the RequiredFieldValidators for EVERY step - so submitting the
+     first step surfaces Address/City/Postal/Website... errors from other tabs and blocks the save.
+     Before validation runs (capture phase fires ahead of the submit control's own
+     Page_ClientValidate), we disable the validators whose field is NOT inside the current step, then
+     restore them so a later submit on a different step validates correctly. No-op outside the wizard
+     and when the page has no ASP.NET validators. */
+  var ecwOffDisabled=[],ecwRestoreT=null;
+  function ecwRestoreValidators(){
+    if(ecwRestoreT){clearTimeout(ecwRestoreT);ecwRestoreT=null;}
+    if(!ecwOffDisabled.length)return;
+    ecwOffDisabled.forEach(function(v){v.enabled=true;});   /* flag only; next validate recomputes */
+    ecwOffDisabled=[];
+  }
+  function ecwScopeValidators(step){
+    ecwRestoreValidators();
+    var pv=window.Page_Validators;if(!pv||!pv.length||!step||!step.contains)return;
+    for(var i=0;i<pv.length;i++){var v=pv[i];if(!v||v.enabled===false)continue;   /* skip already-off (conditional) */
+      var id=v.controltovalidate;if(!id)continue;
+      var input=document.getElementById(id);if(!input)continue;
+      if(step.contains(input))continue;               /* belongs to the current step - leave it */
+      v.enabled=false;                                /* Page_ClientValidate/ValidationSummary skip it */
+      ecwOffDisabled.push(v);
+    }
+    if(ecwOffDisabled.length)ecwRestoreT=setTimeout(ecwRestoreValidators,1500); /* restore if no postback */
+  }
+  /* catch a summary that is merely SHOWN (style toggled) after any submit-style click - by the time
+     these run, ASP.NET's Page_ClientValidate has populated Page_Validators */
+  document.addEventListener("click",function(e){
+    var b=e.target.closest&&e.target.closest("button,input[type='submit'],input[type='button'],a.btn,a.button");
+    if(!b)return;var lbl=((b.value||b.textContent||"")+"").toLowerCase();
+    if(/(prev|previous|back|cancel|close)/.test(lbl))return;
+    /* scope validation to the step being submitted, BEFORE its Page_ClientValidate runs */
+    var step=b.closest&&b.closest(".tab-section");
+    if(step&&document.getElementById("pers-multistep"))ecwScopeValidators(step);
+    ecwSubmitClicked=true;   /* a real submit happened on THIS page - now trust validation summaries */
+    scrollPending=true;scrollAt=Date.now();
+    [0,60,250,700].forEach(function(d){setTimeout(decorate,d);});
+  },true);
+  /* clear a field's invalid state as the user corrects it */
+  document.addEventListener("input",function(e){
+    var el=e.target;if(el&&el.classList&&el.classList.contains("ec-inv")){
+      el.classList.remove("ec-inv");el.removeAttribute("aria-invalid");}
+  },true);
+  if(document.readyState!=="loading")setTimeout(decorate,300);
+  else document.addEventListener("DOMContentLoaded",function(){setTimeout(decorate,300);});
+})();
+</script>

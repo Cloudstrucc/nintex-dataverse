@@ -1,0 +1,49 @@
+{% comment %}
+  EC-Notice-Styles  (global; included once from EC-Base-Styles)
+  Restyles every Power Pages / GCWeb .alert into the GC Design System "notice" pattern
+  (https://design-system.alpha.canada.ca/en/components/notice/): a role-coloured icon + rail,
+  the message, and a close (x) button top-right. Companion JS: EC-Notice-Scripts rewraps each
+  .alert into .ecw-notice and adds the role + single-line modifiers.
+  Colours are the GCDS notice tokens: danger #b3192e, warning #c28b0a, info #2962a3, success #196636.
+{% endcomment %}
+<style data-ecw-modal="1">
+/* Private-site ("This site is private") banner must never show inside a modal-form iframe.
+   Scoped to html[data-ecw-modal-injected] (set by EC-Scripts-Base only on modal iframes), so the
+   normal-page banner is untouched. This rule is a no-op on the main page (its <html> lacks the attr). */
+html[data-ecw-modal-injected="1"] .private-mode-banner,
+html[data-ecw-modal-injected="1"] #privateModeText{display:none !important}
+.ecw-notice{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);gap:16px;
+  border-radius:4px;padding:16px 56px 16px 18px;margin:0 0 16px;align-items:start;color:#333}
+/* take over the OOB bootstrap alert chrome (compound selector beats .alert-danger etc.) */
+.alert.ecw-notice{background:#fff !important;border:1px solid #e4e7ea !important;color:#333 !important;text-shadow:none}
+/* kill the WET/GCWeb theme's own alert glyph (a ::before/::after on the container) so ours is the only icon */
+.alert.ecw-notice::before,.alert.ecw-notice::after{display:none !important;content:none !important}
+/* padding:0 !important — WET rules (.alert div / .alert button) inject padding that pushed the icon down
+   and the close x up; overriding it re-centres both against the message. */
+.ecw-notice__icon{display:flex;flex-direction:column;align-items:center;align-self:stretch;line-height:0;padding:0 !important;margin:0 !important}
+.ecw-notice__icon svg{width:34px;height:34px;fill:currentColor;flex:0 0 auto}
+.ecw-notice__icon::after{content:"";width:6px;flex:1 1 auto;min-height:6px;background:currentColor;margin-top:8px;border-radius:3px}
+.ecw-notice__body{min-width:0}
+.ecw-notice__title{font-size:18px;font-weight:800;line-height:1.25;margin:2px 0 4px;color:#333}
+.ecw-notice__text{font-size:16px;line-height:1.5;margin:0;color:#333}
+.ecw-notice__text a{color:#284162;font-weight:700;text-decoration:underline}
+.ecw-notice__close{position:absolute;top:10px;right:10px;width:38px;height:38px;border:0;background:transparent;
+  border-radius:8px;cursor:pointer;color:#5f6b75;display:flex;align-items:center;justify-content:center;padding:0 !important;line-height:1;opacity:1;float:none;text-shadow:none;font-weight:400}
+.ecw-notice__close:hover,.ecw-notice__close:focus{background:#eef0f2;color:#b3192e}
+.ecw-notice__close:focus-visible{outline:3px solid #ffda00;outline-offset:1px}
+.ecw-notice__close svg{width:16px;height:16px;fill:currentColor;display:block}
+/* single-line (no title): centre the icon + message vertically, drop the trailing rail */
+.ecw-notice--single{align-items:center}
+.ecw-notice--single .ecw-notice__icon{align-self:center;justify-content:center}
+.ecw-notice--single .ecw-notice__icon::after{display:none}
+/* role colours (GCDS notice tokens) drive icon + rail */
+.ecw-notice--danger  .ecw-notice__icon{color:#b3192e}
+.ecw-notice--warning .ecw-notice__icon{color:#c28b0a}
+.ecw-notice--info    .ecw-notice__icon{color:#2962a3}
+.ecw-notice--success .ecw-notice__icon{color:#196636}
+/* narrow screens / inside modals: keep the same look, tighten spacing */
+@media (max-width:600px){
+  .ecw-notice{gap:12px;padding:14px 48px 14px 14px}
+  .ecw-notice__title{font-size:17px}
+}
+</style>

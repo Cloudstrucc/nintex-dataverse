@@ -1,0 +1,362 @@
+{% comment %}
+  ============================================================================
+  EC-Brand-Facelift  (adx_mimetype: text/css)
+  Elections Canada visual-identity layer for the EC portal, reproducing the
+  approved standalone design POCs on the live site's real markup.
+
+  NOTE: the GCWeb/WET theme sets html{font-size:62.5%} (10px root), so this
+  file uses explicit px sizes (not rem) to hit the POC's intended pixel sizes.
+
+  Loaded site-wide: EC-Base-Styles ends with {% raw %}{% include 'EC-Brand-Facelift' %}{% endraw %}
+  and the bound header (CS-header) includes EC-Base-Styles on every page.
+  Additive only — never changes forms, lists, or JS behaviour.
+  ============================================================================
+{% endcomment %}
+<style>
+:root{
+  --ec-burgundy:#6a0032; --ec-burgundy-dark:#49001b;
+  --ec-navy:#1e384b; --ec-navy-dark:#0d2536;
+  --ec-teal:#036064; --ec-olive:#8b9538; --ec-mustard:#c9862d;
+  --ec-purple:#60205c; --ec-yellow:#ffda00;
+  --ec-black:#000; --ec-white:#fff; --ec-text:#222; --ec-link:#174f84;
+  --ec-grey-050:#f7f7f7; --ec-grey-100:#f1f1f1; --ec-grey-200:#ddd;
+  --ec-grey-500:#666; --ec-grey-700:#333;
+  --ec-max:1180px;
+  --ec-shadow:0 12px 28px rgba(0,0,0,.14);
+  --ec-soft-shadow:0 6px 18px rgba(0,0,0,.09);
+  --ec-font-sans:"Gotham","Gotham SSm",Arial,Helvetica,sans-serif;
+}
+/* Gotham web-font hook. Gotham is NOT licensed yet, so the site renders Arial — the
+   EC-approved sans-serif secondary used "when primary fonts are unavailable" (Visual
+   Identity Guide for Creatives, p.14-15). The stack is Gotham -> Arial -> sans-serif,
+   so the day Gotham is licensed this switches over automatically with no CSS change.
+   TO ACTIVATE GOTHAM: upload gotham-book/medium/bold.woff2 as web files, then delete
+   this comment's open/close markers so the three @font-face rules below go live. */
+/*
+@font-face{font-family:"Gotham";src:url("/gotham-book.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"Gotham";src:url("/gotham-medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"Gotham";src:url("/gotham-bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+*/
+
+/* ---- Base ---------------------------------------------------------------- */
+body{ font-family:var(--ec-font-sans) !important; color:var(--ec-text);
+  background:var(--ec-grey-050) !important; line-height:1.5; }
+/* Force the Gotham->Arial stack over GCWeb/theme defaults on every text element
+   (icon fonts like FontAwesome live on <i>/.fa and are deliberately left untouched). */
+h1,h2,h3,h4,h5,h6,p,a,li,dt,dd,td,th,caption,label,legend,blockquote,
+.btn,button,input,select,textarea,.form-control,.nav,.breadcrumb,.panel,
+.entityform,.crmEntityFormView,.wrapper-body,main.ppep-app{ font-family:var(--ec-font-sans) !important; }
+main.ppep-app{ font-size:16px; }
+main.ppep-app p{ font-size:16px; }
+main a, .ppep-app a{ color:var(--ec-link); }
+main a:hover, .ppep-app a:hover{ color:var(--ec-burgundy); }
+
+/* Accessibility: EC wayfinding-yellow focus ring --------------------------- */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+  outline:4px solid var(--ec-yellow) !important; outline-offset:2px !important;
+  box-shadow:0 0 0 2px var(--ec-black) !important;
+}
+
+/* ---- Header -------------------------------------------------------------- */
+header #wb-bnr{ background:var(--ec-white); }
+/* Anonymous header: keep it in normal flow (theme sets it absolute, which
+   overlaps the hero) and give it the POC white bar + burgundy accent. */
+.ppep-anon-header{
+  position:static !important; background:var(--ec-white);
+  border-bottom:3px solid var(--ec-burgundy);
+}
+.ppep-anon-header img{ height:60px; width:auto; }
+
+/* ---- Authenticated app bar -> EC BLACK (POC .app-bar) -------------------- */
+.application-bar, section.application-bar{
+  background:var(--ec-navy) !important; color:var(--ec-white) !important; border-bottom:0 !important;
+}
+.application-bar-content{ min-height:52px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.application-bar h2, .application-bar h2 a,
+section.application-bar h2, section.application-bar h2 a{
+  color:var(--ec-white) !important; font-size:16px; font-weight:bold; margin:0;
+}
+.application-bar h2 a:hover{ color:var(--ec-yellow) !important; }
+.profile-menu-toggle{ color:var(--ec-white) !important; font-weight:bold; border-radius:.3rem; }
+.profile-menu-toggle:hover, .profile-menu-toggle:focus{ background:var(--ec-navy-dark) !important; color:var(--ec-white) !important; }
+.profile-menu-content{
+  background:var(--ec-white) !important; color:var(--ec-text) !important;
+  border:1px solid var(--ec-grey-200) !important; border-top:3px solid var(--ec-burgundy) !important;
+  box-shadow:var(--ec-shadow) !important; min-width:210px;
+}
+.profile-menu-content a{ color:var(--ec-text) !important; font-weight:bold; font-size:15px; }
+.profile-menu-content a:hover{ background:var(--ec-grey-100) !important; color:var(--ec-burgundy) !important; }
+
+/* ---- Main content -------------------------------------------------------- */
+.ppep-app{ background:var(--ec-grey-050) !important; }
+main.ppep-app > .container{ max-width:var(--ec-max); }
+main.ppep-app h1{ font-size:32px; color:var(--ec-black); padding-bottom:.5rem; border-bottom:3px solid var(--ec-burgundy); }
+main.ppep-app h2{ font-size:26px; color:var(--ec-black); }
+main.ppep-app h3{ font-size:18px; }
+
+/* Instructions accordion — consistent EC styling on EVERY page & template,
+   applied automatically (no per-page markup). Covers the home (main.ppep-app)
+   and auto-rendered + custom PERS pages (.wrapper-body), whatever the summary
+   markup (an <h3> on the home, an editable-snippet link on PERS templates). */
+.wrapper-body details, main.ppep-app details{
+  background:var(--ec-white); border:1px solid var(--ec-grey-200);
+  border-left:5px solid var(--ec-navy); box-shadow:var(--ec-soft-shadow); margin-bottom:2rem;
+}
+.wrapper-body details > summary, main.ppep-app details > summary{
+  list-style:none; cursor:pointer; padding:14px 18px;
+  display:flex !important; align-items:center; gap:1rem;
+  font-family:var(--ec-font-sans); font-weight:bold; font-size:18px; color:var(--ec-navy-dark);
+}
+.wrapper-body details > summary::-webkit-details-marker,
+main.ppep-app details > summary::-webkit-details-marker{ display:none; }
+.wrapper-body details > summary h3, main.ppep-app details > summary h3{
+  margin:0; display:inline; font-family:var(--ec-font-sans); font-size:18px; font-weight:bold; color:var(--ec-navy-dark);
+}
+.wrapper-body details > summary a, .wrapper-body details > summary .xrm-attribute-value,
+main.ppep-app details > summary a{
+  color:var(--ec-navy-dark) !important; text-decoration:none !important; font-weight:bold;
+}
+/* Chevron drawn in CSS so it appears automatically on any instructions accordion */
+.ec-acc-caret{ display:none !important; }
+.wrapper-body details > summary::after, main.ppep-app details > summary::after{
+  content:""; margin-left:auto; flex:none; width:0; height:0;
+  border-left:6px solid transparent; border-right:6px solid transparent;
+  border-top:8px solid var(--ec-navy); transition:transform .15s ease;
+}
+.wrapper-body details[open] > summary::after, main.ppep-app details[open] > summary::after{ transform:rotate(180deg); }
+.wrapper-body details > div, .wrapper-body details .section, .wrapper-body details .form-group,
+main.ppep-app details > div, main.ppep-app details .section, main.ppep-app details .body{
+  padding:0 18px 16px; color:var(--ec-grey-700);
+}
+
+/* Anonymous "Getting Started" feature cards (POC .feature) ------------------ */
+.ppep-anon .ec-feature{ height:100%; }
+.ppep-anon .ec-feature h3{ margin:0 0 .35rem; font-size:17px; color:var(--ec-black); }
+.ppep-anon .ec-feature p{ margin:0; font-size:15px; color:var(--ec-grey-700); }
+.ppep-anon .panel{ border-top:4px solid var(--ec-navy) !important; }
+@media (min-width:992px){ .ppep-anon .col-md-4 .panel{ margin-top:122px; } }  /* align Need Assistance with the top tile row */
+.ppep-anon .panel .h5, .ppep-anon .panel h3{ font-size:18px; }
+
+/* Anonymous hero (POC Half-X) - matches design/ec-ppep-landing-page.html ------
+   Full-width band; the Half-X is an absolutely-positioned, FULL-HEIGHT graphic
+   anchored to the left screen edge (bleeds off-screen left), and the copy card
+   floats to the right within a centred max-width container. */
+.ec-hero{ position:relative; overflow:hidden; min-height:680px; background:var(--ec-grey-050); border-bottom:1px solid var(--ec-grey-200); }  /* enlarged to absorb the former Getting Started area */
+.ec-hero-halfx{ position:absolute; inset:0 auto 0 0; height:100%; width:auto; pointer-events:none; }
+.ec-hero-inner{ position:relative; max-width:var(--ec-max); margin:0 auto; padding:3.6rem 15px 4rem; display:flex; align-items:center; justify-content:flex-start; }
+.ec-hero-copy{ max-width:640px; width:100%; background:rgba(255,255,255,.95); border-left:5px solid var(--ec-burgundy); box-shadow:var(--ec-soft-shadow); padding:28px 32px; font-size:16px; transform:translateY(56px); }
+.ec-hero .ec-hero-copy h1{ margin:0 0 .25rem !important; font-size:34px !important; line-height:1.15; color:var(--ec-black) !important; border:0 !important; padding:0 !important; }
+.ec-hero-copy .ec-hero-sub{ margin:0 0 1rem; font-size:20px; font-weight:bold; color:var(--ec-burgundy); }
+.ec-hero-copy p{ margin:0 0 .85rem; font-size:16px; color:var(--ec-grey-700); }
+@media (max-width:900px){ .ec-hero{ min-height:auto; } .ec-hero-halfx{ opacity:.22; } .ec-hero-inner{ justify-content:stretch; } .ec-hero-copy{ max-width:100%; transform:none; } }
+/* Getting Started shares the same centred container + 15px inset as the hero card. */
+main.ppep-app > .container{ padding-left:15px; padding-right:15px; }
+
+/* ---- Standard buttons -> NEUTRAL navy (area-independent), lighter navy hover -------------- */
+.btn-primary, a.btn-primary,
+.create-action.btn-primary, a.btn-primary.create-action, .toolbar-actions .create-action, .btn-light{
+  background-color:var(--ec-navy) !important; border-color:var(--ec-navy) !important; color:var(--ec-white) !important;
+}
+.btn-primary:hover, .btn-primary:focus, a.btn-primary:hover,
+.create-action.btn-primary:hover, a.btn-primary.create-action:hover,
+.toolbar-actions .create-action:hover, .btn-light:hover{
+  background-color:var(--ec-white) !important; border-color:var(--ec-navy) !important; color:var(--ec-navy) !important;
+}
+.entitylist-search .btn-default, .entitylist-search .input-group-btn > .btn-default{
+  background-color:var(--ec-burgundy) !important; border-color:var(--ec-burgundy) !important; color:var(--ec-white) !important;
+}
+.entitylist-search .btn-default:hover, .entitylist-search .btn-default:focus{
+  background-color:var(--ec-burgundy-dark) !important; border-color:var(--ec-burgundy-dark) !important; color:var(--ec-white) !important;
+}
+.entitylist-search .btn-default .fa-search{ color:var(--ec-white) !important; }
+.entitylist-search .query.form-control:focus, .form-control:focus{
+  border-color:var(--ec-burgundy) !important; box-shadow:0 0 0 .2rem rgba(106,0,50,.18) !important;
+}
+.bg-primary{ background-color:var(--ec-navy) !important; }
+.text-primary{ color:var(--ec-burgundy) !important; }
+.nav-tabs .nav-link.active{ color:var(--ec-burgundy) !important; }
+
+/* ===========================================================================
+   Reusable opt-in EC components
+   =========================================================================== */
+.ec-btn{ display:inline-flex; align-items:center; justify-content:center; gap:.45rem;
+  padding:12px 21px; font-size:16px; font-weight:bold;
+  background:var(--ec-navy) !important; color:var(--ec-white) !important;
+  border:2px solid var(--ec-navy); border-radius:.25rem; text-decoration:none !important; cursor:pointer; }
+.ec-btn:hover, .ec-btn:focus{ background:var(--ec-white) !important; border-color:var(--ec-navy); color:var(--ec-navy) !important; }
+.ec-btn:visited{ background:var(--ec-navy) !important; color:var(--ec-white) !important; }
+.ec-btn.ghost{ background:transparent !important; color:var(--ec-navy) !important; }
+.ec-btn.ghost:hover{ background:#eef1f4 !important; color:var(--ec-navy) !important; }
+
+.ec-feature{ background:var(--ec-white); border:1px solid var(--ec-grey-200);
+  border-left:5px solid var(--ec-burgundy); box-shadow:var(--ec-soft-shadow); padding:16px 18px 18px; }
+.ec-feature.navy{ border-left-color:var(--ec-navy); }
+.ec-feature.teal{ border-left-color:var(--ec-teal); }
+.ec-feature.mustard{ border-left-color:var(--ec-mustard); }
+.ec-feature.olive{ border-left-color:var(--ec-olive); }
+
+.ec-card{ background:var(--ec-white); border:1px solid var(--ec-grey-200);
+  border-top:4px solid var(--ec-navy); box-shadow:var(--ec-soft-shadow); padding:20px 22px; }
+.ec-card.burgundy{ border-top-color:var(--ec-burgundy); }
+.ec-card.teal{ border-top-color:var(--ec-teal); }
+
+/* ---- Authenticated service tiles (POC .tile) ----------------------------- */
+.ec-tile-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:19px; margin-top:8px; }
+.ec-tile{ background:var(--ec-white); border:1px solid var(--ec-grey-200); border-top:5px solid var(--ec-burgundy);
+  box-shadow:var(--ec-soft-shadow); padding:22px 21px 21px;
+  display:flex; flex-direction:column; align-items:center; text-align:center; gap:11px; height:100%; }
+.ec-tile.navy{ border-top-color:var(--ec-navy); }
+.ec-tile.teal{ border-top-color:var(--ec-teal); }
+.ec-tile-icon{ width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  color:var(--ec-white); font-size:37px; font-weight:bold; }
+.ec-tile-icon.burgundy{ background:var(--ec-burgundy); }
+.ec-tile-icon.navy{ background:var(--ec-navy); }
+.ec-tile-icon.teal{ background:var(--ec-teal); }
+.ec-tile-icon svg{ width:46px; height:46px; fill:var(--ec-white); }
+.ec-tile h2{ margin:2px 0 0; font-size:19px; color:var(--ec-black); }
+.ec-tile p{ margin:0; font-size:15px; color:var(--ec-grey-700); flex:1 0 auto; }
+.ec-tile .ec-btn{ margin-top:auto; }
+.ec-btn svg.ext{ width:14px; height:14px; fill:currentColor; }
+
+/* ---- Messages icon in the app bar -> white + mustard badge (POC) --------- */
+.application-bar .notification-icon,
+.application-bar .notification-icon i,
+.application-bar .notification-icon .fa-envelope{ color:var(--ec-white) !important; }
+.application-bar .notification-icon{ position:relative; display:inline-flex; align-items:center; margin-right:.5rem; }
+.badge-indicator{ background:var(--ec-mustard) !important; color:var(--ec-black) !important; }
+
+
+/* ===========================================================================
+   Follow-up fixes (rendered-page corrections)
+   =========================================================================== */
+
+/* 1) Header strip is full-width white (previously only the inner .container
+      was white, so the grey page background showed at the left/right edges). */
+header{ background:var(--ec-white); }
+
+/* 2) Auto-rendered pages: align the page title (h1), breadcrumb, and body copy
+      to a single left edge. The breadcrumb <ul> carried the browser-default
+      40px indent and the body sat inside extra sectionBlock/column padding. */
+.wrapper-body [role="main"] .breadcrumb{ padding-left:0 !important; padding-inline-start:0 !important; margin-left:0 !important; }
+.wrapper-body [role="main"] .page-copy .sectionBlockLayout{ padding-left:0 !important; }
+.wrapper-body [role="main"] .page-copy .sectionBlockLayout > .container{ padding-left:0 !important; margin-left:0 !important; }
+.wrapper-body [role="main"] .page-copy .columnBlockLayout{ padding-left:0 !important; }
+
+/* 3) Footer Contact Us (and Follow Us) links render as a top-down list. */
+.ec-footer-col ul{ list-style:none; margin:0; padding:0; }
+.ec-footer-col li{ display:block !important; margin:0 0 .6rem; }
+
+/* 4) Consent Accept/Decline buttons: breathing room above + between buttons
+      (the theme markup only set an inert `top:20px`). */
+.ppFlexContainer{ margin-top:1.5rem !important; gap:.6rem; flex-wrap:wrap; align-items:center; }
+.ppFlexContainer .btn{ margin-bottom:.25rem; }
+
+
+/* Tighten the vertical gap between the page title and the page copy on
+   auto-rendered pages (was inflated by page-header margin, section/column
+   top spacing, and an empty <p> the editor inserts). */
+.wrapper-body [role="main"] .page-header{ margin-bottom:.5rem !important; padding-bottom:.4rem !important; }
+.wrapper-body [role="main"] .page-copy{ margin-top:0 !important; }
+.wrapper-body [role="main"] .page-copy .sectionBlockLayout{ padding-top:0 !important; margin-top:0 !important; }
+.wrapper-body [role="main"] .page-copy .columnBlockLayout{ margin-top:0 !important; }
+.wrapper-body [role="main"] .page-copy > * > * p:empty{ display:none !important; }
+
+
+/* 1) Nudge the EC logo a bit further left (remove the leading column padding). */
+#wb-bnr [class*="col-"]:first-child,
+.ppep-anon-header [class*="col-"]:first-child{ padding-left:0 !important; }
+#wb-bnr a img, .ppep-anon-header a img{ margin-left:-6px; }
+
+/* 3) Lists & basic forms: ALWAYS match the site background — every page &
+   template, and automatically for any list/form a developer adds later.
+   NOTE the Power Pages class is .entityform (no hyphen), plus .crmEntityFormView. */
+.entitylist, .entity-grid, .view-grid, .subgrid,
+.entitylist .table, table.table,
+.table > thead > tr > th, .table > tbody > tr, .table > tbody > tr > td,
+.entityform, .entity-form, .crmEntityFormView, .form-columns,
+.entityform table, .entity-form table, .crmEntityFormView table,
+.entityform tbody, .crmEntityFormView tbody,
+.entityform tr, .entity-form tr, .crmEntityFormView tr,
+.entityform td, .entity-form td, .crmEntityFormView td,
+.entityform th, .entity-form th, .crmEntityFormView th,
+.entityform label, .entity-form label, .crmEntityFormView label,
+.entityform .control-label, .crmEntityFormView .control-label,
+.entityform .info, .crmEntityFormView .info,
+.entityform .cell, .crmEntityFormView .cell,
+.wrapper-body fieldset, .wrapper-body .tab, .wrapper-body .tab-column, .wrapper-body .section,
+.wrapper-body .panel, .wrapper-body .panel-default, .wrapper-body .panel-body, .wrapper-body .card{
+  background-color:transparent !important;
+}
+/* keep real inputs/controls white so they stay legible */
+input.form-control, select.form-control, textarea.form-control, .form-select{ background-color:var(--ec-white) !important; }
+
+/* Instructions accordion left-aligns with the form beneath it (the details lives in a
+   centered max-width:1200 container/col with padding; the entityform is a full-width
+   sibling — so the accordion was indented relative to the fields). */
+.tab-section > .container{ max-width:none !important; margin:0 !important; padding:0 !important; }
+.tab-section > .container > [class*="col-"]{ padding-left:0 !important; padding-right:0 !important; }
+
+
+/* (C) Language toggle: keep it visible on the white header (the anon markup uses
+   class="light" which rendered white-on-white). */
+header #wb-lng a, .ppep-anon-header #wb-lng a, #wb-lng a, #wb-lng a.light, #wb-lng abbr{
+  color:var(--ec-burgundy) !important; text-decoration:underline; font-weight:bold;
+}
+header #wb-lng a:hover, .ppep-anon-header #wb-lng a:hover, #wb-lng a:hover{ color:var(--ec-burgundy-dark) !important; }
+
+/* (D) Feature / card tiles: force an equal-height flex grid so uneven content
+   (e.g. longer French copy) can't trigger the Bootstrap float stagger. Universal
+   via :has() for any future tiles, with a no-:has fallback for the anon home. */
+.row:has(> [class*="col-"] > .ec-feature),
+.row:has(> [class*="col-"] > .ec-card){
+  display:flex !important; flex-wrap:wrap; align-items:stretch;
+}
+[class*="col-"]:has(> .ec-feature), [class*="col-"]:has(> .ec-card){ float:none !important; display:flex; }
+.ec-feature, .ec-card{ width:100%; height:100%; }
+.ppep-anon .row.mrgn-tp-lg{ display:flex; flex-wrap:wrap; align-items:stretch; }
+.ppep-anon .row.mrgn-tp-lg > [class*="col-"]{ float:none; display:flex; }
+.ppep-anon .row.mrgn-tp-lg > [class*="col-"] > .ec-feature{ width:100%; }
+
+
+/* EC logo: 25% larger (60px -> 75px) and, on the anon landing, aligned to the
+   hero graphic's left edge (the hero is full-bleed at x:0, so make the anon
+   header full-width and drop the logo's left inset). */
+/* EC logo: 25% larger, and left-aligned to the Getting Started section (same 1180
+   container + 15px inset) so the logo, hero graphic and Getting Started share one line. */
+header img, .ppep-anon-header a img, #wb-bnr a img{ height:75px !important; max-height:75px !important; width:auto !important; }
+.ppep-anon-header .container{ width:auto !important; max-width:none !important; margin:0 !important; padding:0 24px 0 40px !important; }  /* full-bleed header: logo above the burgundy mass at left, language toggle at the far right */
+.ppep-anon-header .row{ margin:0 !important; }
+.ppep-anon-header [class*="col-"]{ padding:0 !important; }
+.ppep-anon-header a img{ margin:0 !important; }
+
+/* ---- Unified "Instructions" accordion look on EVERY page: OOB bare <details> on pages, the custom
+   .pp-instr / .hm-instr accordions, and (via the wizard's own #pers-multistep rules) the basic-form
+   instructions all match. One visible background (#e8e9eb) that is the SAME collapsed and expanded;
+   summary + body share one 18px inset; no border/line on click; native disclosure caret only. ---- */
+.wrapper-body details:not([class]), main.ppep-app details:not([class]), .pp-instr, .hm-instr{
+  border:1px solid #d7d8da !important; border-radius:10px !important; background:#e8e9eb !important;
+  margin:0 0 20px !important; overflow:hidden !important; box-shadow:none !important; width:100%;
+}
+.wrapper-body details:not([class]) > summary, main.ppep-app details:not([class]) > summary,
+.pp-instr > summary, .hm-instr > summary{
+  list-style:none !important; cursor:pointer !important; padding:14px 18px !important; margin:0 !important;
+  font-weight:700 !important; font-size:16px !important; color:var(--ec-navy,#1e384b) !important;
+  background:#e8e9eb !important; border:0 !important; outline:none !important; box-shadow:none !important;
+  display:flex !important; align-items:center !important; justify-content:space-between !important; gap:10px !important;
+}
+.wrapper-body details:not([class])[open] > summary, main.ppep-app details:not([class])[open] > summary,
+.pp-instr[open] > summary, .hm-instr[open] > summary{ border-bottom:0 !important; }
+/* keyboard focus stays visible (inset yellow ring); a plain mouse click shows no border */
+.wrapper-body details:not([class]) > summary:focus-visible, main.ppep-app details:not([class]) > summary:focus-visible,
+.pp-instr > summary:focus-visible, .hm-instr > summary:focus-visible{ outline:3px solid #ffda00 !important; outline-offset:-3px !important; }
+/* body shares the box background + the 18px inset */
+.wrapper-body details:not([class]) > *:not(summary), main.ppep-app details:not([class]) > *:not(summary),
+.pp-instr > *:not(summary), .hm-instr > *:not(summary){
+  padding:14px 18px !important; margin:0 !important; border:0 !important; background:#e8e9eb !important;
+}
+.wrapper-body details:not([class]) .section, .wrapper-body details:not([class]) .form-group,
+main.ppep-app details:not([class]) .section, main.ppep-app details:not([class]) .form-group,
+.pp-instr .pp-instr-body, .hm-instr .hm-instr-body{ padding:0 !important; margin:0 !important; border:0 !important; background:transparent !important; }
+
+</style>

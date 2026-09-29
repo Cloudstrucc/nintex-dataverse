@@ -218,3 +218,39 @@ pac solution check --path <solution.zip> --outputDirectory <results-dir>
 - Do not install the client solution in the broker environment
 - Do not use deprecated `Common Data Service` connector — use **Microsoft Dataverse** connector
 - Do not use string values for statuscode — always use integer values
+
+---
+
+## Power Pages Portal (`e-sign-dev`)
+
+Internal e-signature portal for EC employees. **Enhanced data model** site.
+
+### Environments & IDs (same website/component GUIDs across dev and test)
+| | dev | test |
+|---|---|---|
+| Env URL | `https://dev-ec-esign-01.crm3.dynamics.com` | `https://test-ec-esign-01.crm3.dynamics.com` |
+| Website ID | `17ed601c-7964-498a-8d9c-a64d08f85583` | same |
+| Portal URL | `dev-ec-esign-01.powerappsportals.com` | `test-ec-esign-01.powerappsportals.com` |
+
+Site visibility is **Private** (dev-environment sites can't be made public). Auth is Entra ID; users map to contacts by email; authenticated users auto-get the **Authenticated Users** web role. Tenant `48e6af5c-487d-48c3-af5b-3ca22beea188`; the `.env` `EC_CLIENT_ID`/`EC_CLIENT_SECRET` service principal is **System Administrator** across all EC envs (use it for all Web API work — but note `.env`'s `EC_ENVIRONMENT_URL`/`EC_WEBSITE_ID` point at the wrong env, so pass the target URL/site explicitly).
+
+### Enhanced data model — the store the runtime reads
+The running portal reads **`powerpagecomponent`** (NOT the legacy `mspp_*`/`adx_*` tables). Each row has `name`, `powerpagecomponenttype`, and a JSON `content` field. Component type codes: `1` Publishing State, `2` Web Page, `3` Web File, `6` Page Template, `7` Content Snippet, `8` Web Template, `9` Site Setting, `11` Web Role, `13` Site Marker, `18` Table Permission.
+- Web Template content = `{"source": "<liquid/html>"}`. Site Setting content = `{"value":"..."}` (or `{"source":0,"value":"..."}`). Web File content = `{...,"partialurl":"x.png","parentpageid":<HOME>,"publishingstateid":<PUB>}` + binary PATCHed to `powerpagecomponents(<id>)/filecontent`.
+- Every `content` value MUST be valid JSON. Raw Liquid/CSS/JS written without the `{"source": ...}` envelope corrupts the site and crashes `pac pages download` (`JsonReaderException: %`). Guard: after any change, re-validate all `content` parses as JSON.
+- Editing legacy `mspp_*` tables does NOT affect the runtime — always write `powerpagecomponent`.
+
+### Web API (`/_api/`) — table permissions + fields
+Portal Web API access needs two gates: `Webapi/<table>/enabled=true` AND a **table permission** linked to the user's web role. In this enhanced model table permissions store their web-role links inside `content.adx_entitypermission_webrole`.
+- **Wildcard `*` for `Webapi/<table>/fields` was removed by Microsoft on 2026-09-14.** `fields` MUST be an explicit comma-separated list of column logical names (a disallowed column returns `403 WebApiUnAuthorizedAccess`). Enabled tables: `cs_envelope`, `cs_signer`, `cs_template`, `cs_document`, `annotation` — see `power-pages/backups/` dumps for the exact column lists in use.
+- Known code typos (400s, not 403s): DocumentViewer selects `cs_signingorder` (should be `cs_signerorder`) and `cs_filename` on `cs_template` (should be `cs_templatepdf_name`).
+
+### Theming
+ec-esign is a `CS-*` fork of the EC template family used by the **COE** portal (`Cloudstrucc/elections-canada` repo, `COE/` folder; env `ec-coe-dev`, portal `coe-dev-fp`) — the theming reference. The theme loads site-wide purely because the bound **CS-header** `{% include 'EC-Base-Styles' %}` (→ `EC-Brand-Facelift` + modern style partials = all CSS) and the bound **CS-footer** `{% include 'EC-Scripts-Base' %}` (all EC JS). Header logo is `/ec-logo.png` (a Web File). **Use the `ppep-` class prefix, never `pepp-`** — the theme styles `.ppep-app` (29 rules), `.ppep-anon-header`, `.ppep-anon`; the original fork's `pepp-` typo meant the theme never applied.
+
+### Deploy / backup / revert runbook
+- Helper: `power-pages/scripts/deploy-portal-theme.mjs <dev|test> <core|header-footer|logo|classfix|all>` — idempotent `powerpagecomponent` upserts via the Web API (adapted from the COE `_lib.mjs` pattern). Reads creds from `.env`. Theme sources live in `power-pages/theme/`.
+- Before any change it writes each mutated component's prior state to `power-pages/backups/e-sign-dev/deploy-*/…before.json`.
+- **Full snapshot** (first run): full `powerpagecomponent` dump + `pac pages download` under `power-pages/backups/e-sign-dev/<timestamp>/` (gitignored).
+- **Revert:** surgical = re-PATCH a component's `content` from its `*.before.json`; full = `pac pages upload` the snapshot.
+- After config-table edits (table permissions, Web API fields, theme), the site needs a **Restart** (admin center → Site Actions → Restart) — a Design Studio *Sync* does not reliably flush the cache.
