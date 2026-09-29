@@ -31,7 +31,12 @@
         <button class="ews-fsbtn" title="Full screen" onclick="ecToggleFs()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
       <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/HOME/ACTIVEVIEW'] | default: 'Active envelopes' }}</span>
         <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}" oninput="ecRender()"></div>
-        <a class="ews-btn ews-primary ews-toolcta" href="/envelopes/edit-envelope/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/HOME/CREATE'] | default: 'Create envelope' }}</a></div>
+        <div class="ews-toolright">
+          <label class="ews-pagesize">{{ snippets['ESIGN/LIST/SHOW'] | default: 'Show' }}
+            <select id="ecPageSize" onchange="ecSize(this.value)"><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option></select>
+          </label>
+          <a class="ews-btn ews-primary" href="/envelopes/edit-envelope/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/HOME/CREATE'] | default: 'Create envelope' }}</a>
+        </div></div>
       <table class="ews-nt"><thead><tr><th></th><th>{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }}</th><th>{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }}</th><th>{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }}</th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
       <div class="ews-pager" id="ecPager"></div>
     </div>
@@ -59,11 +64,12 @@
 <script>
 (function(){
   var STAT={1:['Draft','draft','other'],717640001:['Preparing','proc','proc'],717640002:['Ready to Send','proc','proc'],717640003:['In Process','proc','proc'],717640004:['Completed','done','done'],717640005:['Error','err','err'],717640006:['Cancelled','off','other'],717640007:['Cancel Error','err','err']};
-  var DATA=[],filter='all',page=1,PAGE=5;
+  var DATA=[],filter='all',page=1,PAGE=5,USERPAGE=5;
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   window.ecSetF=function(el){document.querySelectorAll('.ews-stat').forEach(function(s){s.classList.remove('active');});el.classList.add('active');filter=el.dataset.f;page=1;document.getElementById('ecFilterLabel').textContent='Showing: '+el.querySelector('.lab').textContent;ecRender();};
-  window.ecToggleFs=function(force){var c=document.getElementById('ecEnvCard');var on=force===true?false:!c.classList.contains('fs');c.classList.toggle('fs',on);document.body.classList.toggle('ews-fson',on);};
+  window.ecSize=function(v){USERPAGE=+v;PAGE=+v;page=1;ecRender();};
+  window.ecToggleFs=function(force){var c=document.getElementById('ecEnvCard');var on=force===true?false:!c.classList.contains('fs');c.classList.toggle('fs',on);document.body.classList.toggle('ews-fson',on);PAGE=on?10:USERPAGE;var sel=document.getElementById('ecPageSize');if(sel)sel.value=String(PAGE);page=1;ecRender();};
   window.ecRender=function(){
     var q=(document.getElementById('ecQ').value||'').toLowerCase();
     var rows=DATA.filter(function(r){return (filter==='all'||r.g===filter)&&(!q||(r.name+' '+r.subj+' '+r.stl).toLowerCase().indexOf(q)>=0);});
