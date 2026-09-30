@@ -72,7 +72,7 @@ async function upsertPT(name, wtId) {
   return idFrom(show(`PT POST ${name}`, await api("POST", "powerpagecomponents", { name, powerpagecomponenttype: 6, content, ...bind })).entityId);
 }
 async function ensurePage(slug, title, ptId) {
-  const url = "/" + slug;
+  const url = slug; // partialurl has NO leading slash (matches Templates/Envelopes; a leading slash 404s)
   const wp = await list(2);
   const parse = (p) => { try { return JSON.parse(p.content); } catch { return {}; } };
   let root = wp.find((p) => { const c = parse(p); return c.isroot && c.partialurl === url; });
