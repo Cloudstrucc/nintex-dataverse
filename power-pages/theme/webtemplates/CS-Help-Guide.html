@@ -1,30 +1,177 @@
-{% comment %} Help guide — accordion sections + quick contact. {% endcomment %}
+{% comment %} Help guide — coe-dev-fp style: sticky left TOC (accordion groups) + content pane. e-signature content. {% endcomment %}
 <main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
   <div class="container mrgn-tp-md mrgn-bttm-lg">
 
     <div class="ews-svcbanner mrgn-bttm-md">
       <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 2 3 7v6c0 5 3.8 8.3 9 9 5.2-.7 9-4 9-9V7l-9-5Z"/></svg></span>
       <div><h1>{{ snippets['ESIGN/HELP/TITLE'] | default: 'Help guide' }}</h1>
-        <p>{{ snippets['ESIGN/HELP/SUB'] | default: 'Step-by-step guidance for using the Electronic Signature Service.' }}</p></div>
+        <p>{{ snippets['ESIGN/HELP/SUB'] | default: 'Everything you need to send, sign and manage documents with the Electronic Signature Service.' }}</p></div>
     </div>
 
-    <div class="ews-acc">
-      <details open><summary>{{ snippets['ESIGN/HELP/Q1'] | default: 'Getting started' }}</summary>
-        <div class="bd"><p>Sign in with your Entra ID. Your workspace shows your envelopes, quick services and any notifications. Use <b>My services</b> to jump into Envelopes, Templates or Signed documents.</p></div></details>
-      <details><summary>{{ snippets['ESIGN/HELP/Q2'] | default: 'Create and send an envelope' }}</summary>
-        <div class="bd"><ol><li>Open <b>Envelopes</b> and choose <b>Create a new envelope</b>.</li><li>Pick an approved template or upload a document.</li><li>Add signers, set the signing order, authentication and language.</li><li>Review and send — signers are notified by email.</li></ol></div></details>
-      <details><summary>{{ snippets['ESIGN/HELP/Q3'] | default: 'Track signing progress' }}</summary>
-        <div class="bd"><p>The envelope table on <b>My Workspace</b> shows live status. Filter by <b>In process</b>, <b>Completed</b> or <b>Action required</b> using the tiles. Reminders can be sent to pending signers.</p></div></details>
-      <details><summary>{{ snippets['ESIGN/HELP/Q4'] | default: 'Retrieve signed documents' }}</summary>
-        <div class="bd"><p>When an envelope completes, its signed PDF and audit trail are available under <b>Signed documents</b>. Completed documents are retained per the Elections Canada retention schedule.</p></div></details>
-      <details><summary>{{ snippets['ESIGN/HELP/Q5'] | default: 'Templates' }}</summary>
-        <div class="bd"><p>Templates are reusable, pre-approved documents. Browse existing templates or create a new one from <b>Templates</b>. Only active templates appear when creating an envelope.</p></div></details>
-    </div>
+    <div class="ews-two">
+      <!-- Left TOC -->
+      <aside class="ews-toc" id="helpToc" aria-label="Help contents">
+        <div class="grp">
+          <button type="button"><span>Getting started</span><span class="cx">&#9662;</span></button>
+          <ul><li><a href="#overview">Overview</a></li><li><a href="#access">Get access &amp; sign in</a></li><li><a href="#workspace">Your workspace</a></li></ul>
+        </div>
+        <div class="grp">
+          <button type="button"><span>Envelopes</span><span class="cx">&#9662;</span></button>
+          <ul><li><a href="#create-envelope">Create an envelope</a></li><li><a href="#signers">Add signers</a></li><li><a href="#send-track">Send &amp; track</a></li><li><a href="#cancel">Cancel an envelope</a></li></ul>
+        </div>
+        <div class="grp">
+          <button type="button"><span>Templates</span><span class="cx">&#9662;</span></button>
+          <ul><li><a href="#create-template">Create a template</a></li><li><a href="#upload-doc">Upload the document</a></li><li><a href="#use-template">Use a template</a></li></ul>
+        </div>
+        <div class="grp">
+          <button type="button"><span>Signing setup (Nintex)</span><span class="cx">&#9662;</span></button>
+          <ul><li><a href="#signing-order">Signing sequence</a></li><li><a href="#authentication">Authentication</a></li><li><a href="#language">Language</a></li><li><a href="#reminders">Reminders &amp; expiry</a></li><li><a href="#fields">Signature fields &amp; inputs</a></li></ul>
+        </div>
+        <div class="grp">
+          <button type="button"><span>After signing</span><span class="cx">&#9662;</span></button>
+          <ul><li><a href="#notifications">Notifications</a></li><li><a href="#documents">Signed documents</a></li><li><a href="#activity">Activity &amp; history</a></li></ul>
+        </div>
+        <div class="grp">
+          <button type="button"><span>Support</span><span class="cx">&#9662;</span></button>
+          <ul><li><a href="#faq">FAQ</a></li><li><a href="#contact">Contact support</a></li></ul>
+        </div>
+      </aside>
 
-    <div class="ews-briefband mrgn-tp-md">
-      <h2>{{ snippets['ESIGN/HELP/CONTACT/T'] | default: 'Need more help?' }}</h2>
-      <p>{{ snippets['ESIGN/HELP/CONTACT/B'] | default: 'Contact the Electronic Signature support team for assistance with envelopes, templates or access.' }}</p>
-      <a class="ews-btn ews-primary" href="mailto:{{ snippets['ESIGN/HELP/CONTACT/EMAIL'] | default: 'esign-support@elections.ca' }}">{{ snippets['ESIGN/HELP/CONTACT/BTN'] | default: 'Contact support' }}</a>
+      <!-- Content -->
+      <div class="ews-content" id="helpContent">
+        <section id="overview">
+          <div class="k">Getting started</div><h2>Overview</h2>
+          <p>The Electronic Signature Service lets Elections Canada teams request legally binding signatures on official documents — no printing, scanning or mailing. You create an <strong>envelope</strong> from an approved <strong>template</strong>, add signers, and send it for signature through Nintex AssureSign. Every step is tracked and every completed document carries a tamper-evident audit trail.</p>
+        </section>
+
+        <section id="access">
+          <h3>Get access &amp; sign in</h3>
+          <p>The portal is private and uses your Elections Canada <strong>Entra ID</strong> account.</p>
+          <ol>
+            <li>Go to the portal and choose <strong>Sign in with Entra ID</strong>; use your EC work account.</li>
+            <li>On first sign-in you are matched to your contact record by email and automatically granted the <strong>Authenticated Users</strong> role.</li>
+            <li>If you see &ldquo;access denied&rdquo; or a private-site notice, your account has not been added yet — request access from the service team (see <a href="#contact">Contact support</a>) with your name and EC email.</li>
+          </ol>
+          <div class="ews-callout">Access is governed centrally. Elevated actions (managing templates for a whole team) may require an additional role — ask the service team if a template option is greyed out.</div>
+        </section>
+
+        <section id="workspace">
+          <h3>Your workspace</h3>
+          <p><strong>My Workspace</strong> is your home page. The tiles at the top filter your envelope list by status (Total, In process, Completed, Action required), and the <strong>My services</strong> cards jump you into Envelopes, Templates, Signed documents and Help. The bell in the header opens your <a href="#notifications">notification centre</a>.</p>
+        </section>
+
+        <section id="create-envelope">
+          <div class="k">Envelopes</div><h2>Create an envelope</h2>
+          <ol>
+            <li>Open <strong>Envelopes</strong> and select <strong>Create envelope</strong> (also available from the list controls and My Workspace).</li>
+            <li>Choose an approved template, or upload a document to sign.</li>
+            <li>Give the envelope a name and, optionally, a subject and message for the notification email.</li>
+          </ol>
+        </section>
+        <section id="signers">
+          <h3>Add signers</h3>
+          <p>For each recipient, enter their full name and email and set their role. You can add several signers; how they are ordered is covered under <a href="#signing-order">Signing sequence</a>. Per-signer options (authentication, language) are set here too.</p>
+        </section>
+        <section id="send-track">
+          <h3>Send &amp; track</h3>
+          <p>Select <strong>Send envelope</strong> to submit it to Nintex AssureSign. The status moves Draft &rarr; Preparing &rarr; Ready to send &rarr; In process &rarr; Completed. Track live status from the envelope list and the workspace tiles; use the full-screen button for a focused view and the page-size control to show more rows.</p>
+        </section>
+        <section id="cancel">
+          <h3>Cancel an envelope</h3>
+          <p>From the envelope&rsquo;s <strong>&#8942; row menu</strong> choose <strong>Cancel envelope</strong>. Cancellation is only available while the envelope is still active and not yet completed, and cannot be undone — signers can no longer complete it.</p>
+        </section>
+
+        <section id="create-template">
+          <div class="k">Templates</div><h2>Create a template</h2>
+          <p>Templates are reusable, pre-approved documents with their signer roles and fields already configured, so envelopes are faster and consistent.</p>
+          <ol>
+            <li>Open <strong>Templates</strong> and select <strong>Create template</strong>.</li>
+            <li>Enter a name, description and category so it is easy to find later.</li>
+            <li>Set <strong>Active</strong> when it is ready — only active templates appear when creating an envelope.</li>
+          </ol>
+        </section>
+        <section id="upload-doc">
+          <h3>Upload the document</h3>
+          <p>Attach the source PDF to the template. It is stored with the template and used as the base document each time the template is used; it can be downloaded later from the template&rsquo;s <strong>&#8942;</strong> menu.</p>
+        </section>
+        <section id="use-template">
+          <h3>Use a template</h3>
+          <p>From the Templates list, open a template and choose <strong>Use template</strong> (or <strong>Use</strong> in the row menu) to start a new envelope pre-filled from it. You then add the specific signers and send.</p>
+        </section>
+
+        <section id="signing-order">
+          <div class="k">Signing setup (Nintex)</div><h2>Signing sequence</h2>
+          <p>The signing <strong>order</strong> controls when each recipient receives the request. Nintex AssureSign supports:</p>
+          <ul>
+            <li><strong>Sequential</strong> — signer 1 must finish before signer 2 is notified, and so on. Use this for approvals that must happen in order.</li>
+            <li><strong>Parallel</strong> — all signers are notified at once and can sign in any order. Use this when order does not matter.</li>
+          </ul>
+          <p>Set each signer&rsquo;s order number when you add them; equal numbers sign in parallel, ascending numbers sign in sequence.</p>
+        </section>
+        <section id="authentication">
+          <h3>Authentication</h3>
+          <p>Per signer you can require an identity check before they can sign — for example an access code / KBA-style challenge or email-based verification, depending on what your Nintex account allows. Choose the method appropriate to the sensitivity of the document.</p>
+        </section>
+        <section id="language">
+          <h3>Language</h3>
+          <p>Set each signer&rsquo;s language (English or French) so their signing experience and notification emails are delivered in that language.</p>
+        </section>
+        <section id="reminders">
+          <h3>Reminders &amp; expiry</h3>
+          <p>Configure automatic <strong>reminder</strong> emails for signers who have not yet acted, and an <strong>expiry</strong> (days to complete) after which the envelope lapses. You can also send a manual reminder to a pending signer at any time.</p>
+        </section>
+        <section id="fields">
+          <h3>Signature fields &amp; inputs</h3>
+          <p>Templates define where signatures, initials, dates and form inputs appear on the document, and which signer each field belongs to. Configure these in the template so every envelope created from it places fields consistently. Sender inputs let the person creating the envelope supply values (such as a name or amount) that are merged into the document before sending.</p>
+          <div class="ews-callout">Getting the fields and roles right on the template is the single biggest time-saver — it means anyone can create a correct envelope in a few clicks.</div>
+        </section>
+
+        <section id="notifications">
+          <div class="k">After signing</div><h2>Notifications</h2>
+          <p>The <strong>bell</strong> in the header shows your unread count and opens the notification centre. Messages are grouped as <strong>Action required</strong> or <strong>For information</strong>; filter with the tabs, mark items read, or archive them.</p>
+        </section>
+        <section id="documents">
+          <h3>Signed documents</h3>
+          <p>When an envelope completes, the signed PDF and its audit certificate are available under <strong>Signed documents</strong>. Completed documents are retained per the Elections Canada retention schedule.</p>
+        </section>
+        <section id="activity">
+          <h3>Activity &amp; history</h3>
+          <p><strong>Activity &amp; history</strong> (under your profile menu) shows a combined, filterable record of your envelopes, templates, documents and notifications.</p>
+        </section>
+
+        <section id="faq">
+          <div class="k">Support</div><h2>Frequently asked questions</h2>
+          <div class="ews-acc">
+            <details open><summary>A signer didn&rsquo;t get the email — what do I check?</summary><div class="bd"><p>Confirm the email address on the signer, ask them to check junk mail, and send a manual reminder. For sequential signing, earlier signers must finish first.</p></div></details>
+            <details><summary>Can I change an envelope after sending?</summary><div class="bd"><p>No. Once sent, an envelope can only be cancelled and recreated. Review recipients carefully before sending.</p></div></details>
+            <details><summary>Why can&rsquo;t I see a template when creating an envelope?</summary><div class="bd"><p>Only <strong>Active</strong> templates appear. Open the template and set it active, or ask the owner to.</p></div></details>
+            <details><summary>Who can manage templates?</summary><div class="bd"><p>Any authenticated user can create templates; some team-wide options may require an elevated role — see <a href="#contact">Contact support</a>.</p></div></details>
+          </div>
+        </section>
+        <section id="contact">
+          <h3>Contact support</h3>
+          <p>Still stuck? Reach the Electronic Signature support team and include the envelope or template name and what you were doing.</p>
+          <p><a class="ews-btn ews-primary" href="mailto:{{ snippets['ESIGN/HELP/CONTACT/EMAIL'] | default: 'esign-support@elections.ca' }}">{{ snippets['ESIGN/HELP/CONTACT/BTN'] | default: 'Email support' }}</a></p>
+        </section>
+      </div>
     </div>
   </div>
 </main>
+
+<script>
+(function(){
+  var toc=document.getElementById('helpToc');if(!toc)return;
+  var links=[].slice.call(toc.querySelectorAll('a[href^="#"]'));
+  var map={};links.forEach(function(a){var id=a.getAttribute('href').slice(1);map[id]=a;});
+  // accordion groups
+  toc.querySelectorAll('.grp>button').forEach(function(b){b.addEventListener('click',function(){b.parentNode.classList.toggle('closed');});});
+  // smooth scroll
+  links.forEach(function(a){a.addEventListener('click',function(e){var t=document.getElementById(a.getAttribute('href').slice(1));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'',a.getAttribute('href'));}});});
+  // scrollspy
+  var secs=[].slice.call(document.querySelectorAll('.ews-content section[id]'));
+  function spy(){var top=120,cur=null;secs.forEach(function(s){if(s.getBoundingClientRect().top<=top)cur=s.id;});
+    links.forEach(function(a){a.classList.remove('on');});
+    if(cur&&map[cur]){map[cur].classList.add('on');var g=map[cur].closest('.grp');if(g)g.classList.remove('closed');}}
+  window.addEventListener('scroll',spy,{passive:true});window.addEventListener('resize',spy);spy();
+})();
+</script>

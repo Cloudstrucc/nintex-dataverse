@@ -22,11 +22,19 @@
     </div>
 
     <h2 class="ews-sec">{{ snippets['ESIGN/BRIEF/HOW'] | default: 'How it works' }}</h2>
-    <div class="ews-timeline">
-      <div class="ews-tl"><span class="n">1</span><div><b>Create an envelope</b><p>Start from an approved template or upload a document.</p></div></div>
-      <div class="ews-tl"><span class="n">2</span><div><b>Add signers</b><p>Set signing order, authentication and language per recipient.</p></div></div>
-      <div class="ews-tl"><span class="n">3</span><div><b>Send for signature</b><p>Recipients are notified and sign securely from any device.</p></div></div>
-      <div class="ews-tl"><span class="n">4</span><div><b>Track &amp; complete</b><p>Follow progress in real time and retrieve the audited documents.</p></div></div>
+    <div class="ews-journey">
+      <div class="ews-jstep" style="--c:var(--ews-burg)">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6Zm2 .4V18h16V6.4l-8 5-8-5Z"/></svg></span>
+        <div class="n">1</div><h4>Create an envelope</h4><p>Start from an approved Nintex AssureSign template or upload your document.</p></div>
+      <div class="ews-jstep" style="--c:var(--ews-teal)">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.7 0-8 1.3-8 4v3h9v-3c0-1 .4-1.9 1-2.6A13 13 0 0 0 8 13Zm8 0c-.6 0-1.3 0-2 .1 1.6 1 3 2.4 3 3.9v3h7v-3c0-2.7-5.3-4-8-4Z"/></svg></span>
+        <div class="n">2</div><h4>Add signers</h4><p>Set the signing order, authentication method and language for each recipient.</p></div>
+      <div class="ews-jstep" style="--c:var(--ews-mustard,#c9862d)">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M2 21 23 12 2 3l0 7 15 2-15 2Z"/></svg></span>
+        <div class="n">3</div><h4>Send for signature</h4><p>Recipients are notified by email and sign securely from any device.</p></div>
+      <div class="ews-jstep" style="--c:var(--ews-navy)">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4Z"/></svg></span>
+        <div class="n">4</div><h4>Track &amp; complete</h4><p>Follow progress in real time and retrieve the completed, audited documents.</p></div>
     </div>
 
     <div class="ews-briefband mrgn-tp-md">
