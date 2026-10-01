@@ -4,8 +4,9 @@
 {% include 'EC-Base-Styles' %}
 
 {% assign _p = request.path | downcase %}
+{% assign _u = request.url | downcase %}
 {% assign toolmode = false %}
-{% if _p contains 'edit-envelope' or _p contains 'edit-template' %}{% assign toolmode = true %}{% endif %}
+{% if _p contains 'edit-envelope' or _p contains 'edit-template' or _u contains 'edit-envelope' or _u contains 'edit-template' %}{% assign toolmode = true %}{% endif %}
 
 <div class="ews-brandrow{% if toolmode %} tool{% endif %}"><div class="ews-in">
   <div class="ews-b">
