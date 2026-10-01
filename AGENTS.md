@@ -243,6 +243,7 @@ The running portal reads **`powerpagecomponent`** (NOT the legacy `mspp_*`/`adx_
 ### Web API (`/_api/`) — table permissions + fields
 Portal Web API access needs two gates: `Webapi/<table>/enabled=true` AND a **table permission** linked to the user's web role. In this enhanced model table permissions store their web-role links inside `content.adx_entitypermission_webrole`.
 - **Wildcard `*` for `Webapi/<table>/fields` was removed by Microsoft on 2026-09-14.** `fields` MUST be an explicit comma-separated list of column logical names (a disallowed column returns `403 WebApiUnAuthorizedAccess`). Enabled tables: `cs_envelope`, `cs_signer`, `cs_template`, `cs_document`, `annotation` — see `power-pages/backups/` dumps for the exact column lists in use.
+- `annotation` needs its lookup columns whitelisted explicitly: **`_objectid_value`** (to filter notes by regarding record, e.g. the template-PDF lookup) and **`objectid_cs_template`** (the relationship-specific bind nav used when creating a note on a `cs_template`) — without them the template editor's PDF save fails `90040101 … _objectid_value / objectid_cs_template … not enabled for Web Api`. Also: a query with **no `$select`** 403s because the full row returns non-whitelisted columns — always `$select` explicit columns.
 - Known code typos (400s, not 403s): DocumentViewer selects `cs_signingorder` (should be `cs_signerorder`) and `cs_filename` on `cs_template` (should be `cs_templatepdf_name`).
 
 ### Theming
