@@ -37,7 +37,7 @@
           </label>
           <a class="ews-btn ews-primary" href="/envelopes/edit-envelope/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/HOME/CREATE'] | default: 'Create envelope' }}</a>
         </div></div>
-      <table class="ews-nt"><thead><tr><th></th><th>{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }}</th><th>{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }}</th><th>{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }}</th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
+      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }}</th><th>{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }}</th><th>{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }}</th><th>{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }}</th><th></th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
       <div class="ews-pager" id="ecPager"></div>
     </div>
 
@@ -75,7 +75,13 @@
     var rows=DATA.filter(function(r){return (filter==='all'||r.g===filter)&&(!q||(r.name+' '+r.subj+' '+r.stl).toLowerCase().indexOf(q)>=0);});
     var pages=Math.max(1,Math.ceil(rows.length/PAGE));if(page>pages)page=pages;var sl=rows.slice((page-1)*PAGE,page*PAGE);
     var tb=document.getElementById('ecRows');
-    tb.innerHTML=sl.length?sl.map(function(r){return '<tr><td><button class="ews-rowact" title="Open" onclick="location.href=\''+r.url+'\'">&#8942;</button></td><td class="s">'+esc(r.name)+'</td><td>'+esc(r.subj)+'</td><td><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td>'+esc(r.mod)+'</td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No envelopes match this filter.</td></tr>';
+    tb.innerHTML=sl.length?sl.map(function(r){
+      var menu='<a href="/envelopes/edit-envelope/?id='+esc(r.id)+'">'+(r.editable?'✎ Edit':'👁 View')+'</a>';
+      if(r.tplId)menu+='<a href="/envelopes/edit-envelope/?templateId='+esc(r.tplId)+'">✉ Use template</a>';
+      menu+='<div class="sep"></div>'+(r.cancellable?'<button type="button" class="danger ec-cancel" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⊘ Cancel envelope</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⊘ Cancel envelope</button>');
+      return '<tr><td class="s">'+esc(r.name)+'</td><td>'+esc(r.subj)+'</td><td><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td>'+esc(r.mod)+'</td>'+
+        '<td><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact ec-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
+    }).join(''):'<tr><td colspan="5" class="ews-empty">No envelopes match this filter.</td></tr>';
     var pg=document.getElementById('ecPager');pg.innerHTML='';
     function mk(txt,goto,o){var b=document.createElement('button');b.textContent=txt;if(o&&o.on)b.className='on';if(o&&o.dis){b.disabled=true;b.classList.add('dis');}b.onclick=function(){if(goto>=1&&goto<=pages&&goto!==page){page=goto;ecRender();}};return b;}
     function ell(){var e=document.createElement('span');e.className='ews-ell';e.textContent='…';return e;}
@@ -92,12 +98,28 @@
   function kpis(){var t=DATA.length,p=0,d=0,e=0;DATA.forEach(function(r){if(r.g==='proc')p++;else if(r.g==='done')d++;else if(r.g==='err')e++;});
     document.getElementById('k-all').textContent=t;document.getElementById('k-proc').textContent=p;document.getElementById('k-done').textContent=d;document.getElementById('k-err').textContent=e;
     var ec=document.getElementById('svc-env-cnt');if(ec)ec.textContent=t+' total · '+p+' in process';var dc=document.getElementById('svc-doc-cnt');if(dc)dc.textContent=d+' completed';}
-  fetch('/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode&$orderby=modifiedon desc&$top=200',{headers:{'Accept':'application/json'},credentials:'same-origin'})
-    .then(function(r){return r.ok?r.json():{value:[]};})
-    .then(function(j){DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];return {name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:v.cs_subject||'',stl:st[0],cls:st[1],g:st[2],mod:fmt(v.modifiedon),url:'/envelopes/edit-envelope/?id='+v.cs_envelopeid};});
-      document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';kpis();ecRender();})
-    .catch(function(){document.getElementById('ecRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load envelopes.</td></tr>';});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')ecToggleFs(true);});
+  function safeAjax(o){var d=$.Deferred();shell.getTokenDeferred().done(function(t){o.headers=$.extend({},o.headers,{'__RequestVerificationToken':t});$.ajax(o).done(d.resolve).fail(d.reject);}).fail(d.reject);return d.promise();}
+  window.ecCancel=function(id,name){if(!confirm('Cancel envelope "'+name+'"? This cannot be undone.'))return;safeAjax({type:'PATCH',url:'/_api/cs_envelopes('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2}),headers:{'If-Match':'*'}}).done(load).fail(function(x){alert('Cancel failed: HTTP '+(x&&x.status));});};
+  function load(){
+    fetch('/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid&$orderby=modifiedon desc&$top=200',{headers:{'Accept':'application/json'},credentials:'same-origin'})
+      .then(function(r){return r.ok?r.json():{value:[]};})
+      .then(function(j){DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];
+          var editable=(v.statecode===0&&st[2]==='other')||(v.statecode===0&&v.statuscode===717640005);
+          var cancellable=v.statecode===0&&st[2]!=='done'&&v.statuscode!==717640006;
+          return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:v.cs_subject||'',stl:st[0],cls:st[1],g:st[2],mod:fmt(v.modifiedon),tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable};});
+        document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';kpis();ecRender();})
+      .catch(function(){document.getElementById('ecRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load envelopes.</td></tr>';});
+  }
+  load();
+  /* row ellipsis menu (delegated) */
+  var ecRowsEl=document.getElementById('ecRows');
+  ecRowsEl.addEventListener('click',function(e){
+    var mb=e.target.closest('.ec-menu');
+    if(mb){e.stopPropagation();var wrap=mb.closest('.ews-rowwrap');var open=wrap.classList.contains('open');document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});if(!open){wrap.classList.add('open');var m=wrap.querySelector('.ews-rowmenu');m.classList.remove('flip-up');if(m.getBoundingClientRect().bottom>window.innerHeight-10)m.classList.add('flip-up');}return;}
+    var cb=e.target.closest('.ec-cancel');if(cb){e.preventDefault();ecCancel(cb.dataset.id,cb.dataset.name);return;}
+  });
+  document.addEventListener('click',function(){document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){ecToggleFs(true);document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});}});
 })();
 </script>
 
