@@ -37,7 +37,6 @@
     <li><a href="/envelopes/">{{ snippets['ESIGN/PILL/ENVELOPES'] | default: 'Envelopes' }}</a></li>
     <li><a href="/templates/">{{ snippets['ESIGN/PILL/TEMPLATES'] | default: 'Templates' }}</a></li>
     <li><a href="/documents/">{{ snippets['ESIGN/PILL/DOCUMENTS'] | default: 'Documents' }}</a></li>
-    <li><a href="/product-brief/">{{ snippets['ESIGN/NAV/BRIEF'] | default: 'Product brief' }}</a></li>
     <li><a href="/help/">{{ snippets['ESIGN/NAV/HELP'] | default: 'Help' }}</a></li>
   </ul>
   <div class="ews-navright">
@@ -59,9 +58,7 @@
   {% else %}
   <ul class="ews-menu">
     <li><a href="/" class="active">{{ snippets['ESIGN/NAV/HOME'] | default: 'Home' }}</a></li>
-    <li><a href="/product-brief/">{{ snippets['ESIGN/NAV/BRIEF'] | default: 'Product brief' }}</a></li>
     <li><a href="/help/">{{ snippets['ESIGN/NAV/HELP'] | default: 'Help' }}</a></li>
-    <li><a href="/get-access/">{{ snippets['ESIGN/NAV/GETACCESS'] | default: 'Get access' }}</a></li>
   </ul>
   {% endif %}
 </div></nav>
