@@ -34,8 +34,8 @@
           </label>
           <a class="ews-btn ews-primary" href="/templates/edit-template/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/TEMPLATES/CREATE_BTN'] | default: 'Create template' }}</a>
         </div></div>
-      <table class="ews-nt"><thead><tr><th class="ews-sortable" data-sort="name">{{ snippets['ESIGN/TEMPLATES/COL_NAME'] | default: 'Template' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="cat">{{ snippets['ESIGN/TEMPLATES/COL_CAT'] | default: 'Category' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="act">{{ snippets['ESIGN/TEMPLATES/COL_STATUS'] | default: 'Status' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="mod" data-date="1">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Modified' }} <span class="ews-sar"></span></th><th></th></tr></thead>
-        <tbody id="tplRows"><tr><td colspan="5" class="ews-empty">{{ snippets['ESIGN/TEMPLATES/LOADING'] | default: 'Loading…' }}</td></tr></tbody></table>
+      <table class="ews-nt"><thead><tr><th class="ews-sortable" data-sort="name">{{ snippets['ESIGN/TEMPLATES/COL_NAME'] | default: 'Template' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="cat">{{ snippets['ESIGN/TEMPLATES/COL_CAT'] | default: 'Category' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="act">{{ snippets['ESIGN/TEMPLATES/COL_STATUS'] | default: 'Status' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="crt" data-date="1">{{ snippets['ESIGN/TEMPLATES/COL_CREATED'] | default: 'Created' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="mod" data-date="1">{{ snippets['ESIGN/TEMPLATES/COL_MODIFIED'] | default: 'Modified' }} <span class="ews-sar"></span></th><th></th></tr></thead>
+        <tbody id="tplRows"><tr><td colspan="6" class="ews-empty">{{ snippets['ESIGN/TEMPLATES/LOADING'] | default: 'Loading…' }}</td></tr></tbody></table>
       <div class="ews-pager" id="tplPager"></div>
     </div>
   </div>
@@ -55,7 +55,7 @@
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso;}}
   function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json'}});}
-  function sortRows(arr){arr.sort(function(a,b){var av,bv;if(sortCol==='mod'){av=a.modRaw||'';bv=b.modRaw||'';}else if(sortCol==='act'){av=a.active?'1':'0';bv=b.active?'1':'0';}else{av=(a[sortCol]||'').toString().toLowerCase();bv=(b[sortCol]||'').toString().toLowerCase();}if(av<bv)return sortDir==='asc'?-1:1;if(av>bv)return sortDir==='asc'?1:-1;return 0;});return arr;}
+  function sortRows(arr){arr.sort(function(a,b){var av,bv;if(sortCol==='mod'){av=a.modRaw||'';bv=b.modRaw||'';}else if(sortCol==='crt'){av=a.crtRaw||'';bv=b.crtRaw||'';}else if(sortCol==='act'){av=a.active?'1':'0';bv=b.active?'1':'0';}else{av=(a[sortCol]||'').toString().toLowerCase();bv=(b[sortCol]||'').toString().toLowerCase();}if(av<bv)return sortDir==='asc'?-1:1;if(av>bv)return sortDir==='asc'?1:-1;return 0;});return arr;}
   function tplArrows(){document.querySelectorAll('#tplCard th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(!s)return;s.textContent=(th.dataset.sort===sortCol)?(sortDir==='asc'?' ▲':' ▼'):'';th.classList.toggle('on',th.dataset.sort===sortCol);});}
   window.tplSort=function(col,isDate){if(sortCol===col){sortDir=sortDir==='asc'?'desc':'asc';}else{sortCol=col;sortDir=isDate?'desc':'asc';}page=1;render();};
   function label(el){document.querySelectorAll('.ews-stat').forEach(function(s){s.classList.remove('active');});el.classList.add('active');filter=el.dataset.f;page=1;document.getElementById('tplFilterLabel').textContent='Showing: '+el.querySelector('.lab').textContent;render();}
@@ -71,9 +71,9 @@
       var menu='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a><a href="'+USE+'?templateId='+esc(r.id)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.hasDoc?'<button type="button" class="tpl-dl" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⬇ Download PDF</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⬇ Download PDF</button>');
       return '<tr><td class="s"><a href="#" class="tpl-open" data-id="'+esc(r.id)+'" style="color:var(--ews-navy);text-decoration:none">'+esc(r.name)+'</a>'+(r.desc?'<div class="ews-subprev">'+esc(r.desc)+'</div>':'')+'</td>'+
-        '<td>'+esc(r.cat||'—')+'</td><td><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td>'+esc(r.mod)+'</td>'+
+        '<td>'+esc(r.cat||'—')+'</td><td><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td>'+esc(r.created)+'</td><td>'+esc(r.mod)+'</td>'+
         '<td><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact tpl-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
-    }).join(''):'<tr><td colspan="5" class="ews-empty">'+((document.getElementById('tplQ').value)?'No templates match your search.':'No templates yet. <a href="'+EDITOR+'">Create your first template</a>.')+'</td></tr>';
+    }).join(''):'<tr><td colspan="6" class="ews-empty">'+((document.getElementById('tplQ').value)?'No templates match your search.':'No templates yet. <a href="'+EDITOR+'">Create your first template</a>.')+'</td></tr>';
     tplArrows();pager(rs.length,pages);kpis();
   }
   function pager(n,pages){var pg=document.getElementById('tplPager');pg.innerHTML='';
@@ -101,9 +101,9 @@
     a.href=url;a.download=((filename||'template').replace(/\.pdf$/i,''))+'.pdf';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},5000);}
   function load(){
     get(API+'?$orderby=modifiedon desc&$select='+COLS).done(function(d){
-      DATA=(d.value||[]).map(function(t){return {id:t.cs_templateid,name:t.cs_name||'Untitled',desc:t.cs_description||'',cat:t.cs_category||'',active:t.cs_isactive!==false,hasDoc:!!t.cs_templatejson,json:t.cs_templatejson,mod:fmt(t.modifiedon),modRaw:t.modifiedon||''};});
+      DATA=(d.value||[]).map(function(t){return {id:t.cs_templateid,name:t.cs_name||'Untitled',desc:t.cs_description||'',cat:t.cs_category||'',active:t.cs_isactive!==false,hasDoc:!!t.cs_templatejson,json:t.cs_templatejson,created:fmt(t.createdon),crtRaw:t.createdon||'',mod:fmt(t.modifiedon),modRaw:t.modifiedon||''};});
       render();
-    }).fail(function(x){document.getElementById('tplRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load templates (HTTP '+x.status+').</td></tr>';});}
+    }).fail(function(x){document.getElementById('tplRows').innerHTML='<tr><td colspan="6" class="ews-empty">Unable to load templates (HTTP '+x.status+').</td></tr>';});}
   $(function(){
     document.querySelectorAll('.ews-stat').forEach(function(b){b.addEventListener('click',function(){label(this);});});
     document.getElementById('tplCard').querySelector('thead').addEventListener('click',function(e){var th=e.target.closest('th.ews-sortable');if(th)tplSort(th.dataset.sort,th.dataset.date==='1');});
