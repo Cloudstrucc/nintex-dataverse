@@ -232,7 +232,8 @@ async function main() {
     await upsertWT("CS-footer", "CS-footer.html");
   }
   if (PHASE === "dashboard" || PHASE === "all") {
-    console.log("--- My Workspace dashboard + landing ---");
+    console.log("--- My Workspace dashboard + shared envelope list ---");
+    await upsertWT("CS-EnvelopeList", "CS-EnvelopeList.html"); // shared list component
     await upsertWT("CS-Home-WET", "CS-Home-WET.html");
   }
   if (PHASE === "pages" || PHASE === "all") {
@@ -247,6 +248,7 @@ async function main() {
   if (PHASE === "lists" || PHASE === "all") {
     // Facelifted service list pages (envelopes + templates) to match the workspace design.
     console.log("--- service list pages (envelopes, templates) ---");
+    await upsertWT("CS-EnvelopeList", "CS-EnvelopeList.html"); // shared list component (same as My Workspace)
     await upsertWT("CS-Envelopes", "CS-Envelopes.html");
     await upsertWT("Templates", "Templates.html");
   }

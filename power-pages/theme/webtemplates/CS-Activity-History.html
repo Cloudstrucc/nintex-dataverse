@@ -16,7 +16,7 @@
         <button class="ews-tab" data-t="doc" aria-selected="false" onclick="acFilter(this)">Documents</button>
         <button class="ews-tab" data-t="ntf" aria-selected="false" onclick="acFilter(this)">Notifications</button>
       </div>
-      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th>{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }}</th></tr></thead>
+      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }} <span class="ews-sar"></span></th></tr></thead>
         <tbody id="acRows"><tr><td colspan="4" class="ews-empty">Loading…</td></tr></tbody></table>
     </div>
   </div>
@@ -25,18 +25,22 @@
 <script>
 (function(){
   var CID="{{ user.contactid }}";
-  var DATA=[],flt='all';
+  var DATA=[],flt='all',sortDir='desc';
   var LABEL={env:'Envelope',tpl:'Template',doc:'Document',ntf:'Notification'};
+  function acArrows(){document.querySelectorAll('.ews-card th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(s)s.textContent=(sortDir==='asc'?' ▲':' ▼');th.classList.add('on');});}
+  window.acSort=function(){sortDir=sortDir==='desc'?'asc':'desc';render();};
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function get(url){return $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).then(function(j){return j.value||[];},function(){return [];});}
   function render(){
-    var rows=DATA.filter(function(r){return flt==='all'||r.t===flt;}).sort(function(a,b){return (b.when||'').localeCompare(a.when||'');});
+    var rows=DATA.filter(function(r){return flt==='all'||r.t===flt;}).sort(function(a,b){var av=a.when||'',bv=b.when||'';return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
     var tb=document.getElementById('acRows');
     tb.innerHTML=rows.length?rows.map(function(r){return '<tr><td><span class="ews-type '+r.t+'">'+esc(LABEL[r.t][0])+'</span> '+esc(LABEL[r.t])+'</td><td class="s">'+esc(r.title)+'</td><td>'+esc(r.detail||'')+'</td><td>'+esc(fmt(r.when))+'</td></tr>';}).join(''):'<tr><td colspan="4" class="ews-empty">No activity yet.</td></tr>';
+    acArrows();
   }
   window.acFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.t;render();};
   $(function(){
+    var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){if(e.target.closest('th.ews-sortable'))acSort();});
     $.when(
       get("/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode,modifiedon&$orderby=modifiedon desc&$top=50"),
       get("/_api/cs_templates?$select=cs_templateid,cs_name,modifiedon&$orderby=modifiedon desc&$top=50"),

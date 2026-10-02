@@ -1,0 +1,100 @@
+{% comment %}
+  Shared "My Envelopes" list component — included by CS-Home-WET (My Workspace)
+  and CS-Envelopes (/envelopes). KPI filter tiles + sortable ews-nt table
+  (default sort: modifiedon desc) + full-screen + page-size + windowed pager +
+  ellipsis row menu. Keep a single source of truth for the envelope list.
+{% endcomment %}
+<div class="ews-stats">
+  <button class="ews-stat active" data-f="all" onclick="ecSetF(this)"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
+  <button class="ews-stat" data-f="proc" onclick="ecSetF(this)"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
+  <button class="ews-stat" data-f="done" onclick="ecSetF(this)"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/KPI/DONE'] | default: 'Completed' }}</div><div class="num" id="k-done">0</div></button>
+  <button class="ews-stat" data-f="err" onclick="ecSetF(this)"><div class="lab" style="--dot:#b3122b">{{ snippets['ESIGN/KPI/ERR'] | default: 'Action required' }}</div><div class="num" id="k-err">0</div></button>
+</div>
+
+<div class="ews-card" id="ecEnvCard">
+  <div class="ews-lsthd"><div><h4>{{ snippets['ESIGN/HOME/ENVTITLE'] | default: 'My Envelopes' }}</h4><div class="ews-subprev" id="ecFilterLabel"></div></div>
+    <button class="ews-fsbtn" title="Full screen" onclick="ecToggleFs()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
+  <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/HOME/ACTIVEVIEW'] | default: 'Active envelopes' }}</span>
+    <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}" oninput="ecRender()"></div>
+    <div class="ews-toolright">
+      <label class="ews-pagesize">{{ snippets['ESIGN/LIST/SHOW'] | default: 'Show' }}
+        <select id="ecPageSize" onchange="ecSize(this.value)"><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option></select>
+      </label>
+      <a class="ews-btn ews-primary" href="/envelopes/edit-envelope/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/HOME/CREATE'] | default: 'Create envelope' }}</a>
+    </div></div>
+  <table class="ews-nt"><thead><tr>
+    <th class="ews-sortable" data-sort="name">{{ snippets['ESIGN/COL/ENV'] | default: 'Envelope' }} <span class="ews-sar"></span></th>
+    <th class="ews-sortable" data-sort="subj">{{ snippets['ESIGN/COL/SUBJECT'] | default: 'Subject' }} <span class="ews-sar"></span></th>
+    <th class="ews-sortable" data-sort="stl">{{ snippets['ESIGN/COL/STATUS'] | default: 'Status' }} <span class="ews-sar"></span></th>
+    <th class="ews-sortable" data-sort="mod" data-date="1">{{ snippets['ESIGN/COL/MODIFIED'] | default: 'Modified' }} <span class="ews-sar"></span></th>
+    <th></th></tr></thead><tbody id="ecRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
+  <div class="ews-pager" id="ecPager"></div>
+</div>
+
+<script>
+(function(){
+  var STAT={1:['Draft','draft','other'],717640001:['Preparing','proc','proc'],717640002:['Ready to Send','proc','proc'],717640003:['In Process','proc','proc'],717640004:['Completed','done','done'],717640005:['Error','err','err'],717640006:['Cancelled','off','other'],717640007:['Cancel Error','err','err']};
+  var API_ENV='/_api/cs_envelopes',EDITOR='/envelopes/edit-envelope/';
+  var DATA=[],filter='all',page=1,PAGE=5,USERPAGE=5,sortCol='mod',sortDir='desc';
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
+  function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json'}});}
+  function safeAjax(o){var d=$.Deferred();shell.getTokenDeferred().done(function(t){o.headers=$.extend({},o.headers,{'__RequestVerificationToken':t});$.ajax(o).done(d.resolve).fail(d.reject);}).fail(d.reject);return d.promise();}
+  window.ecSetF=function(el){document.querySelectorAll('.ews-stat').forEach(function(s){s.classList.remove('active');});el.classList.add('active');filter=el.dataset.f;page=1;document.getElementById('ecFilterLabel').textContent='Showing: '+el.querySelector('.lab').textContent;ecRender();};
+  window.ecSize=function(v){USERPAGE=+v;PAGE=+v;page=1;ecRender();};
+  window.ecToggleFs=function(force){var c=document.getElementById('ecEnvCard');var on=force===true?false:!c.classList.contains('fs');c.classList.toggle('fs',on);document.body.classList.toggle('ews-fson',on);PAGE=on?10:USERPAGE;var sel=document.getElementById('ecPageSize');if(sel)sel.value=String(PAGE);page=1;ecRender();};
+  window.ecSort=function(col,isDate){if(sortCol===col){sortDir=sortDir==='asc'?'desc':'asc';}else{sortCol=col;sortDir=isDate?'desc':'asc';}page=1;ecRender();};
+  function sortRows(rows){rows.sort(function(a,b){var av,bv;if(sortCol==='mod'){av=a.modRaw||'';bv=b.modRaw||'';}else{av=(a[sortCol]||'').toString().toLowerCase();bv=(b[sortCol]||'').toString().toLowerCase();}if(av<bv)return sortDir==='asc'?-1:1;if(av>bv)return sortDir==='asc'?1:-1;return 0;});return rows;}
+  function arrows(){document.querySelectorAll('#ecEnvCard th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(!s)return;s.textContent=(th.dataset.sort===sortCol)?(sortDir==='asc'?' ▲':' ▼'):'';th.classList.toggle('on',th.dataset.sort===sortCol);});}
+  window.ecRender=function(){
+    var q=(document.getElementById('ecQ').value||'').toLowerCase();
+    var rows=DATA.filter(function(r){return (filter==='all'||r.g===filter)&&(!q||(r.name+' '+r.subj+' '+r.stl).toLowerCase().indexOf(q)>=0);});
+    sortRows(rows);
+    var pages=Math.max(1,Math.ceil(rows.length/PAGE));if(page>pages)page=pages;var sl=rows.slice((page-1)*PAGE,page*PAGE);
+    var tb=document.getElementById('ecRows');
+    tb.innerHTML=sl.length?sl.map(function(r){
+      var menu='<a href="'+EDITOR+'?id='+esc(r.id)+'">'+(r.editable?'✎ Edit':'👁 View')+'</a>';
+      if(r.tplId)menu+='<a href="'+EDITOR+'?templateId='+esc(r.tplId)+'">✉ Use template</a>';
+      menu+='<div class="sep"></div>'+(r.cancellable?'<button type="button" class="danger ec-cancel" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⊘ Cancel envelope</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⊘ Cancel envelope</button>');
+      return '<tr><td class="s">'+esc(r.name)+'</td><td>'+esc(r.subj)+'</td><td><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td>'+esc(r.mod)+'</td>'+
+        '<td><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact ec-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
+    }).join(''):'<tr><td colspan="5" class="ews-empty">'+((document.getElementById('ecQ').value)?'No envelopes match this filter.':'No envelopes yet. <a href="'+EDITOR+'">Create your first envelope</a>.')+'</td></tr>';
+    arrows();
+    var pg=document.getElementById('ecPager');pg.innerHTML='';
+    function mk(txt,goto,o){var b=document.createElement('button');b.textContent=txt;if(o&&o.on)b.className='on';if(o&&o.dis){b.disabled=true;b.classList.add('dis');}b.onclick=function(){if(goto>=1&&goto<=pages&&goto!==page){page=goto;ecRender();}};return b;}
+    function ell(){var e=document.createElement('span');e.className='ews-ell';e.textContent='…';return e;}
+    if(pages>1){pg.appendChild(mk('‹',page-1,{dis:page===1}));var start=Math.max(1,page-2),end=Math.min(pages,start+4);start=Math.max(1,end-4);
+      if(start>1){pg.appendChild(mk('1',1));if(start>2)pg.appendChild(ell());}
+      for(var i=start;i<=end;i++)pg.appendChild(mk(String(i),i,{on:i===page}));
+      if(end<pages){if(end<pages-1)pg.appendChild(ell());pg.appendChild(mk(String(pages),pages));}
+      pg.appendChild(mk('›',page+1,{dis:page===pages}));}
+    var lbl=document.createElement('span');lbl.className='ews-pginfo';lbl.textContent='Page '+page+' of '+pages+' · '+rows.length+' result'+(rows.length===1?'':'s');pg.appendChild(lbl);
+    kpis();
+  };
+  function kpis(){var t=DATA.length,p=0,d=0,e=0;DATA.forEach(function(r){if(r.g==='proc')p++;else if(r.g==='done')d++;else if(r.g==='err')e++;});
+    document.getElementById('k-all').textContent=t;document.getElementById('k-proc').textContent=p;document.getElementById('k-done').textContent=d;document.getElementById('k-err').textContent=e;
+    var ec=document.getElementById('svc-env-cnt');if(ec)ec.textContent=t+' total · '+p+' in process';var dc=document.getElementById('svc-doc-cnt');if(dc)dc.textContent=d+' completed';}
+  window.ecCancel=function(id,name){if(!confirm('Cancel envelope "'+name+'"? This cannot be undone.'))return;safeAjax({type:'PATCH',url:API_ENV+'('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2}),headers:{'If-Match':'*'}}).done(load).fail(function(x){alert('Cancel failed: HTTP '+(x&&x.status));});};
+  function load(){
+    get(API_ENV+'?$orderby=modifiedon desc&$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,modifiedon').done(function(j){
+      DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];
+        var editable=(v.statecode===0&&st[2]==='other')||(v.statecode===0&&v.statuscode===717640005);
+        var cancellable=v.statecode===0&&st[2]!=='done'&&v.statuscode!==717640006;
+        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:v.cs_subject||'',stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable};});
+      document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';ecRender();
+    }).fail(function(x){document.getElementById('ecRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load envelopes'+(x&&x.status?(' (HTTP '+x.status+')'):'')+'.</td></tr>';});
+  }
+  $(function(){
+    var card=document.getElementById('ecEnvCard');
+    card.querySelector('thead').addEventListener('click',function(e){var th=e.target.closest('th.ews-sortable');if(th)ecSort(th.dataset.sort, th.dataset.date==='1');});
+    document.getElementById('ecRows').addEventListener('click',function(e){
+      var mb=e.target.closest('.ec-menu');
+      if(mb){e.stopPropagation();var wrap=mb.closest('.ews-rowwrap');var open=wrap.classList.contains('open');document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});if(!open){wrap.classList.add('open');var m=wrap.querySelector('.ews-rowmenu');m.classList.remove('flip-up');if(m.getBoundingClientRect().bottom>window.innerHeight-10)m.classList.add('flip-up');}return;}
+      var cb=e.target.closest('.ec-cancel');if(cb){e.preventDefault();ecCancel(cb.dataset.id,cb.dataset.name);return;}
+    });
+    document.addEventListener('click',function(){document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){ecToggleFs(true);document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});}});
+    load();
+  });
+})();
+</script>

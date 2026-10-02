@@ -16,7 +16,7 @@
         <button class="ews-tab" data-f="act" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/ACTION'] | default: 'Action required' }} <span class="ews-tabn" id="nt-act">0</span></button>
         <button class="ews-tab" data-f="fyi" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/FYI'] | default: 'For information' }} <span class="ews-tabn" id="nt-fyi">0</span></button>
       </div>
-      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }}</th><th></th></tr></thead>
+      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }} <span class="ews-sar"></span></th><th></th></tr></thead>
         <tbody id="ntRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
     </div>
   </div>
@@ -25,7 +25,9 @@
 <script>
 (function(){
   var CID="{{ user.contactid }}";
-  var DATA=[],flt='all';
+  var DATA=[],flt='all',sortDir='desc';
+  function ntArrows(){document.querySelectorAll('.ews-card th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(s)s.textContent=(sortDir==='asc'?' ▲':' ▼');th.classList.add('on');});}
+  window.ntSort=function(){sortDir=sortDir==='desc'?'asc':'desc';render();};
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function svcCls(s){s=(s||'').toLowerCase();return s.indexOf('templ')>=0?'tpl':s.indexOf('doc')>=0?'doc':s.indexOf('sign')>=0?'sig':'env';}
@@ -35,6 +37,7 @@
   window.ntFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.f;render();};
   function render(){
     var rows=DATA.filter(function(r){return flt==='all'||(flt==='unread'&&!r.read)||(flt==='act'&&r.pri===717640000)||(flt==='fyi'&&r.pri!==717640000);});
+    rows.sort(function(a,b){var av=a.when||'',bv=b.when||'';return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
     var tb=document.getElementById('ntRows');
     tb.innerHTML=rows.length?rows.map(function(r){return '<tr class="'+(r.read?'':'unread')+'">'+
       '<td class="s"><span class="ews-type '+svcCls(r.svc)+'">'+esc((r.svc||'?').slice(0,1))+'</span> '+esc(r.subj)+'<div class="ews-subprev">'+esc(r.body||'')+'</div></td>'+
@@ -42,12 +45,13 @@
       '<td><span class="ews-pill '+(r.pri===717640000?'err':'draft')+'">'+(r.pri===717640000?'Action required':'For information')+'</span></td>'+
       '<td>'+esc(fmt(r.when))+'</td>'+
       '<td style="white-space:nowrap;text-align:right">'+(r.read?'':'<button class="ews-btn" style="padding:5px 10px" onclick="ntRead(\''+r.id+'\')">View</button> ')+'<button class="ews-btn" style="padding:5px 10px" onclick="ntArchive(\''+r.id+'\')">Archive</button></td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No messages.</td></tr>';
-    counts();
+    ntArrows();counts();
   }
   window.ntRead=function(id){safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+id+')',contentType:'application/json',data:JSON.stringify({cs_readon:new Date().toISOString()})}).done(function(){var r=DATA.find(function(x){return x.id===id;});if(r)r.read=true;render();});};
   window.ntArchive=function(id){safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2})}).done(function(){DATA=DATA.filter(function(x){return x.id!==id;});render();});};
   window.ntMarkAll=function(){var un=DATA.filter(function(r){return !r.read;});var i=0;(function next(){if(i>=un.length){return;}var r=un[i++];safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+r.id+')',contentType:'application/json',data:JSON.stringify({cs_readon:new Date().toISOString()})}).always(function(){r.read=true;render();next();});})();};
   $(function(){
+    var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){if(e.target.closest('th.ews-sortable'))ntSort();});
     var url='/_api/cs_portalmessages?$select=cs_portalmessageid,cs_subject,cs_content,cs_service,cs_prioritytype,cs_readon,createdon&$filter=statecode eq 0'+(CID?" and _cs_recipientcontactid_value eq "+CID:"")+'&$orderby=createdon desc';
     $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).done(function(j){
       DATA=(j.value||[]).map(function(v){return {id:v.cs_portalmessageid,subj:v.cs_subject,body:v.cs_content,svc:v.cs_service,pri:v.cs_prioritytype,read:!!v.cs_readon,when:v.createdon};});
