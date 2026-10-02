@@ -1036,7 +1036,7 @@ input.te-title-input[type="text"],
     pdfScript.src  = '/js/pdf.min.js';
     pdfScript.onload = function () {
       if (typeof pdfjsLib !== 'undefined') {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
         canvas = document.getElementById('pdfCanvas');
         ctx    = canvas ? canvas.getContext('2d') : null;
         state.pdfJsReady = true;
