@@ -53,8 +53,9 @@
   var ID=new URLSearchParams(location.search).get('id')||'';
   var STAT={1:['Draft','draft'],717640001:['Preparing','proc'],717640002:['Ready to Send','proc'],717640003:['In Process','proc'],717640004:['Completed','done'],717640005:['Error','err'],717640006:['Cancelled','off'],717640007:['Cancel Error','err']};
   var SST={1:['Pending','pend'],717640001:['Signed','done'],717640002:['Declined','err'],717640003:['Delegated','proc'],2:['Inactive','off']};
-  var SIGCLS={done:'ews-sig-done',pend:'ews-sig-pend',err:'ews-sig-err'};
   var PILLCLS={done:'done',pend:'pend',err:'err'};
+  var PALETTE=['#6a0032','#036064','#1e384b','#8b9538','#c9862d','#7a3e9d','#0c6b4f','#b3122b'];
+  function sigColor(i){return PALETTE[(i||0)%PALETTE.length];}
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fdt(iso){if(!iso)return '—';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json',Prefer:'odata.include-annotations="*"'}});}
@@ -130,8 +131,8 @@
 
   function legend(signers,envStage){
     var el=document.getElementById('edLegend');if(!signers.length){el.style.display='none';return;}
-    el.style.display='';el.innerHTML=signers.map(function(s,i){var ss=sigStat(s,envStage);var c={done:'var(--ews-ok)',pend:'var(--ews-warn)',err:'var(--ews-danger)'}[ss.key];
-      return '<span class="it"><span class="sw" style="border-color:'+c+';background:color-mix(in srgb,'+c+' 16%,transparent)"></span>'+esc(s.cs_fullname||s._role||('Signer '+(i+1)))+' · '+esc(ss.label)+'</span>';}).join('');
+    el.style.display='';el.innerHTML=signers.map(function(s,i){var ss=sigStat(s,envStage);
+      return '<span class="it"><span class="sw" style="background:'+sigColor(i)+'"></span>'+esc(s.cs_fullname||s._role||('Signer '+(i+1)))+' · '+esc(ss.label)+(s.cs_email?' <small>'+esc(s.cs_email)+'</small>':'')+'</span>';}).join('');
   }
   function iframe(b64){document.getElementById('edDoc').innerHTML='<iframe title="Document preview" src="data:application/pdf;base64,'+b64+'#toolbar=0&navpanes=0"></iframe>';}
   function renderDoc(b64,tpl,signers,envStage){
@@ -149,10 +150,16 @@
         var pd=document.createElement('div');pd.className='ews-pdfpage';pd.style.width=vp.width+'px';pd.style.height=vp.height+'px';
         var cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;pd.appendChild(cv);wrap.appendChild(pd);
         fields.filter(function(f){return (f.page||1)===p;}).forEach(function(f){
-          var s=signers[f.signerIndex||0]||{},ss=sigStat(s,envStage),box=document.createElement('div');
-          box.className='ews-sigbox '+SIGCLS[ss.key];
-          box.style.left=((f.x||0)*sc)+'px';box.style.top=((f.y||0)*sc)+'px';box.style.width=((f.w||120)*sc)+'px';box.style.height=((f.h||40)*sc)+'px';
-          box.innerHTML='<span class="tag">'+esc(s.cs_fullname||s._role||('Signer '+((f.signerIndex||0)+1)))+' · '+esc(ss.label)+'</span>'+(f.type==='signature'?'✍':(f.type==='initials'?'A':''));
+          var idx=f.signerIndex||0,s=signers[idx]||{},ss=sigStat(s,envStage),color=sigColor(idx),box=document.createElement('div');
+          box.className='ews-sigbox';box.style.borderColor=color;
+          var W=Math.max((f.w||120)*sc,200),H=Math.max((f.h||40)*sc,80);
+          var L=(f.x||0)*sc,T=(f.y||0)*sc;
+          if(L+W>vp.width-4)L=Math.max(2,vp.width-4-W);if(T+H>vp.height-4)T=Math.max(2,vp.height-4-H);
+          box.style.left=L+'px';box.style.top=T+'px';box.style.width=W+'px';box.style.height=H+'px';
+          var nm=esc(s.cs_fullname||s._role||('Signer '+(idx+1))),em=esc(s.cs_email||'');
+          var dt=s.cs_signeddate?('✓ Signed · '+fdt(s.cs_signeddate)):(ss.key==='done'?'✓ Signed':(ss.key==='err'?('✗ '+ss.label):'⏳ Awaiting signature'));
+          var dtcls=ss.key==='done'?'ok':(ss.key==='err'?'err':'pend');
+          box.innerHTML='<span class="tag" style="background:'+color+'">'+(f.type==='signature'?'✍':(f.type==='initials'?'A':'•'))+' '+nm+'</span><div class="nm">'+nm+'</div>'+(em?'<div class="em">'+em+'</div>':'')+'<div class="dt '+dtcls+'">'+dt+'</div>';
           pd.appendChild(box);
         });
         return page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
