@@ -243,4 +243,36 @@ body.ews-fson .ews-fsback{display:block}
 .ews-refreshing{opacity:.6;pointer-events:none}
 @media(max-width:900px){.ews-grid{grid-template-columns:repeat(2,1fr)}.ews-stats{grid-template-columns:repeat(2,1fr)}.ews-two{grid-template-columns:1fr}.ews-two.ews-two-wide{grid-template-columns:1fr}}
 @media(max-width:560px){.ews-grid,.ews-stats{grid-template-columns:1fr}.ews-menu{flex-wrap:wrap}}
+/* ===== mobile responsiveness (tables + banners + controls) ===== */
+.ews-tscroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:768px){
+  /* header nav wraps instead of pushing the bell/avatar off-screen */
+  .ews-nav .ews-in{flex-wrap:wrap;gap:4px 8px}
+  .ews-menu{flex-wrap:wrap}
+  .ews-menu a{padding:12px 11px;font-size:14px}
+  .ews-navright{margin-left:auto}
+  /* tables scroll inside their card instead of pushing the whole page sideways */
+  .ews-tscroll table.ews-nt{min-width:640px}
+  /* service banner: give the title the full width, let actions wrap underneath */
+  .ews-svcbanner{flex-wrap:wrap;gap:12px 14px;padding:16px 18px}
+  .ews-svcbanner h1{font-size:20px;overflow-wrap:anywhere;word-break:normal}
+  .ews-svcbanner p{font-size:13px}
+  .ews-svcbanner>div[style*="margin-left:auto"]{margin-left:0 !important;width:100%;justify-content:flex-start;flex-wrap:wrap}
+  .ews-svcbanner .cta{margin-left:0;width:100%}
+  /* list header + tools stack cleanly */
+  .ews-lsthd{flex-wrap:wrap;gap:10px}
+  .ews-tools{gap:10px}
+  .ews-tools .ews-search,.ews-search{margin-left:0;flex:1 1 100%}
+  .ews-tools .ews-toolcta{margin-left:0}
+  .ews-toolright{margin-left:0;width:100%;justify-content:space-between}
+}
+@media(max-width:560px){
+  .ews-svcbanner .av{display:none}
+  .ews-svcbanner>div[style*="margin-left:auto"] .ews-btn{flex:1 1 auto}
+  /* progress stepper scrolls if cramped rather than squashing labels */
+  .ews-steps{overflow-x:auto;padding-bottom:6px}
+  .ews-step{min-width:84px}
+  .ews-step .lab{font-size:11px}.ews-step .dt{font-size:10px}
+  .ews-docbar{flex-wrap:wrap;gap:6px}
+}
 </style>

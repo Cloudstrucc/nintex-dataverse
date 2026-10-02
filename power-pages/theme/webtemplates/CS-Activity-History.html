@@ -16,8 +16,8 @@
         <button class="ews-tab" data-t="doc" aria-selected="false" onclick="acFilter(this)">Documents</button>
         <button class="ews-tab" data-t="ntf" aria-selected="false" onclick="acFilter(this)">Notifications</button>
       </div>
-      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }} <span class="ews-sar"></span></th></tr></thead>
-        <tbody id="acRows"><tr><td colspan="4" class="ews-empty">Loading…</td></tr></tbody></table>
+      <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }} <span class="ews-sar"></span></th></tr></thead>
+        <tbody id="acRows"><tr><td colspan="4" class="ews-empty">Loading…</td></tr></tbody></table></div>
     </div>
   </div>
 </main>

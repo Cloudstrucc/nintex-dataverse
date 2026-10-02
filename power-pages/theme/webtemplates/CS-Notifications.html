@@ -16,8 +16,8 @@
         <button class="ews-tab" data-f="act" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/ACTION'] | default: 'Action required' }} <span class="ews-tabn" id="nt-act">0</span></button>
         <button class="ews-tab" data-f="fyi" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/FYI'] | default: 'For information' }} <span class="ews-tabn" id="nt-fyi">0</span></button>
       </div>
-      <table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }} <span class="ews-sar"></span></th><th></th></tr></thead>
-        <tbody id="ntRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table>
+      <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }} <span class="ews-sar"></span></th><th></th></tr></thead>
+        <tbody id="ntRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table></div>
     </div>
   </div>
 </main>
