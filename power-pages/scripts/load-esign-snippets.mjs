@@ -53,10 +53,12 @@ const FR = {
 "ESIGN/SVC/TPL/C":"Modèles réutilisables","ESIGN/SVC/TPL/L1":"Parcourir les modèles","ESIGN/SVC/TPL/L2":"Créer un modèle","ESIGN/SVC/TPL/T":"Modèles",
 "ESIGN/TEMPLATES/ACTIVEVIEW":"Tous les modèles","ESIGN/TEMPLATES/COL_CAT":"Catégorie","ESIGN/TEMPLATES/COL_CREATED":"Créé le","ESIGN/TEMPLATES/COL_MODIFIED":"Modifié le","ESIGN/TEMPLATES/COL_NAME":"Modèle","ESIGN/TEMPLATES/COL_STATUS":"Statut","ESIGN/TEMPLATES/CREATE_BTN":"Créer un modèle",
 "ESIGN/TEMPLATES/DESC":"Parcourez les modèles de signature approuvés. Utilisez-en un pour envoyer une enveloppe ou téléchargez le document source.","ESIGN/TEMPLATES/LOADING":"Chargement…","ESIGN/TEMPLATES/SEARCH_PH":"Rechercher des modèles...","ESIGN/TEMPLATES/TABLE_HEADING":"Modèles de signature","ESIGN/TEMPLATES/TITLE":"Modèles",
-"ESIGN/TKPI/ACTIVE":"Actifs","ESIGN/TKPI/DOC":"Avec document","ESIGN/TKPI/INACTIVE":"Inactifs","ESIGN/TKPI/TOTAL":"Total des modèles"
+"ESIGN/TKPI/ACTIVE":"Actifs","ESIGN/TKPI/DOC":"Avec document","ESIGN/TKPI/INACTIVE":"Inactifs","ESIGN/TKPI/TOTAL":"Total des modèles",
+"ESIGN/DETAILS/BACK":"Retour aux enveloppes","ESIGN/DETAILS/ENVELOPE":"Enveloppe","ESIGN/DETAILS/LOADING":"Chargement…","ESIGN/DETAILS/REFRESH":"Actualiser le statut","ESIGN/DETAILS/REFRESH_TITLE":"Lance la synchronisation du statut pour cette enveloppe"
 };
 // EN overrides where the template default differs in intent / to normalize entities
-const EN_OVERRIDE={"ESIGN/ACT/TITLE":"Activity & history","ESIGN/MENU/ACTIVITY":"Activity & history","ESIGN/SVC/HELP/T":"Help & support","ESIGN/BRIEF/SEC/T":"Security & compliance","ESIGN/BRIEF/WHAT/T":"What it is"};
+const EN_OVERRIDE={"ESIGN/ACT/TITLE":"Activity & history","ESIGN/MENU/ACTIVITY":"Activity & history","ESIGN/SVC/HELP/T":"Help & support","ESIGN/BRIEF/SEC/T":"Security & compliance","ESIGN/BRIEF/WHAT/T":"What it is",
+"ESIGN/DETAILS/BACK":"Back to envelopes","ESIGN/DETAILS/ENVELOPE":"Envelope","ESIGN/DETAILS/LOADING":"Loading…","ESIGN/DETAILS/REFRESH":"Refresh status","ESIGN/DETAILS/REFRESH_TITLE":"Runs the status sync for this envelope"};
 function enFor(k){let v=EN_OVERRIDE[k]!==undefined?EN_OVERRIDE[k]:EN[k];if(v==null)return null;return v.replace(/&amp;/g,"&");}
 
 async function main(){

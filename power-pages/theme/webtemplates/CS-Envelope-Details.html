@@ -10,14 +10,16 @@
 <main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
   <div class="container mrgn-tp-md mrgn-bttm-lg" id="edRoot">
 
-    <div class="ews-svcbanner mrgn-bttm-md">
-      <a class="ews-btn" href="/envelopes/" title="Back to envelopes" style="padding:9px 12px">&larr;</a>
-      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6Zm2 .4V18h16V6.4l-8 5-8-5Z"/></svg></span>
-      <div><h1 id="edName">Envelope</h1><p id="edSub">Loading…</p></div>
-      <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+    <div class="ews-hero ews-hero-detail mrgn-bttm-md">
+      <a class="ews-hero-back" href="/envelopes/" title="{{ snippets['ESIGN/DETAILS/BACK'] | default: 'Back to envelopes' }}" aria-label="{{ snippets['ESIGN/DETAILS/BACK'] | default: 'Back to envelopes' }}">&larr;</a>
+      <div class="ews-herotext">
+        <h1 id="edName">{{ snippets['ESIGN/DETAILS/ENVELOPE'] | default: 'Envelope' }}</h1>
+        <p id="edSub">{{ snippets['ESIGN/DETAILS/LOADING'] | default: 'Loading…' }}</p>
+      </div>
+      <div class="ews-hero-actions">
         <span class="ews-pill draft" id="edStatus">—</span>
-        <button class="ews-btn ews-primary" id="edRefresh" title="Runs the status sync for this envelope">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right:2px"><path d="M12 6V3L8 7l4 4V8a4 4 0 1 1-4 4H6a6 6 0 1 0 6-6Z"/></svg><span id="edRefreshTxt">Refresh status</span></button>
+        <button class="ews-btn ews-primary" id="edRefresh" title="{{ snippets['ESIGN/DETAILS/REFRESH_TITLE'] | default: 'Runs the status sync for this envelope' }}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right:4px"><path d="M12 6V3L8 7l4 4V8a4 4 0 1 1-4 4H6a6 6 0 1 0 6-6Z"/></svg><span id="edRefreshTxt">{{ snippets['ESIGN/DETAILS/REFRESH'] | default: 'Refresh status' }}</span></button>
       </div>
     </div>
 
