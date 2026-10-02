@@ -1,10 +1,12 @@
 {% comment %}
   Envelope Details (/envelopes/details/?id=) — read-only view of a sent envelope:
-  progress stepper, signer table, activity, read-only document (template PDF).
-  Refresh sets cs_statuscheckrequestedon via the Web API, which fires the
+  progress stepper, signer table, activity, and a document preview that overlays
+  each signature field coloured by that signer's status (Option B, pdf.js).
+  Refresh sets cs_statuscheckrequestedon via the Web API → fires the
   "ESign - Check Envelope Status" flow for THIS envelope only, then re-reads.
 {% endcomment %}
 {% if user %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
   <div class="container mrgn-tp-md mrgn-bttm-lg" id="edRoot">
 
@@ -32,8 +34,9 @@
 
     <div class="ews-two ews-two-wide">
       <div class="ews-card">
-        <div class="ews-docbar">{{ snippets['ESIGN/DETAILS/DOC'] | default: 'Document' }} <span class="ro">🔒 Read-only</span></div>
-        <div class="ews-docembed" id="edDoc"><div class="ews-empty" style="color:#cfd6db;padding:40px">Loading document…</div></div>
+        <div class="ews-docbar">{{ snippets['ESIGN/DETAILS/DOC'] | default: 'Document' }} <span class="ro" id="edDocLabel">🔒 Read-only</span></div>
+        <div class="ews-siglegend" id="edLegend" style="display:none"></div>
+        <div class="ews-pdfwrap" id="edDoc"><div class="ews-empty" style="color:#cfd6db;padding:40px">Loading document…</div></div>
       </div>
       <div class="ews-card" style="padding:18px 20px">
         <h4 class="ews-sec" style="margin:0 0 6px">Details</h4>
@@ -50,6 +53,8 @@
   var ID=new URLSearchParams(location.search).get('id')||'';
   var STAT={1:['Draft','draft'],717640001:['Preparing','proc'],717640002:['Ready to Send','proc'],717640003:['In Process','proc'],717640004:['Completed','done'],717640005:['Error','err'],717640006:['Cancelled','off'],717640007:['Cancel Error','err']};
   var SST={1:['Pending','pend'],717640001:['Signed','done'],717640002:['Declined','err'],717640003:['Delegated','proc'],2:['Inactive','off']};
+  var SIGCLS={done:'ews-sig-done',pend:'ews-sig-pend',err:'ews-sig-err'};
+  var PILLCLS={done:'done',pend:'pend',err:'err'};
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fdt(iso){if(!iso)return '—';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json',Prefer:'odata.include-annotations="*"'}});}
@@ -67,98 +72,134 @@
     return 'draft';
   }
   var STAGE_PILL={completed:'done',cancelled:'off',error:'err',inprocess:'proc',ready:'proc',preparing:'proc',draft:'draft'};
+  // resolve a signer's display status (key: done/pend/err), given envelope stage for recipient fallback
+  function sigStat(s,envStage){
+    var raw=s.cs_signerstatus;
+    if(raw===717640001)return {key:'done',label:'Signed'};
+    if(raw===717640002)return {key:'err',label:'Declined'};
+    if(raw===717640003)return {key:'pend',label:'Delegated'};
+    if(raw==null||raw===undefined){ // recipient fallback (no signer record)
+      if(envStage==='completed')return {key:'done',label:'Signed'};
+      if(envStage==='cancelled')return {key:'err',label:'Cancelled'};
+      return {key:'pend',label:'Pending'};
+    }
+    var m=SST[raw]||['Pending','pend'];return {key:m[1]==='done'?'done':(m[1]==='err'?'err':'pend'),label:m[0]};
+  }
+
   function steps(env){
     var sg=stage(env);
     var def=[['Prepared',env.createdon],['Sent',env.cs_sentdate],['Signing',null],['Completed',env.cs_completeddate]];
     function cls(i){
       if(sg==='completed')return 'done';
-      if(sg==='cancelled')return i<2?'done':(i===2?'err':'');
-      if(sg==='error')return i<2?'done':(i===2?'err':'');
+      if(sg==='cancelled'||sg==='error')return i<2?'done':(i===2?'err':'');
       if(sg==='inprocess')return i<2?'done':(i===2?'cur':'');
       if(sg==='ready')return i===0?'done':(i===1?'cur':'');
-      return i===0?'cur':''; // preparing / draft
+      return i===0?'cur':'';
     }
     var lbl3=sg==='cancelled'?'Cancelled':(sg==='error'?'Error':'Signing');
     document.getElementById('edSteps').innerHTML=def.map(function(s,i){
       var c=cls(i),icon=c==='done'?'✓':(c==='err'?'!':String(i+1));
-      var nm=i===2?lbl3:s[0];
-      return '<div class="ews-step '+c+'"><div class="dot">'+icon+'</div><div class="lab">'+nm+'</div><div class="dt">'+(s[1]?fdt(s[1]):(c==='cur'?'In progress':'—'))+'</div></div>';
+      return '<div class="ews-step '+c+'"><div class="dot">'+icon+'</div><div class="lab">'+(i===2?lbl3:s[0])+'</div><div class="dt">'+(s[1]?fdt(s[1]):(c==='cur'?'In progress':'—'))+'</div></div>';
     }).join('');
   }
+
   function render(env,signers,tplName){
-    var st=STAT[env.statuscode]||['Unknown','draft'];
-    if(!signers.length){try{var rc=JSON.parse(env.cs_envelopejson||'{}').recipients||[];signers=rc.map(function(r,i){return {cs_fullname:r.name,cs_email:r.email,cs_signerorder:i+1,_role:r.role,cs_signerstatus:null,cs_signeddate:null};});}catch(e){}}
+    var envStage=stage(env),st=STAT[env.statuscode]||['Unknown','draft'];
     document.getElementById('edName').textContent=env.cs_name||'Envelope';
     document.getElementById('edSub').textContent='Envelope '+(env.cs_envelopeid||ID).slice(0,8)+(tplName?(' · Template: '+tplName):'')+' · Sent '+fdt(env.cs_sentdate)+' · Last synced '+fdt(env.cs_statuscheckrequestedon||env.modifiedon);
-    var sp=document.getElementById('edStatus');sp.textContent=fv(env,'statuscode',STAT)||st[0];sp.className='ews-pill '+(STAGE_PILL[stage(env)]||'draft');
+    var sp=document.getElementById('edStatus');sp.textContent=fv(env,'statuscode',STAT)||st[0];sp.className='ews-pill '+(STAGE_PILL[envStage]||'draft');
     steps(env);
-    // signers
-    var tb=document.getElementById('edSigners');
-    var signed=signers.filter(function(s){return s.cs_signerstatus===717640001;}).length;
+    var signed=signers.filter(function(s){return sigStat(s,envStage).key==='done';}).length;
     document.getElementById('edSignerSummary').textContent=signers.length?(signed+' of '+signers.length+' signed'):'';
-    tb.innerHTML=signers.length?signers.map(function(s){var ss=SST[s.cs_signerstatus]||['Pending','pend'];
-      return '<tr><td>'+(s.cs_signerorder==null?'':s.cs_signerorder)+'</td><td class="s">'+esc(s.cs_fullname||'—')+'</td><td>'+esc(s.cs_email||'—')+'</td><td>'+esc(s._role||fv(s,'cs_authenticationtype')||'—')+'</td><td><span class="ews-pill '+ss[1]+'">'+esc(fv(s,'cs_signerstatus',SST)||ss[0])+'</span></td><td>'+fdt(s.cs_signeddate)+'</td></tr>';
+    var tb=document.getElementById('edSigners');
+    tb.innerHTML=signers.length?signers.map(function(s){var ss=sigStat(s,envStage);
+      return '<tr><td>'+(s.cs_signerorder==null?'':s.cs_signerorder)+'</td><td class="s">'+esc(s.cs_fullname||'—')+'</td><td>'+esc(s.cs_email||'—')+'</td><td>'+esc(s._role||fv(s,'cs_authenticationtype')||'—')+'</td><td><span class="ews-pill '+PILLCLS[ss.key]+'">'+esc(ss.label)+'</span></td><td>'+fdt(s.cs_signeddate)+'</td></tr>';
     }).join(''):'<tr><td colspan="6" class="ews-empty">No signer records for this envelope.</td></tr>';
-    // details kv
     document.getElementById('edKv').innerHTML=[
-      ['Status',esc(fv(env,'statuscode',STAT)||st[0])],
-      ['Template',esc(tplName||'—')],
-      ['Created',fdt(env.createdon)],
-      ['Sent',fdt(env.cs_sentdate)],
-      ['Expires',fdt(env.cs_expirationdate)],
-      ['Completed',fdt(env.cs_completeddate)],
-      ['Nintex ref',esc((env.cs_preparedenvelopeid||'—'))]
+      ['Status',esc(fv(env,'statuscode',STAT)||st[0])],['Template',esc(tplName||'—')],['Created',fdt(env.createdon)],
+      ['Sent',fdt(env.cs_sentdate)],['Expires',fdt(env.cs_expirationdate)],['Completed',fdt(env.cs_completeddate)],['Nintex ref',esc(env.cs_preparedenvelopeid||'—')]
     ].map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('');
-    // activity (derived)
     var acts=[];
     if(env.cs_completeddate)acts.push(['Completed',env.cs_completeddate]);
     signers.filter(function(s){return s.cs_signeddate;}).forEach(function(s){acts.push([(s.cs_fullname||'Signer')+' signed',s.cs_signeddate]);});
     if(env.cs_cancelleddate)acts.push(['Cancelled',env.cs_cancelleddate]);
     if(env.cs_sentdate)acts.push(['Envelope sent to Nintex',env.cs_sentdate]);
-    acts.push(['Created',env.createdon]);
-    acts.sort(function(a,b){return String(b[1]||'').localeCompare(String(a[1]||''));});
+    acts.push(['Created',env.createdon]);acts.sort(function(a,b){return String(b[1]||'').localeCompare(String(a[1]||''));});
     document.getElementById('edActivity').innerHTML=acts.map(function(a){return '<li><b>'+esc(a[0])+'</b><div class="ews-subprev">'+fdt(a[1])+'</div></li>';}).join('');
   }
-  function loadDoc(tplId){
+
+  function legend(signers,envStage){
+    var el=document.getElementById('edLegend');if(!signers.length){el.style.display='none';return;}
+    el.style.display='';el.innerHTML=signers.map(function(s,i){var ss=sigStat(s,envStage);var c={done:'var(--ews-ok)',pend:'var(--ews-warn)',err:'var(--ews-danger)'}[ss.key];
+      return '<span class="it"><span class="sw" style="border-color:'+c+';background:color-mix(in srgb,'+c+' 16%,transparent)"></span>'+esc(s.cs_fullname||s._role||('Signer '+(i+1)))+' · '+esc(ss.label)+'</span>';}).join('');
+  }
+  function iframe(b64){document.getElementById('edDoc').innerHTML='<iframe title="Document preview" src="data:application/pdf;base64,'+b64+'#toolbar=0&navpanes=0"></iframe>';}
+  function renderDoc(b64,tpl,signers,envStage){
+    var wrap=document.getElementById('edDoc');
+    legend(signers,envStage);
+    if(!window.pdfjsLib){iframe(b64);return;}
+    try{pdfjsLib.GlobalWorkerOptions.workerSrc='/pdf.worker.min.js';}catch(e){}
+    var fields=(tpl&&tpl.fields)||[],pw=(tpl&&tpl.pageWidth)||612;
+    var bytes;try{var bin=atob(b64);bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);}catch(e){iframe(b64);return;}
+    wrap.innerHTML='';
+    pdfjsLib.getDocument({data:bytes}).promise.then(function(pdf){
+      var cw=Math.min((wrap.clientWidth||680)-36,760);var chain=Promise.resolve();
+      for(var p=1;p<=pdf.numPages;p++){(function(p){chain=chain.then(function(){return pdf.getPage(p).then(function(page){
+        var base=page.getViewport({scale:1}),scale=cw/base.width,vp=page.getViewport({scale:scale}),sc=scale*(base.width/pw);
+        var pd=document.createElement('div');pd.className='ews-pdfpage';pd.style.width=vp.width+'px';pd.style.height=vp.height+'px';
+        var cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;pd.appendChild(cv);wrap.appendChild(pd);
+        fields.filter(function(f){return (f.page||1)===p;}).forEach(function(f){
+          var s=signers[f.signerIndex||0]||{},ss=sigStat(s,envStage),box=document.createElement('div');
+          box.className='ews-sigbox '+SIGCLS[ss.key];
+          box.style.left=((f.x||0)*sc)+'px';box.style.top=((f.y||0)*sc)+'px';box.style.width=((f.w||120)*sc)+'px';box.style.height=((f.h||40)*sc)+'px';
+          box.innerHTML='<span class="tag">'+esc(s.cs_fullname||s._role||('Signer '+((f.signerIndex||0)+1)))+' · '+esc(ss.label)+'</span>'+(f.type==='signature'?'✍':(f.type==='initials'?'A':''));
+          pd.appendChild(box);
+        });
+        return page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+      });});})(p);}
+      chain.catch(function(){});
+    }).catch(function(){iframe(b64);});
+  }
+  function loadDoc(tplId,signers,envStage){
     var box=document.getElementById('edDoc');
     if(!tplId){box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document attached.</div>';return;}
-    function embed(b64){box.innerHTML='<iframe title="Document preview" src="data:application/pdf;base64,'+b64+'#toolbar=0&navpanes=0"></iframe>';}
-    function noDoc(){box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document preview available.</div>';}
-    get("/_api/annotations?$filter=_objectid_value eq "+tplId+" and subject eq 'TemplateSourcePDF'&$select=documentbody,filename&$top=1").done(function(d){
-      var b64=d&&d.value&&d.value[0]&&d.value[0].documentbody;
-      if(b64){embed(b64);return;}
-      get("/_api/cs_templates("+tplId+")?$select=cs_templatejson").done(function(t){try{var j=JSON.parse(t.cs_templatejson||'{}');if(j.pdfBase64){embed(j.pdfBase64);return;}}catch(e){}noDoc();}).fail(noDoc);
-    }).fail(function(){box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">Unable to load document.</div>';});
+    get('/_api/cs_templates('+tplId+')?$select=cs_templatejson,cs_name').always(function(t){
+      var tpl={};try{tpl=JSON.parse((t&&t.cs_templatejson)||'{}');}catch(e){}
+      get("/_api/annotations?$filter=_objectid_value eq "+tplId+" and subject eq 'TemplateSourcePDF'&$select=documentbody&$top=1").done(function(d){
+        var b64=d&&d.value&&d.value[0]&&d.value[0].documentbody;
+        if(b64){renderDoc(b64,tpl,signers,envStage);return;}
+        if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage);return;}
+        box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document preview available.</div>';
+      }).fail(function(){if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage);}else box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">Unable to load document.</div>';});
+    });
+  }
+
+  function resolveSigners(env,rows){
+    if(rows&&rows.length)return rows;
+    try{var rc=JSON.parse(env.cs_envelopejson||'{}').recipients||[];return rc.map(function(r,i){return {cs_fullname:r.name,cs_email:r.email,cs_signerorder:i+1,_role:r.role,cs_signerstatus:null,cs_signeddate:null};});}catch(e){return [];}
   }
   function loadAll(cb){
     get('/_api/cs_envelopes('+ID+')?$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_preparedenvelopeid,cs_sentdate,cs_completeddate,cs_cancelleddate,cs_expirationdate,createdon,modifiedon,cs_statuscheckrequestedon,cs_envelopejson').done(function(env){
       $.when(
-        get('/_api/cs_signers?$filter=_cs_envelopelookup_value eq '+ID+'&$orderby=cs_signerorder asc&$select=cs_fullname,cs_email,cs_signerorder,cs_signerstatus,cs_authenticationtype,cs_signeddate,cs_language').then(function(s){return s.value||[];},function(){return [];}),
+        get('/_api/cs_signers?$filter=_cs_envelopelookup_value eq '+ID+'&$orderby=cs_signerorder asc&$select=cs_fullname,cs_email,cs_signerorder,cs_signerstatus,cs_authenticationtype,cs_signeddate').then(function(s){return s.value||[];},function(){return [];}),
         env.cs_templateid?get('/_api/cs_templates('+env.cs_templateid+')?$select=cs_name').then(function(t){return t.cs_name;},function(){return '';}):$.when('')
-      ).done(function(signers,tplName){render(env,signers,tplName);if(cb)cb(env);});
+      ).done(function(rows,tplName){var signers=resolveSigners(env,rows);render(env,signers,tplName);if(cb)cb(env,signers);});
     }).fail(function(x){document.getElementById('edSub').textContent='Unable to load envelope'+(x&&x.status?(' (HTTP '+x.status+')'):'')+'.';});
   }
   window.edDoRefresh=function(){
     var btn=document.getElementById('edRefresh'),txt=document.getElementById('edRefreshTxt'),root=document.getElementById('edRoot');
-    btn.disabled=true;root.classList.add('ews-refreshing');txt.textContent='Refreshing…';
-    var before=null;
+    btn.disabled=true;root.classList.add('ews-refreshing');txt.textContent='Refreshing…';var before=null;
     get('/_api/cs_envelopes('+ID+')?$select=modifiedon').done(function(e){before=e.modifiedon;}).always(function(){
       safeAjax({type:'PATCH',url:'/_api/cs_envelopes('+ID+')',contentType:'application/json',data:JSON.stringify({cs_statuscheckrequestedon:new Date().toISOString()}),headers:{'If-Match':'*'}})
-      .done(function(){
-        var tries=0;(function poll(){tries++;
-          get('/_api/cs_envelopes('+ID+')?$select=modifiedon,statuscode').done(function(e){
-            if((before&&e.modifiedon&&e.modifiedon!==before)||tries>=6){finish();}
-            else setTimeout(poll,2500);
-          }).fail(finish);
-        })();
-      }).fail(function(x){finish('Refresh failed (HTTP '+(x&&x.status)+')');});
+      .done(function(){var tries=0;(function poll(){tries++;get('/_api/cs_envelopes('+ID+')?$select=modifiedon').done(function(e){if((before&&e.modifiedon&&e.modifiedon!==before)||tries>=6)finish();else setTimeout(poll,2500);}).fail(finish);})();})
+      .fail(function(x){finish('Refresh failed (HTTP '+(x&&x.status)+')');});
     });
-    function finish(msg){loadAll(function(){btn.disabled=false;root.classList.remove('ews-refreshing');txt.textContent='Refresh status';if(msg)alert(msg);});}
+    function finish(msg){loadAll(function(env,signers){loadDoc(env.cs_templateid,signers,stage(env));btn.disabled=false;root.classList.remove('ews-refreshing');txt.textContent='Refresh status';if(msg)alert(msg);});}
   };
   $(function(){
     if(!ID){document.getElementById('edSub').textContent='No envelope id provided.';return;}
     document.getElementById('edRefresh').addEventListener('click',edDoRefresh);
-    loadAll(function(env){loadDoc(env.cs_templateid);});
+    loadAll(function(env,signers){loadDoc(env.cs_templateid,signers,stage(env));});
   });
 })();
 </script>

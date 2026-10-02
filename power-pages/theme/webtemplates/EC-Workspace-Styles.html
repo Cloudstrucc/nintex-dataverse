@@ -222,6 +222,19 @@ body.ews-fson .ews-fsback{display:block}
 .ews-step .lab{margin-top:8px;font-size:12.5px;font-weight:700;color:var(--ews-navy)}.ews-step .dt{font-size:11px;color:var(--ews-muted)}
 .ews-docembed{background:#525a60;border-radius:0 0 14px 14px;overflow:hidden}
 .ews-docembed iframe{width:100%;height:600px;border:0;display:block;background:#525a60}
+/* pdf render + signature-field overlay */
+.ews-pdfwrap{background:#525a60;padding:18px;max-height:720px;overflow:auto;border-radius:0 0 14px 14px}
+.ews-pdfwrap iframe{width:100%;height:600px;border:0;display:block}
+.ews-pdfpage{position:relative;margin:0 auto 16px;box-shadow:0 8px 24px rgba(0,0,0,.3);background:#fff}
+.ews-pdfpage canvas{display:block}
+.ews-sigbox{position:absolute;border:2px solid;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:14px;overflow:visible;box-sizing:border-box}
+.ews-sigbox .tag{position:absolute;top:-11px;left:-2px;font-size:10px;font-weight:800;padding:1px 7px;border-radius:99px;color:#fff;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ews-sig-done{border-color:var(--ews-ok);background:color-mix(in srgb,var(--ews-ok) 16%,transparent);color:var(--ews-ok)}.ews-sig-done .tag{background:var(--ews-ok)}
+.ews-sig-pend{border-color:var(--ews-warn);background:color-mix(in srgb,var(--ews-warn) 14%,transparent);color:var(--ews-warn)}.ews-sig-pend .tag{background:var(--ews-warn)}
+.ews-sig-err{border-color:var(--ews-danger);background:color-mix(in srgb,var(--ews-danger) 14%,transparent);color:var(--ews-danger)}.ews-sig-err .tag{background:var(--ews-danger)}
+.ews-siglegend{display:flex;flex-wrap:wrap;gap:14px;padding:11px 16px;background:#3a4248}
+.ews-siglegend .it{display:flex;align-items:center;gap:7px;color:#e4e9ec;font-size:12.5px;font-weight:600}
+.ews-siglegend .sw{width:13px;height:13px;border-radius:3px;border:2px solid;flex:0 0 auto}
 .ews-docbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--ews-navy);color:#cfd6db;font-size:12.5px;font-weight:600}
 .ews-docbar .ro{margin-left:auto;background:rgba(255,255,255,.14);padding:4px 12px;border-radius:99px}
 .ews-two.ews-two-wide{grid-template-columns:1fr 340px}

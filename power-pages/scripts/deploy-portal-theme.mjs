@@ -245,6 +245,7 @@ async function main() {
     await upsertWT("CS-Help-Guide", "CS-Help-Guide.html");
     await upsertWT("CS-Activity-History", "CS-Activity-History.html");
     await upsertWT("CS-Envelope-Details", "CS-Envelope-Details.html"); // /envelopes/details/ (records via create-envelope-details-page.mjs)
+    await upsertFile("pdf.worker.min.js", join(ROOT, "power-pages", "theme", "assets", "pdf.worker.min.js")); // same-origin pdf.js worker (CSP blocks cross-origin worker)
   }
   if (PHASE === "lists" || PHASE === "all") {
     // Facelifted service list pages (envelopes + templates) to match the workspace design.
