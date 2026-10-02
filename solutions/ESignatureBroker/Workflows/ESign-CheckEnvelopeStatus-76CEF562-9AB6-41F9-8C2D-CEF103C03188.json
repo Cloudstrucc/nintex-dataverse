@@ -418,6 +418,129 @@
                   "Succeeded"
                 ]
               }
+            },
+            "HTTP_Get_Signing_Links": {
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelope/@{outputs('Get_Envelope_Record')?['body/cs_preparedenvelopeid']}/signingLinks",
+                "headers": {
+                  "Authorization": "@{variables('BearerToken')}",
+                  "X-AS-UserContext": "@{variables('UserContext')}",
+                  "accept": "application/json"
+                }
+              },
+              "runAfter": {
+                "Normalize_Nintex_Status": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Compose_Current_Step": {
+              "type": "Compose",
+              "inputs": "@int(coalesce(last(split(coalesce(first(body('HTTP_Get_Envelope_Status')?['result']?['documentList'])?['status']?['statusDetails'],'Step 1'),' ')),'1'))",
+              "runAfter": {
+                "Normalize_Nintex_Status": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Apply_Signer_Statuses": {
+              "type": "Foreach",
+              "foreach": "@range(0,length(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray())))",
+              "actions": {
+                "List_Existing_Signer": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "ListRecords",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "cs_signers",
+                      "$filter": "cs_email eq '@{first(skip(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray()),items('Apply_Signer_Statuses')))?['signatoryEmail']}' and _cs_envelopelookup_value eq @{triggerOutputs()?['body/cs_envelopeid']}",
+                      "$top": 1
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  },
+                  "runAfter": {}
+                },
+                "Upsert_Signer": {
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "greater": [
+                          "@length(outputs('List_Existing_Signer')?['body/value'])",
+                          0
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Update_Signer": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_commondataserviceforapps",
+                          "operationId": "UpdateRecord",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                        },
+                        "parameters": {
+                          "entityName": "cs_signers",
+                          "recordId": "@{first(outputs('List_Existing_Signer')?['body/value'])?['cs_signerid']}",
+                          "item/cs_signerstatus": "@if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),less(add(items('Apply_Signer_Statuses'),1),outputs('Compose_Current_Step'))),'Signed',if(and(equals(add(items('Apply_Signer_Statuses'),1),outputs('Compose_Current_Step')),equals(outputs('Normalize_Nintex_Status'),'declined')),'Declined','Pending'))",
+                          "item/cs_signeddate": "@if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),less(add(items('Apply_Signer_Statuses'),1),outputs('Compose_Current_Step'))),coalesce(first(body('HTTP_Get_Envelope_Status')?['result']?['documentList'])?['status']?['statusDate'],utcNow()),null)",
+                          "item/cs_signinglink": "@{first(skip(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray()),items('Apply_Signer_Statuses')))?['url']}"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      },
+                      "runAfter": {}
+                    }
+                  },
+                  "else": {
+                    "actions": {
+                      "Create_Signer": {
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_commondataserviceforapps",
+                            "operationId": "CreateRecord",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                          },
+                          "parameters": {
+                            "entityName": "cs_signers",
+                            "item/cs_name": "@{first(skip(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray()),items('Apply_Signer_Statuses')))?['signatoryName']}",
+                            "item/cs_fullname": "@{first(skip(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray()),items('Apply_Signer_Statuses')))?['signatoryName']}",
+                            "item/cs_email": "@{first(skip(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray()),items('Apply_Signer_Statuses')))?['signatoryEmail']}",
+                            "item/cs_signerorder": "@add(items('Apply_Signer_Statuses'),1)",
+                            "item/cs_signerstatus": "@if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),less(add(items('Apply_Signer_Statuses'),1),outputs('Compose_Current_Step'))),'Signed',if(and(equals(add(items('Apply_Signer_Statuses'),1),outputs('Compose_Current_Step')),equals(outputs('Normalize_Nintex_Status'),'declined')),'Declined','Pending'))",
+                            "item/cs_signeddate": "@if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),less(add(items('Apply_Signer_Statuses'),1),outputs('Compose_Current_Step'))),coalesce(first(body('HTTP_Get_Envelope_Status')?['result']?['documentList'])?['status']?['statusDate'],utcNow()),null)",
+                            "item/cs_signinglink": "@{first(skip(coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray()),items('Apply_Signer_Statuses')))?['url']}",
+                            "item/cs_EnvelopeLookup@odata.bind": "/cs_envelopes(@{triggerOutputs()?['body/cs_envelopeid']})"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        },
+                        "runAfter": {}
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "List_Existing_Signer": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "HTTP_Get_Signing_Links": [
+                  "Succeeded"
+                ],
+                "Compose_Current_Step": [
+                  "Succeeded"
+                ]
+              }
             }
           },
           "else": {
@@ -433,8 +556,7 @@
           }
         }
       }
-    },
-    "templateName": null
+    }
   },
   "schemaVersion": "1.0.0.0"
 }
