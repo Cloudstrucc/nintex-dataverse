@@ -252,7 +252,7 @@
             },
             "Update_Each_Signer_Status": {
               "type": "Foreach",
-              "foreach": "@body('HTTP_Get_Signing_Links')?['result']?['signingLinks']",
+              "foreach": "@coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'],createArray())",
               "actions": {
                 "List_Signer_Record": {
                   "type": "OpenApiConnection",

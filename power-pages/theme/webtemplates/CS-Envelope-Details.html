@@ -122,13 +122,25 @@
       ['Status',esc(fv(env,'statuscode',STAT)||st[0])],['Template',esc(tplName||'—')],['Created',fdt(env.createdon)],
       ['Sent',fdt(env.cs_sentdate)],['Expires',fdt(env.cs_expirationdate)],['Completed',fdt(env.cs_completeddate)],['Nintex ref',esc(env.cs_preparedenvelopeid||'—')]
     ].map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('');
+    var TLIC={
+      created:'<path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/>',
+      sent:'<path d="M2 21l20-9L2 3v7l14 2-14 2v7Z"/>',
+      signed:'<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/>',
+      done:'<path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17Z"/>',
+      err:'<path d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L10.6 13.4 4.3 19.71 2.88 18.29 9.17 12 2.88 5.71 4.3 4.29 10.6 10.6l6.29-6.3 1.41 1.41Z"/>'
+    };
     var acts=[];
-    if(env.cs_completeddate)acts.push(['Completed',env.cs_completeddate]);
-    signers.filter(function(s){return s.cs_signeddate;}).forEach(function(s){acts.push([(s.cs_fullname||'Signer')+' signed',s.cs_signeddate]);});
-    if(env.cs_cancelleddate)acts.push(['Cancelled',env.cs_cancelleddate]);
-    if(env.cs_sentdate)acts.push(['Envelope sent to Nintex',env.cs_sentdate]);
-    acts.push(['Created',env.createdon]);acts.sort(function(a,b){return String(b[1]||'').localeCompare(String(a[1]||''));});
-    document.getElementById('edActivity').innerHTML=acts.map(function(a){return '<li><b>'+esc(a[0])+'</b><div class="ews-subprev">'+fdt(a[1])+'</div></li>';}).join('');
+    if(env.cs_completeddate)acts.push(['Completed',env.cs_completeddate,'done']);
+    signers.filter(function(s){return s.cs_signeddate;}).forEach(function(s){acts.push([(s.cs_fullname||'Signer')+' signed',s.cs_signeddate,'signed']);});
+    if(env.cs_cancelleddate)acts.push(['Cancelled',env.cs_cancelleddate,'err']);
+    if(env.cs_sentdate)acts.push(['Envelope sent to Nintex',env.cs_sentdate,'sent']);
+    acts.push(['Created',env.createdon,'created']);
+    acts.sort(function(a,b){return String(a[1]||'').localeCompare(String(b[1]||''));}); // chronological, oldest first (top -> bottom)
+    document.getElementById('edActivity').innerHTML=acts.map(function(a,i){
+      var last=i===acts.length-1;
+      return '<li><div class="ews-tlrail"><span class="dot g-'+a[2]+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+(TLIC[a[2]]||TLIC.created)+'</svg></span>'+(last?'':'<span class="ln"></span>')+'</div>'+
+        '<div class="ews-tlbody"><div class="t">'+esc(a[0])+'</div><div class="d">'+fdt(a[1])+'</div></div></li>';
+    }).join('');
   }
 
   function legend(signers,envStage){
