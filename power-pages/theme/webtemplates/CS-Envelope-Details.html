@@ -78,18 +78,15 @@
   // resolve a signer's display status (key: done/pend/err), given envelope stage for recipient fallback
   function sigStat(s,envStage){
     var raw=s.cs_signerstatus;
-    if(raw!=null&&raw!==''){ // cs_signerstatus is a string ('Signed'/'Pending'/'Declined'); also tolerate legacy numeric codes
-      var t=String(raw).toLowerCase();
-      if(t==='717640001'||t.indexOf('sign')>=0)return {key:'done',label:'Signed'};
-      if(t==='717640002'||t.indexOf('declin')>=0)return {key:'err',label:'Declined'};
-      if(t==='717640003'||t.indexOf('delegat')>=0)return {key:'pend',label:'Delegated'};
-      if(t==='1'||t.indexOf('pend')>=0||t==='2'||t.indexOf('inactive')>=0)return {key:'pend',label:'Pending'};
-      return {key:'pend',label:String(raw)};
+    if(raw===717640001)return {key:'done',label:'Signed'};
+    if(raw===717640002)return {key:'err',label:'Declined'};
+    if(raw===717640003)return {key:'pend',label:'Delegated'};
+    if(raw==null||raw===undefined){ // recipient fallback (no signer record)
+      if(envStage==='completed')return {key:'done',label:'Signed'};
+      if(envStage==='cancelled')return {key:'err',label:'Cancelled'};
+      return {key:'pend',label:'Pending'};
     }
-    // null/empty → recipient fallback (no signer record yet)
-    if(envStage==='completed')return {key:'done',label:'Signed'};
-    if(envStage==='cancelled')return {key:'err',label:'Cancelled'};
-    return {key:'pend',label:'Pending'};
+    var m=SST[raw]||['Pending','pend'];return {key:m[1]==='done'?'done':(m[1]==='err'?'err':'pend'),label:m[0]};
   }
 
   function steps(env){
