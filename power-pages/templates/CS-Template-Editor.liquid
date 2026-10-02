@@ -568,7 +568,7 @@ input.te-title-input[type="text"],
               1. Download <code style="font-size:0.75rem;">pdf.min.js</code> &amp; <code style="font-size:0.75rem;">pdf.worker.min.js</code>
                  from <code style="font-size:0.75rem;">cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/</code><br>
               2. Upload both as Power Pages <strong>web files</strong> with partial URLs
-                 <code style="font-size:0.75rem;">/js/pdf.min.js</code> and <code style="font-size:0.75rem;">/js/pdf.worker.min.js</code><br>
+                 <code style="font-size:0.75rem;">/js/pdf.min.js</code> and <code style="font-size:0.75rem;">/pdf.worker.min.js</code><br>
               3. Reload this page.
             </span>
           </div>
@@ -1804,7 +1804,7 @@ input.te-title-input[type="text"],
     }
 
     function onPdfJsReady() {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
       canvas = document.getElementById('pdfCanvas');
       ctx    = canvas ? canvas.getContext('2d') : null;
       pdfJsReady = true;
