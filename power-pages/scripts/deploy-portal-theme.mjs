@@ -244,6 +244,7 @@ async function main() {
     await upsertWT("CS-Product-Brief", "CS-Product-Brief.html");
     await upsertWT("CS-Help-Guide", "CS-Help-Guide.html");
     await upsertWT("CS-Activity-History", "CS-Activity-History.html");
+    await upsertWT("CS-Envelope-Details", "CS-Envelope-Details.html"); // /envelopes/details/ (records via create-envelope-details-page.mjs)
   }
   if (PHASE === "lists" || PHASE === "all") {
     // Facelifted service list pages (envelopes + templates) to match the workspace design.

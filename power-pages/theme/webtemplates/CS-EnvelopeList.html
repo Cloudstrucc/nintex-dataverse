@@ -54,7 +54,8 @@
     var pages=Math.max(1,Math.ceil(rows.length/PAGE));if(page>pages)page=pages;var sl=rows.slice((page-1)*PAGE,page*PAGE);
     var tb=document.getElementById('ecRows');
     tb.innerHTML=sl.length?sl.map(function(r){
-      var menu='<a href="'+EDITOR+'?id='+esc(r.id)+'">'+(r.editable?'✎ Edit':'👁 View')+'</a>';
+      var openLink=r.editable?(EDITOR+'?id='+esc(r.id)):('/envelopes/details/?id='+esc(r.id));
+      var menu='<a href="'+openLink+'">'+(r.editable?'✎ Edit':'👁 View details')+'</a>';
       if(r.tplId)menu+='<a href="'+EDITOR+'?templateId='+esc(r.tplId)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.cancellable?'<button type="button" class="danger ec-cancel" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⊘ Cancel envelope</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⊘ Cancel envelope</button>');
       return '<tr><td class="s">'+esc(r.name)+'</td><td>'+esc(r.subj)+'</td><td><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td>'+esc(r.created)+'</td><td>'+esc(r.mod)+'</td>'+

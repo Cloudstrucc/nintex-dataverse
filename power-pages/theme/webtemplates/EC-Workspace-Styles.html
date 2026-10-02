@@ -209,6 +209,23 @@ body.ews-fson .ews-fsback{display:block}
 .ews-acc summary::after{content:"+";font-size:20px;font-weight:700;color:var(--ews-burg)}.ews-acc details[open] summary::after{content:"\2212"}
 .ews-acc details[open] summary{border-bottom:1px solid var(--ews-line-soft,#eef1f4)}
 .ews-acc .bd{padding:14px 18px;color:#3a4650;line-height:1.55}.ews-acc .bd ol,.ews-acc .bd ul{margin:0;padding-left:20px}
-@media(max-width:900px){.ews-grid{grid-template-columns:repeat(2,1fr)}.ews-stats{grid-template-columns:repeat(2,1fr)}.ews-two{grid-template-columns:1fr}}
+/* envelope details — progress stepper + document embed */
+.ews-steps{display:flex;align-items:flex-start;gap:0}
+.ews-step{flex:1;text-align:center;position:relative}
+.ews-step::before{content:"";position:absolute;top:17px;left:-50%;width:100%;height:3px;background:var(--ews-line)}
+.ews-step:first-child::before{display:none}
+.ews-step.done::before,.ews-step.cur::before{background:var(--ews-ok)}
+.ews-step .dot{width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid var(--ews-line);display:grid;place-items:center;margin:0 auto;position:relative;z-index:1;font-weight:800;color:var(--ews-muted)}
+.ews-step.done .dot{background:var(--ews-ok);border-color:var(--ews-ok);color:#fff}
+.ews-step.cur .dot{border-color:var(--ews-burg);color:var(--ews-burg);box-shadow:0 0 0 4px rgba(106,0,50,.12)}
+.ews-step.err .dot{background:var(--ews-danger);border-color:var(--ews-danger);color:#fff}
+.ews-step .lab{margin-top:8px;font-size:12.5px;font-weight:700;color:var(--ews-navy)}.ews-step .dt{font-size:11px;color:var(--ews-muted)}
+.ews-docembed{background:#525a60;border-radius:0 0 14px 14px;overflow:hidden}
+.ews-docembed iframe{width:100%;height:600px;border:0;display:block;background:#525a60}
+.ews-docbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--ews-navy);color:#cfd6db;font-size:12.5px;font-weight:600}
+.ews-docbar .ro{margin-left:auto;background:rgba(255,255,255,.14);padding:4px 12px;border-radius:99px}
+.ews-two.ews-two-wide{grid-template-columns:1fr 340px}
+.ews-refreshing{opacity:.6;pointer-events:none}
+@media(max-width:900px){.ews-grid{grid-template-columns:repeat(2,1fr)}.ews-stats{grid-template-columns:repeat(2,1fr)}.ews-two{grid-template-columns:1fr}.ews-two.ews-two-wide{grid-template-columns:1fr}}
 @media(max-width:560px){.ews-grid,.ews-stats{grid-template-columns:1fr}.ews-menu{flex-wrap:wrap}}
 </style>
