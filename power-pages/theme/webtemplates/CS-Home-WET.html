@@ -11,9 +11,11 @@
   <div class="container mrgn-tp-md mrgn-bttm-lg">
 
     <div class="ews-hero">
-      <div class="k">{{ snippets['ESIGN/HOME/PORTAL'] | default: 'My Elections Canada Portal' }}</div>
-      <h1>{{ snippets['ESIGN/HOME/WORKSPACE'] | default: 'My Workspace' }}</h1>
-      <p>{{ snippets['ESIGN/HOME/WELCOME'] | default: 'Welcome back' }}{% if user %}, <strong>{{ user.firstname }}</strong>{% endif %}. {{ snippets['ESIGN/HOME/DESC'] | default: 'Track your signature requests and open a service below.' }}</p>
+      <div class="ews-herotext">
+        <div class="k">{{ snippets['ESIGN/HOME/PORTAL'] | default: 'My Elections Canada Portal' }}</div>
+        <h1>{{ snippets['ESIGN/HOME/WORKSPACE'] | default: 'My Workspace' }}</h1>
+        <p>{{ snippets['ESIGN/HOME/WELCOME'] | default: 'Welcome back' }}{% if user %}, <strong>{{ user.firstname }}</strong>{% endif %}. {{ snippets['ESIGN/HOME/DESC'] | default: 'Track your signature requests and open a service below.' }}</p>
+      </div>
       {% if user %}<div class="fp">{{ user.firstname | slice: 0,1 }}{{ user.lastname | slice: 0,1 }}</div>{% endif %}
     </div>
 

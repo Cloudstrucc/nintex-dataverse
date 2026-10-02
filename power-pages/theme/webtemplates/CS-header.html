@@ -21,6 +21,7 @@
 
 {% unless toolmode %}
 <nav class="ews-nav" aria-label="Primary"><div class="ews-in">
+  <button class="ews-burger" type="button" aria-label="{{ snippets['ESIGN/NAV/MENU'] | default: 'Menu' }}" aria-expanded="false" onclick="ecToggleNav(this)"><span aria-hidden="true">&#9776;</span> <span class="ews-burgtxt">{{ snippets['ESIGN/NAV/MENU'] | default: 'Menu' }}</span></button>
   {% if user %}
   {% fetchxml ews_unreadq %}
   <fetch count="99" no-lock="true"><entity name="cs_portalmessage">
@@ -37,7 +38,6 @@
     <li><a href="/">{{ snippets['ESIGN/NAV/WORKSPACE'] | default: 'My Workspace' }}</a></li>
     <li><a href="/envelopes/">{{ snippets['ESIGN/PILL/ENVELOPES'] | default: 'Envelopes' }}</a></li>
     <li><a href="/templates/">{{ snippets['ESIGN/PILL/TEMPLATES'] | default: 'Templates' }}</a></li>
-    <li><a href="/documents/">{{ snippets['ESIGN/PILL/DOCUMENTS'] | default: 'Documents' }}</a></li>
     <li><a href="/help/">{{ snippets['ESIGN/NAV/HELP'] | default: 'Help' }}</a></li>
   </ul>
   <div class="ews-navright">
@@ -63,6 +63,10 @@
   </ul>
   {% endif %}
 </div></nav>
+
+<script>
+function ecToggleNav(b){var n=b.closest('.ews-nav');var open=n.classList.toggle('open');b.setAttribute('aria-expanded',open?'true':'false');}
+</script>
 
 {% if user %}
 <script>

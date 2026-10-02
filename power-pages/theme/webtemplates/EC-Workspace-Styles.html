@@ -26,6 +26,8 @@
 .ews-menu{display:flex;gap:4px;list-style:none;margin:0;padding:0}
 .ews-menu a{display:block;padding:15px 16px;color:#e8edf1;text-decoration:none;font-size:14.5px;font-weight:600;border-bottom:3px solid transparent}
 .ews-menu a:hover{color:#fff}.ews-menu a.active,.ews-menu li.active a{color:#fff;border-bottom-color:var(--ews-mustard)}
+.ews-burger{display:none;align-items:center;gap:8px;padding:9px 13px;background:transparent;border:1px solid rgba(255,255,255,.28);border-radius:9px;color:#fff;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer}
+.ews-burger:hover{background:rgba(255,255,255,.1)}
 .ews-navright{display:flex;align-items:center;gap:12px}
 .ews-bell{position:relative;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:#fff}
 .ews-bell:hover{background:rgba(255,255,255,.12)}.ews-bell svg{width:20px;height:20px;fill:#fff}
@@ -67,11 +69,12 @@
 .ews-note-x{position:absolute;right:10px;top:10px;background:none;border:0;color:inherit;font-size:20px;line-height:1;cursor:pointer}
 .ews-chip{display:inline-block;font-size:12px;font-weight:600;color:#3d4a55;background:#eef2f5;border:1px solid #e0e6ea;border-radius:7px;padding:3px 9px;white-space:nowrap}
 /* ---------- cards / hero / KPI stats / svc tiles ---------- */
-.ews-hero{background:linear-gradient(120deg,var(--ews-navy),var(--ews-navy-dk) 60%);color:#fff;border-radius:16px;margin-top:22px;padding:24px 128px 24px 30px;position:relative;overflow:hidden}
-@media(max-width:560px){.ews-hero{padding:22px 20px}.ews-hero .fp{display:none}}
+.ews-hero{display:flex;align-items:center;gap:22px;background:linear-gradient(120deg,var(--ews-navy),var(--ews-navy-dk) 60%);color:#fff;border-radius:16px;margin-top:22px;padding:24px 30px;overflow:hidden}
+.ews-hero .ews-herotext{flex:1 1 auto;min-width:0}
 .ews-hero .k{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#9fb4c4;font-weight:700}
 .ews-hero h1{margin:6px 0;font-size:29px;font-weight:800;color:#fff !important}.ews-hero p{margin:0;color:#c9d5de}
-.ews-hero .fp{position:absolute;right:34px;top:50%;transform:translateY(-50%);width:74px;height:74px;border-radius:50%;background:var(--ews-burg);display:grid;place-items:center;font-weight:800;font-size:23px;box-shadow:0 0 0 12px rgba(255,255,255,.05)}
+.ews-hero .fp{flex:0 0 auto;width:74px;height:74px;border-radius:50%;background:var(--ews-burg);display:grid;place-items:center;font-weight:800;font-size:23px;box-shadow:0 0 0 12px rgba(255,255,255,.05)}
+@media(max-width:560px){.ews-hero{padding:22px 20px}.ews-hero .fp{display:none}}
 .ews-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
 .ews-stat{background:#fff;border:1px solid var(--ews-line);border-radius:13px;padding:15px 16px;cursor:pointer;text-align:left;font:inherit;transition:box-shadow .15s,transform .15s}
 .ews-stat:hover{box-shadow:0 8px 20px rgba(0,0,0,.08);transform:translateY(-2px)}
@@ -246,11 +249,15 @@ body.ews-fson .ews-fsback{display:block}
 /* ===== mobile responsiveness (tables + banners + controls) ===== */
 .ews-tscroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media(max-width:768px){
-  /* header nav wraps instead of pushing the bell/avatar off-screen */
-  .ews-nav .ews-in{flex-wrap:wrap;gap:4px 8px}
-  .ews-menu{flex-wrap:wrap}
-  .ews-menu a{padding:12px 11px;font-size:14px}
-  .ews-navright{margin-left:auto}
+  /* header nav collapses into a hamburger dropdown */
+  .ews-nav .ews-in{flex-wrap:wrap;gap:0;padding-top:9px;padding-bottom:9px}
+  .ews-burger{display:inline-flex;order:1}
+  .ews-navright{order:2;margin-left:auto}
+  .ews-menu{order:3;display:none;flex-basis:100%;width:100%;flex-direction:column;gap:0;margin-top:9px;border-top:1px solid rgba(255,255,255,.14)}
+  .ews-nav.open .ews-menu{display:flex}
+  .ews-menu li{width:100%}
+  .ews-menu a{display:block;width:100%;padding:13px 4px;border-bottom:none;border-left:3px solid transparent}
+  .ews-menu a.active,.ews-menu li.active a{border-bottom-color:transparent;border-left-color:var(--ews-mustard)}
   /* tables become full-width stacked cards (no horizontal scroll) — EC-PEPP pattern */
   .ews-tscroll{overflow-x:visible}
   table.ews-nt{min-width:0}
