@@ -40,11 +40,11 @@
     rows.sort(function(a,b){var av=a.when||'',bv=b.when||'';return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
     var tb=document.getElementById('ntRows');
     tb.innerHTML=rows.length?rows.map(function(r){return '<tr class="'+(r.read?'':'unread')+'">'+
-      '<td class="s"><span class="ews-type '+svcCls(r.svc)+'">'+esc((r.svc||'?').slice(0,1))+'</span> '+esc(r.subj)+'<div class="ews-subprev">'+esc(r.body||'')+'</div></td>'+
-      '<td>'+esc(r.svc||'')+'</td>'+
-      '<td><span class="ews-pill '+(r.pri===717640000?'err':'draft')+'">'+(r.pri===717640000?'Action required':'For information')+'</span></td>'+
-      '<td>'+esc(fmt(r.when))+'</td>'+
-      '<td style="white-space:nowrap;text-align:right">'+(r.read?'':'<button class="ews-btn" style="padding:5px 10px" onclick="ntRead(\''+r.id+'\')">View</button> ')+'<button class="ews-btn" style="padding:5px 10px" onclick="ntArchive(\''+r.id+'\')">Archive</button></td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No messages.</td></tr>';
+      '<td class="s" data-label="Message"><span class="ews-type '+svcCls(r.svc)+'">'+esc((r.svc||'?').slice(0,1))+'</span> '+esc(r.subj)+'<div class="ews-subprev">'+esc(r.body||'')+'</div></td>'+
+      '<td data-label="Service">'+esc(r.svc||'')+'</td>'+
+      '<td data-label="Priority"><span class="ews-pill '+(r.pri===717640000?'err':'draft')+'">'+(r.pri===717640000?'Action required':'For information')+'</span></td>'+
+      '<td data-label="Received">'+esc(fmt(r.when))+'</td>'+
+      '<td data-label="" style="white-space:nowrap;text-align:right">'+(r.read?'':'<button class="ews-btn" style="padding:5px 10px" onclick="ntRead(\''+r.id+'\')">View</button> ')+'<button class="ews-btn" style="padding:5px 10px" onclick="ntArchive(\''+r.id+'\')">Archive</button></td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No messages.</td></tr>';
     ntArrows();counts();
   }
   window.ntRead=function(id){safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+id+')',contentType:'application/json',data:JSON.stringify({cs_readon:new Date().toISOString()})}).done(function(){var r=DATA.find(function(x){return x.id===id;});if(r)r.read=true;render();});};

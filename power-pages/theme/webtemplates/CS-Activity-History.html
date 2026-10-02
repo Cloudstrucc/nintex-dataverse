@@ -35,7 +35,7 @@
   function render(){
     var rows=DATA.filter(function(r){return flt==='all'||r.t===flt;}).sort(function(a,b){var av=a.when||'',bv=b.when||'';return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
     var tb=document.getElementById('acRows');
-    tb.innerHTML=rows.length?rows.map(function(r){return '<tr><td><span class="ews-type '+r.t+'">'+esc(LABEL[r.t][0])+'</span> '+esc(LABEL[r.t])+'</td><td class="s">'+esc(r.title)+'</td><td>'+esc(r.detail||'')+'</td><td>'+esc(fmt(r.when))+'</td></tr>';}).join(''):'<tr><td colspan="4" class="ews-empty">No activity yet.</td></tr>';
+    tb.innerHTML=rows.length?rows.map(function(r){return '<tr><td data-label="Type"><span class="ews-type '+r.t+'">'+esc(LABEL[r.t][0])+'</span> '+esc(LABEL[r.t])+'</td><td class="s" data-label="Item">'+esc(r.title)+'</td><td data-label="Detail">'+esc(r.detail||'')+'</td><td data-label="When">'+esc(fmt(r.when))+'</td></tr>';}).join(''):'<tr><td colspan="4" class="ews-empty">No activity yet.</td></tr>';
     acArrows();
   }
   window.acFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.t;render();};

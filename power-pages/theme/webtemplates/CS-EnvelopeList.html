@@ -58,8 +58,8 @@
       var menu='<a href="'+openLink+'">'+(r.editable?'✎ Edit':'👁 View details')+'</a>';
       if(r.tplId)menu+='<a href="'+EDITOR+'?templateId='+esc(r.tplId)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.cancellable?'<button type="button" class="danger ec-cancel" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⊘ Cancel envelope</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⊘ Cancel envelope</button>');
-      return '<tr><td class="s">'+esc(r.name)+'</td><td>'+esc(r.subj)+'</td><td><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td>'+esc(r.created)+'</td><td>'+esc(r.mod)+'</td>'+
-        '<td><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact ec-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
+      return '<tr><td class="s" data-label="Envelope">'+esc(r.name)+'</td><td data-label="Subject">'+esc(r.subj)+'</td><td data-label="Status"><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td data-label="Created">'+esc(r.created)+'</td><td data-label="Modified">'+esc(r.mod)+'</td>'+
+        '<td class="ews-actcell"><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact ec-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
     }).join(''):'<tr><td colspan="6" class="ews-empty">'+((document.getElementById('ecQ').value)?'No envelopes match this filter.':'No envelopes yet. <a href="'+EDITOR+'">Create your first envelope</a>.')+'</td></tr>';
     arrows();
     var pg=document.getElementById('ecPager');pg.innerHTML='';

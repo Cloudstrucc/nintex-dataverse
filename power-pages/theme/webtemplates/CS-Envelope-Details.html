@@ -114,7 +114,7 @@
     document.getElementById('edSignerSummary').textContent=signers.length?(signed+' of '+signers.length+' signed'):'';
     var tb=document.getElementById('edSigners');
     tb.innerHTML=signers.length?signers.map(function(s){var ss=sigStat(s,envStage);
-      return '<tr><td>'+(s.cs_signerorder==null?'':s.cs_signerorder)+'</td><td class="s">'+esc(s.cs_fullname||'—')+'</td><td>'+esc(s.cs_email||'—')+'</td><td>'+esc(s._role||fv(s,'cs_authenticationtype')||'—')+'</td><td><span class="ews-pill '+PILLCLS[ss.key]+'">'+esc(ss.label)+'</span></td><td>'+fdt(s.cs_signeddate)+'</td></tr>';
+      return '<tr><td data-label="Order">'+(s.cs_signerorder==null?'':s.cs_signerorder)+'</td><td class="s" data-label="Name">'+esc(s.cs_fullname||'—')+'</td><td data-label="Email">'+esc(s.cs_email||'—')+'</td><td data-label="Role / Auth">'+esc(s._role||fv(s,'cs_authenticationtype')||'—')+'</td><td data-label="Status"><span class="ews-pill '+PILLCLS[ss.key]+'">'+esc(ss.label)+'</span></td><td data-label="Signed">'+fdt(s.cs_signeddate)+'</td></tr>';
     }).join(''):'<tr><td colspan="6" class="ews-empty">No signer records for this envelope.</td></tr>';
     document.getElementById('edKv').innerHTML=[
       ['Status',esc(fv(env,'statuscode',STAT)||st[0])],['Template',esc(tplName||'—')],['Created',fdt(env.createdon)],

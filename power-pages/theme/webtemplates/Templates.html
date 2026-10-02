@@ -70,9 +70,9 @@
     tb.innerHTML=sl.length?sl.map(function(r){
       var menu='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a><a href="'+USE+'?templateId='+esc(r.id)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.hasDoc?'<button type="button" class="tpl-dl" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⬇ Download PDF</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⬇ Download PDF</button>');
-      return '<tr><td class="s"><a href="#" class="tpl-open" data-id="'+esc(r.id)+'" style="color:var(--ews-navy);text-decoration:none">'+esc(r.name)+'</a>'+(r.desc?'<div class="ews-subprev">'+esc(r.desc)+'</div>':'')+'</td>'+
-        '<td>'+esc(r.cat||'—')+'</td><td><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td>'+esc(r.created)+'</td><td>'+esc(r.mod)+'</td>'+
-        '<td><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact tpl-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
+      return '<tr><td class="s" data-label="Template"><a href="#" class="tpl-open" data-id="'+esc(r.id)+'" style="color:var(--ews-navy);text-decoration:none">'+esc(r.name)+'</a>'+(r.desc?'<div class="ews-subprev">'+esc(r.desc)+'</div>':'')+'</td>'+
+        '<td data-label="Category">'+esc(r.cat||'—')+'</td><td data-label="Status"><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td data-label="Created">'+esc(r.created)+'</td><td data-label="Modified">'+esc(r.mod)+'</td>'+
+        '<td class="ews-actcell"><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact tpl-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
     }).join(''):'<tr><td colspan="6" class="ews-empty">'+((document.getElementById('tplQ').value)?'No templates match your search.':'No templates yet. <a href="'+EDITOR+'">Create your first template</a>.')+'</td></tr>';
     tplArrows();pager(rs.length,pages);kpis();
   }

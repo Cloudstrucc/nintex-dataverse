@@ -251,8 +251,27 @@ body.ews-fson .ews-fsback{display:block}
   .ews-menu{flex-wrap:wrap}
   .ews-menu a{padding:12px 11px;font-size:14px}
   .ews-navright{margin-left:auto}
-  /* tables scroll inside their card instead of pushing the whole page sideways */
-  .ews-tscroll table.ews-nt{min-width:640px}
+  /* tables become full-width stacked cards (no horizontal scroll) — EC-PEPP pattern */
+  .ews-tscroll{overflow-x:visible}
+  table.ews-nt{min-width:0}
+  table.ews-nt thead{display:none}
+  table.ews-nt,table.ews-nt tbody{display:block;width:100%}
+  table.ews-nt tr{display:block;width:100%;background:#fff;border:1px solid var(--ews-line);border-radius:12px;padding:8px 2px 6px;margin:0 0 14px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  table.ews-nt tbody tr:hover{background:#fff}
+  table.ews-nt td{display:block;width:100%;border:0;border-bottom:1px solid var(--ews-line-soft);padding:9px 16px;text-align:left;white-space:normal;vertical-align:top}
+  table.ews-nt tr td:last-child{border-bottom:0}
+  table.ews-nt td::before{content:attr(data-label);display:block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ews-muted);margin-bottom:3px}
+  table.ews-nt td[data-label=""]::before{display:none}
+  table.ews-nt td.s{font-size:15px}
+  table.ews-nt td:first-child{padding-right:52px}
+  table.ews-nt tbody tr.unread{box-shadow:inset 4px 0 0 var(--ews-burg)}
+  table.ews-nt tbody tr.unread td:first-child{box-shadow:none}
+  /* row-action ellipsis pinned to the card's top-right */
+  table.ews-nt td.ews-actcell{position:absolute;top:8px;right:8px;width:auto;border:0;padding:0}
+  table.ews-nt td.ews-actcell::before{display:none}
+  /* empty / loading state spans the card with no label */
+  table.ews-nt td.ews-empty{text-align:center;color:var(--ews-muted);padding:22px 16px;border-bottom:0}
+  table.ews-nt td.ews-empty::before{display:none}
   /* service banner: give the title the full width, let actions wrap underneath */
   .ews-svcbanner{flex-wrap:wrap;gap:12px 14px;padding:16px 18px}
   .ews-svcbanner h1{font-size:20px;overflow-wrap:anywhere;word-break:normal}
