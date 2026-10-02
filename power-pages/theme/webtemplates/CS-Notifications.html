@@ -2,11 +2,13 @@
 <main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
   <div class="container mrgn-tp-md mrgn-bttm-lg">
 
-    <div class="ews-svcbanner mrgn-bttm-md">
-      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg></span>
-      <div><h1>{{ snippets['ESIGN/NOTIF/TITLE'] | default: 'Notification centre' }}</h1>
-        <p>{{ snippets['ESIGN/NOTIF/SUB'] | default: 'Messages and alerts about your envelopes, templates and documents.' }}</p></div>
-      <div style="margin-left:auto"><button class="ews-btn" id="ntMarkAll" onclick="ntMarkAll()">{{ snippets['ESIGN/NOTIF/MARKALL'] | default: 'Mark all as read' }}</button></div>
+    <div class="ews-hero mrgn-bttm-md">
+      <div class="ews-herotext">
+        <h1>{{ snippets['ESIGN/NOTIF/TITLE'] | default: 'Notification centre' }}</h1>
+        <p>{{ snippets['ESIGN/NOTIF/SUB'] | default: 'Messages and alerts about your envelopes, templates and documents.' }}</p>
+        <div style="margin-top:14px"><button class="ews-btn" id="ntMarkAll" onclick="ntMarkAll()">{{ snippets['ESIGN/NOTIF/MARKALL'] | default: 'Mark all as read' }}</button></div>
+      </div>
+      <div class="ews-heroicon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg></div>
     </div>
 
     <div class="ews-card">

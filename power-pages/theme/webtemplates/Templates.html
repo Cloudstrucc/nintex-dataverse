@@ -9,10 +9,12 @@
 <main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
   <div class="container mrgn-tp-md mrgn-bttm-lg">
 
-    <div class="ews-svcbanner mrgn-bttm-md">
-      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7 12h10v1.6H7V12Zm0 4h10v1.6H7V16Z"/></svg></span>
-      <div><h1>{{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Templates' }}</h1>
-        <p>{{ snippets['ESIGN/TEMPLATES/DESC'] | default: 'Browse approved signature templates. Use one to send an envelope, or download the source document.' }}</p></div>
+    <div class="ews-hero mrgn-bttm-md">
+      <div class="ews-herotext">
+        <h1>{{ snippets['ESIGN/TEMPLATES/TITLE'] | default: 'Templates' }}</h1>
+        <p>{{ snippets['ESIGN/TEMPLATES/DESC'] | default: 'Browse approved signature templates. Use one to send an envelope, or download the source document.' }}</p>
+      </div>
+      <div class="ews-heroicon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7 12h10v1.6H7V12Zm0 4h10v1.6H7V16Z"/></svg></div>
     </div>
 
     <!-- KPI filter tiles -->

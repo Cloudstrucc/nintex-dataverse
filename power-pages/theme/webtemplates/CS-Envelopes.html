@@ -15,10 +15,12 @@
       <button type="button" id="env-success-x" class="ews-note-x" aria-label="Close">&times;</button>
     </div>
 
-    <div class="ews-svcbanner mrgn-bttm-md">
-      <span class="av"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6Zm2 .4V18h16V6.4l-8 5-8-5Z"/></svg></span>
-      <div><h1>{{ snippets['ESIGN/ENVELOPES/TITLE'] | default: 'Envelopes' }}</h1>
-        <p>{{ snippets['ESIGN/ENVELOPES/DESC'] | default: 'Create and manage electronic signature envelopes.' }}</p></div>
+    <div class="ews-hero mrgn-bttm-md">
+      <div class="ews-herotext">
+        <h1>{{ snippets['ESIGN/ENVELOPES/TITLE'] | default: 'Envelopes' }}</h1>
+        <p>{{ snippets['ESIGN/ENVELOPES/DESC'] | default: 'Create and manage electronic signature envelopes.' }}</p>
+      </div>
+      <div class="ews-heroicon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6Zm2 .4V18h16V6.4l-8 5-8-5Z"/></svg></div>
     </div>
 
     {% include 'CS-EnvelopeList' %}
