@@ -77,14 +77,24 @@
     document.getElementById('k-all').textContent=t;document.getElementById('k-proc').textContent=p;document.getElementById('k-done').textContent=d;document.getElementById('k-err').textContent=e;
     var ec=document.getElementById('svc-env-cnt');if(ec)ec.textContent=t+' total · '+p+' in process';var dc=document.getElementById('svc-doc-cnt');if(dc)dc.textContent=d+' completed';}
   window.ecCancel=function(id,name){if(!confirm('Cancel envelope "'+name+'"? This cannot be undone.'))return;safeAjax({type:'PATCH',url:API_ENV+'('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2}),headers:{'If-Match':'*'}}).done(load).fail(function(x){alert('Cancel failed: HTTP '+(x&&x.status));});};
+  function fdate(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'});}catch(e){return '';}}
+  function defSubj(tplName,id,sent){ // fallback when no subject: template name · envelope id · date sent
+    var parts=[tplName||'{{ snippets['ESIGN/ENV/UNTITLED_TPL'] | default: 'Untitled template' }}', (id||'').slice(0,8)];
+    if(sent)parts.push(fdate(sent));
+    return parts.join(' · ');
+  }
   function load(){
-    get(API_ENV+'?$orderby=modifiedon desc&$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,createdon,modifiedon').done(function(j){
+    get('/_api/cs_templates?$select=cs_templateid,cs_name').then(function(t){return t;},function(){return {value:[]};}).done(function(tj){
+    var TPL={};(tj.value||[]).forEach(function(t){TPL[t.cs_templateid]=t.cs_name||'';});
+    get(API_ENV+'?$orderby=modifiedon desc&$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_sentdate,createdon,modifiedon').done(function(j){
       DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];
         var editable=(v.statecode===0&&st[2]==='other')||(v.statecode===0&&v.statuscode===717640005);
         var cancellable=v.statecode===0&&st[2]!=='done'&&v.statuscode!==717640006;
-        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:v.cs_subject||'',stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],created:fmt(v.createdon),crtRaw:v.createdon||'',mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable};});
+        var subj=v.cs_subject||defSubj(TPL[v.cs_templateid],v.cs_envelopeid,v.cs_sentdate);
+        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:subj,stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],created:fmt(v.createdon),crtRaw:v.createdon||'',mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable};});
       document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';ecRender();
     }).fail(function(x){document.getElementById('ecRows').innerHTML='<tr><td colspan="6" class="ews-empty">Unable to load envelopes'+(x&&x.status?(' (HTTP '+x.status+')'):'')+'.</td></tr>';});
+    });
   }
   $(function(){
     var card=document.getElementById('ecEnvCard');

@@ -53,6 +53,7 @@
   'use strict';
   var API='/_api/cs_templates',EDITOR='/templates/edit-template/',USE='/envelopes/edit-envelope/';
   var COLS='cs_templateid,cs_name,cs_description,cs_category,cs_isactive,cs_templatejson,statecode,statuscode,modifiedon,createdon';
+  var UNCAT='{{ snippets['ESIGN/TEMPLATES/UNCATEGORIZED'] | default: 'Uncategorized' }}';
   var DATA=[],filter='all',page=1,PAGE=5,USERPAGE=5,sortCol='mod',sortDir='desc';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso;}}
@@ -73,7 +74,7 @@
       var menu='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a><a href="'+USE+'?templateId='+esc(r.id)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.hasDoc?'<button type="button" class="tpl-dl" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⬇ Download PDF</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⬇ Download PDF</button>');
       return '<tr><td class="s" data-label="Template"><a href="#" class="tpl-open" data-id="'+esc(r.id)+'" style="color:var(--ews-navy);text-decoration:none">'+esc(r.name)+'</a>'+(r.desc?'<div class="ews-subprev">'+esc(r.desc)+'</div>':'')+'</td>'+
-        '<td data-label="Category">'+esc(r.cat||'—')+'</td><td data-label="Status"><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td data-label="Created">'+esc(r.created)+'</td><td data-label="Modified">'+esc(r.mod)+'</td>'+
+        '<td data-label="Category">'+esc(r.cat||UNCAT)+'</td><td data-label="Status"><span class="ews-pill '+(r.active?'done':'off')+'">'+(r.active?'Active':'Inactive')+'</span></td><td data-label="Created">'+esc(r.created)+'</td><td data-label="Modified">'+esc(r.mod)+'</td>'+
         '<td class="ews-actcell"><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact tpl-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
     }).join(''):'<tr><td colspan="6" class="ews-empty">'+((document.getElementById('tplQ').value)?'No templates match your search.':'No templates yet. <a href="'+EDITOR+'">Create your first template</a>.')+'</td></tr>';
     tplArrows();pager(rs.length,pages);kpis();
@@ -91,7 +92,7 @@
   function byId(id){for(var i=0;i<DATA.length;i++)if(DATA[i].id===id)return DATA[i];return null;}
   function tplModal(id){var t=byId(id);if(!t)return;var nx='';try{nx=JSON.parse(t.json||'{}').nintexTemplateId||'';}catch(e){}
     document.getElementById('esignTplModalTitle').textContent=t.name||'Template';
-    document.getElementById('esignTplModalBody').innerHTML='<table class="ews-kv"><tr><td>Name</td><td>'+esc(t.name)+'</td></tr><tr><td>Description</td><td>'+esc(t.desc||'—')+'</td></tr><tr><td>Category</td><td>'+esc(t.cat||'—')+'</td></tr><tr><td>Status</td><td>'+(t.active?'Active':'Inactive')+'</td></tr><tr><td>Nintex ID</td><td style="font-family:monospace">'+esc(nx||'Not synced')+'</td></tr></table><div class="ft"><a class="ews-btn" href="'+EDITOR+'?id='+esc(id)+'">Edit</a> <a class="ews-btn ews-primary" href="'+USE+'?templateId='+esc(id)+'">Use template</a></div>';
+    document.getElementById('esignTplModalBody').innerHTML='<table class="ews-kv"><tr><td>Name</td><td>'+esc(t.name)+'</td></tr><tr><td>Description</td><td>'+esc(t.desc||'—')+'</td></tr><tr><td>Category</td><td>'+esc(t.cat||UNCAT)+'</td></tr><tr><td>Status</td><td>'+(t.active?'Active':'Inactive')+'</td></tr><tr><td>Nintex ID</td><td style="font-family:monospace">'+esc(nx||'Not synced')+'</td></tr></table><div class="ft"><a class="ews-btn" href="'+EDITOR+'?id='+esc(id)+'">Edit</a> <a class="ews-btn ews-primary" href="'+USE+'?templateId='+esc(id)+'">Use template</a></div>';
     document.getElementById('esignTplModal').style.display='flex';}
   function download(id,name){
     get("/_api/annotations?$filter=_objectid_value eq "+id+" and subject eq 'TemplateSourcePDF'&$select=documentbody,filename&$top=1").done(function(nd){
