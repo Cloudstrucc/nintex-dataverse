@@ -148,10 +148,24 @@ async function writePerms(roles, bkdir) {
   await upsertPerm("cs_template", permContent({ label: "cs_template", table: "cs_template", scope: SCOPE.CONTACT, roles: [AUTH], r: { append: 1, appendto: 1, create: 1, del: 1, read: 1, write: 1 }, contactrelationship: REL.tplOwner }), bkdir);
   await upsertPerm("cs_templateshare", permContent({ label: "cs_templateshare", table: "cs_templateshare", scope: SCOPE.CONTACT, roles: [AUTH], r: { read: 1 }, contactrelationship: REL.shareWith }), bkdir);
   // additional perms (distinct friendly labels)
-  const catPerm = await upsertPerm("Template Catalog (read)", permContent({ label: "Template Catalog (read)", table: "cs_templatecatalog", scope: SCOPE.GLOBAL, roles: [AUTH, ADMIN], r: { read: 1 } }), bkdir);
+  const catPerm = await upsertPerm("Template Catalog (read)", permContent({ label: "Template Catalog (read)", table: "cs_templatecatalog", scope: SCOPE.GLOBAL, roles: [AUTH, ADMIN], r: { read: 1, appendto: 1 } }), bkdir);
   await upsertPerm("Global Templates (read)", permContent({ label: "Global Templates (read)", table: "cs_template", scope: SCOPE.PARENT, roles: [AUTH], r: { read: 1 }, parentrelationship: REL.catalog, parententitypermission: catPerm }), bkdir);
   await upsertPerm("Global Templates (manage)", permContent({ label: "Global Templates (manage)", table: "cs_template", scope: SCOPE.GLOBAL, roles: [MAKER, ADMIN], r: { append: 1, appendto: 1, create: 1, del: 1, read: 1, write: 1 } }), bkdir);
   await upsertPerm("Template Shares (owner)", permContent({ label: "Template Shares (owner)", table: "cs_templateshare", scope: SCOPE.CONTACT, roles: [AUTH], r: { append: 1, appendto: 1, create: 1, del: 1, read: 1, write: 1 }, contactrelationship: REL.shareBy }), bkdir);
+  // Association rights: setting a lookup to contact (owner/share/notification) needs AppendTo on
+  // the contact permission; best-effort patch of the existing contact + portalmessage perms.
+  await ensureAssocRights();
+}
+
+async function ensureAssocRights() {
+  for (const name of ["contact_read", "cs_portalmessage"]) {
+    const r = await api(`powerpagecomponents?$select=powerpagecomponentid,content&$filter=powerpagecomponenttype eq 18 and name eq '${name}'`);
+    const row = r.value?.[0]; if (!row) { console.log("  assoc: MISS", name); continue; }
+    const c = JSON.parse(row.content); c.append = true; c.appendto = true; c.read = true;
+    if (name === "cs_portalmessage") { c.create = true; c.write = true; }
+    await api(`powerpagecomponents(${row.powerpagecomponentid})`, { method: "PATCH", body: { content: JSON.stringify(c, null, 2) } });
+    console.log("  assoc rights:", name);
+  }
 }
 
 // ---- Web API site settings ----

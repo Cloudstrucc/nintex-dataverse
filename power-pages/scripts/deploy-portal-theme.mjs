@@ -252,7 +252,13 @@ async function main() {
     console.log("--- service list pages (envelopes, templates) ---");
     await upsertWT("CS-EnvelopeList", "CS-EnvelopeList.html"); // shared list component (same as My Workspace)
     await upsertWT("CS-Envelopes", "CS-Envelopes.html");
-    await upsertWT("Templates", "Templates.html");
+    await upsertWT("CS Templates", "Templates.html"); // the live /templates/ web template (RBAC sections)
+  }
+  if (PHASE === "editors" || PHASE === "all") {
+    // Template + envelope editors — carry the RBAC owner/visibility stamping.
+    console.log("--- editors (template + envelope) ---");
+    await upsertWT("CS Template Editor", "CS-Template-Editor.html");
+    await upsertWT("CS-Envelope-Editor", "CS-Envelope-Editor.html");
   }
   console.log("done.");
 }
