@@ -169,11 +169,14 @@ async function ensureAssocRights() {
 }
 
 // ---- Web API site settings ----
+// Field lists need BOTH the `_<lookup>_value` form (for reads) AND the PascalCase navigation
+// property (e.g. cs_OwnerContact) for writing that lookup via @odata.bind.
 const WEBAPI = {
-  cs_template: ["cs_templateid","cs_name","cs_description","cs_category","cs_isactive","cs_templatejson","cs_visibility","_cs_ownercontact_value","_cs_modifiedbycontact_value","_cs_catalog_value","cs_templatepdf_name","createdon","modifiedon","_createdby_value","_modifiedby_value"],
-  cs_envelope: ["cs_envelopeid","cs_name","cs_subject","_cs_ownercontact_value","cs_sentdate","cs_statuscheckrequestedon","createdon","modifiedon"],
-  cs_templateshare: ["cs_templateshareid","cs_name","_cs_templatelink_value","_cs_sharedwithcontact_value","_cs_sharedbycontact_value","cs_sharedon","cs_sharedname","cs_sharedcategory","createdon","modifiedon"],
+  cs_template: ["cs_templateid","cs_name","cs_description","cs_category","cs_isactive","cs_templatejson","cs_visibility","_cs_ownercontact_value","_cs_modifiedbycontact_value","_cs_catalog_value","cs_OwnerContact","cs_ModifiedByContact","cs_catalog","cs_templatepdf_name","createdon","modifiedon","_createdby_value","_modifiedby_value"],
+  cs_envelope: ["cs_envelopeid","cs_name","cs_subject","_cs_ownercontact_value","cs_OwnerContact","cs_sentdate","cs_statuscheckrequestedon","createdon","modifiedon"],
+  cs_templateshare: ["cs_templateshareid","cs_name","_cs_templatelink_value","_cs_sharedwithcontact_value","_cs_sharedbycontact_value","cs_TemplateLink","cs_SharedWithContact","cs_SharedByContact","cs_sharedon","cs_sharedname","cs_sharedcategory","createdon","modifiedon"],
   cs_templatecatalog: ["cs_templatecatalogid","cs_name"],
+  cs_portalmessage: ["cs_subject","cs_content","cs_service","cs_prioritytype","_cs_recipientcontactid_value","cs_RecipientContactId"],
 };
 async function findSetting(name) {
   const r = await api(`powerpagecomponents?$select=powerpagecomponentid,content&$filter=powerpagecomponenttype eq 9 and name eq '${name}'`);
