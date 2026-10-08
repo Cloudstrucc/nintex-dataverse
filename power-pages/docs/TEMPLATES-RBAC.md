@@ -33,14 +33,21 @@ Feature design + implementation plan for the ec‑esign portal.
 | UI | **Display defaults**: category → "Uncategorized" (verified live); envelope subject fallback (built) |
 | Cleanup | Account‑scope approach removed (`cs_globalaccount` deleted) per decision |
 
+### ✅ Verified working end‑to‑end (dev, after 3 restarts)
+| Area | Item |
+|---|---|
+| Enforcement | Envelope Contact‑scope (API returns only the owner's envelopes); Global templates via catalog Parent‑scope; My/Shared via Contact‑scope. 494 legacy envelopes backfilled to the dev user. |
+| Editors | Template create stamps `cs_OwnerContact` + `cs_visibility` (regular → Personal/owned, Maker/Admin → Global/catalog) + `cs_ModifiedByContact`; envelope create stamps `cs_OwnerContact`. |
+| UI | Templates **sections** (Global 41 / My / Shared) with per‑tab KPI tiles, row menus, empty states; **Share dialog** with people‑picker + use‑only note, writing `cs_templateshare` (denormalised name/category) + a `cs_portalmessage` notification. Confirmed: create → My templates (not Global); share → Shared‑out count + picker populated. |
+
 ### 🚧 Remaining to implement
-| Area | Item | Blocked on |
-|---|---|---|
-| **Restart** | Activate permissions + Web API fields | **one** admin site restart |
-| Editors | **Stamp** `cs_ownercontact` + `cs_visibility=Personal` on template create; `cs_ownercontact` on envelope create; `cs_modifiedbycontact` + `cs_modifiedon` on edit | restart (to read/write new fields) |
-| UI | Templates **sections** (Global / My / Shared); **Template Details** page; **Share dialog** (writes `cs_templateshare` + denormalised name/category) + notifications | restart |
-| Flow | Personal‑template **inline base64 submit** (no Nintex template) | verify DocumentNOW inline payload |
-| i18n | Bilingual snippets for all new UI strings | — |
+| Area | Item |
+|---|---|
+| UI | **Template Details** page (`/templates/details/` — the row menu "View details" links here; page not built yet). |
+| Flow | Personal‑template **inline base64 submit** to AssureSign (no Nintex template) — verify DocumentNOW inline payload. |
+| i18n | Bilingual (FR) snippets for all new UI strings. |
+
+> **Lookup‑write gotchas (resolved, cost 2 extra restarts):** writing a lookup via the portal Web API needs the **PascalCase nav property** (`cs_OwnerContact`, …) in `Webapi/<t>/fields` *and* **AppendTo** on the target table permission — both activate only on a restart. Also: the live `/templates/` web template is **"Templates"** (`3ecb30b4`), not the decoy "CS Templates"; flush a web‑template change by marking **its own** `*.webtemplate.source.html`.
 
 > **"Shared with me" — resolved natively.** Power Pages Parent scope only cascades parent→child (the permission sits on the "many" side), and `cs_template(1)→cs_templateshare(N)` makes the template the parent, so templates **cannot** be granted to recipients via Parent scope. Because the envelope **send runs server‑side in the broker flow** (full privilege), recipients never need portal read on `cs_template`: the share row carries the denormalised `cs_sharedname`/`cs_sharedcategory` + the template id, so "Shared with me" reads only `cs_templateshare` (recipient Contact scope) and "Use" creates an envelope the flow fulfils. Personal templates stay **fully private** (no `cs_template` read for non‑owners).
 

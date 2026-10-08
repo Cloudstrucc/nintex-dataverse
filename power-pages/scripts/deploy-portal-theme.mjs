@@ -252,7 +252,7 @@ async function main() {
     console.log("--- service list pages (envelopes, templates) ---");
     await upsertWT("CS-EnvelopeList", "CS-EnvelopeList.html"); // shared list component (same as My Workspace)
     await upsertWT("CS-Envelopes", "CS-Envelopes.html");
-    await upsertWT("CS Templates", "Templates.html"); // the live /templates/ web template (RBAC sections)
+    await upsertWT("Templates", "Templates.html"); // the live /templates/ web template (3ecb30b4; RBAC sections)
   }
   if (PHASE === "editors" || PHASE === "all") {
     // Template + envelope editors — carry the RBAC owner/visibility stamping.

@@ -254,8 +254,8 @@
     document.getElementById('shareDo').setAttribute('data-cat',cat||'');
     document.getElementById('esignShareModal').style.display='flex';
     if(PEOPLE.length){renderPeople();}else{
-      get(CTAPI+'?$select=contactid,fullname,emailaddress1&$filter=statecode eq 0&$orderby=fullname&$top=200').done(function(d){
-        PEOPLE=(d.value||[]).filter(function(c){return c.contactid!==ME;}).map(function(c){return {id:c.contactid,name:c.fullname||c.emailaddress1||'(no name)',email:c.emailaddress1||''};});
+      get(CTAPI+'?$select=contactid,fullname,emailaddress1&$orderby=fullname&$top=200').done(function(d){
+        PEOPLE=(d.value||[]).filter(function(c){return c.contactid!==ME && (c.fullname||c.emailaddress1);}).map(function(c){return {id:c.contactid,name:c.fullname||c.emailaddress1||'(no name)',email:c.emailaddress1||''};});
         renderPeople();
       }).fail(function(){document.getElementById('sharePeople').innerHTML='<div class="ews-empty">Unable to load people.</div>';});}
   }
