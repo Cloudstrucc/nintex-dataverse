@@ -171,13 +171,13 @@
       m+='<a href="'+USE+'?templateId='+esc(r.id)+'">✉ Use template</a>';
       m+='<button type="button" class="tpl-share" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'" data-cat="'+esc(r.cat||'')+'">↗ Share…</button>';
       m+='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a>';
-      m+='<a href="'+DETAILS+'?id='+esc(r.id)+'">ⓘ View details</a>';
+      m+='<button type="button" class="tpl-open" data-id="'+esc(r.id)+'">ⓘ View details</button>';
       m+='<div class="sep"></div>'+dlBtn(r);
       return m;
     }
     // global
     m+='<a href="'+USE+'?templateId='+esc(r.id)+'">✉ Use template</a>';
-    m+='<a href="'+DETAILS+'?id='+esc(r.id)+'">ⓘ View details</a>';
+    m+='<button type="button" class="tpl-open" data-id="'+esc(r.id)+'">ⓘ View details</button>';
     if(ISMAKER)m+='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a>';
     m+='<div class="sep"></div>'+dlBtn(r);
     return m;
@@ -231,10 +231,32 @@
       body='<table class="ews-kv"><tr><td>Name</td><td>'+esc(t.name)+'</td></tr><tr><td>Category</td><td>'+esc(t.cat||UNCAT)+'</td></tr><tr><td>Shared by</td><td>'+esc(t.by||'—')+'</td></tr><tr><td>Shared on</td><td>'+esc(t.on||'—')+'</td></tr></table><div class="ft"><a class="ews-btn ews-primary" href="'+USE+'?templateId='+esc(t.tplId)+'">Use template</a></div>';
     }else{
       var nx='';try{nx=JSON.parse(t.json||'{}').nintexTemplateId||'';}catch(e){}
-      body='<table class="ews-kv"><tr><td>Name</td><td>'+esc(t.name)+'</td></tr><tr><td>Description</td><td>'+esc(t.desc||'—')+'</td></tr><tr><td>Category</td><td>'+esc(t.cat||UNCAT)+'</td></tr><tr><td>Visibility</td><td>'+(view==='global'?'Global':'Personal')+'</td></tr><tr><td>Status</td><td>'+(t.active?'Active':'Inactive')+'</td></tr><tr><td>Nintex ID</td><td style="font-family:monospace">'+esc(nx||'Not synced')+'</td></tr></table><div class="ft"><a class="ews-btn" href="'+DETAILS+'?id='+esc(id)+'">View details</a> <a class="ews-btn ews-primary" href="'+USE+'?templateId='+esc(id)+'">Use template</a></div>';
+      body='<table class="ews-kv"><tr><td>Name</td><td>'+esc(t.name)+'</td></tr><tr><td>Description</td><td>'+esc(t.desc||'—')+'</td></tr><tr><td>Category</td><td>'+esc(t.cat||UNCAT)+'</td></tr><tr><td>Visibility</td><td>'+(view==='global'?'Global':'Personal')+'</td></tr><tr><td>Status</td><td>'+(t.active?'Active':'Inactive')+'</td></tr><tr><td>Nintex ID</td><td style="font-family:monospace">'+esc(nx||'Not synced')+'</td></tr></table>'+
+        (view==='mine'?'<div class="ews-sec ews-accesshd">People with access</div><div id="accessList" class="ews-accesslist"><div class="ews-empty">Loading…</div></div><div class="ews-pager" id="accessPager"></div>':'')+
+        '<div class="ft">'+(view==='mine'||ISMAKER?'<a class="ews-btn" href="'+EDITOR+'?id='+esc(id)+'">Edit</a> ':'')+'<a class="ews-btn ews-primary" href="'+USE+'?templateId='+esc(id)+'">Use template</a></div>';
     }
     document.getElementById('esignTplModalBody').innerHTML=body;
-    document.getElementById('esignTplModal').style.display='flex';}
+    document.getElementById('esignTplModal').style.display='flex';
+    if(view==='mine')loadAccess(id);}
+
+  // ---- People-with-access list (template detail modal, 5/page) ----
+  var ACCESS=[],accessPage=1;
+  function loadAccess(tplId){ACCESS=[];accessPage=1;
+    get(SHAPI+"?$select=_cs_sharedwithcontact_value,cs_sharedon,createdon&$filter=_cs_templatelink_value eq "+tplId+"&$expand=cs_SharedWithContact($select=fullname,emailaddress1)&$orderby=createdon desc").done(function(d){
+      var seen={};(d.value||[]).forEach(function(s){var cid=s._cs_sharedwithcontact_value;if(!cid||seen[cid])return;seen[cid]=1;var c=s.cs_SharedWithContact||{};
+        ACCESS.push({name:c.fullname||c.emailaddress1||'(unknown)',email:c.emailaddress1||'',on:fmt(s.cs_sharedon||s.createdon)});});
+      renderAccess();
+    }).fail(function(){var el=document.getElementById('accessList');if(el)el.innerHTML='<div class="ews-empty">Unable to load the access list.</div>';});}
+  function renderAccess(){var el=document.getElementById('accessList'),pg=document.getElementById('accessPager');if(!el)return;
+    if(!ACCESS.length){el.innerHTML='<div class="ews-empty">Not shared with anyone yet.</div>';if(pg)pg.innerHTML='';return;}
+    var per=5,pages=Math.max(1,Math.ceil(ACCESS.length/per));if(accessPage>pages)accessPage=pages;
+    var sl=ACCESS.slice((accessPage-1)*per,accessPage*per);
+    el.innerHTML=sl.map(function(a){return '<div class="ews-accessrow"><span class="ews-pav">'+esc(initials(a.name))+'</span><span class="ews-pmeta"><span class="ews-pname">'+esc(a.name)+'</span><span class="ews-pemail">'+esc(a.email)+'</span></span><span class="ews-accesson">'+esc(a.on)+'</span></div>';}).join('');
+    if(pg){pg.innerHTML='';if(pages>1){
+      var prev=document.createElement('button');prev.textContent='‹';prev.disabled=accessPage===1;if(accessPage===1)prev.classList.add('dis');prev.addEventListener('click',function(){if(accessPage>1){accessPage--;renderAccess();}});pg.appendChild(prev);
+      var info=document.createElement('span');info.className='ews-pginfo';info.textContent='Page '+accessPage+' of '+pages+' · '+ACCESS.length+' '+(ACCESS.length===1?'person':'people');pg.appendChild(info);
+      var next=document.createElement('button');next.textContent='›';next.disabled=accessPage===pages;if(accessPage===pages)next.classList.add('dis');next.addEventListener('click',function(){if(accessPage<pages){accessPage++;renderAccess();}});pg.appendChild(next);
+    }else{var lbl=document.createElement('span');lbl.className='ews-pginfo';lbl.textContent=ACCESS.length+' '+(ACCESS.length===1?'person':'people');pg.appendChild(lbl);}}}
 
   // ---- PDF download ----
   function download(id,name){
@@ -271,22 +293,29 @@
   function doShare(){var ids=Object.keys(shareSel);if(!ids.length||!shareTplId)return;
     var name=document.getElementById('shareDo').getAttribute('data-name'),cat=document.getElementById('shareDo').getAttribute('data-cat');
     var btn=document.getElementById('shareDo');btn.disabled=true;btn.textContent='Sharing…';
-    tokenFn().then(function(tkn){
-      var hdr={'Content-Type':'application/json','Accept':'application/json'};if(tkn)hdr['__RequestVerificationToken']=tkn;
-      var chain=ids.map(function(cid){
-        var share={cs_name:name+' → '+shareSel[cid],cs_sharedname:name,cs_sharedcategory:cat||null,cs_sharedon:new Date().toISOString(),
-          'cs_TemplateLink@odata.bind':'/cs_templates('+shareTplId+')',
-          'cs_SharedWithContact@odata.bind':'/contacts('+cid+')',
-          'cs_SharedByContact@odata.bind':'/contacts('+ME+')'};
-        var msg={cs_subject:MENAME+' shared a template with you',cs_content:'"'+name+'" is now available under Templates → Shared with me. You can use it to send an envelope.',
-          cs_service:'Templates',cs_prioritytype:717640001,'cs_RecipientContactId@odata.bind':'/contacts('+cid+')'};
-        return $.ajax({type:'POST',url:SHAPI,headers:hdr,data:JSON.stringify(share)}).then(function(){
-          return $.ajax({type:'POST',url:MSG,headers:hdr,data:JSON.stringify(msg)}).catch(function(){/* notification best-effort */});});
-      });
-      return $.when.apply($,chain);
-    }).then(function(){document.getElementById('esignShareModal').style.display='none';render();loadSharesOut();
-      toast('Shared with '+ids.length+' '+(ids.length===1?'person':'people')+'.');
-    },function(x){btn.disabled=false;btn.textContent='Share';alert('Share failed (HTTP '+(x&&x.status)+').');});
+    // Skip recipients the template is already shared with, so re-sharing never creates duplicate rows.
+    get(SHAPI+"?$select=_cs_sharedwithcontact_value&$filter=_cs_templatelink_value eq "+shareTplId).done(function(ex){
+      var already={};(ex.value||[]).forEach(function(s){if(s._cs_sharedwithcontact_value)already[s._cs_sharedwithcontact_value]=1;});
+      var newIds=ids.filter(function(c){return !already[c];});
+      if(!newIds.length){document.getElementById('esignShareModal').style.display='none';toast('Already shared with the selected '+(ids.length===1?'person':'people')+'.');return;}
+      tokenFn().then(function(tkn){
+        var hdr={'Content-Type':'application/json','Accept':'application/json'};if(tkn)hdr['__RequestVerificationToken']=tkn;
+        var chain=newIds.map(function(cid){
+          var share={cs_name:name+' → '+shareSel[cid],cs_sharedname:name,cs_sharedcategory:cat||null,cs_sharedon:new Date().toISOString(),
+            'cs_TemplateLink@odata.bind':'/cs_templates('+shareTplId+')',
+            'cs_SharedWithContact@odata.bind':'/contacts('+cid+')',
+            'cs_SharedByContact@odata.bind':'/contacts('+ME+')'};
+          var msg={cs_subject:MENAME+' shared a template with you',cs_content:'"'+name+'" is now available under Templates → Shared with me. You can use it to send an envelope.',
+            cs_service:'Templates',cs_prioritytype:717640001,'cs_RecipientContactId@odata.bind':'/contacts('+cid+')'};
+          return $.ajax({type:'POST',url:SHAPI,headers:hdr,data:JSON.stringify(share)}).then(function(){
+            return $.ajax({type:'POST',url:MSG,headers:hdr,data:JSON.stringify(msg)}).then(null,function(){/* notification best-effort */});});
+        });
+        return $.when.apply($,chain);
+      }).then(function(){document.getElementById('esignShareModal').style.display='none';render();loadSharesOut();
+        var skipped=ids.length-newIds.length;
+        toast('Shared with '+newIds.length+' '+(newIds.length===1?'person':'people')+(skipped?' ('+skipped+' already had access)':'')+'.');
+      },function(x){btn.disabled=false;btn.textContent='Share';alert('Share failed (HTTP '+(x&&x.status)+').');});
+    }).fail(function(){btn.disabled=false;btn.textContent='Share';alert('Could not check existing shares. Please try again.');});
   }
   function toast(t){var d=document.createElement('div');d.className='ews-toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.classList.add('show');},10);setTimeout(function(){d.classList.remove('show');setTimeout(function(){d.remove();},300);},3200);}
 
@@ -310,9 +339,12 @@
       if(view!=='shared')render();
     }).fail(function(x){if(view!=='shared')document.getElementById('tplRows').innerHTML='<tr><td colspan="6" class="ews-empty">Unable to load templates (HTTP '+x.status+').</td></tr>';});
     // shared with me
-    get(SHAPI+"?$select=cs_templateshareid,cs_sharedname,cs_sharedcategory,cs_sharedon,_cs_templatelink_value,_cs_sharedbycontact_value,createdon&$filter=_cs_sharedwithcontact_value eq "+ME+"&$expand=cs_sharedbycontact($select=fullname)&$orderby=createdon desc").done(function(d){
-      SHARED=(d.value||[]).map(function(s){return {id:s.cs_templateshareid,tplId:s._cs_templatelink_value,name:s.cs_sharedname||'Shared template',
-        cat:s.cs_sharedcategory||'',active:true,by:(s.cs_sharedbycontact&&s.cs_sharedbycontact.fullname)||'',on:fmt(s.cs_sharedon||s.createdon),sortDate:s.cs_sharedon||s.createdon||''};});
+    get(SHAPI+"?$select=cs_templateshareid,cs_sharedname,cs_sharedcategory,cs_sharedon,_cs_templatelink_value,_cs_sharedbycontact_value,createdon&$filter=_cs_sharedwithcontact_value eq "+ME+"&$expand=cs_SharedByContact($select=fullname)&$orderby=createdon desc").done(function(d){
+      // Dedupe by template: a template shared with me appears once even if multiple share rows exist.
+      var seenT={};SHARED=[];
+      (d.value||[]).forEach(function(s){var tid=s._cs_templatelink_value;if(!tid||seenT[tid])return;seenT[tid]=1;
+        SHARED.push({id:s.cs_templateshareid,tplId:tid,name:s.cs_sharedname||'Shared template',
+          cat:s.cs_sharedcategory||'',active:true,by:(s.cs_SharedByContact&&s.cs_SharedByContact.fullname)||'',on:fmt(s.cs_sharedon||s.createdon),sortDate:s.cs_sharedon||s.createdon||''});});
       document.getElementById('ct-shared').textContent=SHARED.length;
       if(view==='shared')render();
     }).fail(function(){document.getElementById('ct-shared').textContent='0';});
