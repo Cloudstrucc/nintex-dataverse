@@ -5,20 +5,20 @@
   ellipsis row menu. Keep a single source of truth for the envelope list.
 {% endcomment %}
 <div class="ews-stats">
-  <button class="ews-stat active" data-f="all" onclick="ecSetF(this)"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
-  <button class="ews-stat" data-f="proc" onclick="ecSetF(this)"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
-  <button class="ews-stat" data-f="done" onclick="ecSetF(this)"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/KPI/DONE'] | default: 'Completed' }}</div><div class="num" id="k-done">0</div></button>
-  <button class="ews-stat" data-f="err" onclick="ecSetF(this)"><div class="lab" style="--dot:#b3122b">{{ snippets['ESIGN/KPI/ERR'] | default: 'Action required' }}</div><div class="num" id="k-err">0</div></button>
+  <button class="ews-stat active" data-f="all"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
+  <button class="ews-stat" data-f="proc"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
+  <button class="ews-stat" data-f="done"><div class="lab" style="--dot:#0c6b4f">{{ snippets['ESIGN/KPI/DONE'] | default: 'Completed' }}</div><div class="num" id="k-done">0</div></button>
+  <button class="ews-stat" data-f="err"><div class="lab" style="--dot:#b3122b">{{ snippets['ESIGN/KPI/ERR'] | default: 'Action required' }}</div><div class="num" id="k-err">0</div></button>
 </div>
 
 <div class="ews-card" id="ecEnvCard">
   <div class="ews-lsthd"><div><h4>{{ snippets['ESIGN/HOME/ENVTITLE'] | default: 'My Envelopes' }}</h4><div class="ews-subprev" id="ecFilterLabel"></div></div>
-    <button class="ews-fsbtn" title="Full screen" onclick="ecToggleFs()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
+    <button class="ews-fsbtn" id="ecFsBtn" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM6 15v3h3v2H4v-5h2Zm12 0h2v5h-5v-2h3v-3Z"/></svg></button></div>
   <div class="ews-tools"><span class="ews-viewsel">&#9636; {{ snippets['ESIGN/HOME/ACTIVEVIEW'] | default: 'Active envelopes' }}</span>
-    <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}" oninput="ecRender()"></div>
+    <div class="ews-search"><svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><input id="ecQ" placeholder="{{ snippets['ESIGN/HOME/FILTER'] | default: 'Type to filter rows...' }}"></div>
     <div class="ews-toolright">
       <label class="ews-pagesize">{{ snippets['ESIGN/LIST/SHOW'] | default: 'Show' }}
-        <select id="ecPageSize" onchange="ecSize(this.value)"><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option></select>
+        <select id="ecPageSize"><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option></select>
       </label>
       <a class="ews-btn ews-primary" href="/envelopes/edit-envelope/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="margin-right:2px"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>{{ snippets['ESIGN/HOME/CREATE'] | default: 'Create envelope' }}</a>
     </div></div>
@@ -98,6 +98,11 @@
   }
   $(function(){
     var card=document.getElementById('ecEnvCard');
+    /* CSP-safe handlers (inline on* is blocked by the portal CSP) */
+    var stats=document.querySelector('.ews-stats');if(stats)stats.addEventListener('click',function(e){var s=e.target.closest('.ews-stat');if(s)ecSetF(s);});
+    var fs=document.getElementById('ecFsBtn');if(fs)fs.addEventListener('click',function(){ecToggleFs();});
+    var q=document.getElementById('ecQ');if(q)q.addEventListener('input',function(){ecRender();});
+    var ps=document.getElementById('ecPageSize');if(ps)ps.addEventListener('change',function(){ecSize(this.value);});
     card.querySelector('thead').addEventListener('click',function(e){var th=e.target.closest('th.ews-sortable');if(th)ecSort(th.dataset.sort, th.dataset.date==='1');});
     document.getElementById('ecRows').addEventListener('click',function(e){
       var mb=e.target.closest('.ec-menu');

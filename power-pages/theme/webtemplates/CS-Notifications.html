@@ -6,17 +6,17 @@
       <div class="ews-herotext">
         <h1>{{ snippets['ESIGN/NOTIF/TITLE'] | default: 'Notification centre' }}</h1>
         <p>{{ snippets['ESIGN/NOTIF/SUB'] | default: 'Messages and alerts about your envelopes, templates and documents.' }}</p>
-        <div style="margin-top:14px"><button class="ews-btn" id="ntMarkAll" onclick="ntMarkAll()">{{ snippets['ESIGN/NOTIF/MARKALL'] | default: 'Mark all as read' }}</button></div>
+        <div style="margin-top:14px"><button class="ews-btn" id="ntMarkAll">{{ snippets['ESIGN/NOTIF/MARKALL'] | default: 'Mark all as read' }}</button></div>
       </div>
       <div class="ews-heroicon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg></div>
     </div>
 
     <div class="ews-card">
       <div class="ews-tabs" role="tablist">
-        <button class="ews-tab" data-f="all" aria-selected="true" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/ALL'] | default: 'All' }} <span class="ews-tabn" id="nt-all">0</span></button>
-        <button class="ews-tab" data-f="unread" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/UNREAD'] | default: 'Unread' }} <span class="ews-tabn" id="nt-unread">0</span></button>
-        <button class="ews-tab" data-f="act" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/ACTION'] | default: 'Action required' }} <span class="ews-tabn" id="nt-act">0</span></button>
-        <button class="ews-tab" data-f="fyi" aria-selected="false" onclick="ntFilter(this)">{{ snippets['ESIGN/NOTIF/FYI'] | default: 'For information' }} <span class="ews-tabn" id="nt-fyi">0</span></button>
+        <button class="ews-tab" data-f="all" aria-selected="true">{{ snippets['ESIGN/NOTIF/ALL'] | default: 'All' }} <span class="ews-tabn" id="nt-all">0</span></button>
+        <button class="ews-tab" data-f="unread" aria-selected="false">{{ snippets['ESIGN/NOTIF/UNREAD'] | default: 'Unread' }} <span class="ews-tabn" id="nt-unread">0</span></button>
+        <button class="ews-tab" data-f="act" aria-selected="false">{{ snippets['ESIGN/NOTIF/ACTION'] | default: 'Action required' }} <span class="ews-tabn" id="nt-act">0</span></button>
+        <button class="ews-tab" data-f="fyi" aria-selected="false">{{ snippets['ESIGN/NOTIF/FYI'] | default: 'For information' }} <span class="ews-tabn" id="nt-fyi">0</span></button>
       </div>
       <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }} <span class="ews-sar"></span></th><th></th></tr></thead>
         <tbody id="ntRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table></div>
@@ -46,13 +46,19 @@
       '<td data-label="Service">'+esc(r.svc||'')+'</td>'+
       '<td data-label="Priority"><span class="ews-pill '+(r.pri===717640000?'err':'draft')+'">'+(r.pri===717640000?'Action required':'For information')+'</span></td>'+
       '<td data-label="Received">'+esc(fmt(r.when))+'</td>'+
-      '<td data-label="" style="white-space:nowrap;text-align:right">'+(r.read?'':'<button class="ews-btn" style="padding:5px 10px" onclick="ntRead(\''+r.id+'\')">View</button> ')+'<button class="ews-btn" style="padding:5px 10px" onclick="ntArchive(\''+r.id+'\')">Archive</button></td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No messages.</td></tr>';
+      '<td data-label="" style="white-space:nowrap;text-align:right">'+(r.read?'':'<button class="ews-btn nt-view" data-id="'+esc(r.id)+'" style="padding:5px 10px">View</button> ')+'<button class="ews-btn nt-archive" data-id="'+esc(r.id)+'" style="padding:5px 10px">Archive</button></td></tr>';}).join(''):'<tr><td colspan="5" class="ews-empty">No messages.</td></tr>';
     ntArrows();counts();
   }
   window.ntRead=function(id){safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+id+')',contentType:'application/json',data:JSON.stringify({cs_readon:new Date().toISOString()})}).done(function(){var r=DATA.find(function(x){return x.id===id;});if(r)r.read=true;render();});};
   window.ntArchive=function(id){safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2})}).done(function(){DATA=DATA.filter(function(x){return x.id!==id;});render();});};
   window.ntMarkAll=function(){var un=DATA.filter(function(r){return !r.read;});var i=0;(function next(){if(i>=un.length){return;}var r=un[i++];safeAjax({type:'PATCH',url:'/_api/cs_portalmessages('+r.id+')',contentType:'application/json',data:JSON.stringify({cs_readon:new Date().toISOString()})}).always(function(){r.read=true;render();next();});})();};
   $(function(){
+    /* CSP-safe handlers (inline on* is blocked by the portal CSP) */
+    var mk=document.getElementById('ntMarkAll');if(mk)mk.addEventListener('click',function(){ntMarkAll();});
+    var tabs=document.querySelector('.ews-tabs');if(tabs)tabs.addEventListener('click',function(e){var t=e.target.closest('.ews-tab');if(t)ntFilter(t);});
+    document.getElementById('ntRows').addEventListener('click',function(e){
+      var v=e.target.closest('.nt-view');if(v){ntRead(v.dataset.id);return;}
+      var a=e.target.closest('.nt-archive');if(a){ntArchive(a.dataset.id);return;}});
     var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){if(e.target.closest('th.ews-sortable'))ntSort();});
     var url='/_api/cs_portalmessages?$select=cs_portalmessageid,cs_subject,cs_content,cs_service,cs_prioritytype,cs_readon,createdon&$filter=statecode eq 0'+(CID?" and _cs_recipientcontactid_value eq "+CID:"")+'&$orderby=createdon desc';
     $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).done(function(j){

@@ -12,11 +12,11 @@
 
     <div class="ews-card">
       <div class="ews-tabs" role="tablist">
-        <button class="ews-tab" data-t="all" aria-selected="true" onclick="acFilter(this)">All</button>
-        <button class="ews-tab" data-t="env" aria-selected="false" onclick="acFilter(this)">Envelopes</button>
-        <button class="ews-tab" data-t="tpl" aria-selected="false" onclick="acFilter(this)">Templates</button>
-        <button class="ews-tab" data-t="doc" aria-selected="false" onclick="acFilter(this)">Documents</button>
-        <button class="ews-tab" data-t="ntf" aria-selected="false" onclick="acFilter(this)">Notifications</button>
+        <button class="ews-tab" data-t="all" aria-selected="true">All</button>
+        <button class="ews-tab" data-t="env" aria-selected="false">Envelopes</button>
+        <button class="ews-tab" data-t="tpl" aria-selected="false">Templates</button>
+        <button class="ews-tab" data-t="doc" aria-selected="false">Documents</button>
+        <button class="ews-tab" data-t="ntf" aria-selected="false">Notifications</button>
       </div>
       <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }} <span class="ews-sar"></span></th></tr></thead>
         <tbody id="acRows"><tr><td colspan="4" class="ews-empty">Loading…</td></tr></tbody></table></div>
@@ -42,6 +42,7 @@
   }
   window.acFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.t;render();};
   $(function(){
+    var tabs=document.querySelector('.ews-tabs');if(tabs)tabs.addEventListener('click',function(e){var t=e.target.closest('.ews-tab');if(t)acFilter(t);});
     var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){if(e.target.closest('th.ews-sortable'))acSort();});
     $.when(
       get("/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode,modifiedon&$orderby=modifiedon desc&$top=50"),
