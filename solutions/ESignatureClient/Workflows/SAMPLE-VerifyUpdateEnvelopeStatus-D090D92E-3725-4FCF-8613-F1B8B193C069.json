@@ -285,7 +285,7 @@
                   "organization": "@parameters('cs_BrokerServiceEnvironment (cs_BrokerServiceEnvironment)')",
                   "entityName": "annotations",
                   "item/subject": "Envelope status updated",
-                  "item/notetext": "@{concat('Updated status from ', outputs('Compose_Old_Status_Label'), ' to ', outputs('Compose_New_Status_Label'), ' on ', outputs('Compose_Status_Change_Timestamp'))}",
+                  "item/notetext": "@{concat('Updated status from ', outputs('Compose_Old_Status_Label'), ' to ', outputs('Compose_New_Status_Label'), ' on ', outputs('Compose_Status_Change_Timestamp'), if(empty(coalesce(body('Get_Envelope_Final')?['cs_declinereason'],'')), '', concat(decodeUriComponent('%0A%0A'), 'Decline reason (raw): ', body('Get_Envelope_Final')?['cs_declinereason'], decodeUriComponent('%0A'), 'Signer comment (parsed): ', outputs('Compose_Decline_Comment'))))}",
                   "item/objectid_cs_envelope@odata.bind": "@{concat('/cs_envelopes(', triggerBody()?['text'], ')')}"
                 },
                 "authentication": "@parameters('$authentication')"
@@ -299,6 +299,9 @@
           },
           "runAfter": {
             "Compose_Status_Change_Timestamp": [
+              "Succeeded"
+            ],
+            "Compose_Decline_Comment": [
               "Succeeded"
             ]
           },
@@ -323,6 +326,15 @@
             ]
           },
           "description": "Summarizes the verification outcome in the flow run history."
+        },
+        "Compose_Decline_Comment": {
+          "type": "Compose",
+          "inputs": "@{if(contains(coalesce(body('Get_Envelope_Final')?['cs_declinereason'],''),'Comments:'), trim(replace(last(split(coalesce(body('Get_Envelope_Final')?['cs_declinereason'],''),'Comments:')),'''','')), '')}",
+          "runAfter": {
+            "Get_Envelope_Final": [
+              "Succeeded"
+            ]
+          }
         }
       }
     },

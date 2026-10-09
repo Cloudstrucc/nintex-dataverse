@@ -210,7 +210,8 @@
                       "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
                       "item/statuscode": "@{if(equals(outputs('Normalize_Nintex_Status'),'completed'),5,if(equals(outputs('Normalize_Nintex_Status'),'cancelled'),8,if(equals(outputs('Normalize_Nintex_Status'),'declined'),10,if(equals(outputs('Normalize_Nintex_Status'),'expired'),11,if(equals(outputs('Normalize_Nintex_Status'),'staled'),717640008,if(equals(outputs('Normalize_Nintex_Status'),'signerauthenticationfailed'),717640009,717640003))))))}",
                       "item/statecode": "@{if(or(equals(outputs('Normalize_Nintex_Status'),'completed'),equals(outputs('Normalize_Nintex_Status'),'cancelled'),equals(outputs('Normalize_Nintex_Status'),'declined'),equals(outputs('Normalize_Nintex_Status'),'expired'),equals(outputs('Normalize_Nintex_Status'),'staled'),equals(outputs('Normalize_Nintex_Status'),'signerauthenticationfailed')),1,0)}",
-                      "item/cs_statuslastcheckedon": "@{utcNow()}"
+                      "item/cs_statuslastcheckedon": "@{utcNow()}",
+                      "item/cs_declinereason": "@{if(equals(outputs('Normalize_Nintex_Status'),'declined'), coalesce(first(body('HTTP_Get_Envelope_Status')?['result']?['documentList'])?['status']?['statusDetails'], ''), null)}"
                     },
                     "authentication": "@parameters('$authentication')"
                   },
