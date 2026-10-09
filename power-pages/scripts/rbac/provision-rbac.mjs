@@ -152,6 +152,8 @@ async function writePerms(roles, bkdir) {
   await upsertPerm("Global Templates (read)", permContent({ label: "Global Templates (read)", table: "cs_template", scope: SCOPE.PARENT, roles: [AUTH], r: { read: 1 }, parentrelationship: REL.catalog, parententitypermission: catPerm }), bkdir);
   await upsertPerm("Global Templates (manage)", permContent({ label: "Global Templates (manage)", table: "cs_template", scope: SCOPE.GLOBAL, roles: [MAKER, ADMIN], r: { append: 1, appendto: 1, create: 1, del: 1, read: 1, write: 1 } }), bkdir);
   await upsertPerm("Template Shares (owner)", permContent({ label: "Template Shares (owner)", table: "cs_templateshare", scope: SCOPE.CONTACT, roles: [AUTH], r: { append: 1, appendto: 1, create: 1, del: 1, read: 1, write: 1 }, contactrelationship: REL.shareBy }), bkdir);
+  // Profile page: let a signed-in user edit their own contact record (Self scope, write).
+  await upsertPerm("Profile - Contact (Self)", permContent({ label: "Profile - Contact (Self)", table: "contact", scope: 756150004, roles: [AUTH], r: { append: 1, appendto: 1, read: 1, write: 1 } }), bkdir);
   // Association rights: setting a lookup to contact (owner/share/notification) needs AppendTo on
   // the contact permission; best-effort patch of the existing contact + portalmessage perms.
   await ensureAssocRights();
@@ -174,9 +176,11 @@ async function ensureAssocRights() {
 const WEBAPI = {
   cs_template: ["cs_templateid","cs_name","cs_description","cs_category","cs_isactive","cs_templatejson","cs_visibility","_cs_ownercontact_value","_cs_modifiedbycontact_value","_cs_catalog_value","cs_OwnerContact","cs_ModifiedByContact","cs_catalog","cs_templatepdf_name","createdon","modifiedon","_createdby_value","_modifiedby_value"],
   cs_envelope: ["cs_envelopeid","cs_name","cs_subject","_cs_ownercontact_value","cs_OwnerContact","cs_sentdate","cs_statuscheckrequestedon","createdon","modifiedon"],
-  cs_templateshare: ["cs_templateshareid","cs_name","_cs_templatelink_value","_cs_sharedwithcontact_value","_cs_sharedbycontact_value","cs_TemplateLink","cs_SharedWithContact","cs_SharedByContact","cs_sharedon","cs_sharedname","cs_sharedcategory","createdon","modifiedon"],
+  cs_templateshare: ["cs_templateshareid","cs_name","_cs_templatelink_value","_cs_sharedwithcontact_value","_cs_sharedbycontact_value","cs_TemplateLink","cs_SharedWithContact","cs_SharedByContact","cs_sharedon","cs_sharedname","cs_sharedcategory","cs_sharedtemplatejson","createdon","modifiedon"],
   cs_templatecatalog: ["cs_templatecatalogid","cs_name"],
   cs_portalmessage: ["cs_subject","cs_content","cs_service","cs_prioritytype","_cs_recipientcontactid_value","cs_RecipientContactId"],
+  // profile page (self-service contact edit)
+  contact: ["contactid","fullname","firstname","lastname","emailaddress1","telephone1","mobilephone","cs_preferredlanguage"],
 };
 async function findSetting(name) {
   const r = await api(`powerpagecomponents?$select=powerpagecomponentid,content&$filter=powerpagecomponenttype eq 9 and name eq '${name}'`);
