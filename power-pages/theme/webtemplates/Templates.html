@@ -293,7 +293,11 @@
   function doShare(){var ids=Object.keys(shareSel);if(!ids.length||!shareTplId)return;
     var name=document.getElementById('shareDo').getAttribute('data-name'),cat=document.getElementById('shareDo').getAttribute('data-cat');
     var btn=document.getElementById('shareDo');btn.disabled=true;btn.textContent='Sharing…';
-    // Skip recipients the template is already shared with, so re-sharing never creates duplicate rows.
+    // Snapshot the template JSON onto each share row so recipients (who can't read the private
+    // template) can still use it; also skip recipients already shared with (no duplicate rows).
+    var TJSON='';
+    get(API+'('+shareTplId+')?$select=cs_templatejson').always(function(d){ TJSON=(d&&d.cs_templatejson)||''; proceed(); });
+    function proceed(){
     get(SHAPI+"?$select=_cs_sharedwithcontact_value&$filter=_cs_templatelink_value eq "+shareTplId).done(function(ex){
       var already={};(ex.value||[]).forEach(function(s){if(s._cs_sharedwithcontact_value)already[s._cs_sharedwithcontact_value]=1;});
       var newIds=ids.filter(function(c){return !already[c];});
@@ -301,7 +305,7 @@
       tokenFn().then(function(tkn){
         var hdr={'Content-Type':'application/json','Accept':'application/json'};if(tkn)hdr['__RequestVerificationToken']=tkn;
         var chain=newIds.map(function(cid){
-          var share={cs_name:name+' → '+shareSel[cid],cs_sharedname:name,cs_sharedcategory:cat||null,cs_sharedon:new Date().toISOString(),
+          var share={cs_name:name+' → '+shareSel[cid],cs_sharedname:name,cs_sharedcategory:cat||null,cs_sharedon:new Date().toISOString(),cs_sharedtemplatejson:TJSON||null,
             'cs_TemplateLink@odata.bind':'/cs_templates('+shareTplId+')',
             'cs_SharedWithContact@odata.bind':'/contacts('+cid+')',
             'cs_SharedByContact@odata.bind':'/contacts('+ME+')'};
@@ -316,6 +320,7 @@
         toast('Shared with '+newIds.length+' '+(newIds.length===1?'person':'people')+(skipped?' ('+skipped+' already had access)':'')+'.');
       },function(x){btn.disabled=false;btn.textContent='Share';alert('Share failed (HTTP '+(x&&x.status)+').');});
     }).fail(function(){btn.disabled=false;btn.textContent='Share';alert('Could not check existing shares. Please try again.');});
+    }
   }
   function toast(t){var d=document.createElement('div');d.className='ews-toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.classList.add('show');},10);setTimeout(function(){d.classList.remove('show');setTimeout(function(){d.remove();},300);},3200);}
 

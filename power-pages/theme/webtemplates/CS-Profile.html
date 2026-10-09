@@ -1,0 +1,94 @@
+{% comment %}
+  Elections Canada – ESIGN — Profile (/profile)
+  Custom ews-styled profile replacing the OOB Profile.aspx. Reads/writes the signed-in
+  contact via the portal Web API (first/last name, email, phone, preferred language).
+  Bilingual via snippets. Needs a Self-scope write table permission on contact.
+{% endcomment %}
+
+{% if user %}
+<main class="ppep-app ppep-auth" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+  <div class="container mrgn-tp-md mrgn-bttm-lg">
+
+    <div class="ews-hero ews-profilehero mrgn-bttm-md">
+      <div class="ews-herotext">
+        <h1 id="pfName">{{ user.fullname | escape }}</h1>
+        <p id="pfHeroEmail">{{ user.emailaddress1 | escape }}</p>
+        <span class="ews-profilebadge">{{ snippets['ESIGN/PROFILE/BADGE'] | default: 'Profile' }}</span>
+      </div>
+      <div class="ews-heroavatar" id="pfAvatar" aria-hidden="true">·</div>
+    </div>
+
+    <div class="ews-card ews-profilecard">
+      <div class="ews-lsthd"><div>
+        <h4>{{ snippets['ESIGN/PROFILE/HEADING'] | default: 'Your contact information' }}</h4>
+        <div class="ews-subprev">{{ snippets['ESIGN/PROFILE/SUB'] | default: 'Keep your contact information up to date. Changes are saved to your Elections Canada profile.' }}</div>
+      </div></div>
+      <div class="ews-profilebody">
+        <div class="ews-formgrid">
+          <div class="ews-field"><label for="pfFirst">{{ snippets['ESIGN/PROFILE/FIRST'] | default: 'First name' }}</label><input id="pfFirst" type="text" autocomplete="given-name"></div>
+          <div class="ews-field"><label for="pfLast">{{ snippets['ESIGN/PROFILE/LAST'] | default: 'Last name' }} <span class="ews-req">*</span></label><input id="pfLast" type="text" autocomplete="family-name"></div>
+          <div class="ews-field"><label for="pfEmail">{{ snippets['ESIGN/PROFILE/EMAIL'] | default: 'Email' }}</label><input id="pfEmail" type="email" autocomplete="email"></div>
+          <div class="ews-field"><label for="pfPhone">{{ snippets['ESIGN/PROFILE/PHONE'] | default: 'Telephone' }}</label><input id="pfPhone" type="tel" placeholder="613-555-0123" autocomplete="tel"></div>
+          <div class="ews-field"><label for="pfLang">{{ snippets['ESIGN/PROFILE/LANG'] | default: 'Preferred language' }}</label>
+            <select id="pfLang">
+              <option value="">{{ snippets['ESIGN/PROFILE/LANG_NONE'] | default: '— Select —' }}</option>
+              <option value="717640000">{{ snippets['ESIGN/PROFILE/LANG_EN'] | default: 'English' }}</option>
+              <option value="717640001">{{ snippets['ESIGN/PROFILE/LANG_FR'] | default: 'French' }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="ews-profilefoot">
+        <span id="pfStatus" class="ews-pfstatus" role="status" aria-live="polite"></span>
+        <button type="button" id="pfSave" class="ews-btn ews-primary">{{ snippets['ESIGN/PROFILE/SAVE'] | default: 'Save changes' }}</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var ME='{{ user.contactid }}', API='/_api/contacts';
+  var S_SAVED='{{ snippets['ESIGN/PROFILE/SAVED'] | default: 'Your profile has been updated.' }}';
+  var S_LOADERR='{{ snippets['ESIGN/PROFILE/LOADERR'] | default: 'Unable to load your profile' }}';
+  var S_SAVEERR='{{ snippets['ESIGN/PROFILE/SAVEERR'] | default: 'Save failed' }}';
+  var S_REQ='{{ snippets['ESIGN/PROFILE/REQ'] | default: 'Last name is required.' }}';
+  function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json'}});}
+  function tokenFn(){return (typeof shell!=='undefined'&&shell.getTokenDeferred)?shell.getTokenDeferred():$.Deferred().resolve('').promise();}
+  function v(id){return (document.getElementById(id).value||'').trim();}
+  function initials(n){return (n||'').split(/\s+/).filter(Boolean).map(function(x){return x[0];}).slice(0,2).join('').toUpperCase()||'·';}
+  function setAvatar(n){var a=document.getElementById('pfAvatar');if(a)a.textContent=initials(n);}
+  function status(t,kind){var s=document.getElementById('pfStatus');if(!s)return;s.textContent=t;s.className='ews-pfstatus'+(kind?(' '+kind):'');}
+  function load(){
+    get(API+'('+ME+')?$select=firstname,lastname,emailaddress1,telephone1,mobilephone,cs_preferredlanguage').done(function(d){
+      document.getElementById('pfFirst').value=d.firstname||'';
+      document.getElementById('pfLast').value=d.lastname||'';
+      document.getElementById('pfEmail').value=d.emailaddress1||'';
+      document.getElementById('pfPhone').value=d.telephone1||d.mobilephone||'';
+      if(d.cs_preferredlanguage!=null)document.getElementById('pfLang').value=String(d.cs_preferredlanguage);
+      setAvatar(((d.firstname||'')+' '+(d.lastname||'')).trim()||'{{ user.fullname | escape }}');
+    }).fail(function(x){status(S_LOADERR+' (HTTP '+x.status+').','err');});
+  }
+  function save(){
+    if(!v('pfLast')){status(S_REQ,'err');document.getElementById('pfLast').focus();return;}
+    var btn=document.getElementById('pfSave');btn.disabled=true;status('…');
+    tokenFn().then(function(tkn){
+      var hdr={'Content-Type':'application/json','Accept':'application/json','If-Match':'*'};if(tkn)hdr['__RequestVerificationToken']=tkn;
+      var lang=v('pfLang');
+      var body={firstname:v('pfFirst'),lastname:v('pfLast'),emailaddress1:v('pfEmail'),telephone1:v('pfPhone'),cs_preferredlanguage:lang?parseInt(lang,10):null};
+      return $.ajax({type:'PATCH',url:API+'('+ME+')',headers:hdr,data:JSON.stringify(body)});
+    }).then(function(){
+      btn.disabled=false;status(S_SAVED,'ok');
+      var full=(v('pfFirst')+' '+v('pfLast')).trim();
+      document.getElementById('pfName').textContent=full||document.getElementById('pfName').textContent;
+      document.getElementById('pfHeroEmail').textContent=v('pfEmail');setAvatar(full);
+    },function(x){btn.disabled=false;status(S_SAVEERR+' (HTTP '+(x&&x.status)+').','err');});
+  }
+  $(function(){document.getElementById('pfSave').addEventListener('click',save);load();});
+})();
+</script>
+
+{% else %}
+<script>window.location.href='/Account/Login?returnUrl='+encodeURIComponent(window.location.pathname);</script>
+{% endif %}

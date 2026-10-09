@@ -891,9 +891,40 @@ input.te-title-input[type="text"],
         } catch (e) { console.warn('Could not parse cs_templatejson:', e); }
       })
       .catch(function (err) {
-        document.getElementById('tplNameDisplay').textContent = 'Template not found';
-        console.warn('ESIGN: Could not load template:', err.message);
+        /* Direct template read is blocked for shared templates (private to owner). Fall back to the
+           share-row snapshot (cs_sharedtemplatejson), which the recipient can read. */
+        console.warn('ESIGN: direct template read failed, trying shared-template fallback:', err.message);
+        loadSharedTemplate(templateId);
       });
+  }
+
+  function loadSharedTemplate(templateId) {
+    return portalGet('/_api/cs_templateshares?$select=cs_sharedname,cs_sharedcategory,cs_sharedtemplatejson,_cs_templatelink_value&$filter=_cs_templatelink_value eq ' + templateId + '&$top=1')
+      .then(function (d) {
+        var s = d && d.value && d.value[0];
+        if (!s) { document.getElementById('tplNameDisplay').textContent = 'Template not found'; return; }
+        state.templateData = { cs_templateid: templateId, cs_name: s.cs_sharedname || 'Shared template', cs_templatejson: s.cs_sharedtemplatejson || '{}' };
+        var _nm = document.getElementById('tplNameDisplay'); if (_nm) { _nm.style.display = ''; _nm.textContent = state.templateData.cs_name; }
+        var _ph = document.getElementById('tplPickerHost'); if (_ph) _ph.innerHTML = '';
+        var _cb = document.getElementById('tplChangeBtn'); if (_cb) _cb.style.display = 'none';
+        try {
+          var json = JSON.parse(state.templateData.cs_templatejson || '{}');
+          var signers = json.signers || [];
+          var saved = state.envelope ? JSON.parse(state.envelope.cs_envelopejson || '{}').recipients || [] : [];
+          renderRecipients(signers, saved, state.isReadOnly);
+          /* PDF preview: recipients have Global read on annotation, so the source PDF still loads. */
+          $.ajax({ type: 'GET', url: '/_api/annotations?$filter=_objectid_value eq ' + templateId + ' and subject eq \'TemplateSourcePDF\'&$select=documentbody&$top=1', headers: { 'Accept': 'application/json' } })
+            .done(function (nd) {
+              if (nd && nd.value && nd.value.length > 0 && nd.value[0].documentbody) {
+                var b64 = nd.value[0].documentbody, bin = atob(b64), bytes = new Uint8Array(bin.length);
+                for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+                loadPdf(bytes.buffer);
+              } else if (json.pdfBase64) { loadPdf(json.pdfBase64); }
+              else { document.getElementById('noDocDesc').textContent = 'Preview unavailable for this shared template.'; }
+            })
+            .fail(function () { if (json.pdfBase64) { loadPdf(json.pdfBase64); } else { document.getElementById('noDocDesc').textContent = 'Preview unavailable for this shared template.'; } });
+        } catch (e) { console.warn('ESIGN: shared template parse failed:', e); }
+      }, function () { document.getElementById('tplNameDisplay').textContent = 'Template not found'; });
   }
 
   /* ── Load existing envelope ───────────────────────────────────────────── */
