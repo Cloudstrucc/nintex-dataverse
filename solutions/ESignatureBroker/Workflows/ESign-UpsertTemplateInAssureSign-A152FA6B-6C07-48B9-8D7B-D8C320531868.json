@@ -4,7 +4,7 @@
       "shared_commondataserviceforapps": {
         "runtimeSource": "embedded",
         "connection": {
-          "connectionReferenceLogicalName": "cs_sharecommondataserviceforapps"
+          "connectionReferenceLogicalName": "cs_sharedcommondataserviceforapps_17ab1"
         },
         "api": {
           "name": "shared_commondataserviceforapps"
@@ -26,6 +26,9 @@
       },
       "triggers": {
         "When_template_created_or_updated": {
+          "metadata": {
+            "operationMetadataId": "25e433c5-2040-447d-bd01-ab28697c0070"
+          },
           "type": "OpenApiConnectionWebhook",
           "inputs": {
             "host": {
@@ -277,6 +280,14 @@
           }
         },
         "Get_ApiUsername_Env": {
+          "runAfter": {
+            "Set_NintexTemplateId": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b44b1044-358b-4bd0-952f-07fbba030f3c"
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
@@ -292,14 +303,17 @@
               "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
             },
             "authentication": "@parameters('$authentication')"
-          },
+          }
+        },
+        "Get_ApiKey_Env": {
           "runAfter": {
             "Set_NintexTemplateId": [
               "Succeeded"
             ]
-          }
-        },
-        "Get_ApiKey_Env": {
+          },
+          "metadata": {
+            "operationMetadataId": "b689a2aa-1905-44b7-90a2-ded7a3afe195"
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
@@ -315,14 +329,17 @@
               "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
             },
             "authentication": "@parameters('$authentication')"
-          },
+          }
+        },
+        "Get_ContextUsername_Env": {
           "runAfter": {
             "Set_NintexTemplateId": [
               "Succeeded"
             ]
-          }
-        },
-        "Get_ContextUsername_Env": {
+          },
+          "metadata": {
+            "operationMetadataId": "efe14938-d5e6-443e-91dd-67e5a4bf7fcb"
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
@@ -338,14 +355,17 @@
               "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
             },
             "authentication": "@parameters('$authentication')"
-          },
+          }
+        },
+        "Get_AuthUrl_Env": {
           "runAfter": {
             "Set_NintexTemplateId": [
               "Succeeded"
             ]
-          }
-        },
-        "Get_AuthUrl_Env": {
+          },
+          "metadata": {
+            "operationMetadataId": "dbd69d3b-ed74-4a30-9188-97ea0fa3f562"
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
@@ -361,14 +381,17 @@
               "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
             },
             "authentication": "@parameters('$authentication')"
-          },
+          }
+        },
+        "Get_ApiBaseUrl_Env": {
           "runAfter": {
             "Set_NintexTemplateId": [
               "Succeeded"
             ]
-          }
-        },
-        "Get_ApiBaseUrl_Env": {
+          },
+          "metadata": {
+            "operationMetadataId": "c7d946b0-6bea-4f94-9449-b4988b77a0c3"
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "host": {
@@ -384,31 +407,9 @@
               "$expand": "environmentvariabledefinition_environmentvariablevalue($select=value;$top=1)"
             },
             "authentication": "@parameters('$authentication')"
-          },
-          "runAfter": {
-            "Set_NintexTemplateId": [
-              "Succeeded"
-            ]
           }
         },
         "HTTP_Authenticate_Nintex": {
-          "type": "Http",
-          "inputs": {
-            "method": "POST",
-            "uri": "@{coalesce(first(first(outputs('Get_AuthUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_AuthUrl_Env')?['body/value'])?['defaultvalue'])}/authentication/apiUser",
-            "headers": {
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            "body": {
-              "request": {
-                "apiUsername": "@{coalesce(first(first(outputs('Get_ApiUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiUsername_Env')?['body/value'])?['defaultvalue'])}",
-                "key": "@{coalesce(first(first(outputs('Get_ApiKey_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiKey_Env')?['body/value'])?['defaultvalue'])}",
-                "contextUsername": "@{coalesce(first(first(outputs('Get_ContextUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ContextUsername_Env')?['body/value'])?['defaultvalue'])}",
-                "sessionLengthInMinutes": 1440
-              }
-            }
-          },
           "runAfter": {
             "Get_ApiUsername_Env": [
               "Succeeded"
@@ -425,42 +426,71 @@
             "Get_ApiBaseUrl_Env": [
               "Succeeded"
             ]
+          },
+          "metadata": {
+            "operationMetadataId": "6397f4df-d55c-4df7-b15f-4b3c1d498b41"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{coalesce(first(first(outputs('Get_AuthUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_AuthUrl_Env')?['body/value'])?['defaultvalue'])}/authentication/apiUser",
+            "headers": {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            "body": {
+              "request": {
+                "apiUsername": "@{coalesce(first(first(outputs('Get_ApiUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiUsername_Env')?['body/value'])?['defaultvalue'])}",
+                "key": "@{coalesce(first(first(outputs('Get_ApiKey_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiKey_Env')?['body/value'])?['defaultvalue'])}",
+                "contextUsername": "@{coalesce(first(first(outputs('Get_ContextUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ContextUsername_Env')?['body/value'])?['defaultvalue'])}",
+                "sessionLengthInMinutes": 1440
+              }
+            }
           }
         },
         "Set_BearerToken": {
+          "runAfter": {
+            "HTTP_Authenticate_Nintex": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b5947999-7d06-4185-9376-79f26f0065e7"
+          },
           "type": "SetVariable",
           "inputs": {
             "name": "BearerToken",
             "value": "@{concat('bearer ', body('HTTP_Authenticate_Nintex')?['result']?['token'])}"
-          },
+          }
+        },
+        "Set_UserContext": {
           "runAfter": {
             "HTTP_Authenticate_Nintex": [
               "Succeeded"
             ]
-          }
-        },
-        "Set_UserContext": {
+          },
+          "metadata": {
+            "operationMetadataId": "dabe6b20-f2b0-4299-974c-c66c06ab36c2"
+          },
           "type": "SetVariable",
           "inputs": {
             "name": "UserContext",
             "value": "@{coalesce(first(first(outputs('Get_ContextUsername_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ContextUsername_Env')?['body/value'])?['defaultvalue'])}"
-          },
+          }
+        },
+        "Set_ApiBaseUrl": {
           "runAfter": {
             "HTTP_Authenticate_Nintex": [
               "Succeeded"
             ]
-          }
-        },
-        "Set_ApiBaseUrl": {
+          },
+          "metadata": {
+            "operationMetadataId": "b1fb3468-0693-4fbf-9956-410ca00932c7"
+          },
           "type": "SetVariable",
           "inputs": {
             "name": "ApiBaseUrl",
             "value": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}"
-          },
-          "runAfter": {
-            "HTTP_Authenticate_Nintex": [
-              "Succeeded"
-            ]
           }
         },
         "Transform_Fields_To_Nintex": {
@@ -482,10 +512,10 @@
           "inputs": {
             "from": "@coalesce(body('Parse_TemplateJson')?['fields'], json('[]'))",
             "select": {
-              "fieldType": "@if(equals(item()?['type'], 'signature'), 'signature', if(equals(item()?['type'], 'initials'), 'signature', if(equals(item()?['type'], 'checkbox'), 'checkbox', 'text')))",
+              "fieldType": "@if(equals(item()?['type'], 'signature'), 'signature', if(equals(item()?['type'], 'initials'), 'signature', if(equals(item()?['type'], 'checkbox'), 'checkbox', 'typed')))",
               "inputType": "signer",
               "name": "@coalesce(item()?['label'], 'Field')",
-              "signer": "@coalesce(first(body('Parse_TemplateJson')?['signers'])?['label'], 'Signer 1')",
+              "signer": "@coalesce(body('Parse_TemplateJson')?['signers'][coalesce(item()?['signerIndex'], 0)]?['label'], first(body('Parse_TemplateJson')?['signers'])?['label'], 'Signer 1')",
               "required": "@coalesce(item()?['required'], true)",
               "pageIndex": "@sub(coalesce(item()?['page'], 1), 1)",
               "position": {
@@ -586,6 +616,9 @@
             ],
             "Get_Template_Pdf_Note": [
               "Succeeded"
+            ],
+            "Compose_SafeDocName": [
+              "Succeeded"
             ]
           },
           "metadata": {
@@ -599,11 +632,11 @@
               "content": {
                 "documents": [
                   {
-                    "name": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}",
+                    "name": "@{outputs('Compose_SafeDocName')}",
                     "file": {
                       "fileToUpload": {
                         "data": "@{coalesce(first(outputs('Get_Template_Pdf_Note')?['body/value'])?['documentbody'], body('Parse_TemplateJson')?['pdfBase64'], '')}",
-                        "fileName": "@{coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf'))}"
+                        "fileName": "@{outputs('Compose_SafeDocName')}"
                       },
                       "extension": "pdf"
                     },
@@ -621,27 +654,6 @@
           }
         },
         "Check_Is_Update_Or_Create": {
-          "runAfter": {
-            "Build_Template_Payload": [
-              "Succeeded"
-            ]
-          },
-          "metadata": {
-            "operationMetadataId": "90a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
-          },
-          "type": "If",
-          "expression": {
-            "and": [
-              {
-                "not": {
-                  "equals": [
-                    "@variables('NintexTemplateId')",
-                    ""
-                  ]
-                }
-              }
-            ]
-          },
           "actions": {
             "HTTP_Update_Template_In_AssureSign": {
               "runAfter": {},
@@ -651,7 +663,7 @@
               "type": "Http",
               "inputs": {
                 "method": "PUT",
-                "uri": "@{variables('ApiBaseUrl')}/templates/@{variables('NintexTemplateId')}",
+                "uri": "@{variables('ApiBaseUrl')}/templates/@{outputs('Resolve_NintexTemplateId')}",
                 "headers": {
                   "Authorization": "@{variables('BearerToken')}",
                   "X-AS-UserContext": "@{variables('UserContext')}",
@@ -663,7 +675,7 @@
             },
             "Update_Dataverse_After_AssureSign_Update": {
               "runAfter": {
-                "HTTP_Update_Template_In_AssureSign": [
+                "Compose_Updated_TemplateJson_Update": [
                   "Succeeded"
                 ]
               },
@@ -680,11 +692,29 @@
                 "parameters": {
                   "entityName": "cs_templates",
                   "recordId": "@triggerOutputs()?['body/cs_templateid']",
-                  "item/cs_isactive": true
+                  "item/cs_isactive": true,
+                  "item/cs_templatejson": "@{string(outputs('Compose_Updated_TemplateJson_Update'))}"
                 },
                 "authentication": "@parameters('$authentication')"
               }
+            },
+            "Compose_Updated_TemplateJson_Update": {
+              "type": "Compose",
+              "inputs": "@setProperty(removeProperty(json(outputs('Get_Template_Record')?['body/cs_templatejson']), 'pdfBase64'), 'nintexTemplateId', outputs('Resolve_NintexTemplateId'))",
+              "runAfter": {
+                "HTTP_Update_Template_In_AssureSign": [
+                  "Succeeded"
+                ]
+              }
             }
+          },
+          "runAfter": {
+            "Build_Template_Payload": [
+              "Succeeded"
+            ],
+            "Resolve_NintexTemplateId": [
+              "Succeeded"
+            ]
           },
           "else": {
             "actions": {
@@ -716,7 +746,7 @@
                   "operationMetadataId": "d0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
                 },
                 "type": "Compose",
-                "inputs": "@setProperty(removeProperty(json(outputs('Get_Template_Record')?['body/cs_templatejson']), 'pdfBase64'), 'nintexTemplateId', body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID'])"
+                "inputs": "@setProperty(removeProperty(json(outputs('Get_Template_Record')?['body/cs_templatejson']), 'pdfBase64'), 'nintexTemplateId', coalesce(body('HTTP_Create_Template_In_AssureSign')?['result']?['templateID'], body('HTTP_Create_Template_In_AssureSign')?['templateID']))"
               },
               "Update_Dataverse_With_NintexId": {
                 "runAfter": {
@@ -744,6 +774,75 @@
                 }
               }
             }
+          },
+          "expression": {
+            "and": [
+              {
+                "not": {
+                  "equals": [
+                    "@outputs('Resolve_NintexTemplateId')",
+                    ""
+                  ]
+                }
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "90a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5"
+          },
+          "type": "If"
+        },
+        "HTTP_Find_Templates_By_Name": {
+          "type": "Http",
+          "runAfter": {
+            "Set_BearerToken": [
+              "Succeeded"
+            ],
+            "Set_UserContext": [
+              "Succeeded"
+            ],
+            "Set_ApiBaseUrl": [
+              "Succeeded"
+            ]
+          },
+          "inputs": {
+            "method": "GET",
+            "uri": "@{variables('ApiBaseUrl')}/templates",
+            "headers": {
+              "Authorization": "@{variables('BearerToken')}",
+              "X-AS-UserContext": "@{variables('UserContext')}",
+              "Accept": "application/json"
+            }
+          }
+        },
+        "Filter_Existing_Template": {
+          "type": "Query",
+          "runAfter": {
+            "HTTP_Find_Templates_By_Name": [
+              "Succeeded"
+            ]
+          },
+          "inputs": {
+            "from": "@coalesce(body('HTTP_Find_Templates_By_Name')?['result']?['templates'], json('[]'))",
+            "where": "@equals(toLower(trim(coalesce(item()?['name'], ''))), toLower(trim(coalesce(outputs('Get_Template_Record')?['body/cs_name'], ''))))"
+          }
+        },
+        "Resolve_NintexTemplateId": {
+          "type": "Compose",
+          "runAfter": {
+            "Filter_Existing_Template": [
+              "Succeeded"
+            ]
+          },
+          "inputs": "@if(empty(variables('NintexTemplateId')), coalesce(first(body('Filter_Existing_Template'))?['templateID'], ''), variables('NintexTemplateId'))"
+        },
+        "Compose_SafeDocName": {
+          "type": "Compose",
+          "inputs": "@{replace(replace(replace(replace(replace(replace(replace(replace(replace(coalesce(body('Parse_TemplateJson')?['pdfFilename'], concat(outputs('Get_Template_Record')?['body/cs_name'], '.pdf')), '\\\\', '_'), '/', '_'), ':', '_'), '*', '_'), '?', '_'), '\"', '_'), '<', '_'), '>', '_'), '|', '_')}",
+          "runAfter": {
+            "Parse_TemplateJson": [
+              "Succeeded"
+            ]
           }
         }
       }
