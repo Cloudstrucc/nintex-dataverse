@@ -254,6 +254,75 @@ input.te-title-input[type="text"],
   background: rgba(0,0,0,0.15); border-radius: 2px 0;
 }
 
+/* Floating per-field action toolbar (shown when a field is selected).
+   Works on desktop AND mobile — the primary way to edit/delete a control on
+   touch devices, where the right-hand properties panel is not reachable. */
+.te-fieldbar {
+  position: fixed; display: none; z-index: 1200;
+  gap: 2px; padding: 3px; background: #fff;
+  border: 1px solid #d0d5db; border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+}
+.te-fieldbar.show { display: inline-flex; }
+.te-fieldbar button {
+  border: none; background: transparent; cursor: pointer;
+  width: 40px; height: 36px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; color: var(--gc-blue); line-height: 1;
+}
+.te-fieldbar button:hover { background: #eef2f8; }
+.te-fieldbar button.danger { color: var(--gc-red); }
+.te-fieldbar button.danger:hover { background: #fdecee; }
+.te-fieldbar .te-fieldbar-sep { width: 1px; background: #e3e7ec; margin: 4px 1px; }
+
+/* Field-configuration modal (opened by the toolbar's Edit button). */
+.te-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(20,28,38,0.55);
+  z-index: 3000; display: none; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.te-modal-backdrop.show { display: flex; }
+.te-modal {
+  background: #fff; border-radius: 12px; width: 100%; max-width: 460px;
+  max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.35); overflow: hidden;
+}
+.te-modal-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; background: var(--gc-blue); color: #fff;
+  border-bottom: 3px solid var(--gc-red);
+}
+.te-modal-hd h3 { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.te-modal-hd .te-modal-x { background: none; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; padding: 2px 6px; line-height: 1; }
+.te-modal-bd { padding: 16px 18px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.te-modal-ft {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 12px 18px; border-top: 1px solid #eee; background: #fafbfc;
+}
+.te-fg { margin-bottom: 12px; }
+.te-fg > label { display: block; font-size: 0.78rem; font-weight: 600; color: #444; margin-bottom: 4px; }
+.te-fg input[type=text], .te-fg input[type=number], .te-fg select, .te-fg textarea {
+  width: 100%; padding: 7px 9px; border: 1px solid #ccc; border-radius: 5px;
+  font-size: 0.88rem; box-sizing: border-box;
+}
+.te-fg textarea { resize: vertical; min-height: 44px; }
+.te-fg .te-hint { font-size: 0.72rem; color: #777; margin-top: 3px; }
+.te-fg-check { display: flex; align-items: center; gap: 8px; }
+.te-fg-check input { width: 16px; height: 16px; flex-shrink: 0; }
+.te-fg-check label { font-size: 0.85rem; margin: 0; }
+.te-modal .btn-cfg { padding: 7px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+.te-modal .btn-cfg-primary { background: var(--gc-blue); color: #fff; }
+.te-modal .btn-cfg-primary:hover { background: var(--gc-blue-light); }
+.te-modal .btn-cfg-ghost { background: #fff; color: #444; border-color: #ccc; }
+.te-modal .btn-cfg-ghost:hover { background: #f1f3f5; }
+.te-modal .btn-cfg-danger { background: #fff; color: var(--gc-red); border-color: var(--gc-red); margin-right: auto; }
+.te-modal .btn-cfg-danger:hover { background: #fdecee; }
+@media (max-width: 768px) {
+  .te-fieldbar button { width: 46px; height: 42px; font-size: 1.05rem; }
+  .te-modal { max-width: 100%; border-radius: 12px 12px 0 0; margin-top: auto; max-height: 88vh; }
+  .te-modal-backdrop { align-items: flex-end; padding: 0; }
+}
+
 /* Placed fields list */
 .te-placed-field-item {
   display: flex; align-items: center; gap: 6px;
@@ -650,6 +719,7 @@ input.te-title-input[type="text"],
             <div class="te-palette-item" data-field-type="email">      <i class="fa fa-envelope-o"></i>  <span>Email</span></div>
             <div class="te-palette-item" data-field-type="company">    <i class="fa fa-building-o"></i>     <span>Company</span></div>
             <div class="te-palette-item" data-field-type="title">      <i class="fa fa-briefcase"></i>    <span>Title</span></div>
+            <div class="te-palette-item" data-field-type="variable">   <i class="fa fa-code"></i>       <span>Variable</span></div>
           </div>
         </div>
       </div>
@@ -752,6 +822,29 @@ input.te-title-input[type="text"],
   </div>
 </div>
 
+<!-- Floating per-field action toolbar (Edit / Delete). Shown when a field is selected. -->
+<div class="te-fieldbar" id="fieldBar" role="toolbar" aria-label="Field actions">
+  <button type="button" id="fieldBarEdit" title="Edit field" aria-label="Edit field"><i class="fa fa-cog"></i></button>
+  <div class="te-fieldbar-sep"></div>
+  <button type="button" id="fieldBarDelete" class="danger" title="Delete field" aria-label="Delete field"><i class="fa fa-trash"></i></button>
+</div>
+
+<!-- Field configuration modal -->
+<div class="te-modal-backdrop" id="fieldCfgBackdrop" role="dialog" aria-modal="true" aria-labelledby="fieldCfgTitle">
+  <div class="te-modal">
+    <div class="te-modal-hd">
+      <h3 id="fieldCfgTitle"><i class="fa fa-cog"></i> <span id="fieldCfgTitleText">Field settings</span></h3>
+      <button type="button" class="te-modal-x" id="fieldCfgClose" aria-label="Close"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="te-modal-bd" id="fieldCfgBody"><!-- built by renderFieldConfig() --></div>
+    <div class="te-modal-ft">
+      <button type="button" class="btn-cfg btn-cfg-danger" id="fieldCfgDelete"><i class="fa fa-trash me-1"></i>Delete</button>
+      <button type="button" class="btn-cfg btn-cfg-ghost" id="fieldCfgCancel">Cancel</button>
+      <button type="button" class="btn-cfg btn-cfg-primary" id="fieldCfgSave">Save</button>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- Bootstrap Icons + PDF.js loaded via JS inside DOMContentLoaded below -->
@@ -795,8 +888,15 @@ input.te-title-input[type="text"],
     name:        { label: 'Full Name',   icon: 'fa-user',          w: 160, h: 28 },
     email:       { label: 'Email',       icon: 'fa-envelope-o',     w: 180, h: 28 },
     company:     { label: 'Company',     icon: 'fa-building-o',        w: 160, h: 28 },
-    title:       { label: 'Title',       icon: 'fa-briefcase',       w: 140, h: 28 }
+    title:       { label: 'Title',       icon: 'fa-briefcase',       w: 140, h: 28 },
+    /* Variable: an API-prefillable data field. Its `variableName` becomes the
+       Nintex template field name, which the broker matches against the
+       envelope's values[] ({name,value}) at submit time to pre-populate it. */
+    variable:    { label: 'Variable',    icon: 'fa-code',            w: 160, h: 28 }
   };
+
+  /* Field types that carry a free-text/default value in the config modal. */
+  var VALUE_TYPES = { text: 1, name: 1, email: 1, company: 1, title: 1, date_signed: 1, variable: 1 };
 
   /* ── State ───────────────────────────────────────────────── */
   var state = {
@@ -993,7 +1093,10 @@ input.te-title-input[type="text"],
       /* Store a COPY of the ArrayBuffer — PDF.js may detach the original
          when it transfers it to its web worker. */
       state.pdfArrayBuffer = buf.slice(0);
-      state.pdfFilename    = file.name;
+      /* Strip characters AssureSign rejects in a document/file name (it treats
+         the name as a filesystem path): \ / : * ? " < > |  — otherwise the
+         Nintex template create fails with "Illegal characters in path". */
+      state.pdfFilename    = sanitizePdfName(file.name);
       state.pdfDirty       = true;
       loadPdf(buf);
       markDirty();
@@ -1195,12 +1298,16 @@ input.te-title-input[type="text"],
       div.className = 'te-field' + (f.id === state.selectedFieldId ? ' selected' : '');
       div.setAttribute('data-field-id', f.id);
       /* Field x/y/w/h are stored at scale=1; multiply by current scale for display */
+      var hiddenVar = (f.type === 'variable' && f.hidden);
       div.style.cssText =
         'left:' + (f.x * sc) + 'px;top:' + (f.y * sc) + 'px;width:' + (f.w * sc) + 'px;height:' + (f.h * sc) + 'px;' +
-        'border-color:' + color.border + ';background:' + color.bg + ';color:' + color.text + ';';
+        'border-color:' + color.border + ';background:' + color.bg + ';color:' + color.text + ';' +
+        (hiddenVar ? 'border-style:dotted;opacity:0.6;' : '');
+      /* Variables display their variable name; hidden ones get an eye-slash marker. */
+      var labelText = (f.type === 'variable') ? (f.variableName || f.label) : f.label;
       div.innerHTML =
-        '<i class="fa ' + ft.icon + ' me-1" style="font-size:0.7rem;flex-shrink:0;"></i>' +
-        '<span class="te-field-label">' + esc(f.label) + '</span>' +
+        '<i class="fa ' + (hiddenVar ? 'fa-eye-slash' : ft.icon) + ' me-1" style="font-size:0.7rem;flex-shrink:0;"></i>' +
+        '<span class="te-field-label">' + esc(labelText) + '</span>' +
         '<div class="te-resize-handle"></div>';
       /* Mouse drag/resize */
       div.addEventListener('mousedown', function (e) {
@@ -1232,6 +1339,9 @@ input.te-title-input[type="text"],
       layer.appendChild(div);
     });
     document.getElementById('fieldCount').textContent = state.fields.length;
+    /* Overlays were rebuilt (zoom / page change) — re-pin the floating toolbar
+       to the selected field, or hide it if that field is not on this page. */
+    if (state.selectedFieldId) requestAnimationFrame(positionFieldBar);
   }
 
 
@@ -1290,6 +1400,7 @@ input.te-title-input[type="text"],
       f.y = Math.max(0, fieldMove.origY + (clientY - fieldMove.startY) / sc);
       fieldMove.el.style.left = (f.x * sc) + 'px';
       fieldMove.el.style.top  = (f.y * sc) + 'px';
+      positionFieldBar();
       markDirty();
     }
     if (fieldResize) {
@@ -1299,6 +1410,7 @@ input.te-title-input[type="text"],
       f.h = Math.max(16, fieldResize.origH + (clientY - fieldResize.startY) / sc);
       fieldResize.el.style.width  = (f.w * sc) + 'px';
       fieldResize.el.style.height = (f.h * sc) + 'px';
+      positionFieldBar();
       markDirty();
     }
   }
@@ -1363,6 +1475,39 @@ input.te-title-input[type="text"],
     });
   }
 
+  /* Fill in any missing type-specific config props WITHOUT clobbering existing
+     values — safe for both freshly placed fields and ones loaded from storage. */
+  function applyFieldDefaults(f) {
+    if (f.type === 'variable') {
+      if (!f.variableName) {
+        var n = state.fields.filter(function (x) { return x.type === 'variable'; }).length + 1;
+        f.variableName = 'Variable' + n;
+      }
+      if (f.dataType     == null) f.dataType     = 'text';
+      if (f.defaultValue == null) f.defaultValue = '';
+      if (f.hidden       == null) f.hidden       = false;
+    } else if (f.type === 'checkbox') {
+      if (f.defaultChecked == null) f.defaultChecked = false;
+      if (f.checkedValue   == null) f.checkedValue   = '';
+      if (f.groupName      == null) f.groupName      = '';
+    } else if (VALUE_TYPES[f.type]) {
+      if (f.defaultValue == null) f.defaultValue = '';
+    }
+    return f;
+  }
+
+  /* Sanitize a label into a safe AssureSign field/variable name (no illegal path
+     chars, no brackets — brackets are used as the signer placeholder syntax). */
+  function sanitizeVarName(s) {
+    return (s || '').replace(/[\\\/:*?"<>|\[\]]/g, '').trim();
+  }
+
+  /* AssureSign uses the document/file name as a filesystem path, so illegal
+     path chars break the Nintex template create. Replace them with '_'. */
+  function sanitizePdfName(s) {
+    return (s || 'document.pdf').replace(/[\\\/:*?"<>|]/g, '_').trim() || 'document.pdf';
+  }
+
     function placeField(type, x, y) {
     var ft = FIELD_TYPES[type] || FIELD_TYPES.text;
     var sc = state.scale || 1.0;
@@ -1376,6 +1521,11 @@ input.te-title-input[type="text"],
       w: ft.w,
       h: ft.h
     };
+    applyFieldDefaults(f);
+    if (type === 'variable') {
+      f.label    = f.variableName;   /* show the variable name on the new control */
+      f.required = false;            /* API-prefilled, not signer-required by default */
+    }
     state.fields.push(f);
     renderFieldOverlays(); selectField(f.id); updatePlacedFieldsList(); markDirty();
   }
@@ -1396,6 +1546,7 @@ input.te-title-input[type="text"],
     document.querySelectorAll('.te-placed-field-item').forEach(function (el) {
       el.classList.toggle('active', parseInt(el.getAttribute('data-field-id')) === id);
     });
+    showFieldBar(id);
   }
 
   function deselectField() {
@@ -1403,6 +1554,43 @@ input.te-title-input[type="text"],
     document.querySelectorAll('.te-field').forEach(function (el) { el.classList.remove('selected'); });
     document.getElementById('propsSection').style.display = 'none';
     document.querySelectorAll('.te-placed-field-item').forEach(function (el) { el.classList.remove('active'); });
+    hideFieldBar();
+  }
+
+  /* ── Floating field toolbar ──────────────────────────────────
+     The on-canvas Edit/Delete toolbar. This is the primary way to edit or
+     delete a control on touch devices (the right-hand properties panel is not
+     reachable on mobile). It is a fixed-position element that tracks the
+     selected field's on-screen rectangle. */
+  function positionFieldBar() {
+    var bar = document.getElementById('fieldBar');
+    if (!bar || !state.selectedFieldId) return;
+    var el = document.querySelector('.te-field[data-field-id="' + state.selectedFieldId + '"]');
+    if (!el) { bar.classList.remove('show'); return; }
+    var r = el.getBoundingClientRect();
+    /* Keep the bar inside the viewport; prefer above the field, flip below if no room. */
+    bar.classList.add('show');
+    var bw = bar.offsetWidth || 90, bh = bar.offsetHeight || 42;
+    var left = r.left + (r.width / 2) - (bw / 2);
+    left = Math.max(8, Math.min(left, window.innerWidth - bw - 8));
+    var top = r.top - bh - 8;
+    if (top < 8) top = r.bottom + 8;                 /* flip below if clipped at top */
+    /* Never cover the mobile tools panel / bottom bars. */
+    var maxTop = window.innerHeight - bh - 8;
+    if (top > maxTop) top = Math.max(8, r.top - bh - 8);
+    bar.style.left = left + 'px';
+    bar.style.top  = top + 'px';
+  }
+  function showFieldBar(id) {
+    var bar = document.getElementById('fieldBar');
+    if (!bar) return;
+    bar.classList.add('show');
+    /* Wait a frame so offsetWidth is accurate before centering. */
+    requestAnimationFrame(positionFieldBar);
+  }
+  function hideFieldBar() {
+    var bar = document.getElementById('fieldBar');
+    if (bar) bar.classList.remove('show');
   }
 
   function updateFieldProp(prop, value) {
@@ -1417,6 +1605,109 @@ input.te-title-input[type="text"],
     if (!state.selectedFieldId) return;
     state.fields = state.fields.filter(function (f) { return f.id !== state.selectedFieldId; });
     deselectField(); renderFieldOverlays(); updatePlacedFieldsList(); markDirty();
+  }
+
+  /* ── Field configuration modal ───────────────────────────────
+     Opened from the floating toolbar's Edit button. Shows configurable
+     properties appropriate to the field type (label, signer, required, plus
+     per-type options), mirroring the kind of settings offered in the Nintex
+     portal control inspector. */
+  function signerOptionsHtml(selectedIdx) {
+    return state.signers.map(function (s, i) {
+      return '<option value="' + i + '"' + (i === selectedIdx ? ' selected' : '') + '>' + esc(s.label) + '</option>';
+    }).join('');
+  }
+
+  function renderFieldConfig(f) {
+    var ft = FIELD_TYPES[f.type] || FIELD_TYPES.text;
+    document.getElementById('fieldCfgTitleText').textContent = ft.label + ' settings';
+    var html = '';
+
+    if (f.type === 'variable') {
+      /* Variable = API-prefillable data field. */
+      html +=
+        '<div class="te-fg"><label>Variable name (API key)</label>' +
+        '<input type="text" id="cfgVarName" value="' + escA(f.variableName || '') + '" placeholder="e.g. PolicyNumber">' +
+        '<div class="te-hint">The broker matches this name against the envelope’s <code>values</code> array to pre-populate it via the API.</div></div>' +
+        '<div class="te-fg"><label>Data type</label>' +
+        '<select id="cfgDataType">' +
+          ['text','number','date','boolean'].map(function (t) {
+            return '<option value="' + t + '"' + ((f.dataType || 'text') === t ? ' selected' : '') + '>' + t.charAt(0).toUpperCase() + t.slice(1) + '</option>';
+          }).join('') +
+        '</select></div>' +
+        '<div class="te-fg"><label>Default value</label>' +
+        '<input type="text" id="cfgDefault" value="' + escA(f.defaultValue || '') + '" placeholder="Optional — used when the API provides no value"></div>' +
+        '<div class="te-fg"><label>Display label (on document)</label>' +
+        '<input type="text" id="cfgLabel" value="' + escA(f.label || '') + '"></div>' +
+        '<div class="te-fg"><label>Assigned signer</label><select id="cfgSigner">' + signerOptionsHtml(f.signerIndex || 0) + '</select></div>' +
+        '<div class="te-fg te-fg-check"><input type="checkbox" id="cfgHidden"' + (f.hidden ? ' checked' : '') + '><label for="cfgHidden">Hidden on the document (metadata only)</label></div>' +
+        '<div class="te-fg te-fg-check"><input type="checkbox" id="cfgRequired"' + (f.required ? ' checked' : '') + '><label for="cfgRequired">Required</label></div>';
+    } else {
+      /* Common: label + signer */
+      html +=
+        '<div class="te-fg"><label>Label</label><input type="text" id="cfgLabel" value="' + escA(f.label || '') + '"></div>' +
+        '<div class="te-fg"><label>Assigned signer</label><select id="cfgSigner">' + signerOptionsHtml(f.signerIndex || 0) + '</select></div>';
+
+      if (f.type === 'checkbox') {
+        html +=
+          '<div class="te-fg te-fg-check"><input type="checkbox" id="cfgDefChecked"' + (f.defaultChecked ? ' checked' : '') + '><label for="cfgDefChecked">Checked by default</label></div>' +
+          '<div class="te-fg"><label>Value when checked</label>' +
+          '<input type="text" id="cfgCheckedValue" value="' + escA(f.checkedValue || '') + '" placeholder="e.g. Yes"></div>' +
+          '<div class="te-fg"><label>Group name</label>' +
+          '<input type="text" id="cfgGroup" value="' + escA(f.groupName || '') + '" placeholder="Optional — share a name for radio-style exclusivity">' +
+          '<div class="te-hint">Checkboxes sharing a group name behave like a single-choice group.</div></div>';
+      } else if (VALUE_TYPES[f.type]) {
+        html +=
+          '<div class="te-fg"><label>Default / placeholder value</label>' +
+          '<input type="text" id="cfgDefault" value="' + escA(f.defaultValue || '') + '"></div>';
+      }
+
+      html += '<div class="te-fg te-fg-check"><input type="checkbox" id="cfgRequired"' + (f.required ? ' checked' : '') + '><label for="cfgRequired">Required</label></div>';
+    }
+
+    html += '<div class="te-fg"><label>Page</label><div style="font-size:0.85rem;color:#555;">Page ' + f.page + '</div></div>';
+    document.getElementById('fieldCfgBody').innerHTML = html;
+  }
+
+  function openFieldConfig() {
+    var f = getField(state.selectedFieldId); if (!f) return;
+    renderFieldConfig(f);
+    document.getElementById('fieldCfgBackdrop').classList.add('show');
+  }
+
+  function closeFieldConfig() {
+    document.getElementById('fieldCfgBackdrop').classList.remove('show');
+  }
+
+  function saveFieldConfig() {
+    var f = getField(state.selectedFieldId); if (!f) { closeFieldConfig(); return; }
+    function val(id) { var e = document.getElementById(id); return e ? e.value : undefined; }
+    function chk(id) { var e = document.getElementById(id); return e ? e.checked : undefined; }
+
+    if (f.type === 'variable') {
+      var vn = sanitizeVarName(val('cfgVarName'));
+      f.variableName = vn || f.variableName || 'Variable';
+      f.dataType     = val('cfgDataType') || 'text';
+      f.defaultValue = val('cfgDefault') || '';
+      f.label        = (val('cfgLabel') || '').trim() || f.variableName;
+      f.hidden       = !!chk('cfgHidden');
+    } else {
+      f.label = (val('cfgLabel') || '').trim() || f.label;
+      if (f.type === 'checkbox') {
+        f.defaultChecked = !!chk('cfgDefChecked');
+        f.checkedValue   = val('cfgCheckedValue') || '';
+        f.groupName      = sanitizeVarName(val('cfgGroup'));
+      } else if (VALUE_TYPES[f.type]) {
+        f.defaultValue = val('cfgDefault') || '';
+      }
+    }
+    var si = parseInt(val('cfgSigner'), 10); if (!isNaN(si)) f.signerIndex = si;
+    f.required = !!chk('cfgRequired');
+
+    closeFieldConfig();
+    renderFieldOverlays();
+    if (state.selectedFieldId) selectField(state.selectedFieldId);
+    updatePlacedFieldsList(); markDirty();
   }
 
   function updatePlacedFieldsList() {
@@ -1480,6 +1771,9 @@ input.te-title-input[type="text"],
             /* Restore fields */
             if (json.fields) {
               state.fields      = json.fields;
+              /* Backfill config defaults for fields saved before the config modal
+                 existed (variables/checkboxes gain their new properties). */
+              state.fields.forEach(function (fld) { applyFieldDefaults(fld); });
               state.nextFieldId = (json.nextFieldId || 0) + 1;
               updatePlacedFieldsList();
             }
@@ -1544,7 +1838,7 @@ input.te-title-input[type="text"],
       signingOrder: state.signingOrder || 'sequential',
       fields:       state.fields,
       nextFieldId:  state.nextFieldId,
-      pdfFilename:  state.pdfFilename,
+      pdfFilename:  sanitizePdfName(state.pdfFilename),
       pageWidth:    state.pageWidth  || 612,
       pageHeight:   state.pageHeight || 792
     };
@@ -1939,15 +2233,37 @@ input.te-title-input[type="text"],
       updateFieldProp('required', this.checked);
     });
 
+    /* Floating field toolbar + config modal */
+    document.getElementById('fieldBarEdit').addEventListener('click', function (e) { e.stopPropagation(); openFieldConfig(); });
+    document.getElementById('fieldBarDelete').addEventListener('click', function (e) { e.stopPropagation(); deleteSelectedField(); });
+    document.getElementById('fieldCfgClose').addEventListener('click', closeFieldConfig);
+    document.getElementById('fieldCfgCancel').addEventListener('click', closeFieldConfig);
+    document.getElementById('fieldCfgSave').addEventListener('click', saveFieldConfig);
+    document.getElementById('fieldCfgDelete').addEventListener('click', function () { closeFieldConfig(); deleteSelectedField(); });
+    document.getElementById('fieldCfgBackdrop').addEventListener('click', function (e) {
+      if (e.target === this) closeFieldConfig();   /* click outside the card closes */
+    });
+    /* Keep the floating toolbar pinned to its field as the canvas scrolls/zooms. */
+    var _canvasArea = document.getElementById('canvasArea') || document.querySelector('.te-canvas-area');
+    if (_canvasArea) _canvasArea.addEventListener('scroll', positionFieldBar, { passive: true });
+    window.addEventListener('scroll', positionFieldBar, { passive: true });
+    window.addEventListener('resize', positionFieldBar);
+
     /* Panel collapse headers */
     ['metaHeader','signersHeader','paletteHeader','placedHeader'].forEach(function (hid) {
       document.getElementById(hid).addEventListener('click', function () { toggleSection(this); });
     });
 
-    /* Keyboard: Delete key removes selected field */
+    /* Keyboard: Delete key removes selected field; Escape closes the config modal */
     document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' &&
+          document.getElementById('fieldCfgBackdrop').classList.contains('show')) {
+        closeFieldConfig();
+        return;
+      }
       if ((e.key === 'Delete' || e.key === 'Backspace') &&
           state.selectedFieldId &&
+          !document.getElementById('fieldCfgBackdrop').classList.contains('show') &&
           document.activeElement.tagName !== 'INPUT' &&
           document.activeElement.tagName !== 'TEXTAREA') {
         deleteSelectedField();
