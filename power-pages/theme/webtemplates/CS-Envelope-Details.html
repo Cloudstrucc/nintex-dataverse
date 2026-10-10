@@ -23,6 +23,15 @@
       </div>
     </div>
 
+    <!-- Error banner (shown only when the envelope is in an Error / Cancel-Error state) -->
+    <div class="ews-alert" id="edError" role="alert" style="display:none">
+      <svg class="ews-alert-ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 2 1 21h22L12 2Zm0 4.5 7.53 13H4.47L12 6.5ZM11 10v5h2v-5h-2Zm0 6v2h2v-2h-2Z"/></svg>
+      <div class="ews-alert-bd">
+        <p class="ews-alert-ttl" id="edErrorTtl">This envelope could not be sent</p>
+        <div class="ews-alert-msg" id="edErrorMsg"></div>
+      </div>
+    </div>
+
     <div class="ews-card" style="padding:22px 24px;margin-bottom:18px">
       <h4 class="ews-sec" style="margin:0 0 16px">Progress</h4>
       <div class="ews-steps" id="edSteps"></div>
@@ -106,8 +115,47 @@
     }).join('');
   }
 
+  /* Parse the AssureSign / broker response stored on cs_responsebody into a
+     human summary + detail list. On a successful send cs_responsebody holds a
+     success payload (has result.envelopeID and no errorCode), so only treat it
+     as an error when the envelope is actually in an Error state. */
+  function parseError(env){
+    var sc=Number(env.statuscode);
+    var isErr=(sc===717640005||sc===717640007); // Error / Cancel Error
+    if(!isErr) return null;
+    var raw=env.cs_responsebody||'';
+    var out={title:(sc===717640007?'This envelope could not be cancelled':'This envelope could not be sent'),summary:'',details:[],code:''};
+    if(!raw){ out.summary='The broker reported an error but no details were returned. Try Refresh status, or re-send the envelope.'; return out; }
+    var j=null; try{ j=JSON.parse(raw); }catch(e){}
+    if(j && (j.errorCode||j.summary||j.details)){
+      out.code=j.errorCode||'';
+      out.summary=j.summary||'The e-signature service rejected this envelope.';
+      if(Array.isArray(j.details)) out.details=j.details.filter(Boolean).map(String);
+    } else if(j && j.result && j.result.envelopeID){
+      /* success payload left over on a record that later errored elsewhere */
+      out.summary='The envelope reached the e-signature service but is flagged as Error. Try Refresh status.';
+    } else {
+      out.summary=(typeof raw==='string'?raw:JSON.stringify(raw)).slice(0,600);
+    }
+    return out;
+  }
+
+  function renderError(env){
+    var box=document.getElementById('edError'); if(!box) return;
+    var e=parseError(env);
+    if(!e){ box.style.display='none'; return; }
+    document.getElementById('edErrorTtl').textContent=e.title;
+    var html='<div>'+esc(e.summary)+'</div>';
+    if(e.details.length) html+='<ul>'+e.details.map(function(d){return '<li>'+esc(d)+'</li>';}).join('')+'</ul>';
+    var meta=[]; if(e.code)meta.push('Code: '+e.code); meta.push('Last synced '+fdt(env.cs_statuscheckrequestedon||env.modifiedon));
+    html+='<div class="ews-alert-meta">'+esc(meta.join(' · '))+' — use <strong>Refresh status</strong> above, or re-send the envelope from the editor.</div>';
+    document.getElementById('edErrorMsg').innerHTML=html;
+    box.style.display='';
+  }
+
   function render(env,signers,tplName){
     var envStage=stage(env),st=STAT[env.statuscode]||['Unknown','draft'];
+    renderError(env);
     document.getElementById('edName').textContent=env.cs_name||'Envelope';
     document.getElementById('edSub').textContent='Envelope '+(env.cs_envelopeid||ID).slice(0,8)+(tplName?(' · Template: '+tplName):'')+' · Sent '+fdt(env.cs_sentdate)+' · Last synced '+fdt(env.cs_statuscheckrequestedon||env.modifiedon);
     var sp=document.getElementById('edStatus');sp.textContent=fv(env,'statuscode',STAT)||st[0];sp.className='ews-pill '+(STAGE_PILL[envStage]||'draft');
@@ -149,12 +197,27 @@
       return '<span class="it"><span class="sw" style="background:'+sigColor(i)+'"></span>'+esc(s.cs_fullname||s._role||('Signer '+(i+1)))+' · '+esc(ss.label)+(s.cs_email?' <small>'+esc(s.cs_email)+'</small>':'')+'</span>';}).join('');
   }
   function iframe(b64){document.getElementById('edDoc').innerHTML='<iframe title="Document preview" src="data:application/pdf;base64,'+b64+'#toolbar=0&navpanes=0"></iframe>';}
-  function renderDoc(b64,tpl,signers,envStage){
+  /* Build a {fieldName -> value} map from whatever the envelope recorded: the
+     submit values[] ({name,value}) if present, else the template field defaults.
+     Signer-entered values are not stored in Dataverse, so those stay blank. */
+  function buildValueMap(env,fields){
+    var m={};
+    (fields||[]).forEach(function(f){ if(f&&f.defaultValue){ m[f.variableName||f.name||f.label]=f.defaultValue; } });
+    try{
+      var j=JSON.parse((env&&env.cs_envelopejson)||'{}');
+      var vals=(j.request&&j.request.templates&&j.request.templates[0]&&j.request.templates[0].values)||j.values||[];
+      (vals||[]).forEach(function(v){ if(v&&v.name!=null&&v.value!=null&&String(v.value)!=='') m[v.name]=v.value; });
+    }catch(e){}
+    return m;
+  }
+
+  function renderDoc(b64,tpl,signers,envStage,env){
     var wrap=document.getElementById('edDoc');
     legend(signers,envStage);
     if(!window.pdfjsLib){iframe(b64);return;}
     try{pdfjsLib.GlobalWorkerOptions.workerSrc='/pdf.worker.min.js';}catch(e){}
     var fields=(tpl&&tpl.fields)||[],pw=(tpl&&tpl.pageWidth)||612;
+    var valMap=buildValueMap(env,fields);
     var bytes;try{var bin=atob(b64);bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);}catch(e){iframe(b64);return;}
     wrap.innerHTML='';
     pdfjsLib.getDocument({data:bytes}).promise.then(function(pdf){
@@ -164,16 +227,33 @@
         var pd=document.createElement('div');pd.className='ews-pdfpage';pd.style.width=vp.width+'px';pd.style.height=vp.height+'px';
         var cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;pd.appendChild(cv);wrap.appendChild(pd);
         fields.filter(function(f){return (f.page||1)===p;}).forEach(function(f){
-          var idx=f.signerIndex||0,s=signers[idx]||{},ss=sigStat(s,envStage),color=sigColor(idx),box=document.createElement('div');
-          box.className='ews-sigbox';box.style.borderColor=color;
-          var W=Math.max((f.w||120)*sc,200),H=Math.max((f.h||40)*sc,80);
-          var L=(f.x||0)*sc,T=(f.y||0)*sc;
-          if(L+W>vp.width-4)L=Math.max(2,vp.width-4-W);if(T+H>vp.height-4)T=Math.max(2,vp.height-4-H);
-          box.style.left=L+'px';box.style.top=T+'px';box.style.width=W+'px';box.style.height=H+'px';
-          var nm=esc(s.cs_fullname||s._role||('Signer '+(idx+1))),em=esc(s.cs_email||'');
-          var dt=s.cs_signeddate?('✓ Signed · '+fdt(s.cs_signeddate)):(ss.key==='done'?'✓ Signed':(ss.key==='err'?('✗ '+ss.label):'⏳ Awaiting signature'));
-          var dtcls=ss.key==='done'?'ok':(ss.key==='err'?'err':'pend');
-          box.innerHTML='<span class="tag" style="background:'+color+'">'+(f.type==='signature'?'✍':(f.type==='initials'?'A':'•'))+' '+nm+'</span><div class="nm">'+nm+'</div>'+(em?'<div class="em">'+em+'</div>':'')+'<div class="dt '+dtcls+'">'+dt+'</div>';
+          var idx=f.signerIndex||0,s=signers[idx]||{},color=sigColor(idx),box=document.createElement('div');
+          var isSig=(f.type==='signature'||f.type==='initials');
+          if(isSig){
+            /* Signature / initials — the signer's signing area */
+            var ss=sigStat(s,envStage);
+            box.className='ews-sigbox';box.style.borderColor=color;
+            var W=Math.max((f.w||120)*sc,200),H=Math.max((f.h||40)*sc,80);
+            var L=(f.x||0)*sc,T=(f.y||0)*sc;
+            if(L+W>vp.width-4)L=Math.max(2,vp.width-4-W);if(T+H>vp.height-4)T=Math.max(2,vp.height-4-H);
+            box.style.left=L+'px';box.style.top=T+'px';box.style.width=W+'px';box.style.height=H+'px';
+            var nm=esc(s.cs_fullname||s._role||('Signer '+(idx+1))),em=esc(s.cs_email||'');
+            var dt=s.cs_signeddate?('✓ Signed · '+fdt(s.cs_signeddate)):(ss.key==='done'?'✓ Signed':(ss.key==='err'?('✗ '+ss.label):'⏳ Awaiting signature'));
+            var dtcls=ss.key==='done'?'ok':(ss.key==='err'?'err':'pend');
+            box.innerHTML='<span class="tag" style="background:'+color+'">'+(f.type==='initials'?'A':'✍')+' '+nm+'</span><div class="nm">'+nm+'</div>'+(em?'<div class="em">'+em+'</div>':'')+'<div class="dt '+dtcls+'">'+dt+'</div>';
+          } else {
+            /* Data field (text / variable / checkbox / date) — show label + value */
+            box.className='ews-fieldbox';box.style.borderColor=color;
+            var W2=Math.max((f.w||120)*sc,90),H2=Math.max((f.h||28)*sc,34);
+            var L2=(f.x||0)*sc,T2=(f.y||0)*sc;
+            if(L2+W2>vp.width-4)L2=Math.max(2,vp.width-4-W2);if(T2+H2>vp.height-4)T2=Math.max(2,vp.height-4-H2);
+            box.style.left=L2+'px';box.style.top=T2+'px';box.style.width=W2+'px';box.style.height=H2+'px';
+            var key=f.variableName||f.name||f.label,val=valMap[key];
+            var label=esc(f.type==='variable'?(f.variableName||f.label||'Variable'):(f.label||({text:'Text',name:'Full name',email:'Email',company:'Company',title:'Title',checkbox:'Checkbox',date_signed:'Date'}[f.type]||'Field')));
+            var tagtxt=f.type==='variable'?'{x} variable':(f.type==='checkbox'?'checkbox':'text');
+            var valHtml=(val!=null&&String(val)!=='')?('<div class="fv">'+esc(String(val))+'</div>'):('<div class="fv empty">'+(f.type==='variable'?'set via API':'entered by signer')+'</div>');
+            box.innerHTML='<span class="ftag" style="background:'+color+'">'+esc(tagtxt)+'</span><div class="fl">'+label+'</div>'+valHtml;
+          }
           pd.appendChild(box);
         });
         return page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
@@ -181,17 +261,17 @@
       chain.catch(function(){});
     }).catch(function(){iframe(b64);});
   }
-  function loadDoc(tplId,signers,envStage){
+  function loadDoc(tplId,signers,envStage,env){
     var box=document.getElementById('edDoc');
     if(!tplId){box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document attached.</div>';return;}
     get('/_api/cs_templates('+tplId+')?$select=cs_templatejson,cs_name').always(function(t){
       var tpl={};try{tpl=JSON.parse((t&&t.cs_templatejson)||'{}');}catch(e){}
       get("/_api/annotations?$filter=_objectid_value eq "+tplId+" and subject eq 'TemplateSourcePDF'&$select=documentbody&$top=1").done(function(d){
         var b64=d&&d.value&&d.value[0]&&d.value[0].documentbody;
-        if(b64){renderDoc(b64,tpl,signers,envStage);return;}
-        if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage);return;}
+        if(b64){renderDoc(b64,tpl,signers,envStage,env);return;}
+        if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage,env);return;}
         box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document preview available.</div>';
-      }).fail(function(){if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage);}else box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">Unable to load document.</div>';});
+      }).fail(function(){if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage,env);}else box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">Unable to load document.</div>';});
     });
   }
 
@@ -200,7 +280,7 @@
     try{var rc=JSON.parse(env.cs_envelopejson||'{}').recipients||[];return rc.map(function(r,i){return {cs_fullname:r.name,cs_email:r.email,cs_signerorder:i+1,_role:r.role,cs_signerstatus:null,cs_signeddate:null};});}catch(e){return [];}
   }
   function loadAll(cb){
-    get('/_api/cs_envelopes('+ID+')?$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_preparedenvelopeid,cs_sentdate,cs_completeddate,cs_cancelleddate,cs_expirationdate,createdon,modifiedon,cs_statuscheckrequestedon,cs_envelopejson').done(function(env){
+    get('/_api/cs_envelopes('+ID+')?$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_preparedenvelopeid,cs_sentdate,cs_completeddate,cs_cancelleddate,cs_expirationdate,createdon,modifiedon,cs_statuscheckrequestedon,cs_envelopejson,cs_responsebody').done(function(env){
       $.when(
         get('/_api/cs_signers?$filter=_cs_envelopelookup_value eq '+ID+'&$orderby=cs_signerorder asc&$select=cs_fullname,cs_email,cs_signerorder,cs_signerstatus,cs_authenticationtype,cs_signeddate').then(function(s){return s.value||[];},function(){return [];}),
         env.cs_templateid?get('/_api/cs_templates('+env.cs_templateid+')?$select=cs_name').then(function(t){return t.cs_name;},function(){return '';}):$.when('')
@@ -215,12 +295,12 @@
       .done(function(){var tries=0;(function poll(){tries++;get('/_api/cs_envelopes('+ID+')?$select=modifiedon').done(function(e){if((before&&e.modifiedon&&e.modifiedon!==before)||tries>=6)finish();else setTimeout(poll,2500);}).fail(finish);})();})
       .fail(function(x){finish('Refresh failed (HTTP '+(x&&x.status)+')');});
     });
-    function finish(msg){loadAll(function(env,signers){loadDoc(env.cs_templateid,signers,stage(env));btn.disabled=false;root.classList.remove('ews-refreshing');txt.textContent='Refresh status';if(msg)alert(msg);});}
+    function finish(msg){loadAll(function(env,signers){loadDoc(env.cs_templateid,signers,stage(env),env);btn.disabled=false;root.classList.remove('ews-refreshing');txt.textContent='Refresh status';if(msg)alert(msg);});}
   };
   $(function(){
     if(!ID){document.getElementById('edSub').textContent='No envelope id provided.';return;}
     document.getElementById('edRefresh').addEventListener('click',edDoRefresh);
-    loadAll(function(env,signers){loadDoc(env.cs_templateid,signers,stage(env));});
+    loadAll(function(env,signers){loadDoc(env.cs_templateid,signers,stage(env),env);});
   });
 })();
 </script>

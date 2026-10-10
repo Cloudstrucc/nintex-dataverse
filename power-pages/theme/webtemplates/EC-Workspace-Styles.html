@@ -57,6 +57,17 @@
 .ews-pill.fyi,.ews-pill.draft,.ews-pill.soon,.ews-pill.off{background:#eef1f3;color:#5f6b75}
 .ews-pill.proc{background:var(--ews-warn-bg);color:var(--ews-warn-ink)}
 .ews-pill.done,.ews-pill.on{background:var(--ews-ok-bg);color:var(--ews-ok)}
+/* Alert banner (errors / warnings) — reusable across pages */
+.ews-alert{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--ews-danger);background:var(--ews-danger-bg);border-left-width:4px}
+.ews-alert .ews-alert-ic{flex:0 0 auto;color:var(--ews-danger);margin-top:1px}
+.ews-alert .ews-alert-bd{min-width:0;flex:1}
+.ews-alert .ews-alert-ttl{font-weight:800;color:var(--ews-danger);font-size:14px;margin:0 0 3px}
+.ews-alert .ews-alert-msg{color:var(--ews-ink);font-size:13.5px;line-height:1.45;word-break:break-word}
+.ews-alert ul{margin:6px 0 0;padding-left:18px}
+.ews-alert li{color:var(--ews-ink);font-size:13px;margin:2px 0;word-break:break-word}
+.ews-alert .ews-alert-meta{color:var(--ews-muted);font-size:12px;margin-top:6px}
+.ews-alert.warn{border-color:var(--ews-warn-ink);background:var(--ews-warn-bg)}
+.ews-alert.warn .ews-alert-ic,.ews-alert.warn .ews-alert-ttl{color:var(--ews-warn-ink)}
 /* list-page detail modal + success note + key/value table */
 .ews-modal{position:fixed;inset:0;z-index:10000;background:rgba(13,37,54,.5);align-items:center;justify-content:center;display:none;padding:16px}
 .ews-modal .box{background:#fff;border-radius:16px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden}
@@ -262,6 +273,12 @@ body.ews-fson .ews-fsback{display:block}
 .ews-sigbox .em{font-size:11px;color:#5f6b75;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ews-sigbox .dt{font-size:11px;font-weight:800;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ews-sigbox .dt.ok{color:var(--ews-ok)}.ews-sigbox .dt.pend{color:var(--ews-warn)}.ews-sigbox .dt.err{color:var(--ews-danger)}
+/* data-field overlay (text / variable / checkbox) — distinct from signature boxes */
+.ews-fieldbox{position:absolute;border:1.5px dashed;border-radius:5px;background:rgba(255,255,255,.92);box-shadow:0 2px 7px rgba(0,0,0,.16);display:flex;flex-direction:column;justify-content:center;padding:3px 7px;box-sizing:border-box;overflow:hidden}
+.ews-fieldbox .fl{font-size:9.5px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
+.ews-fieldbox .fv{font-size:12px;font-weight:700;color:#1c272e;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ews-fieldbox .fv.empty{font-weight:600;font-style:italic;color:#8a949c}
+.ews-fieldbox .ftag{position:absolute;top:-9px;left:6px;font-size:9px;font-weight:800;padding:0 6px;border-radius:99px;color:#fff;white-space:nowrap}
 .ews-siglegend{display:flex;flex-wrap:wrap;gap:14px;padding:11px 16px;background:#3a4248}
 .ews-siglegend .it{display:flex;align-items:center;gap:8px;color:#e4e9ec;font-size:12.5px;font-weight:600}
 .ews-siglegend .sw{width:14px;height:14px;border-radius:4px;flex:0 0 auto}
