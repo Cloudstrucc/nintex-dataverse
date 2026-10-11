@@ -101,3 +101,40 @@ flow, the `SAMPLE - Create Branded Envelope` flow, and (optionally) the `cs_adho
 column + any `EnvelopeSourcePDF` annotations. The normal `templateID` Prepare/Send
 path is never modified. Flow + schema backups are kept under
 `solutions/docs/` and the scratchpad `flow-backups/`.
+
+---
+
+## 5. What was built (dev) + how to turn it on & test
+
+**Built and deployed to dev:**
+- Column **`cs_adhocsend`** (bit) on `cs_envelope`.
+- Broker flow **`ESign - Send Ad-hoc Envelope`** (workflow `937b82f3-06c5-f111-a05c-002248d57f8c`) — created as a **draft**. It reuses the verified auth / env-var / field-transform actions and submits ad-hoc. Repo mirror:
+  `solutions/ESignatureBroker/Workflows/ESign-SendAdhocEnvelope-937B82F3-*.json`.
+- Sample **`solutions/docs/sample-create-branded-envelope.mjs`** — generates a per-run branded PDF, creates the envelope + `EnvelopeSourcePDF` annotation, sets `cs_adhocsend = true`.
+
+**Why the flow is a draft:** the service principal can create a flow but cannot
+*bind the Dataverse connection* to a brand-new flow (`ConnectionAuthorizationFailed`)
+— the same limitation as the client flows. A human owner has to turn it on once.
+
+### Turn it on (one-time, in make.powerapps.com → dev)
+1. Solutions/Flows → open **ESign - Send Ad-hoc Envelope** (it's unmanaged in the default solution).
+2. Edit → confirm the **Microsoft Dataverse** connection on each step (pick the same connection the other broker flows use), **Save**, then **Turn on**.
+3. (Optional, proper ALM) add it to the `ESignatureBroker` solution and export.
+
+### Test (after it's on)
+```bash
+cd solutions/docs && npm install pdf-lib
+node sample-create-branded-envelope.mjs            # random party logo each run
+# or: node sample-create-branded-envelope.mjs <templateId> <your@email>
+```
+Each run picks a random party (Green/Blue/Amber/Crimson) so the **logo differs per
+run**. Then:
+- watch `/envelopes/details/?id=<printed id>` — it moves to **In Process**;
+- open the signing email at your address — the **party logo is top-right** on the PDF.
+
+(A test envelope `5cefef15-…` was created during build while the flow was still off,
+so it stayed Draft — just re-run the sample after turning the flow on.)
+
+### Revert
+Turn the flow off / delete it; delete `cs_adhocsend` and any `EnvelopeSourcePDF`
+annotations. The normal `templateID` Prepare/Send path is never touched.
