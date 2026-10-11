@@ -328,6 +328,81 @@
                   "Succeeded"
                 ]
               }
+            },
+            "Get_History_For_Dates": {
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{coalesce(first(first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['environmentvariabledefinition_environmentvariablevalue'])?['value'],first(outputs('Get_ApiBaseUrl_Env')?['body/value'])?['defaultvalue'])}/envelopes/@{items('Process_Each_Envelope')?['cs_preparedenvelopeid']}/history",
+                "headers": {
+                  "Authorization": "@{variables('BearerToken')}",
+                  "X-AS-UserContext": "@{variables('UserContext')}",
+                  "Accept": "application/json"
+                }
+              },
+              "runAfter": {
+                "HTTP_Get_Envelope_Status": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Filter_Signed_Steps": {
+              "type": "Query",
+              "inputs": {
+                "from": "@coalesce(body('Get_History_For_Dates')?['result']?['envelopeHistoryEvents'], body('Get_History_For_Dates')?['envelopeHistoryEvents'], json('[]'))",
+                "where": "@and(contains(coalesce(item()?['details'], ''), 'Signing Step'), contains(coalesce(item()?['details'], ''), 'completed'))"
+              },
+              "runAfter": {
+                "Get_History_For_Dates": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Build_Recipients_Dated": {
+              "type": "Select",
+              "inputs": {
+                "from": "@range(0, length(coalesce(json(items('Process_Each_Envelope')?['cs_envelopejson'])?['recipients'], json('[]'))))",
+                "select": "@setProperty(coalesce(json(items('Process_Each_Envelope')?['cs_envelopejson'])?['recipients'], json('[]'))[item()], 'signedDate', coalesce(body('Filter_Signed_Steps')[item()]?['date'], ''))"
+              },
+              "runAfter": {
+                "Filter_Signed_Steps": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Compose_EnvelopeJson_Dated": {
+              "type": "Compose",
+              "inputs": "@setProperty(coalesce(json(items('Process_Each_Envelope')?['cs_envelopejson']), json('{}')), 'recipients', body('Build_Recipients_Dated'))",
+              "runAfter": {
+                "Build_Recipients_Dated": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Update_SignedDates": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateRecord"
+                },
+                "parameters": {
+                  "entityName": "cs_envelopes",
+                  "recordId": "@items('Process_Each_Envelope')?['cs_envelopeid']",
+                  "item/cs_envelopejson": "@{string(outputs('Compose_EnvelopeJson_Dated'))}"
+                },
+                "authentication": "@parameters('$authentication')"
+              },
+              "runAfter": {
+                "Compose_EnvelopeJson_Dated": [
+                  "Succeeded"
+                ],
+                "Check_Status_Changed": [
+                  "Succeeded",
+                  "Skipped"
+                ]
+              }
             }
           },
           "runAfter": {
@@ -512,8 +587,7 @@
           }
         }
       }
-    },
-    "templateName": null
+    }
   },
   "schemaVersion": "1.0.0.0"
 }
