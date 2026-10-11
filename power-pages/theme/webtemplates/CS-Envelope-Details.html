@@ -277,7 +277,7 @@
 
   function resolveSigners(env,rows){
     if(rows&&rows.length)return rows;
-    try{var rc=JSON.parse(env.cs_envelopejson||'{}').recipients||[];return rc.map(function(r,i){return {cs_fullname:r.name,cs_email:r.email,cs_signerorder:i+1,_role:r.role,cs_signerstatus:null,cs_signeddate:null};});}catch(e){return [];}
+    try{var rc=JSON.parse(env.cs_envelopejson||'{}').recipients||[];return rc.map(function(r,i){return {cs_fullname:r.name,cs_email:r.email,cs_signerorder:i+1,_role:r.role,cs_signerstatus:null,cs_signeddate:(r.signedDate||null)};});}catch(e){return [];}
   }
   function loadAll(cb){
     get('/_api/cs_envelopes('+ID+')?$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_preparedenvelopeid,cs_sentdate,cs_completeddate,cs_cancelleddate,cs_expirationdate,createdon,modifiedon,cs_statuscheckrequestedon,cs_envelopejson,cs_responsebody').done(function(env){
