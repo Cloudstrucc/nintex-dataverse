@@ -31,12 +31,17 @@ const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 // ---- config ----
 const TEMPLATE_ID = process.argv[2] || '83551a34-8cc3-f111-aaaf-000d3af4232b'; // "Test 2 personal" (1 signer, 1 signature)
 const TEST_EMAIL  = process.argv[3] || 'fpearson613@gmail.com';
-const PARTIES = [
-  { name: 'Green Future Party',  color: [0.11, 0.50, 0.20] },
-  { name: 'Blue Horizon Party',  color: [0.10, 0.33, 0.66] },
-  { name: 'Amber Coalition',     color: [0.80, 0.52, 0.05] },
-  { name: 'Crimson Alliance',    color: [0.66, 0.12, 0.20] },
-];
+const PARTY_NAME  = 'Sample Party';
+
+// Simple routine: pick a random, readable logo colour each run (random hue, fixed
+// saturation/lightness so white initials stay legible). Returns pdf-lib [r,g,b] 0-1.
+function randomColor() {
+  const h = Math.random() * 360, s = 0.62, l = 0.42; // vivid but dark enough for white text
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
+  const [r1, g1, b1] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x]
+    : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return [r1 + m, g1 + m, b1 + m];
+}
 
 // ---- env + dataverse helpers ----
 function loadEnv() {
@@ -84,8 +89,9 @@ async function brandedPdf(party, color) {
 }
 
 async function main() {
-  const party = PARTIES[Math.floor(Math.random() * PARTIES.length)];
-  console.log(`Party this run: ${party.name}`);
+  const color = randomColor();
+  const party = { name: PARTY_NAME, color };
+  console.log(`Logo colour this run: rgb(${color.map((v) => Math.round(v * 255)).join(', ')})`);
 
   // 1. read the layout template (signers + name)
   const tpl = await api(`cs_templates(${TEMPLATE_ID})?$select=cs_name,cs_templatejson`);
@@ -119,6 +125,6 @@ async function main() {
   // 4. flip cs_adhocsend = true -> fires ESign - Send Ad-hoc Envelope
   await api(`cs_envelopes(${envId})`, { method: 'PATCH', body: { cs_adhocsend: true } });
   console.log('Set cs_adhocsend = true — the broker flow will now submit ad-hoc.');
-  console.log(`\nWatch: portal /envelopes/details/?id=${envId} , and check ${TEST_EMAIL} for the signing email with the ${party.name} logo.`);
+  console.log(`\nWatch: portal /envelopes/details/?id=${envId} , and check ${TEST_EMAIL} for the signing email — the logo is a random colour each run.`);
 }
 main().catch((e) => { console.error(e.status || '', JSON.stringify(e.data || e.message).slice(0, 400)); process.exit(1); });
