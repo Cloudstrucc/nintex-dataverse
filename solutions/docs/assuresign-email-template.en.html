@@ -1,21 +1,3 @@
-<!--
-  Elections Canada — e-signature notification email (AssureSign / Nintex eSign)
-  ---------------------------------------------------------------------------
-  Email-client-safe HTML: table layout + inline styles only (no <style>, no flex/grid),
-  web-safe font stack, ~600px, aligned to the EC portal styling
-  (navy #1E384B, burgundy #6A0032 accent, light ground #F4F4F4).
-
-  HOW TO USE in AssureSign (Administration > Email > copy "Default Designs" > Edit):
-    1. Open the Body editor and switch it to HTML / source view (</> button).
-    2. Paste everything between <!-- BODY START --> and <!-- BODY END -->.
-    3. Replace the LOGO and WORDMARK <img> src with images you upload via the
-       editor's image button (so AssureSign hosts them) or a public URL. Logo <= 200px.
-    4. Replace each [[...]] placeholder by selecting the matching field from the
-       editor's "Insert merge field" menu (see the legend at the bottom), and set
-       the "Review & sign" button's link to the signing-link / document-link field.
-    5. Use a matching variant for each lifecycle event (Document available to sign,
-       Completed, etc.) — just change the heading + message paragraph.
--->
 <!-- BODY START -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;margin:0;padding:0;">
   <tr>
@@ -30,7 +12,7 @@
               <tr>
                 <td align="left" valign="middle">
                   <!-- Replace src: upload the EC / CCS logo (white/mono on navy), <= 200px wide -->
-                  <img src="https://REPLACE-WITH-PUBLIC-URL/ec-logo-white.png" width="150" alt="Elections Canada"
+                  <img src="email-assets/ec-logo-white.png" width="150" alt="Elections Canada"
                        style="display:block;border:0;height:auto;max-width:200px;" />
                 </td>
                 <td align="right" valign="middle" style="color:#c9d5de;font-size:12px;line-height:1.3;">
@@ -104,7 +86,7 @@
                 </td>
                 <td align="right" valign="middle">
                   <!-- Replace with the white Government of Canada wordmark (PNG) -->
-                  <img src="https://REPLACE-WITH-PUBLIC-URL/canada-wordmark-white.png" width="130" alt="Government of Canada"
+                  <img src="email-assets/canada-wordmark-white.png" width="130" alt="Government of Canada"
                        style="display:block;border:0;height:auto;" />
                 </td>
               </tr>
