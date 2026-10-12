@@ -31,7 +31,7 @@
               A document is ready for your signature
             </h1>
             <p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#4a555e;">
-              Hello [[Recipient Name]], you have a document waiting to be reviewed and signed.
+              Hello [Recipient Name], you have a document waiting to be reviewed and signed.
             </p>
 
             <!-- Document summary card -->
@@ -39,9 +39,9 @@
                    style="background:#f7f8fa;border:1px solid #e3e7ec;border-radius:8px;margin:0 0 24px 0;">
               <tr>
                 <td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#1c272e;">
-                  <strong style="color:#1e384b;">Document:</strong> [[Document Name]]<br />
-                  <strong style="color:#1e384b;">From:</strong> [[Sender Name]]<br />
-                  <strong style="color:#1e384b;">Expires:</strong> [[Expiration Date]]
+                  <strong style="color:#1e384b;">Document:</strong> [Envelope Name]<br />
+                  <strong style="color:#1e384b;">From:</strong> [Company Name]<br />
+                  <strong style="color:#1e384b;">Expires:</strong> [Envelope Expiration Date]
                 </td>
               </tr>
             </table>
@@ -51,7 +51,7 @@
               <tr>
                 <td align="center" bgcolor="#6a0032" style="border-radius:8px;">
                   <!-- Set href to the signing-link / document-link merge field -->
-                  <a href="[[Signing Link]]"
+                  <a href="[Link - Document Signing]"
                      style="display:inline-block;padding:14px 30px;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
                     Review &amp; sign document
                   </a>
@@ -61,8 +61,11 @@
 
             <p style="margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#6b757e;text-align:center;">
               Button not working? Copy and paste this link into your browser:<br />
-              <a href="[[Signing Link]]" style="color:#6a0032;word-break:break-all;">[[Signing Link]]</a>
+              <a href="[Link - Document Signing]" style="color:#6a0032;word-break:break-all;">[Link - Document Signing]</a>
             </p>
+
+            <!-- Optional: lets the signer delegate signing (if delegation is enabled). Remove if not wanted. -->
+            <p style="margin:0 0 20px 0;text-align:center;">[Signer Delegation Button]</p>
 
             <p style="margin:0 0 4px 0;font-size:13px;line-height:1.5;color:#6b757e;">
               If you did not expect this document, you can safely ignore this email.
@@ -103,11 +106,11 @@
 <!--
   MERGE-FIELD LEGEND — replace each placeholder with the matching AssureSign field
   (exact names appear in the editor's "Insert merge field" menu):
-    [[Recipient Name]]    -> the signer's name
-    [[Document Name]]     -> the document / envelope name
-    [[Sender Name]]       -> sender / originator (or your Account Displayed Name)
-    [[Expiration Date]]   -> envelope expiration (omit the row if not used)
-    [[Signing Link]]      -> the signing / document link (use the editor's link field)
+    [Recipient Name]    -> the signer's name
+    [Envelope Name]     -> the document / envelope name
+    [Company Name]       -> sender / originator (or your Account Displayed Name)
+    [Envelope Expiration Date]   -> envelope expiration (omit the row if not used)
+    [Link - Document Signing]      -> the signing / document link (use the editor's link field)
   Per-event variants (copy this body, change only the <h1> + first <p>):
     Document available to sign : "A document is ready for your signature"
     Document completed         : "Your document has been completed"  (CTA -> completed/download link)
