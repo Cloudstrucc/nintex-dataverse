@@ -1,0 +1,140 @@
+<!--
+  Élections Canada — courriel de notification de signature électronique (AssureSign / Nintex eSign)
+  ------------------------------------------------------------------------------------------------
+  HTML compatible avec les clients de messagerie : mise en page par tableaux + styles en ligne
+  seulement (pas de <style>, pas de flex/grid), police de secours universelle, ~600 px, aligné
+  au style du portail d'Élections Canada (bleu marine #1E384B, bordeaux #6A0032, fond #F4F4F4).
+
+  UTILISATION dans AssureSign (Administration > Email > copier « Default Designs » > Edit) :
+    1. Ouvrir l'éditeur du corps (Body) et passer en mode HTML / source (bouton </>).
+    2. Coller tout ce qui se trouve entre <!-- BODY START --> et <!-- BODY END -->.
+    3. Remplacer les src des <img> (LOGO et MOT-SYMBOLE) par des images téléversées via le
+       bouton image de l'éditeur (hébergées par AssureSign) ou une URL publique. Logo <= 200 px.
+    4. Remplacer chaque espace réservé [[...]] en choisissant le champ correspondant dans le menu
+       « Insert merge field » de l'éditeur (voir la légende au bas), et définir le lien du bouton
+       « Examiner et signer » sur le champ de lien de signature / du document.
+    5. Utiliser une variante par événement du cycle de vie (Document à signer, Terminé, etc.) :
+       il suffit de changer le titre + le paragraphe du message.
+  Astuce : configurer ce modèle dans un jeu de conception de culture fr-CA dans AssureSign.
+-->
+<!-- BODY START -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;margin:0;padding:0;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;font-family:'Noto Sans',Arial,Helvetica,sans-serif;">
+
+        <!-- Bandeau d'en-tête -->
+        <tr>
+          <td style="background:#1e384b;padding:18px 28px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="left" valign="middle">
+                  <!-- Remplacer src : téléverser le logo EC / CCS (blanc/mono sur marine), <= 200 px de largeur -->
+                  <img src="https://REPLACE-WITH-PUBLIC-URL/ec-logo-white.png" width="150" alt="Élections Canada"
+                       style="display:block;border:0;height:auto;max-width:200px;" />
+                </td>
+                <td align="right" valign="middle" style="color:#c9d5de;font-size:12px;line-height:1.3;">
+                  Service de signature électronique<br />Electronic Signature Service
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Bande d'accent bordeaux -->
+        <tr><td style="background:#6a0032;font-size:0;line-height:0;height:4px;">&nbsp;</td></tr>
+
+        <!-- Corps -->
+        <tr>
+          <td style="padding:32px 32px 8px 32px;color:#1c272e;">
+            <h1 style="margin:0 0 6px 0;font-size:22px;line-height:1.25;color:#1e384b;font-weight:700;">
+              Un document est prêt pour votre signature
+            </h1>
+            <p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#4a555e;">
+              Bonjour [[Recipient Name]], un document attend d'être examiné et signé.
+            </p>
+
+            <!-- Fiche récapitulative du document -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background:#f7f8fa;border:1px solid #e3e7ec;border-radius:8px;margin:0 0 24px 0;">
+              <tr>
+                <td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#1c272e;">
+                  <strong style="color:#1e384b;">Document :</strong> [[Document Name]]<br />
+                  <strong style="color:#1e384b;">De :</strong> [[Sender Name]]<br />
+                  <strong style="color:#1e384b;">Expire le :</strong> [[Expiration Date]]
+                </td>
+              </tr>
+            </table>
+
+            <!-- Bouton d'action (à l'épreuve des clients de messagerie) -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px auto;">
+              <tr>
+                <td align="center" bgcolor="#6a0032" style="border-radius:8px;">
+                  <!-- Définir href sur le champ de lien de signature / du document -->
+                  <a href="[[Signing Link]]"
+                     style="display:inline-block;padding:14px 30px;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+                    Examiner et signer le document
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#6b757e;text-align:center;">
+              Le bouton ne fonctionne pas? Copiez et collez ce lien dans votre navigateur :<br />
+              <a href="[[Signing Link]]" style="color:#6a0032;word-break:break-all;">[[Signing Link]]</a>
+            </p>
+
+            <p style="margin:0 0 4px 0;font-size:13px;line-height:1.5;color:#6b757e;">
+              Si vous n'attendiez pas ce document, vous pouvez ignorer ce courriel en toute sécurité.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Séparateur -->
+        <tr><td style="padding:0 32px;"><div style="border-top:1px solid #e3e7ec;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+
+        <!-- Pied de page -->
+        <tr>
+          <td style="background:#1e384b;border-top:3px solid #6a0032;padding:20px 28px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="left" valign="middle" style="color:#c9d5de;font-size:12px;line-height:1.5;">
+                  <strong style="color:#ffffff;">Élections Canada</strong> &middot; Elections Canada<br />
+                  Usage interne — Service de signature électronique<br />
+                  Internal use — Electronic Signature Service
+                </td>
+                <td align="right" valign="middle">
+                  <!-- Remplacer par le mot-symbole « Gouvernement du Canada » en blanc (PNG) -->
+                  <img src="https://REPLACE-WITH-PUBLIC-URL/canada-wordmark-white.png" width="130" alt="Gouvernement du Canada"
+                       style="display:block;border:0;height:auto;" />
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+
+      <p style="margin:14px 0 0 0;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#98a2ab;max-width:600px;">
+        Ceci est un message automatisé du Service de signature électronique d'Élections Canada.
+        Veuillez ne pas répondre à ce courriel.
+      </p>
+
+    </td>
+  </tr>
+</table>
+<!-- BODY END -->
+
+<!--
+  LÉGENDE DES CHAMPS DE FUSION — remplacer chaque espace réservé par le champ AssureSign
+  correspondant (les noms exacts figurent dans le menu « Insert merge field » de l'éditeur) :
+    [[Recipient Name]]    -> le nom du signataire
+    [[Document Name]]     -> le nom du document / de l'enveloppe
+    [[Sender Name]]       -> expéditeur / émetteur (ou votre « Account Displayed Name »)
+    [[Expiration Date]]   -> date d'expiration de l'enveloppe (retirer la ligne si non utilisée)
+    [[Signing Link]]      -> le lien de signature / du document (utiliser le champ de lien de l'éditeur)
+  Variantes par événement (copier ce corps, ne changer que le <h1> + le 1er <p>) :
+    Document à signer       : « Un document est prêt pour votre signature »
+    Document terminé        : « Votre document est signé »  (bouton -> lien de téléchargement)
+    Avant une étape         : « C'est à votre tour de signer »
+-->
