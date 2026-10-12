@@ -12,7 +12,7 @@ Hello **[Recipient Name]**, you have a document waiting to be reviewed and signe
 **From:** [Company Name]<br>
 **Expires:** [Envelope Expiration Date]
 
-### [<span style="color:#6A0032;">Review &amp; sign document &rarr;</span>]([Link - Document Signing])
+### **[Review &amp; sign document &rarr;]([Link - Document Signing])**
 
 <span style="color:#6B757E;font-size:13px;">Link not working? Copy and paste this into your browser:</span>
 [Link - Document Signing]
