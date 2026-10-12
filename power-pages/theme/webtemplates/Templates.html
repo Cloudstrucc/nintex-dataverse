@@ -356,7 +356,9 @@
     loadSharesOut();
   }
 
-  function switchView(v){view=v;filter='all';page=1;sortCol=(v==='shared')?'on':'mod';sortDir='desc';
+  /* Default sort per the list rule: modifiedon > createdon > name > (first col). */
+  function defSort(cols){return cols.indexOf('mod')>=0?'mod':cols.indexOf('crt')>=0?'crt':cols.indexOf('name')>=0?'name':(cols[0]||'name');}
+  function switchView(v){view=v;filter='all';page=1;sortCol=defSort(TABS[v].cols);sortDir='desc';
     document.querySelectorAll('#tplTabs .ews-tab').forEach(function(t){t.classList.toggle('active',t.dataset.view===v);});
     document.getElementById('tplHeading').textContent=TABS[v].heading;
     document.getElementById('tplViewSel').innerHTML='&#9636; '+TABS[v].heading;

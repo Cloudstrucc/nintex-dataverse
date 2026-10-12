@@ -18,7 +18,7 @@
         <button class="ews-tab" data-f="act" aria-selected="false">{{ snippets['ESIGN/NOTIF/ACTION'] | default: 'Action required' }} <span class="ews-tabn" id="nt-act">0</span></button>
         <button class="ews-tab" data-f="fyi" aria-selected="false">{{ snippets['ESIGN/NOTIF/FYI'] | default: 'For information' }} <span class="ews-tabn" id="nt-fyi">0</span></button>
       </div>
-      <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }}</th><th>{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }} <span class="ews-sar"></span></th><th></th></tr></thead>
+      <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th class="ews-sortable" data-sort="subj">{{ snippets['ESIGN/NOTIF/COL/MSG'] | default: 'Message' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="svc">{{ snippets['ESIGN/NOTIF/COL/SVC'] | default: 'Service' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="pri">{{ snippets['ESIGN/NOTIF/COL/PRI'] | default: 'Priority' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/NOTIF/COL/WHEN'] | default: 'Received' }} <span class="ews-sar"></span></th><th></th></tr></thead>
         <tbody id="ntRows"><tr><td colspan="5" class="ews-empty">Loading…</td></tr></tbody></table></div>
     </div>
   </div>
@@ -27,9 +27,11 @@
 <script>
 (function(){
   var CID="{{ user.contactid }}";
-  var DATA=[],flt='all',sortDir='desc';
-  function ntArrows(){document.querySelectorAll('.ews-card th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(s)s.textContent=(sortDir==='asc'?' ▲':' ▼');th.classList.add('on');});}
-  window.ntSort=function(){sortDir=sortDir==='desc'?'asc':'desc';render();};
+  /* Default sort: this list shows only a createdon date ("Received"), so per the
+     list-sort rule (modifiedon > createdon > name) the default is that date desc. */
+  var DATA=[],flt='all',sortCol='when',sortDir='desc';
+  function ntArrows(){document.querySelectorAll('.ews-card th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(!s)return;s.textContent=(th.dataset.sort===sortCol)?(sortDir==='asc'?' ▲':' ▼'):'';th.classList.toggle('on',th.dataset.sort===sortCol);});}
+  window.ntSort=function(col,isDate){if(col===sortCol){sortDir=sortDir==='asc'?'desc':'asc';}else{sortCol=col;sortDir=isDate?'desc':'asc';}render();};
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function svcCls(s){s=(s||'').toLowerCase();return s.indexOf('templ')>=0?'tpl':s.indexOf('doc')>=0?'doc':s.indexOf('sign')>=0?'sig':'env';}
@@ -39,7 +41,12 @@
   window.ntFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.f;render();};
   function render(){
     var rows=DATA.filter(function(r){return flt==='all'||(flt==='unread'&&!r.read)||(flt==='act'&&r.pri===717640000)||(flt==='fyi'&&r.pri!==717640000);});
-    rows.sort(function(a,b){var av=a.when||'',bv=b.when||'';return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
+    rows.sort(function(a,b){
+      if(sortCol==='pri'){var ap=a.pri||0,bp=b.pri||0;return sortDir==='desc'?bp-ap:ap-bp;}
+      var av=(a[sortCol]==null?'':String(a[sortCol])),bv=(b[sortCol]==null?'':String(b[sortCol]));
+      if(sortCol!=='when'){av=av.toLowerCase();bv=bv.toLowerCase();}
+      return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);
+    });
     var tb=document.getElementById('ntRows');
     tb.innerHTML=rows.length?rows.map(function(r){return '<tr class="'+(r.read?'':'unread')+'">'+
       '<td class="s" data-label="Message"><span class="ews-type '+svcCls(r.svc)+'">'+esc((r.svc||'?').slice(0,1))+'</span> '+esc(r.subj)+'<div class="ews-subprev">'+esc(r.body||'')+'</div></td>'+
@@ -59,7 +66,7 @@
     document.getElementById('ntRows').addEventListener('click',function(e){
       var v=e.target.closest('.nt-view');if(v){ntRead(v.dataset.id);return;}
       var a=e.target.closest('.nt-archive');if(a){ntArchive(a.dataset.id);return;}});
-    var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){if(e.target.closest('th.ews-sortable'))ntSort();});
+    var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){var th=e.target.closest('th.ews-sortable');if(th)ntSort(th.dataset.sort, th.dataset.date==='1');});
     var url='/_api/cs_portalmessages?$select=cs_portalmessageid,cs_subject,cs_content,cs_service,cs_prioritytype,cs_readon,createdon&$filter=statecode eq 0'+(CID?" and _cs_recipientcontactid_value eq "+CID:"")+'&$orderby=createdon desc';
     $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).done(function(j){
       DATA=(j.value||[]).map(function(v){return {id:v.cs_portalmessageid,subj:v.cs_subject,body:v.cs_content,svc:v.cs_service,pri:v.cs_prioritytype,read:!!v.cs_readon,when:v.createdon};});

@@ -18,7 +18,7 @@
         <button class="ews-tab" data-t="doc" aria-selected="false">Documents</button>
         <button class="ews-tab" data-t="ntf" aria-selected="false">Notifications</button>
       </div>
-      <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th>{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }}</th><th>{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }}</th><th>{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }}</th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }} <span class="ews-sar"></span></th></tr></thead>
+      <div class="ews-tscroll"><table class="ews-nt"><thead><tr><th class="ews-sortable" data-sort="type">{{ snippets['ESIGN/ACT/COL/TYPE'] | default: 'Type' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="item">{{ snippets['ESIGN/ACT/COL/ITEM'] | default: 'Item' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="detail">{{ snippets['ESIGN/ACT/COL/DETAIL'] | default: 'Detail' }} <span class="ews-sar"></span></th><th class="ews-sortable" data-sort="when" data-date="1">{{ snippets['ESIGN/ACT/COL/WHEN'] | default: 'When' }} <span class="ews-sar"></span></th></tr></thead>
         <tbody id="acRows"><tr><td colspan="4" class="ews-empty">Loading…</td></tr></tbody></table></div>
     </div>
   </div>
@@ -27,15 +27,18 @@
 <script>
 (function(){
   var CID="{{ user.contactid }}";
-  var DATA=[],flt='all',sortDir='desc';
+  /* Default sort: the only date column here is "When" (modifiedon for most rows,
+     createdon for notifications), so per the rule the default is that date desc. */
+  var DATA=[],flt='all',sortCol='when',sortDir='desc';
   var LABEL={env:'Envelope',tpl:'Template',doc:'Document',ntf:'Notification'};
-  function acArrows(){document.querySelectorAll('.ews-card th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(s)s.textContent=(sortDir==='asc'?' ▲':' ▼');th.classList.add('on');});}
-  window.acSort=function(){sortDir=sortDir==='desc'?'asc':'desc';render();};
+  function acVal(r){return sortCol==='type'?(LABEL[r.t]||r.t||''):sortCol==='item'?(r.title||''):sortCol==='detail'?(r.detail||''):(r.when||'');}
+  function acArrows(){document.querySelectorAll('.ews-card th.ews-sortable').forEach(function(th){var s=th.querySelector('.ews-sar');if(!s)return;s.textContent=(th.dataset.sort===sortCol)?(sortDir==='asc'?' ▲':' ▼'):'';th.classList.toggle('on',th.dataset.sort===sortCol);});}
+  window.acSort=function(col,isDate){if(col===sortCol){sortDir=sortDir==='asc'?'desc':'asc';}else{sortCol=col;sortDir=isDate?'desc':'asc';}render();};
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function get(url){return $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).then(function(j){return j.value||[];},function(){return [];});}
   function render(){
-    var rows=DATA.filter(function(r){return flt==='all'||r.t===flt;}).sort(function(a,b){var av=a.when||'',bv=b.when||'';return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
+    var rows=DATA.filter(function(r){return flt==='all'||r.t===flt;}).sort(function(a,b){var av=acVal(a),bv=acVal(b);if(sortCol!=='when'){av=String(av).toLowerCase();bv=String(bv).toLowerCase();}return sortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);});
     var tb=document.getElementById('acRows');
     tb.innerHTML=rows.length?rows.map(function(r){return '<tr><td data-label="Type"><span class="ews-type '+r.t+'">'+esc(LABEL[r.t][0])+'</span> '+esc(LABEL[r.t])+'</td><td class="s" data-label="Item">'+esc(r.title)+'</td><td data-label="Detail">'+esc(r.detail||'')+'</td><td data-label="When">'+esc(fmt(r.when))+'</td></tr>';}).join(''):'<tr><td colspan="4" class="ews-empty">No activity yet.</td></tr>';
     acArrows();
@@ -43,7 +46,7 @@
   window.acFilter=function(el){document.querySelectorAll('.ews-tab').forEach(function(t){t.setAttribute('aria-selected','false');});el.setAttribute('aria-selected','true');flt=el.dataset.t;render();};
   $(function(){
     var tabs=document.querySelector('.ews-tabs');if(tabs)tabs.addEventListener('click',function(e){var t=e.target.closest('.ews-tab');if(t)acFilter(t);});
-    var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){if(e.target.closest('th.ews-sortable'))acSort();});
+    var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){var th=e.target.closest('th.ews-sortable');if(th)acSort(th.dataset.sort, th.dataset.date==='1');});
     $.when(
       get("/_api/cs_envelopes?$select=cs_envelopeid,cs_name,cs_subject,statuscode,modifiedon&$orderby=modifiedon desc&$top=50"),
       get("/_api/cs_templates?$select=cs_templateid,cs_name,modifiedon&$orderby=modifiedon desc&$top=50"),
