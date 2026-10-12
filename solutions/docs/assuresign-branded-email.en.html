@@ -1,0 +1,103 @@
+<!--
+  EC branded "document ready to sign" email — SENT BY THE BROKER (ESign-GetSigningLinks flow),
+  NOT pasted into AssureSign's editor. Because a real mail client (not AssureSign's sanitizer)
+  renders this, full HTML works: hex colours, padding, rounded corners, the navy footer.
+
+  Placeholders the flow replaces at send time:
+    {{RECIPIENT}} -> signer full name (falls back to email)
+    {{ENVELOPE}}  -> envelope subject / name
+    {{EXPIRES}}   -> expiry date (yyyy-MM-dd) or em dash
+    {{LINK}}      -> this signer's AssureSign signing URL
+  "Elections Canada" / sender text is intentionally static (matches the portal footer).
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;margin:0;padding:0;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;font-family:'Noto Sans',Arial,Helvetica,sans-serif;">
+
+        <!-- Header band (navy, white wordmark) -->
+        <tr>
+          <td style="background:#1e384b;padding:20px 28px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="left" valign="middle" style="color:#ffffff;font-size:18px;font-weight:700;line-height:1.2;">
+                  Elections&nbsp;Canada<br />
+                  <span style="font-size:13px;font-weight:400;color:#c9d5de;">Élections&nbsp;Canada</span>
+                </td>
+                <td align="right" valign="middle" style="color:#c9d5de;font-size:12px;line-height:1.4;">
+                  Electronic Signature Service<br />Service de signature électronique
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Burgundy accent bar -->
+        <tr><td style="background:#6a0032;font-size:0;line-height:0;height:4px;">&nbsp;</td></tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 32px 8px 32px;color:#1c272e;">
+            <h1 style="margin:0 0 6px 0;font-size:22px;line-height:1.25;color:#1e384b;font-weight:700;">
+              A document is ready for your signature
+            </h1>
+            <p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#4a555e;">
+              Hello {{RECIPIENT}}, you have a document waiting to be reviewed and signed.
+            </p>
+
+            <!-- Details card -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background:#f7f8fa;border:1px solid #e3e7ec;border-radius:8px;margin:0 0 24px 0;">
+              <tr>
+                <td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#1c272e;">
+                  <strong style="color:#1e384b;">Document:</strong> {{ENVELOPE}}<br />
+                  <strong style="color:#1e384b;">From:</strong> Elections Canada<br />
+                  <strong style="color:#1e384b;">Expires:</strong> {{EXPIRES}}
+                </td>
+              </tr>
+            </table>
+
+            <!-- Action button (rounded burgundy pill, fully clickable cell) -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px auto;">
+              <tr>
+                <td align="center" bgcolor="#6a0032" style="border-radius:8px;">
+                  <a href="{{LINK}}"
+                     style="display:inline-block;padding:14px 30px;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+                    Review &amp; sign document
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#6b757e;text-align:center;">
+              Button not working? Copy and paste this link into your browser:<br />
+              <a href="{{LINK}}" style="color:#6a0032;word-break:break-all;">{{LINK}}</a>
+            </p>
+
+            <p style="margin:0 0 4px 0;font-size:13px;line-height:1.5;color:#6b757e;">
+              If you were not expecting this document, you can safely ignore this email.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Separator -->
+        <tr><td style="padding:0 32px;"><div style="border-top:1px solid #e3e7ec;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+
+        <!-- Footer (navy, burgundy top border) -->
+        <tr>
+          <td style="background:#1e384b;border-top:3px solid #6a0032;padding:20px 28px;color:#c9d5de;font-size:12px;line-height:1.5;">
+            <strong style="color:#ffffff;">Elections Canada</strong> &middot; Élections Canada<br />
+            Internal use — Electronic Signature Service<br />
+            Usage interne — Service de signature électronique
+          </td>
+        </tr>
+
+      </table>
+
+      <p style="margin:14px 0 0 0;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#98a2ab;max-width:600px;">
+        This is an automated message from the Elections Canada Electronic Signature Service. Please do not reply to this email.
+      </p>
+
+    </td>
+  </tr>
+</table>

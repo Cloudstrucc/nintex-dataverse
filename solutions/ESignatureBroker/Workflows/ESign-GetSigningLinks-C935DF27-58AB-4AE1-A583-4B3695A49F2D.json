@@ -9,6 +9,15 @@
         "api": {
           "name": "shared_commondataserviceforapps"
         }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "cs_sharedoffice365"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
       }
     },
     "definition": {
@@ -173,6 +182,86 @@
               },
               "runAfter": {
                 "List_Signer": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Send_Branded_Email": {
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "not": {
+                      "empty": [
+                        "@items('Process_Each_Signing_Link')?['signingLink']"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "actions": {
+                "Check_Signer_Language": {
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "startsWith": [
+                          "@toLower(coalesce(first(outputs('List_Signer')?['body/value'])?['cs_language'], 'en-US'))",
+                          "fr"
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Send_Branded_Email_FR": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_office365",
+                          "operationId": "SendEmailV2",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                        },
+                        "parameters": {
+                          "emailMessage/To": "@{items('Process_Each_Signing_Link')?['signerEmail']}",
+                          "emailMessage/Subject": "Un document est prêt pour votre signature — @{coalesce(outputs('Get_Envelope_Record')?['body/cs_subject'], outputs('Get_Envelope_Record')?['body/cs_name'])}",
+                          "emailMessage/Body": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#f4f4f4;margin:0;padding:0;\">\n  <tr>\n    <td align=\"center\" style=\"padding:24px 12px;\">\n\n      <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:600px;max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;font-family:'Noto Sans',Arial,Helvetica,sans-serif;\">\n\n        <tr>\n          <td style=\"background:#1e384b;padding:20px 28px;\">\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n              <tr>\n                <td align=\"left\" valign=\"middle\" style=\"color:#ffffff;font-size:18px;font-weight:700;line-height:1.2;\">\n                  Élections&nbsp;Canada<br />\n                  <span style=\"font-size:13px;font-weight:400;color:#c9d5de;\">Elections&nbsp;Canada</span>\n                </td>\n                <td align=\"right\" valign=\"middle\" style=\"color:#c9d5de;font-size:12px;line-height:1.4;\">\n                  Service de signature électronique<br />Electronic Signature Service\n                </td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr><td style=\"background:#6a0032;font-size:0;line-height:0;height:4px;\">&nbsp;</td></tr>\n\n        <tr>\n          <td style=\"padding:32px 32px 8px 32px;color:#1c272e;\">\n            <h1 style=\"margin:0 0 6px 0;font-size:22px;line-height:1.25;color:#1e384b;font-weight:700;\">\n              Un document est prêt pour votre signature\n            </h1>\n            <p style=\"margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#4a555e;\">\n              Bonjour @{coalesce(first(outputs('List_Signer')?['body/value'])?['cs_fullname'], items('Process_Each_Signing_Link')?['signerEmail'])}, un document attend d'être examiné et signé.\n            </p>\n\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n                   style=\"background:#f7f8fa;border:1px solid #e3e7ec;border-radius:8px;margin:0 0 24px 0;\">\n              <tr>\n                <td style=\"padding:16px 18px;font-size:14px;line-height:1.6;color:#1c272e;\">\n                  <strong style=\"color:#1e384b;\">Document :</strong> @{coalesce(outputs('Get_Envelope_Record')?['body/cs_subject'], outputs('Get_Envelope_Record')?['body/cs_name'])}<br />\n                  <strong style=\"color:#1e384b;\">De :</strong> Élections Canada<br />\n                  <strong style=\"color:#1e384b;\">Expire le :</strong> @{if(empty(outputs('Get_Envelope_Record')?['body/cs_expirationdate']), '—', formatDateTime(outputs('Get_Envelope_Record')?['body/cs_expirationdate'], 'yyyy-MM-dd'))}\n                </td>\n              </tr>\n            </table>\n\n            <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:0 auto 20px auto;\">\n              <tr>\n                <td align=\"center\" bgcolor=\"#6a0032\" style=\"border-radius:8px;\">\n                  <a href=\"@{items('Process_Each_Signing_Link')?['signingLink']}\"\n                     style=\"display:inline-block;padding:14px 30px;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;\">\n                    Examiner et signer le document\n                  </a>\n                </td>\n              </tr>\n            </table>\n\n            <p style=\"margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#6b757e;text-align:center;\">\n              Le bouton ne fonctionne pas? Copiez et collez ce lien dans votre navigateur :<br />\n              <a href=\"@{items('Process_Each_Signing_Link')?['signingLink']}\" style=\"color:#6a0032;word-break:break-all;\">@{items('Process_Each_Signing_Link')?['signingLink']}</a>\n            </p>\n\n            <p style=\"margin:0 0 4px 0;font-size:13px;line-height:1.5;color:#6b757e;\">\n              Si vous n'attendiez pas ce document, vous pouvez ignorer ce courriel en toute sécurité.\n            </p>\n          </td>\n        </tr>\n\n        <tr><td style=\"padding:0 32px;\"><div style=\"border-top:1px solid #e3e7ec;font-size:0;line-height:0;\">&nbsp;</div></td></tr>\n\n        <tr>\n          <td style=\"background:#1e384b;border-top:3px solid #6a0032;padding:20px 28px;color:#c9d5de;font-size:12px;line-height:1.5;\">\n            <strong style=\"color:#ffffff;\">Élections Canada</strong> &middot; Elections Canada<br />\n            Usage interne — Service de signature électronique<br />\n            Internal use — Electronic Signature Service\n          </td>\n        </tr>\n\n      </table>\n\n      <p style=\"margin:14px 0 0 0;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#98a2ab;max-width:600px;\">\n        Ceci est un message automatisé du Service de signature électronique d'Élections Canada. Veuillez ne pas répondre à ce courriel.\n      </p>\n\n    </td>\n  </tr>\n</table>",
+                          "emailMessage/Importance": "Normal"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      },
+                      "runAfter": {}
+                    }
+                  },
+                  "else": {
+                    "actions": {
+                      "Send_Branded_Email_EN": {
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_office365",
+                            "operationId": "SendEmailV2",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                          },
+                          "parameters": {
+                            "emailMessage/To": "@{items('Process_Each_Signing_Link')?['signerEmail']}",
+                            "emailMessage/Subject": "A document is ready for your signature — @{coalesce(outputs('Get_Envelope_Record')?['body/cs_subject'], outputs('Get_Envelope_Record')?['body/cs_name'])}",
+                            "emailMessage/Body": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#f4f4f4;margin:0;padding:0;\">\n  <tr>\n    <td align=\"center\" style=\"padding:24px 12px;\">\n\n      <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:600px;max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;font-family:'Noto Sans',Arial,Helvetica,sans-serif;\">\n\n        <tr>\n          <td style=\"background:#1e384b;padding:20px 28px;\">\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n              <tr>\n                <td align=\"left\" valign=\"middle\" style=\"color:#ffffff;font-size:18px;font-weight:700;line-height:1.2;\">\n                  Elections&nbsp;Canada<br />\n                  <span style=\"font-size:13px;font-weight:400;color:#c9d5de;\">Élections&nbsp;Canada</span>\n                </td>\n                <td align=\"right\" valign=\"middle\" style=\"color:#c9d5de;font-size:12px;line-height:1.4;\">\n                  Electronic Signature Service<br />Service de signature électronique\n                </td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr><td style=\"background:#6a0032;font-size:0;line-height:0;height:4px;\">&nbsp;</td></tr>\n\n        <tr>\n          <td style=\"padding:32px 32px 8px 32px;color:#1c272e;\">\n            <h1 style=\"margin:0 0 6px 0;font-size:22px;line-height:1.25;color:#1e384b;font-weight:700;\">\n              A document is ready for your signature\n            </h1>\n            <p style=\"margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#4a555e;\">\n              Hello @{coalesce(first(outputs('List_Signer')?['body/value'])?['cs_fullname'], items('Process_Each_Signing_Link')?['signerEmail'])}, you have a document waiting to be reviewed and signed.\n            </p>\n\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n                   style=\"background:#f7f8fa;border:1px solid #e3e7ec;border-radius:8px;margin:0 0 24px 0;\">\n              <tr>\n                <td style=\"padding:16px 18px;font-size:14px;line-height:1.6;color:#1c272e;\">\n                  <strong style=\"color:#1e384b;\">Document:</strong> @{coalesce(outputs('Get_Envelope_Record')?['body/cs_subject'], outputs('Get_Envelope_Record')?['body/cs_name'])}<br />\n                  <strong style=\"color:#1e384b;\">From:</strong> Elections Canada<br />\n                  <strong style=\"color:#1e384b;\">Expires:</strong> @{if(empty(outputs('Get_Envelope_Record')?['body/cs_expirationdate']), '—', formatDateTime(outputs('Get_Envelope_Record')?['body/cs_expirationdate'], 'yyyy-MM-dd'))}\n                </td>\n              </tr>\n            </table>\n\n            <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:0 auto 20px auto;\">\n              <tr>\n                <td align=\"center\" bgcolor=\"#6a0032\" style=\"border-radius:8px;\">\n                  <a href=\"@{items('Process_Each_Signing_Link')?['signingLink']}\"\n                     style=\"display:inline-block;padding:14px 30px;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;\">\n                    Review &amp; sign document\n                  </a>\n                </td>\n              </tr>\n            </table>\n\n            <p style=\"margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#6b757e;text-align:center;\">\n              Button not working? Copy and paste this link into your browser:<br />\n              <a href=\"@{items('Process_Each_Signing_Link')?['signingLink']}\" style=\"color:#6a0032;word-break:break-all;\">@{items('Process_Each_Signing_Link')?['signingLink']}</a>\n            </p>\n\n            <p style=\"margin:0 0 4px 0;font-size:13px;line-height:1.5;color:#6b757e;\">\n              If you were not expecting this document, you can safely ignore this email.\n            </p>\n          </td>\n        </tr>\n\n        <tr><td style=\"padding:0 32px;\"><div style=\"border-top:1px solid #e3e7ec;font-size:0;line-height:0;\">&nbsp;</div></td></tr>\n\n        <tr>\n          <td style=\"background:#1e384b;border-top:3px solid #6a0032;padding:20px 28px;color:#c9d5de;font-size:12px;line-height:1.5;\">\n            <strong style=\"color:#ffffff;\">Elections Canada</strong> &middot; Élections Canada<br />\n            Internal use — Electronic Signature Service<br />\n            Usage interne — Service de signature électronique\n          </td>\n        </tr>\n\n      </table>\n\n      <p style=\"margin:14px 0 0 0;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#98a2ab;max-width:600px;\">\n        This is an automated message from the Elections Canada Electronic Signature Service. Please do not reply to this email.\n      </p>\n\n    </td>\n  </tr>\n</table>",
+                            "emailMessage/Importance": "Normal"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        },
+                        "runAfter": {}
+                      }
+                    }
+                  },
+                  "runAfter": {}
+                }
+              },
+              "else": {
+                "actions": {}
+              },
+              "runAfter": {
+                "Update_Signer_Link": [
                   "Succeeded"
                 ]
               }

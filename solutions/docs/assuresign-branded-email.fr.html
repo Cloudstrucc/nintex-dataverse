@@ -1,0 +1,102 @@
+<!--
+  Courriel « document prêt à signer » aux couleurs d'EC — ENVOYÉ PAR LE COURTIER
+  (flux ESign-GetSigningLinks), PAS collé dans l'éditeur d'AssureSign. Comme c'est un vrai
+  client de messagerie qui l'affiche, tout le HTML fonctionne : couleurs hex, marges, coins arrondis.
+
+  Espaces réservés remplacés par le flux à l'envoi :
+    {{RECIPIENT}} -> nom complet du signataire (à défaut, son courriel)
+    {{ENVELOPE}}  -> objet / nom de l'enveloppe
+    {{EXPIRES}}   -> date d'expiration (aaaa-mm-jj) ou tiret
+    {{LINK}}      -> l'URL de signature AssureSign de ce signataire
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;margin:0;padding:0;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;font-family:'Noto Sans',Arial,Helvetica,sans-serif;">
+
+        <!-- Bandeau d'en-tête (marine, mot-symbole blanc) -->
+        <tr>
+          <td style="background:#1e384b;padding:20px 28px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="left" valign="middle" style="color:#ffffff;font-size:18px;font-weight:700;line-height:1.2;">
+                  Élections&nbsp;Canada<br />
+                  <span style="font-size:13px;font-weight:400;color:#c9d5de;">Elections&nbsp;Canada</span>
+                </td>
+                <td align="right" valign="middle" style="color:#c9d5de;font-size:12px;line-height:1.4;">
+                  Service de signature électronique<br />Electronic Signature Service
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Bande d'accent bordeaux -->
+        <tr><td style="background:#6a0032;font-size:0;line-height:0;height:4px;">&nbsp;</td></tr>
+
+        <!-- Corps -->
+        <tr>
+          <td style="padding:32px 32px 8px 32px;color:#1c272e;">
+            <h1 style="margin:0 0 6px 0;font-size:22px;line-height:1.25;color:#1e384b;font-weight:700;">
+              Un document est prêt pour votre signature
+            </h1>
+            <p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#4a555e;">
+              Bonjour {{RECIPIENT}}, un document attend d'être examiné et signé.
+            </p>
+
+            <!-- Fiche récapitulative -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background:#f7f8fa;border:1px solid #e3e7ec;border-radius:8px;margin:0 0 24px 0;">
+              <tr>
+                <td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#1c272e;">
+                  <strong style="color:#1e384b;">Document :</strong> {{ENVELOPE}}<br />
+                  <strong style="color:#1e384b;">De :</strong> Élections Canada<br />
+                  <strong style="color:#1e384b;">Expire le :</strong> {{EXPIRES}}
+                </td>
+              </tr>
+            </table>
+
+            <!-- Bouton d'action (pastille bordeaux arrondie, cellule entièrement cliquable) -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px auto;">
+              <tr>
+                <td align="center" bgcolor="#6a0032" style="border-radius:8px;">
+                  <a href="{{LINK}}"
+                     style="display:inline-block;padding:14px 30px;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+                    Examiner et signer le document
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#6b757e;text-align:center;">
+              Le bouton ne fonctionne pas? Copiez et collez ce lien dans votre navigateur :<br />
+              <a href="{{LINK}}" style="color:#6a0032;word-break:break-all;">{{LINK}}</a>
+            </p>
+
+            <p style="margin:0 0 4px 0;font-size:13px;line-height:1.5;color:#6b757e;">
+              Si vous n'attendiez pas ce document, vous pouvez ignorer ce courriel en toute sécurité.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Séparateur -->
+        <tr><td style="padding:0 32px;"><div style="border-top:1px solid #e3e7ec;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+
+        <!-- Pied de page (marine, bordure bordeaux) -->
+        <tr>
+          <td style="background:#1e384b;border-top:3px solid #6a0032;padding:20px 28px;color:#c9d5de;font-size:12px;line-height:1.5;">
+            <strong style="color:#ffffff;">Élections Canada</strong> &middot; Elections Canada<br />
+            Usage interne — Service de signature électronique<br />
+            Internal use — Electronic Signature Service
+          </td>
+        </tr>
+
+      </table>
+
+      <p style="margin:14px 0 0 0;font-family:'Noto Sans',Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#98a2ab;max-width:600px;">
+        Ceci est un message automatisé du Service de signature électronique d'Élections Canada. Veuillez ne pas répondre à ce courriel.
+      </p>
+
+    </td>
+  </tr>
+</table>
