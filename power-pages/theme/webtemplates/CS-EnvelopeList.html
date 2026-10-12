@@ -54,8 +54,12 @@
     var pages=Math.max(1,Math.ceil(rows.length/PAGE));if(page>pages)page=pages;var sl=rows.slice((page-1)*PAGE,page*PAGE);
     var tb=document.getElementById('ecRows');
     tb.innerHTML=sl.length?sl.map(function(r){
-      var openLink=r.editable?(EDITOR+'?id='+esc(r.id)):('/envelopes/details/?id='+esc(r.id));
-      var menu='<a href="'+openLink+'">'+(r.editable?'✎ Edit':'👁 View details')+'</a>';
+      /* Editable envelopes get Edit; everything non-editable gets View details.
+         Error envelopes are editable (to fix/retry) AND get View details so the
+         parsed error can be seen on the details page. */
+      var menu='';
+      if(r.editable)menu+='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a>';
+      if(!r.editable||r.isError)menu+='<a href="/envelopes/details/?id='+esc(r.id)+'">👁 View details</a>';
       if(r.tplId)menu+='<a href="'+EDITOR+'?templateId='+esc(r.tplId)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.cancellable?'<button type="button" class="danger ec-cancel" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⊘ Cancel envelope</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⊘ Cancel envelope</button>');
       return '<tr><td class="s" data-label="Envelope">'+esc(r.name)+'</td><td data-label="Subject">'+esc(r.subj)+'</td><td data-label="Status"><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td data-label="Created">'+esc(r.created)+'</td><td data-label="Modified">'+esc(r.mod)+'</td>'+
@@ -91,7 +95,7 @@
         var editable=(v.statecode===0&&st[2]==='other')||(v.statecode===0&&v.statuscode===717640005);
         var cancellable=v.statecode===0&&st[2]!=='done'&&v.statuscode!==717640006;
         var subj=v.cs_subject||defSubj(TPL[v.cs_templateid],v.cs_envelopeid,v.cs_sentdate);
-        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:subj,stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],created:fmt(v.createdon),crtRaw:v.createdon||'',mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable};});
+        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:subj,stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],created:fmt(v.createdon),crtRaw:v.createdon||'',mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable,isError:(v.statuscode===717640005||v.statuscode===717640007)};});
       document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';ecRender();
     }).fail(function(x){document.getElementById('ecRows').innerHTML='<tr><td colspan="6" class="ews-empty">Unable to load envelopes'+(x&&x.status?(' (HTTP '+x.status+')'):'')+'.</td></tr>';});
     });
