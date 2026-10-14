@@ -18,26 +18,28 @@
  *   - .env at repo root with EC_CLIENT_ID / EC_CLIENT_SECRET / EC_TENANT_ID
  *   - The "ESign - Send Ad-hoc Envelope" flow must be turned ON (see runbook).
  *
- * Usage:  node sample-create-branded-envelope.mjs [templateId] [recipient(s)] [ownerEmail]
+ * Usage:  node sample-create-branded-envelope.mjs [ownerEmail] [templateId] [recipient(s)]
  *
- *   arg2  templateId   layout template for field positions + signer roles
- *                      (default: the built-in "Test 2 personal" template)
- *   arg3  recipient(s) ONE email, or a COMMA-SEPARATED list for multi-recipient
- *                      (default: fpearson613@gmail.com). Each becomes a signer
- *                      (role taken from the template's signer labels, by index)
- *                      and a cs_signer row on the envelope.
- *   arg4  ownerEmail   OPTIONAL. If given, the envelope's owner-contact
- *                      (cs_OwnerContact) is set to that person's contact
- *                      (found or created), so when they sign into the portal
- *                      they see it under "My envelopes" via the EXISTING
- *                      owner-contact table permission (no portal changes).
- *                      Omit it to just send the email (not shown in the portal).
+ *   arg2  ownerEmail   OWNER / CREATOR of the envelope. Its contact (found or
+ *                      created) is set as cs_OwnerContact, so when this person
+ *                      signs into the portal they see it under "My envelopes"
+ *                      via the EXISTING owner-contact table permission (no portal
+ *                      changes). It is ALSO the default recipient (see arg4), so
+ *                      the signing email goes to this same person unless you
+ *                      override recipients. Omit (run with no args) to fall back
+ *                      to the built-in sample, email-only (not shown in portal).
+ *   arg3  templateId   OPTIONAL layout template for field positions + signer
+ *                      roles (default: the built-in "Test 2 personal" template).
+ *   arg4  recipient(s) OPTIONAL. ONE email, or a COMMA-SEPARATED list for
+ *                      multi-recipient. Defaults to the ownerEmail (arg2). Each
+ *                      becomes a signer (role from the template's labels, by
+ *                      index) and a cs_signer row on the envelope.
  *
  * Examples:
- *   node sample-create-branded-envelope.mjs                       # defaults; email only
- *   node sample-create-branded-envelope.mjs <tpl> me@x.com         # one recipient; email only
- *   node sample-create-branded-envelope.mjs <tpl> a@x.com,b@x.com  # multi-recipient
- *   node sample-create-branded-envelope.mjs <tpl> a@x.com owner@x.com  # + owner sees it in portal
+ *   node sample-create-branded-envelope.mjs                         # all defaults; email only
+ *   node sample-create-branded-envelope.mjs me@x.com                # owner=recipient=me; shows in portal + emails me
+ *   node sample-create-branded-envelope.mjs me@x.com <tpl>          # + specific template
+ *   node sample-create-branded-envelope.mjs me@x.com <tpl> a@x.com,b@x.com   # + explicit multi-recipient
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -48,9 +50,11 @@ const DEV_URL = 'https://dev-ec-esign-01.crm3.dynamics.com';
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 
 // ---- config ----
-const TEMPLATE_ID = process.argv[2] || '83551a34-8cc3-f111-aaaf-000d3af4232b'; // "Test 2 personal" (1 signer, 1 signature)
-const RECIPIENTS  = (process.argv[3] || 'fpearson613@gmail.com').split(',').map((s) => s.trim()).filter(Boolean);
-const OWNER_EMAIL = process.argv[4] || null; // optional: assign envelope owner-contact so it shows in the portal
+// arg order: [ownerEmail] [templateId] [recipient(s)]
+const OWNER_EMAIL = process.argv[2] || null; // owner/creator (shown in portal) AND default recipient
+const TEMPLATE_ID = process.argv[3] || '83551a34-8cc3-f111-aaaf-000d3af4232b'; // default: "Test 2 personal"
+const RECIPIENTS  = (process.argv[4] ? process.argv[4].split(',') : (OWNER_EMAIL ? [OWNER_EMAIL] : ['fpearson613@gmail.com']))
+  .map((s) => s.trim()).filter(Boolean); // default recipient = owner (or the built-in test address when no owner)
 const PARTY_NAME  = 'Sample Party';
 
 // Derive a friendly display name from an email local-part (jane.doe -> "Jane Doe").
@@ -184,6 +188,6 @@ async function main() {
   console.log('Set cs_adhocsend = true — the broker flow will now submit ad-hoc.');
   console.log(`\nWatch: portal /envelopes/details/?id=${envId} , and check ${recipients.map((r) => r.email).join(', ')} for the signing email — the logo is a random colour each run.`);
   if (ownerContactId) console.log(`Portal: signed in as ${OWNER_EMAIL}, this envelope appears under "My envelopes" (owner-contact scope).`);
-  else console.log('Portal: no owner set — this envelope is email-only (not shown in the portal list). Pass an ownerEmail as the 3rd argument to assign it.');
+  else console.log('Portal: no owner set — this envelope is email-only (not shown in the portal list). Pass an ownerEmail as the FIRST argument to assign it.');
 }
 main().catch((e) => { console.error(e.status || '', JSON.stringify(e.data || e.message).slice(0, 400)); process.exit(1); });
