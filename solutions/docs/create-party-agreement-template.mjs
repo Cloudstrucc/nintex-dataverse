@@ -101,9 +101,18 @@ async function findOrCreateContact(email) {
   return c.id || c.contactid;
 }
 
+const VISIBILITY_GLOBAL = 717640000; // cs_visibility: Global (everyone can use); 717640001 = Personal
+
 async function main() {
   const ownerId = await findOrCreateContact(OWNER_EMAIL);
   console.log(`Owner contact (${OWNER_EMAIL}): ${ownerId}`);
+
+  // Resolve the "Global Templates" catalog so the template is readable by everyone
+  // (the portal "Global Templates (read)" permission is Parent-scoped off cs_catalog).
+  const cat = await api(`cs_templatecatalogs?$select=cs_templatecatalogid&$filter=cs_name eq 'Global Templates'&$top=1`);
+  const catId = cat.value && cat.value.length ? cat.value[0].cs_templatecatalogid : null;
+  if (catId) console.log(`Global Templates catalog: ${catId}`);
+  else console.log('WARNING: no "Global Templates" catalog in this env — template set visibility=Global but NOT catalog-linked, so it will not be readable by all until a catalog exists.');
 
   // find existing template by name (idempotent)
   const existing = await api(`cs_templates?$select=cs_templateid&$filter=cs_name eq '${TPL_NAME.replace(/'/g, "''")}'&$top=1`);
@@ -113,8 +122,10 @@ async function main() {
     cs_description: 'Sample ad-hoc template with a party-logo placeholder; the sent envelope injects the real coloured logo.',
     cs_templatepdf_name: 'party-agreement-template.pdf',
     cs_templatejson: TEMPLATE_JSON,
+    cs_visibility: VISIBILITY_GLOBAL,
     'cs_OwnerContact@odata.bind': `/contacts(${ownerId})`,
   };
+  if (catId) fields['cs_catalog@odata.bind'] = `/cs_templatecatalogs(${catId})`;
   let tplId;
   if (existing.value && existing.value.length) {
     tplId = existing.value[0].cs_templateid;
