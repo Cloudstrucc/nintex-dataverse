@@ -15,7 +15,8 @@
  *   3. Replaces its TemplateSourcePDF annotation with the placeholder PDF.
  *   4. Prints the template id — paste it into sample-create-branded-envelope.mjs DEFAULT_TEMPLATE.
  *
- * Usage:  node create-party-agreement-template.mjs [ownerEmail]
+ * Usage:  node create-party-agreement-template.mjs [dev|test] [ownerEmail]
+ *   target      dev (default) or test  — which EC e-sign environment to create it in
  *   ownerEmail  owner/creator contact for the template (default: fredrick.pearson@elections.ca)
  *
  * Prereqs: npm install pdf-lib ; .env at repo root with EC_CLIENT_ID/SECRET/TENANT.
@@ -25,9 +26,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
-const DEV_URL = 'https://dev-ec-esign-01.crm3.dynamics.com';
+const ENVS = { dev: 'https://dev-ec-esign-01.crm3.dynamics.com', test: 'https://test-ec-esign-01.crm3.dynamics.com' };
+const TARGET = (process.argv[2] || 'dev').toLowerCase();
+const DEV_URL = ENVS[TARGET]; if (!DEV_URL) { console.error(`Unknown target '${TARGET}' (use dev|test)`); process.exit(1); }
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
-const OWNER_EMAIL = process.argv[2] || 'fredrick.pearson@elections.ca';
+const OWNER_EMAIL = process.argv[3] || 'fredrick.pearson@elections.ca';
 const TPL_NAME = 'Party Participation Agreement (Sample)';
 
 function loadEnv() {
@@ -132,6 +135,8 @@ async function main() {
     documentbody: pdfB64, 'objectid_cs_template@odata.bind': `/cs_templates(${tplId})`,
   }});
   console.log('Attached TemplateSourcePDF (placeholder logo).');
-  console.log(`\nDONE. Set DEFAULT_TEMPLATE in sample-create-branded-envelope.mjs to:\n  ${tplId}`);
+  console.log(`\nDONE (${TARGET}). Template id: ${tplId}`);
+  console.log(`  dev  -> this is the sample script's DEFAULT_TEMPLATE.`);
+  console.log(`  test -> pass it to the sample on test: node sample-create-branded-envelope.mjs <owner> ${tplId}`);
 }
 main().catch((e) => { console.error(e.status || '', JSON.stringify(e.data || e.message).slice(0, 500)); process.exit(1); });
