@@ -1,7 +1,7 @@
 {% comment %}
   Shared "My Envelopes" list component — included by CS-Home-WET (My Workspace)
   and CS-Envelopes (/envelopes). KPI filter tiles + sortable ews-nt table
-  (default sort: modifiedon desc) + full-screen + page-size + windowed pager +
+  (default sort: createdon desc) + full-screen + page-size + windowed pager +
   ellipsis row menu. Keep a single source of truth for the envelope list.
 {% endcomment %}
 <div class="ews-stats">
@@ -36,7 +36,7 @@
 (function(){
   var STAT={1:['Draft','draft','other'],717640001:['Preparing','proc','proc'],717640002:['Ready to Send','proc','proc'],717640003:['In Process','proc','proc'],717640004:['Completed','done','done'],717640005:['Error','err','err'],717640006:['Cancelled','off','other'],717640007:['Cancel Error','err','err']};
   var API_ENV='/_api/cs_envelopes',EDITOR='/envelopes/edit-envelope/';
-  var DATA=[],filter='all',page=1,PAGE=5,USERPAGE=5,sortCol='mod',sortDir='desc';
+  var DATA=[],filter='all',page=1,PAGE=5,USERPAGE=5,sortCol='crt',sortDir='desc';
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmt(iso){if(!iso)return '';try{return new Date(iso).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
   function get(u){return $.ajax({type:'GET',url:u,headers:{Accept:'application/json'}});}
@@ -90,7 +90,7 @@
   function load(){
     get('/_api/cs_templates?$select=cs_templateid,cs_name').then(function(t){return t;},function(){return {value:[]};}).done(function(tj){
     var TPL={};(tj.value||[]).forEach(function(t){TPL[t.cs_templateid]=t.cs_name||'';});
-    get(API_ENV+'?$orderby=modifiedon desc&$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_sentdate,createdon,modifiedon').done(function(j){
+    get(API_ENV+'?$orderby=createdon desc&$select=cs_envelopeid,cs_name,cs_subject,statuscode,statecode,cs_templateid,cs_sentdate,createdon,modifiedon').done(function(j){
       DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];
         var editable=(v.statecode===0&&st[2]==='other')||(v.statecode===0&&v.statuscode===717640005);
         var cancellable=v.statecode===0&&st[2]!=='done'&&v.statuscode!==717640006;

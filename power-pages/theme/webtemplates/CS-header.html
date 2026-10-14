@@ -3,6 +3,12 @@
    logo pinned far-left and language toggle far-right. {% endcomment %}
 {% include 'EC-Base-Styles' %}
 
+{% comment %} Tool-mode fallback: Liquid request.path/url is unreliable on the enhanced
+   data model for these pages, so also detect the canvas tool pages client-side from the
+   browser URL and suppress the nav before paint (no flash). {% endcomment %}
+<style>html.ews-toolmode .ews-nav{display:none!important}</style>
+<script>(function(){try{if(/edit-envelope|edit-template/i.test(location.pathname+location.search))document.documentElement.classList.add('ews-toolmode');}catch(e){}})();</script>
+
 {% assign _p = request.path | downcase %}
 {% assign _u = request.url | downcase %}
 {% assign toolmode = false %}
