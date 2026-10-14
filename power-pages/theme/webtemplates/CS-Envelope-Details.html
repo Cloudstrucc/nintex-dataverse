@@ -263,16 +263,33 @@
   }
   function loadDoc(tplId,signers,envStage,env){
     var box=document.getElementById('edDoc');
-    if(!tplId){box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document attached.</div>';return;}
-    get('/_api/cs_templates('+tplId+')?$select=cs_templatejson,cs_name').always(function(t){
-      var tpl={};try{tpl=JSON.parse((t&&t.cs_templatejson)||'{}');}catch(e){}
-      get("/_api/annotations?$filter=_objectid_value eq "+tplId+" and subject eq 'TemplateSourcePDF'&$select=documentbody&$top=1").done(function(d){
-        var b64=d&&d.value&&d.value[0]&&d.value[0].documentbody;
-        if(b64){renderDoc(b64,tpl,signers,envStage,env);return;}
-        if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage,env);return;}
+    function done(b64,tpl){if(b64){renderDoc(b64,tpl,signers,envStage,env);return true;}return false;}
+    // Template PDF path: TemplateSourcePDF annotation, then cs_templatejson.pdfBase64.
+    function tplPdf(tpl){
+      if(tplId){
+        get("/_api/annotations?$filter=_objectid_value eq "+tplId+" and subject eq 'TemplateSourcePDF'&$select=documentbody&$top=1").done(function(d){
+          var b64=d&&d.value&&d.value[0]&&d.value[0].documentbody;
+          if(done(b64,tpl))return;
+          if(done(tpl.pdfBase64,tpl))return;
+          box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document preview available.</div>';
+        }).fail(function(){if(!done(tpl.pdfBase64,tpl))box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">Unable to load document.</div>';});
+      } else if(!done(tpl.pdfBase64,tpl)){
         box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">No document preview available.</div>';
-      }).fail(function(){if(tpl.pdfBase64){renderDoc(tpl.pdfBase64,tpl,signers,envStage,env);}else box.innerHTML='<div class="ews-empty" style="color:#cfd6db;padding:40px">Unable to load document.</div>';});
-    });
+      }
+    }
+    // Prefer the envelope's OWN sent document (e.g. the ad-hoc branded PDF attached as
+    // EnvelopeSourcePDF); fall back to the template's PDF. Overlay still uses tpl field coords.
+    function withTpl(tpl){
+      get("/_api/annotations?$filter=_objectid_value eq "+ID+" and subject eq 'EnvelopeSourcePDF'&$select=documentbody&$top=1")
+        .done(function(ed){var eb64=ed&&ed.value&&ed.value[0]&&ed.value[0].documentbody;if(done(eb64,tpl))return;tplPdf(tpl);})
+        .fail(function(){tplPdf(tpl);});
+    }
+    if(tplId){
+      get('/_api/cs_templates('+tplId+')?$select=cs_templatejson,cs_name').always(function(t){
+        var tpl={};try{tpl=JSON.parse((t&&t.cs_templatejson)||'{}');}catch(e){}
+        withTpl(tpl);
+      });
+    } else { withTpl({}); }
   }
 
   function resolveSigners(env,rows){
