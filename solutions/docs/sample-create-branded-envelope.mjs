@@ -52,7 +52,7 @@ const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 // ---- config ----
 // arg order: [ownerEmail] [templateId] [recipient(s)]
 const OWNER_EMAIL = process.argv[2] || null; // owner/creator (shown in portal) AND default recipient
-const TEMPLATE_ID = process.argv[3] || '83551a34-8cc3-f111-aaaf-000d3af4232b'; // default: "Test 2 personal"
+const TEMPLATE_ID = process.argv[3] || '66de5bcb-c4c7-f111-a05c-002248d57f8c'; // default: "Party Participation Agreement (Sample)" (logo placeholder)
 const RECIPIENTS  = (process.argv[4] ? process.argv[4].split(',') : (OWNER_EMAIL ? [OWNER_EMAIL] : ['fpearson613@gmail.com']))
   .map((s) => s.trim()).filter(Boolean); // default recipient = owner (or the built-in test address when no owner)
 const PARTY_NAME  = 'Sample Party';
