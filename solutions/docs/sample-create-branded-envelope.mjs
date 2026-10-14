@@ -18,7 +18,26 @@
  *   - .env at repo root with EC_CLIENT_ID / EC_CLIENT_SECRET / EC_TENANT_ID
  *   - The "ESign - Send Ad-hoc Envelope" flow must be turned ON (see runbook).
  *
- * Usage:  node sample-create-branded-envelope.mjs [templateId] [your@email]
+ * Usage:  node sample-create-branded-envelope.mjs [templateId] [recipient(s)] [ownerEmail]
+ *
+ *   arg2  templateId   layout template for field positions + signer roles
+ *                      (default: the built-in "Test 2 personal" template)
+ *   arg3  recipient(s) ONE email, or a COMMA-SEPARATED list for multi-recipient
+ *                      (default: fpearson613@gmail.com). Each becomes a signer
+ *                      (role taken from the template's signer labels, by index)
+ *                      and a cs_signer row on the envelope.
+ *   arg4  ownerEmail   OPTIONAL. If given, the envelope's owner-contact
+ *                      (cs_OwnerContact) is set to that person's contact
+ *                      (found or created), so when they sign into the portal
+ *                      they see it under "My envelopes" via the EXISTING
+ *                      owner-contact table permission (no portal changes).
+ *                      Omit it to just send the email (not shown in the portal).
+ *
+ * Examples:
+ *   node sample-create-branded-envelope.mjs                       # defaults; email only
+ *   node sample-create-branded-envelope.mjs <tpl> me@x.com         # one recipient; email only
+ *   node sample-create-branded-envelope.mjs <tpl> a@x.com,b@x.com  # multi-recipient
+ *   node sample-create-branded-envelope.mjs <tpl> a@x.com owner@x.com  # + owner sees it in portal
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,8 +49,26 @@ const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 
 // ---- config ----
 const TEMPLATE_ID = process.argv[2] || '83551a34-8cc3-f111-aaaf-000d3af4232b'; // "Test 2 personal" (1 signer, 1 signature)
-const TEST_EMAIL  = process.argv[3] || 'fpearson613@gmail.com';
+const RECIPIENTS  = (process.argv[3] || 'fpearson613@gmail.com').split(',').map((s) => s.trim()).filter(Boolean);
+const OWNER_EMAIL = process.argv[4] || null; // optional: assign envelope owner-contact so it shows in the portal
 const PARTY_NAME  = 'Sample Party';
+
+// Derive a friendly display name from an email local-part (jane.doe -> "Jane Doe").
+function nameFromEmail(email) {
+  const local = (email.split('@')[0] || 'Signer').replace(/[._+-]+/g, ' ').trim();
+  return local.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Signer';
+}
+
+// Find a contact by email, or create a minimal one. Returns contactid.
+async function findOrCreateContact(email) {
+  const q = await api(`contacts?$select=contactid,fullname&$filter=emailaddress1 eq '${email}'&$top=1`);
+  if (q.value && q.value.length) { console.log(`  owner contact: found ${q.value[0].fullname || email} (${q.value[0].contactid})`); return q.value[0].contactid; }
+  const nm = nameFromEmail(email).split(' ');
+  const created = await api(`contacts`, { method: 'POST', body: { firstname: nm[0], lastname: nm.slice(1).join(' ') || nm[0], emailaddress1: email } });
+  const id = created.id || created.contactid;
+  console.log(`  owner contact: created ${email} (${id})`);
+  return id;
+}
 
 // Simple routine: pick a random, readable logo colour each run (random hue, fixed
 // saturation/lightness so white initials stay legible). Returns pdf-lib [r,g,b] 0-1.
@@ -97,19 +134,39 @@ async function main() {
   const tpl = await api(`cs_templates(${TEMPLATE_ID})?$select=cs_name,cs_templatejson`);
   const tj = JSON.parse(tpl.cs_templatejson || '{}');
   const signers = (tj.signers && tj.signers.length) ? tj.signers : [{ label: 'Primary Signer' }];
-  const recipients = signers.map((s, i) => ({ role: s.label, name: `Test Signer ${i + 1}`, email: TEST_EMAIL }));
-  console.log(`Template: ${tpl.cs_name} · signers: ${signers.map((s) => s.label).join(', ')}`);
+  // Map each provided recipient onto a template signer role by index (fallback "Signer N").
+  const recipients = RECIPIENTS.map((email, i) => ({ role: (signers[i] && signers[i].label) || `Signer ${i + 1}`, name: nameFromEmail(email), email }));
+  console.log(`Template: ${tpl.cs_name} · template roles: ${signers.map((s) => s.label).join(', ')}`);
+  console.log(`Recipients (${recipients.length}): ${recipients.map((r) => `${r.email} [${r.role}]`).join(', ')}`);
+
+  // 1b. optional owner-contact (so the envelope shows in the portal for that user)
+  let ownerContactId = null;
+  if (OWNER_EMAIL) { console.log(`Owner requested: ${OWNER_EMAIL}`); ownerContactId = await findOrCreateContact(OWNER_EMAIL); }
 
   // 2. create the envelope (references the template for layout; recipients in cs_envelopejson)
   const envName = `${party.name} — ad-hoc ${new Date().toISOString().slice(11, 19)}`;
-  const env = await api(`cs_envelopes`, { method: 'POST', headers: { Prefer: 'return=representation' }, body: {
+  const envBody = {
     cs_name: envName, cs_subject: envName,
     cs_templateid: TEMPLATE_ID,
     cs_envelopejson: JSON.stringify({ templateId: TEMPLATE_ID, templateName: tpl.cs_name, recipients }),
     statuscode: 1, // Draft
-  }});
+  };
+  if (ownerContactId) envBody['cs_OwnerContact@odata.bind'] = `/contacts(${ownerContactId})`;
+  const env = await api(`cs_envelopes`, { method: 'POST', headers: { Prefer: 'return=representation' }, body: envBody });
   const envId = env.id || env.cs_envelopeid;
-  console.log(`Created envelope ${envId}`);
+  console.log(`Created envelope ${envId}${ownerContactId ? ' (owner-contact set)' : ''}`);
+
+  // 2b. create a cs_signer row per recipient (the ad-hoc flow does NOT create these;
+  //     they back the portal's per-recipient visibility and the signing-link storage)
+  for (let i = 0; i < recipients.length; i++) {
+    const r = recipients[i];
+    await api(`cs_signers`, { method: 'POST', body: {
+      cs_fullname: r.name, cs_email: r.email, cs_signerorder: i + 1,
+      cs_language: 'en-US', cs_signerstatus: 1, // Pending
+      'cs_EnvelopeLookup@odata.bind': `/cs_envelopes(${envId})`,
+    }});
+  }
+  console.log(`Created ${recipients.length} cs_signer row(s)`);
 
   // 3. attach the branded PDF as EnvelopeSourcePDF annotation
   const pdfB64 = await brandedPdf(party.name, party.color);
@@ -125,6 +182,8 @@ async function main() {
   // 4. flip cs_adhocsend = true -> fires ESign - Send Ad-hoc Envelope
   await api(`cs_envelopes(${envId})`, { method: 'PATCH', body: { cs_adhocsend: true } });
   console.log('Set cs_adhocsend = true — the broker flow will now submit ad-hoc.');
-  console.log(`\nWatch: portal /envelopes/details/?id=${envId} , and check ${TEST_EMAIL} for the signing email — the logo is a random colour each run.`);
+  console.log(`\nWatch: portal /envelopes/details/?id=${envId} , and check ${recipients.map((r) => r.email).join(', ')} for the signing email — the logo is a random colour each run.`);
+  if (ownerContactId) console.log(`Portal: signed in as ${OWNER_EMAIL}, this envelope appears under "My envelopes" (owner-contact scope).`);
+  else console.log('Portal: no owner set — this envelope is email-only (not shown in the portal list). Pass an ownerEmail as the 3rd argument to assign it.');
 }
 main().catch((e) => { console.error(e.status || '', JSON.stringify(e.data || e.message).slice(0, 400)); process.exit(1); });
