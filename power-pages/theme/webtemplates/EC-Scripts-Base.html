@@ -117,10 +117,10 @@ log('🔥 EC-Scripts-Base LOADED - Version 1.1');
       doc.documentElement.setAttribute('data-ecw-modal-injected','1');   // set first: no double-inject
       var head=doc.head||doc.getElementsByTagName('head')[0]||doc.documentElement;
       var styles=document.querySelectorAll('style[data-ecw-modal="1"]');
-      for(var i=0;i<styles.length;i++){var st=doc.createElement('style');st.setAttribute('data-ecw-modal','1');st.textContent=styles[i].textContent;head.appendChild(st);}
+      for(var i=0,sl=styles.length;i<sl;i++){var st=doc.createElement('style');st.setAttribute('data-ecw-modal','1');st.textContent=styles[i].textContent;head.appendChild(st);}
       var body=doc.body||doc.documentElement;
       var scripts=document.querySelectorAll('script[data-ecw-modal="1"]');   // runs in the iframe's own context
-      for(var j=0;j<scripts.length;j++){var sc=doc.createElement('script');sc.textContent=scripts[j].textContent;body.appendChild(sc);}
+      for(var j=0,scl=scripts.length;j<scl;j++){var sc=doc.createElement('script');sc.textContent=scripts[j].textContent;body.appendChild(sc);}
       log('✅ Injected EC validation/notice modules into modal iframe');
     }catch(e){ /* cross-origin or not ready yet */ }
   }

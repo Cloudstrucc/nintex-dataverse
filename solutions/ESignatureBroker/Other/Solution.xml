@@ -8,7 +8,7 @@
     <Descriptions>
       <Description description="E-Signature Broker Service for Elections Canada" languagecode="1033" />
     </Descriptions>
-    <Version>1.0.0.78</Version>
+    <Version>1.0.0.79</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>cs</UniqueName>
@@ -28,7 +28,6 @@
       <RootComponent type="29" id="{1eaef17a-c921-4dbb-9fef-e55ff3fbc940}" behavior="0" />
       <RootComponent type="29" id="{5ecd526c-1873-4511-8e71-1b0e6b6d88f8}" behavior="0" />
       <RootComponent type="29" id="{7467b6ab-123f-4abe-b6fa-857f44c5c2f7}" behavior="0" />
-      <RootComponent type="29" id="{7e4177f7-6f26-4f98-9c97-6d51f4f36792}" behavior="0" />
       <RootComponent type="29" id="{8182c764-ecd9-4913-bbe1-99c9d66232a1}" behavior="0" />
       <RootComponent type="29" id="{91e66ae6-0394-47f6-85b4-13198774440c}" behavior="0" />
       <RootComponent type="29" id="{76cef562-9ab6-41f9-8c2d-cef103c03188}" behavior="0" />
@@ -120,10 +119,6 @@
       </MissingDependency>
       <MissingDependency>
         <Required type="1" schemaName="cs_template" displayName="Template" solution="Active" />
-        <Dependent type="29" displayName="ESign - Sync Templates" id="{7e4177f7-6f26-4f98-9c97-6d51f4f36792}" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required type="1" schemaName="cs_template" displayName="Template" solution="Active" />
         <Dependent type="29" displayName="ESign - Upsert Template in AssureSign" id="{a152fa6b-6c07-48b9-8d7b-d8c320531868}" />
       </MissingDependency>
       <MissingDependency>
@@ -155,12 +150,6 @@
           <package appName="EnvironmentVariables" version="1.0.2406.4">EnvironmentVariablesSolutionAnchor (1.0.2406.4)</package>
         </Required>
         <Dependent type="29" displayName="ESign - Get Access Links" id="{7467b6ab-123f-4abe-b6fa-857f44c5c2f7}" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required type="1" schemaName="environmentvariabledefinition" displayName="Environment Variable Definition" solution="EnvironmentVariables (1.0.2406.4)">
-          <package appName="EnvironmentVariables" version="1.0.2406.4">EnvironmentVariablesSolutionAnchor (1.0.2406.4)</package>
-        </Required>
-        <Dependent type="29" displayName="ESign - Sync Templates" id="{7e4177f7-6f26-4f98-9c97-6d51f4f36792}" />
       </MissingDependency>
       <MissingDependency>
         <Required type="1" schemaName="environmentvariabledefinition" displayName="Environment Variable Definition" solution="EnvironmentVariables (1.0.2406.4)">
