@@ -162,7 +162,7 @@ async function main() {
     const r = recipients[i];
     await api(`cs_signers`, { method: 'POST', body: {
       cs_fullname: r.name, cs_email: r.email, cs_signerorder: i + 1,
-      cs_language: 'en-US', cs_signerstatus: 1, // Pending
+      cs_language: 'en-US', cs_signerstatus: 'Pending', // cs_signerstatus is a free-text string (Nintex status)
       'cs_EnvelopeLookup@odata.bind': `/cs_envelopes(${envId})`,
     }});
   }
