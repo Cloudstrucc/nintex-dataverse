@@ -18,8 +18,11 @@
  *   - .env at repo root with EC_CLIENT_ID / EC_CLIENT_SECRET / EC_TENANT_ID
  *   - The "ESign - Send Ad-hoc Envelope" flow must be turned ON (see runbook).
  *
- * Usage:  node sample-create-branded-envelope.mjs [ownerEmail] [templateId] [recipient(s)]
+ * Usage:  node sample-create-branded-envelope.mjs [dev|test] [ownerEmail] [templateId] [recipient(s)]
  *
+ *   arg1  dev|test     OPTIONAL environment (default dev). If the first arg is an
+ *                      email instead, it is treated as ownerEmail and target=dev.
+ *                      Each env has its own default party-agreement template.
  *   arg2  ownerEmail   OWNER / CREATOR of the envelope. Its contact (found or
  *                      created) is set as cs_OwnerContact, so when this person
  *                      signs into the portal they see it under "My envelopes"
@@ -40,20 +43,31 @@
  *   node sample-create-branded-envelope.mjs me@x.com                # owner=recipient=me; shows in portal + emails me
  *   node sample-create-branded-envelope.mjs me@x.com <tpl>          # + specific template
  *   node sample-create-branded-envelope.mjs me@x.com <tpl> a@x.com,b@x.com   # + explicit multi-recipient
+ *   node sample-create-branded-envelope.mjs test me@x.com                    # run against TEST (its default template)
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
-const DEV_URL = 'https://dev-ec-esign-01.crm3.dynamics.com';
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 
 // ---- config ----
-// arg order: [ownerEmail] [templateId] [recipient(s)]
-const OWNER_EMAIL = process.argv[2] || null; // owner/creator (shown in portal) AND default recipient
-const TEMPLATE_ID = process.argv[3] || '66de5bcb-c4c7-f111-a05c-002248d57f8c'; // default: "Party Participation Agreement (Sample)" (logo placeholder)
-const RECIPIENTS  = (process.argv[4] ? process.argv[4].split(',') : (OWNER_EMAIL ? [OWNER_EMAIL] : ['fpearson613@gmail.com']))
+// arg order: [dev|test] [ownerEmail] [templateId] [recipient(s)]
+//   An optional FIRST arg of dev|test picks the environment (default dev); if the
+//   first arg is an email it is treated as ownerEmail (target stays dev).
+const ENVS = { dev: 'https://dev-ec-esign-01.crm3.dynamics.com', test: 'https://test-ec-esign-01.crm3.dynamics.com' };
+const DEFAULT_TPL = { // "Party Participation Agreement (Sample)" per env (logo placeholder)
+  dev: '66de5bcb-c4c7-f111-a05c-002248d57f8c',
+  test: '1345b9ca-c5c7-f111-a05c-70a8a50ab208',
+};
+const ARGS = process.argv.slice(2);
+let TARGET = 'dev';
+if (ARGS[0] && ENVS[ARGS[0].toLowerCase()]) TARGET = ARGS.shift().toLowerCase();
+const API_URL = ENVS[TARGET];
+const OWNER_EMAIL = ARGS[0] || null; // owner/creator (shown in portal) AND default recipient
+const TEMPLATE_ID = ARGS[1] || DEFAULT_TPL[TARGET]; // default: the party-agreement template for this env
+const RECIPIENTS  = (ARGS[2] ? ARGS[2].split(',') : (OWNER_EMAIL ? [OWNER_EMAIL] : ['fpearson613@gmail.com']))
   .map((s) => s.trim()).filter(Boolean); // default recipient = owner (or the built-in test address when no owner)
 const PARTY_NAME  = 'Sample Party';
 
@@ -93,12 +107,12 @@ function loadEnv() {
 const E = loadEnv(); let _tok = null;
 async function tok() {
   if (_tok) return _tok;
-  const body = new URLSearchParams({ grant_type: 'client_credentials', client_id: E.EC_CLIENT_ID, client_secret: E.EC_CLIENT_SECRET, scope: `${DEV_URL}/.default` });
+  const body = new URLSearchParams({ grant_type: 'client_credentials', client_id: E.EC_CLIENT_ID, client_secret: E.EC_CLIENT_SECRET, scope: `${API_URL}/.default` });
   const r = await fetch(`https://login.microsoftonline.com/${E.EC_TENANT_ID}/oauth2/v2.0/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
   const j = await r.json(); if (!j.access_token) throw new Error('token ' + JSON.stringify(j)); _tok = j.access_token; return _tok;
 }
 async function api(pathStr, { method = 'GET', body, headers = {} } = {}) {
-  const t = await tok(); const url = `${DEV_URL}/api/data/v9.2/${pathStr}`;
+  const t = await tok(); const url = `${API_URL}/api/data/v9.2/${pathStr}`;
   const h = { Authorization: `Bearer ${t}`, 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', Accept: 'application/json', ...headers };
   if (body !== undefined) h['Content-Type'] = 'application/json';
   const r = await fetch(url, { method, headers: h, body: body !== undefined ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined });
