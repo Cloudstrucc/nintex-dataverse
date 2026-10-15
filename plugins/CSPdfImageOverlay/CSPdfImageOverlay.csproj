@@ -28,10 +28,9 @@
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.PowerApps.MSBuild.Plugin" Version="1.*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.*" PrivateAssets="All" />
-    <!-- runtime dependency bundled into the plug-in package (sandbox-safe, pure managed, no GDI) -->
-    <PackageReference Include="PdfSharpCore" Version="1.3.65" />
-    <!-- auto strong-name PdfSharpCore + its transitive deps (sandbox requires strong names) -->
-    <PackageReference Include="Brutal.Dev.StrongNameSigner" Version="3.4.0" PrivateAssets="All" />
+    <!-- iText7 engine (version A): strong-named, net462-native, no GDI -> loads in the sandbox
+         as a plug-in package dependency. The native engine (version B) needs no library. -->
+    <PackageReference Include="itext7" Version="7.1.18" />
   </ItemGroup>
 
   <Import Project="$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Plugin.targets" Condition="Exists('$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Plugin.targets')" />
