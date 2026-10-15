@@ -1,0 +1,18 @@
+<customapi uniquename="cs_OverlayImageOnPdfX">
+  <allowedcustomprocessingsteptype>0</allowedcustomprocessingsteptype>
+  <bindingtype>0</bindingtype>
+  <description default="iText engine: stamps a base64 image onto a base64 PDF; returns base64 PDF.">
+    <label description="iText engine: stamps a base64 image onto a base64 PDF; returns base64 PDF." languagecode="1033" />
+  </description>
+  <displayname default="Overlay Image On PDF (iText)">
+    <label description="Overlay Image On PDF (iText)" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isfunction>0</isfunction>
+  <isprivate>0</isprivate>
+  <name>cs_OverlayImageOnPdfX</name>
+  <plugintypeid>
+    <plugintypeexportkey>92513F14CCE806A11E65D3EBFE82AE7C0B6DE7C7C7910F9CF80AA921560F11BF</plugintypeexportkey>
+  </plugintypeid>
+  <workflowsdkstepenabled>0</workflowsdkstepenabled>
+</customapi>

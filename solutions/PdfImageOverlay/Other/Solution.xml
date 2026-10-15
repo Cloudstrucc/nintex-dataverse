@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.2.26094.142" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26094.142" OrganizationSchemaType="Full" CRMServerServiceabilityVersion="9.2.26094.00146">
+  <SolutionManifest>
+    <UniqueName>PdfImageOverlay</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="PDF Image Overlay" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Reusable Custom APIs to stamp an image onto a PDF (native + iText engines)." languagecode="1033" />
+    </Descriptions>
+    <Version>1.0.0.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>cs</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="cs" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress></EMailAddress>
+      <SupportingWebsiteUrl></SupportingWebsiteUrl>
+      <CustomizationPrefix>cs</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>71764</CustomizationOptionValuePrefix>
+      <Addresses />
+    </Publisher>
+    <RootComponents />
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>

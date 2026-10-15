@@ -1,8 +1,10 @@
 # PdfImageOverlay — a reusable "stamp an image onto a PDF" Dataverse plugin
 
-> **Status: IMPLEMENTED & DEPLOYED TO DEV (dev-ec-esign-01).** Two engines, both validated
-> end-to-end. Source: `plugins/CSPdfImageOverlay/` (publisher `cs`). See
-> [Two engines](#two-engines--which-to-use) for how they compare.
+> **Status: IMPLEMENTED & DEPLOYED TO DEV (dev-ec-esign-01), packaged as the unmanaged solution
+> `PdfImageOverlay`** (unpacked at `solutions/PdfImageOverlay/`; export managed to distribute).
+> The **active engine is A (iText, `cs_OverlayImageOnPdfX`)**; the dependency-free engine B
+> (`cs_OverlayImageOnPdf`) is **parked** — see [Two engines](#two-engines--which-to-use).
+> Plugin source: `plugins/CSPdfImageOverlay/` (publisher `cs`).
 
 A small, **schema-agnostic, fully in-platform** capability: a Dataverse **Custom API** that takes a
 **PDF + an image** (and optional position / size) and returns a **new PDF with the image stamped
@@ -14,7 +16,17 @@ branding, watermarking, logos, signatures, etc.). The e-signature / political-pa
 just **one consumer** of it (see [Consumers](#consumers) and the separate web-resource plan).
 
 ## Two engines — which to use
-Two Custom APIs with the **identical parameter contract** (below), so you can compare:
+
+> **Delivered / active engine: A — `cs_OverlayImageOnPdfX` (iText).** It handles any PDF + any
+> image and is the one the party-logo feature should call.
+>
+> **Engine B — `cs_OverlayImageOnPdf` (native, dependency-free) is PARKED.** It is deployed in dev
+> and its code is in the repo, but it is **not the active path** — it's documented here as a
+> *separate alternative we can choose to tackle later* (e.g. to drop the AGPL iText dependency). It
+> works only on classic-xref PDFs, which our pdf-lib templates are not, so it is not production-ready
+> for this use case without the optional template-generation change noted below.
+
+Both Custom APIs share the **identical parameter contract** (below), so you can compare:
 
 | | `cs_OverlayImageOnPdf` (B — native) | `cs_OverlayImageOnPdfX` (A — iText) |
 |---|---|---|

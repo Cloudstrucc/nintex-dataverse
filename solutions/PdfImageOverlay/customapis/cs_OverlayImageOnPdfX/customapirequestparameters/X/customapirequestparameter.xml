@@ -1,0 +1,9 @@
+<customapirequestparameter uniquename="X">
+  <displayname default="X">
+    <label description="X" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isoptional>1</isoptional>
+  <name>X</name>
+  <type>6</type>
+</customapirequestparameter>

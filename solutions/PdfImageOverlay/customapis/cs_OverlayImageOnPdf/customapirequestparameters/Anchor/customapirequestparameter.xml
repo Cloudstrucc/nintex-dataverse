@@ -1,0 +1,9 @@
+<customapirequestparameter uniquename="Anchor">
+  <displayname default="Anchor">
+    <label description="Anchor" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isoptional>1</isoptional>
+  <name>Anchor</name>
+  <type>10</type>
+</customapirequestparameter>

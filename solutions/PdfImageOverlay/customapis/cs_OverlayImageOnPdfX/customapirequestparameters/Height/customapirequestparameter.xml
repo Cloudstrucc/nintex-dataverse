@@ -1,0 +1,9 @@
+<customapirequestparameter uniquename="Height">
+  <displayname default="Height">
+    <label description="Height" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isoptional>1</isoptional>
+  <name>Height</name>
+  <type>6</type>
+</customapirequestparameter>

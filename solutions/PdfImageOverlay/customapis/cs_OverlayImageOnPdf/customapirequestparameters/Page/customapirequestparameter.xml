@@ -1,0 +1,9 @@
+<customapirequestparameter uniquename="Page">
+  <displayname default="Page">
+    <label description="Page" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isoptional>1</isoptional>
+  <name>Page</name>
+  <type>7</type>
+</customapirequestparameter>

@@ -1,0 +1,18 @@
+<customapi uniquename="cs_OverlayImageOnPdf">
+  <allowedcustomprocessingsteptype>0</allowedcustomprocessingsteptype>
+  <bindingtype>0</bindingtype>
+  <description default="Stamps a base64 image onto a base64 PDF; returns base64 PDF.">
+    <label description="Stamps a base64 image onto a base64 PDF; returns base64 PDF." languagecode="1033" />
+  </description>
+  <displayname default="Overlay Image On PDF">
+    <label description="Overlay Image On PDF" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isfunction>0</isfunction>
+  <isprivate>0</isprivate>
+  <name>cs_OverlayImageOnPdf</name>
+  <plugintypeid>
+    <plugintypeexportkey>B9DFDEBDED219631026DE0098274E76B67ABA2C6FA86355A9FCD7CF9D28635AF</plugintypeexportkey>
+  </plugintypeid>
+  <workflowsdkstepenabled>0</workflowsdkstepenabled>
+</customapi>

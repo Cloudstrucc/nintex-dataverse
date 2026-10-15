@@ -1,0 +1,8 @@
+<customapiresponseproperty uniquename="PdfContent">
+  <displayname default="PdfContent">
+    <label description="PdfContent" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <name>PdfContent</name>
+  <type>10</type>
+</customapiresponseproperty>
