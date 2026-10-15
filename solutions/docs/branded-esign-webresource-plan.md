@@ -18,14 +18,14 @@ generic `ec_OverlayImageOnPdf` Custom API** for the PDF work.
 
 ```mermaid
 flowchart TD
-  U["Backend user on<br/>Political Party form (MDA)"] -->|clicks "Send for e-signature"| CMD["Ribbon command"]
-  CMD --> JS["JS web resource<br/>ec_esign_brandedparty.js"]
-  JS -->|"GET pfa_logo/$value"| LOGO[("pfa_politicalparty.pfa_logo")]
-  JS -->|"GET TemplateSourcePDF + cs_templatejson"| TPL[("cs_template")]
-  JS -->|"POST ec_OverlayImageOnPdf (PDF+logo)"| API["Custom API (plugin)"]
-  API -->|"branded PDF"| JS
-  JS -->|"create cs_envelope + EnvelopeSourcePDF + signers, set cs_adhocsend"| ENV[("cs_envelope")]
-  ENV -->|"ad-hoc flow (unchanged)"| NINTEX["Broker → Nintex"]
+  U["Backend user on Political Party form"] -->|clicks Send for e-signature| CMD["Ribbon command"]
+  CMD --> JS["JS web resource ec_esign_brandedparty.js"]
+  JS -->|GET pfa_logo value| LOGO[("pfa_politicalparty.pfa_logo")]
+  JS -->|GET TemplateSourcePDF and cs_templatejson| TPL[("cs_template")]
+  JS -->|POST ec_OverlayImageOnPdf| API["Custom API plugin"]
+  API -->|branded PDF| JS
+  JS -->|create envelope, EnvelopeSourcePDF, signers, set cs_adhocsend| ENV[("cs_envelope")]
+  ENV -->|ad-hoc flow unchanged| NINTEX["Broker to Nintex"]
 ```
 
 ---

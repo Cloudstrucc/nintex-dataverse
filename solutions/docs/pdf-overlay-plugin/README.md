@@ -52,17 +52,17 @@ The e-signature / political-party use case is just **one consumer** of it (see
 
 ```mermaid
 flowchart LR
-  subgraph Callers["Callers (any project)"]
-    FLOW["Power Automate flow<br/>(Perform an unbound action)"]
-    JS["Model-driven app<br/>ribbon / web resource (Web API)"]
-    PLG["Another plug-in<br/>(IOrganizationService.Execute)"]
+  subgraph Callers
+    FLOW["Power Automate flow - Perform an unbound action"]
+    JS["Model-driven ribbon or web resource - Web API"]
+    PLG["Another plug-in - IOrganizationService.Execute"]
   end
 
-  subgraph DV["Dataverse (same environment)"]
-    API["Custom API<br/><b>ec_OverlayImageOnPdf</b><br/>(unbound, global)"]
-    subgraph SBX["Plug-in sandbox (isolation)"]
-      P["<b>PdfImageOverlay</b> plug-in<br/>Execute()"]
-      LIB["PdfSharpCore<br/>(ILRepacked in)"]
+  subgraph DV["Dataverse - same environment"]
+    API["Custom API ec_OverlayImageOnPdf - unbound global"]
+    subgraph SBX["Plug-in sandbox - isolation"]
+      P["PdfImageOverlay plug-in Execute"]
+      LIB["PdfSharpCore - ILRepacked in"]
     end
     API --> P --> LIB
   end
@@ -70,7 +70,7 @@ flowchart LR
   FLOW --> API
   JS --> API
   PLG --> API
-  LIB -- "base64 PDF out" --> API
+  LIB -->|base64 PDF out| API
 ```
 
 The plug-in is a pure function: **`(pdfBase64, imageBase64, position?, size?) → pdfBase64`**. It
@@ -85,22 +85,22 @@ Here the consumer is the e-signature flow, but the Custom API part is identical 
 ```mermaid
 sequenceDiagram
   autonumber
-  participant F as Consumer flow (async)
+  participant F as Consumer flow async
   participant DV as Dataverse
   participant API as ec_OverlayImageOnPdf
   participant PG as PdfImageOverlay plug-in
   participant PS as PdfSharpCore
 
-  Note over F: (consumer already has the base PDF<br/>+ the logo bytes — see Consumers)
-  F->>DV: Perform unbound action ec_OverlayImageOnPdf<br/>{PdfContent, ImageContent, Anchor?, X/Y?, W/H?}
+  Note over F: consumer already has the base PDF and the logo bytes
+  F->>DV: Perform unbound action with PdfContent and ImageContent and optional Anchor
   DV->>API: invoke
-  API->>PG: Execute() (sandbox)
-  PG->>PG: base64-decode PDF + image
-  PG->>PS: Open PDF, DrawImage(logo, x,y,w,h)
+  API->>PG: Execute in sandbox
+  PG->>PG: base64-decode PDF and image
+  PG->>PS: Open PDF and DrawImage at x y w h
   PS-->>PG: modified PDF bytes
-  PG-->>API: OutputParameters["PdfContent"] = base64
-  API-->>F: { PdfContent }
-  Note over F: consumer attaches the branded PDF<br/>and proceeds (e.g. create envelope → send)
+  PG-->>API: set OutputParameters PdfContent base64
+  API-->>F: return PdfContent
+  Note over F: consumer attaches the branded PDF then creates envelope and sends
 ```
 
 ---
