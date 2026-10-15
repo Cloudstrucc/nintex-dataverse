@@ -1,5 +1,16 @@
 # Implementation plan — "Branded Envelope" Dataverse plugin (party logo on an existing template)
 
+> **⚠️ Superseded.** This early plan coupled the PDF overlay to the e-signature/PPEP logic. It has
+> been split into two reusable pieces:
+> - **`pdf-overlay-plugin/README.md`** — a standalone, schema-agnostic `ec_OverlayImageOnPdf`
+>   Custom API (PDF + image + position/size → PDF), distributed as its own managed solution.
+> - **`branded-esign-webresource-plan.md`** — the PPEP consumer front-end (ribbon + JS web
+>   resource) that reads `pfa_politicalparty.pfa_logo`, calls the overlay API, and creates the
+>   envelope.
+>
+> The content below is kept for history only.
+
+
 **Goal:** stay entirely within Power Platform. Take an existing `cs_template` (which already
 has its Nintex field configuration + a `TemplateSourcePDF`), composite a party logo onto the
 top-right of its PDF, create an ad-hoc envelope, and let the broker submit it — **no Azure,
