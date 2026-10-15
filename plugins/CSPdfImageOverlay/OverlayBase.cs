@@ -74,15 +74,23 @@ namespace CSPdfImageOverlay
             if (required) throw new InvalidPluginExecutionException("Missing required parameter: " + n);
             return null;
         }
+        // Dataverse delivers *optional* Custom API parameters with their type default rather than
+        // omitting them, so Contains() is always true and an unsupplied Decimal arrives as 0. Taking
+        // that at face value made Width/Height both "supplied" as 0 (a degenerate "0 0 0 0 .. cm"
+        // transform: the image embeds but draws at zero size) and made X/Y=0 override the anchor.
+        // Treat a non-positive number as "not supplied"; to sit flush at an edge pass e.g. 0.01.
         protected static double? GetD(IPluginExecutionContext c, string n)
         {
-            return (c.InputParameters.Contains(n) && c.InputParameters[n] != null)
-                ? Convert.ToDouble(c.InputParameters[n]) : (double?)null;
+            if (!c.InputParameters.Contains(n) || c.InputParameters[n] == null) return null;
+            double v = Convert.ToDouble(c.InputParameters[n]);
+            return v > 0.0 ? v : (double?)null;
         }
+        // Same story for Integer: 0 means "not supplied" (-> page 1). A negative value means all pages.
         protected static int? GetI(IPluginExecutionContext c, string n)
         {
-            return (c.InputParameters.Contains(n) && c.InputParameters[n] != null)
-                ? Convert.ToInt32(c.InputParameters[n]) : (int?)null;
+            if (!c.InputParameters.Contains(n) || c.InputParameters[n] == null) return null;
+            int v = Convert.ToInt32(c.InputParameters[n]);
+            return v != 0 ? v : (int?)null;
         }
         protected static byte[] FromB64(string s, string name)
         {

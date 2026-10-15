@@ -36,7 +36,14 @@ it bytes, it hands bytes back.
 | `Width` | Decimal | No | auto | Target width (points). If only `Width` is given, height is derived to keep aspect ratio. |
 | `Height` | Decimal | No | auto | Target height (points). If only `Height` is given, width is derived to keep aspect ratio. |
 | `Margin` | Decimal | No | `24` | Edge margin (points) used for anchored placement. |
-| `Page` | Integer | No | `1` | 1-based page to stamp. `0` = **every page** (e.g. watermark). |
+| `Page` | Integer | No | `1` | 1-based page to stamp. **Negative (e.g. `-1`) = every page** (e.g. watermark). |
+
+> **Zero means "not supplied".** Dataverse delivers optional Custom API parameters with their type
+> default rather than omitting them, so an unsent `Decimal` arrives as `0`. The plug-in therefore
+> treats a **non-positive** `X`/`Y`/`Width`/`Height`/`Margin` as *not supplied* and falls back to the
+> default. To place something flush against an edge, pass a tiny non-zero value such as `0.01`
+> rather than `0`. Likewise `Page = 0` means "not supplied" → page 1; use a **negative** `Page` for
+> all pages.
 
 ### Response
 
@@ -54,6 +61,15 @@ internal bottom-left origin for you.
 - **Size:** image fit inside a box of `clamp(12% of page width, 48pt, 120pt)`, aspect preserved.
   On a 612×792 page that's a ~73 pt box — a sensible logo size.
 - **Page:** page 1 only.
+
+Verified in dev on a US-Letter page, defaults only — the emitted transform is
+`73.44 0 0 73.44 514.56 694.56 cm`, i.e. a 73.44 pt square 24 pt in from the top and right edges.
+
+### Source image size (gotcha, not a plug-in issue)
+A Dataverse **image column** such as `pfa_politicalparty.pfa_logo` stores a **144 × 144 square
+thumbnail** unless the column has *“Can store full image”* enabled — so `/$value?size=full` can
+still hand you a square-cropped logo. The overlay reproduces whatever bytes it is given; if a
+wordmark comes out cropped, check the source column, not the API.
 
 ---
 
@@ -141,6 +157,20 @@ Conservative `c9d5760d-f2ef-f011-8406-7ced8d0510ea`.
 - **JPEG and PNG**, including **transparency** (alpha), palette, and interlaced PNG.
 - To control size: pass `Width` and/or `Height` (points). Pass just one to keep aspect ratio.
 - To control position precisely: pass `X` and `Y` (top-left origin, points) — these override `Anchor`.
+
+## Troubleshooting
+
+**“The output PDF is bigger but I see no image.”** Fixed in **1.0.9**. In 1.0.0–1.0.8 the unsent
+optional parameters arrived as `0`, so `Width`/`Height` counted as *supplied at zero* and the
+plug-in emitted a degenerate transform — `0 0 0 0 0 792 cm` — which embeds the image and then draws
+it at zero size. The image was present and correctly referenced from the page resources; it just had
+no area. Passing an explicit `Width` **and** `Height` was the workaround on the old build. If you
+see this again, decompress the appended page content stream and read the `cm` operator: the first
+and fourth numbers are the drawn width and height, and they must be non-zero.
+
+**“My change didn’t take effect on the first call.”** Dataverse caches the plug-in assembly per
+sandbox worker and refreshes lazily, so the first call or two after an update can still run the
+previous build. Repeat the call before concluding anything.
 
 ## Error handling
 Errors come back as a normal Dataverse `400` with a message, e.g.:
