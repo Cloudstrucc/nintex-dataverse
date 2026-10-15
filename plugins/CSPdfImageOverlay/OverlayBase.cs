@@ -18,6 +18,21 @@ namespace CSPdfImageOverlay
         protected abstract string ApiName { get; }
         protected abstract byte[] Overlay(byte[] pdf, byte[] img, OverlayOpts o);
 
+        /// <summary>Assembly version of the build actually serving the request.</summary>
+        public static string EngineVersion
+        {
+            get
+            {
+                try
+                {
+                    var v = typeof(OverlayBase).Assembly.GetName().Version;
+                    if (v != null) return v.ToString();
+                }
+                catch { /* reflection unavailable: fall through */ }
+                return "unknown";
+            }
+        }
+
         public void Execute(IServiceProvider sp)
         {
             var ctx = (IPluginExecutionContext)sp.GetService(typeof(IPluginExecutionContext));
@@ -35,6 +50,11 @@ namespace CSPdfImageOverlay
                     Page = GetI(ctx, "Page") ?? 1
                 };
                 ctx.OutputParameters["PdfContent"] = Convert.ToBase64String(Overlay(pdf, img, o));
+                // Lets a caller assert which build actually served the request. "Is the deployed
+                // assembly current?" is otherwise unanswerable from the outside, and the sandbox
+                // caches assemblies per worker, so a stale worker can answer a call right after a
+                // deploy. Never let this fail the operation.
+                ctx.OutputParameters["EngineVersion"] = EngineVersion;
             }
             catch (InvalidPluginExecutionException) { throw; }
             catch (Exception ex)

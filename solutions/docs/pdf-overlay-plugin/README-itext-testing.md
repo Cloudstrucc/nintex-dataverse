@@ -50,6 +50,7 @@ it bytes, it hands bytes back.
 | Name | Type | Description |
 |---|---|---|
 | `PdfContent` | String | Base64 of the resulting PDF. |
+| `EngineVersion` | String | Assembly version of the build that served **this** request (e.g. `1.0.10.0`). Assert on it before trusting a result — the sandbox caches the assembly per worker, so right after a deploy some calls can still be answered by the previous build. |
 
 ### Coordinate system (important)
 `X`/`Y` are **top-left origin** (0,0 = top-left of the page), in PDF **points** (72 pt = 1 inch; a
@@ -169,8 +170,15 @@ see this again, decompress the appended page content stream and read the `cm` op
 and fourth numbers are the drawn width and height, and they must be non-zero.
 
 **“My change didn’t take effect on the first call.”** Dataverse caches the plug-in assembly per
-sandbox worker and refreshes lazily, so the first call or two after an update can still run the
-previous build. Repeat the call before concluding anything.
+sandbox worker and refreshes lazily, so for a short window after an import some calls are answered
+by the new build and others by the previous one. Read **`EngineVersion`** off every response and
+assert on it; if two consecutive calls disagree, you are in that window — repeat until it settles
+rather than drawing conclusions from a single call.
+
+**“`Width`/`Height` seem to be ignored / the size tracks my input image.”** Confirmed working as of
+**1.0.10** — a 512×512, a 144×144 and a 400×100 source all render an identical 68×68 pt box when
+sent `Width:68, Height:68`. If you see otherwise, check `EngineVersion` first: the pre-1.0.9 build
+sized differently. See `plugins/CSPdfImageOverlay/WIDTH-HEIGHT-ISSUE.md` for the measured results.
 
 ## Error handling
 Errors come back as a normal Dataverse `400` with a message, e.g.:
