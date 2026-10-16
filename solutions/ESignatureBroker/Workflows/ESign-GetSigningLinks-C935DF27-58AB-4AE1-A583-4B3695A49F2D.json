@@ -117,7 +117,7 @@
         },
         "Process_Each_Signing_Link": {
           "type": "Foreach",
-          "foreach": "@body('HTTP_Get_Signing_Links')?['result']",
+          "foreach": "@coalesce(body('HTTP_Get_Signing_Links')?['result']?['signingLinks'], json('[]'))",
           "actions": {
             "List_Signer": {
               "type": "OpenApiConnection",
@@ -129,7 +129,7 @@
                 },
                 "parameters": {
                   "entityName": "cs_signers",
-                  "$filter": "cs_email eq '@{items('Process_Each_Signing_Link')?['signerEmail']}' and _cs_envelopelookup_value eq @{triggerOutputs()?['body/cs_envelopeid']}",
+                  "$filter": "cs_email eq '@{items('Process_Each_Signing_Link')?['signatoryEmail']}' and _cs_envelopelookup_value eq @{triggerOutputs()?['body/cs_envelopeid']}",
                   "$top": 1
                 },
                 "authentication": "@parameters('$authentication')"
@@ -160,8 +160,7 @@
                     "parameters": {
                       "entityName": "cs_signers",
                       "recordId": "@{first(outputs('List_Signer')?['body/value'])?['cs_signerid']}",
-                      "item/cs_signinglink": "@{items('Process_Each_Signing_Link')?['signingLink']}",
-                      "item/cs_signerstatus": "@{items('Process_Each_Signing_Link')?['status']}"
+                      "item/cs_signinglink": "@{items('Process_Each_Signing_Link')?['url']}"
                     },
                     "authentication": "@parameters('$authentication')"
                   },

@@ -62,3 +62,60 @@ the maker portal — the Power Automate API rejects app-only auth with `ClientSc
 ```
 flowruns?$select=starttime,status,errorcode,errormessage,workflowid&$orderby=starttime desc
 ```
+
+---
+
+## Follow-up (same day): root cause found, Get Signing Links fixed
+
+### `ESign - Get Signing Links` — three field-mapping bugs (now fixed, reactivated)
+The null-signer guard was **already present and correct** (`length(List_Signer.body.value) > 0`).
+It never got that far: the `Foreach` iterated `result`, which is an **object**, so every run died
+immediately. Compared against the live API response:
+
+| Flow expected | Actual API |
+|---|---|
+| `result` (as array) | `result.signingLinks` |
+| `signerEmail` | `signatoryEmail` |
+| `signingLink` | `url` |
+| `status` | *does not exist* — writing it blanked `cs_signerstatus` |
+
+Fixed all four (`status` assignment removed, foreach wrapped in `coalesce(..., json('[]'))`) and
+reactivated. Runs now succeed.
+
+### Why Prepare Envelope actually failed
+`Initialize_ValuesArray` seeded from `cs_envelopejson` by reading
+`json.request.templates[0].values`. Envelopes created by the **portal editor** write a different
+shape — `{"recipients":[{role,name,email}, …]}` — so that path resolved to null and **`first(null)`
+threw** ("expects its parameter to be an array"). The action died *before* `HTTP_Submit_Envelope`,
+which is exactly why the old error handler never fired and `cs_responsebody` was empty.
+Envelopes from the ad-hoc path carried the old shape, which is why only newer ones broke.
+
+Fixes: the seed is now null-safe, and a new `Build_Recipient_Values` loop builds the values array
+from `cs_envelopejson.recipients`, index-matched to the template's `content.signers` exactly as the
+`cs_signer` path does. The envelope name now falls back `cs_subject -> cs_name -> 'Envelope'`
+(`cs_subject` is routinely null).
+
+### Better failure diagnostics
+`result('Try_Scope')` dumps every action including bearer tokens, which blew the 8000-char budget
+before reaching the error. Added a `Filter_Failed` (Query) action keeping only `status == 'Failed'`,
+then `Compose_Error` producing `"<action> -> <response body or error>"`. `cs_responsebody` now
+contains a one-line, readable cause.
+
+### Remaining blocker on this envelope — template config, not code
+With the above fixed the flow builds a correct payload and reaches AssureSign, which replies:
+
+```
+HTTP_Submit_Envelope -> {"errorCode":"VALIDATION_FAILED",
+  "details":["Signers: Every signer must have at least one JotBlock"]}
+```
+
+The **CCCS Template** declares two signers but only one has fields:
+
+| Signer | JotBlocks |
+|---|---|
+| Primary Signer | 2 (Signature, Signature) |
+| **Counter-Signer** | **0 — submit rejected** |
+
+So envelope `c0cdeb8f` can never send as configured. Either add a signature field for
+**Counter-Signer** in the AssureSign template, or create the envelope with the Primary Signer only.
+Not changed here: both are decisions about e-signature configuration / envelope intent.

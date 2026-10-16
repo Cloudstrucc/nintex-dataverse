@@ -82,7 +82,7 @@
               {
                 "name": "ValuesArray",
                 "type": "array",
-                "value": "@if(empty(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'], '')), json('[]'), coalesce(first(json(outputs('Get_Envelope_Record')?['body/cs_envelopejson'])?['request']?['templates'])?['values'], json('[]')))"
+                "value": "@json('[]')"
               }
             ]
           },
@@ -197,7 +197,7 @@
                   "type": "Compose",
                   "inputs": "@body('HTTP_Get_Template')?['result']?['content']?['signers'][sub(int(items('Build_Values_Array')?['cs_signerorder']), 1)]",
                   "runAfter": {},
-                  "description": "Extracts the template signer definition at the index matching this signer's order (1-based order \u2192 0-based index)."
+                  "description": "Extracts the template signer definition at the index matching this signer's order (1-based order → 0-based index)."
                 },
                 "Append_Signer_Name": {
                   "type": "AppendToArrayVariable",
@@ -231,7 +231,7 @@
                 }
               },
               "runAfter": {
-                "List_Signers": [
+                "Build_Recipient_Values": [
                   "Succeeded"
                 ]
               },
@@ -259,7 +259,7 @@
                         "templateID": "@{outputs('Parse_Nintex_Template_Id')}",
                         "values": "@variables('ValuesArray')",
                         "envelope": {
-                          "name": "@{outputs('Get_Envelope_Record')?['body/cs_subject']}"
+                          "name": "@{coalesce(outputs('Get_Envelope_Record')?['body/cs_subject'], outputs('Get_Envelope_Record')?['body/cs_name'], 'Envelope')}"
                         }
                       }
                     ]
@@ -471,6 +471,78 @@
                   "Succeeded"
                 ]
               }
+            },
+            "Set_ValuesArray_Seed": {
+              "type": "SetVariable",
+              "runAfter": {
+                "List_Signers": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "name": "ValuesArray",
+                "value": "@if(empty(coalesce(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['request']?['templates'], json('[]'))), json('[]'), coalesce(first(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['request']?['templates'])?['values'], json('[]')))"
+              }
+            },
+            "Build_Recipient_Values": {
+              "type": "Foreach",
+              "foreach": "@range(0, length(coalesce(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['recipients'], json('[]'))))",
+              "runAfter": {
+                "Set_ValuesArray_Seed": [
+                  "Succeeded"
+                ]
+              },
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              },
+              "actions": {
+                "Compose_Recipient": {
+                  "type": "Compose",
+                  "runAfter": {},
+                  "inputs": "@coalesce(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['recipients'], json('[]'))[items('Build_Recipient_Values')]"
+                },
+                "Compose_Recipient_Signer": {
+                  "type": "Compose",
+                  "runAfter": {
+                    "Compose_Recipient": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": "@body('HTTP_Get_Template')?['result']?['content']?['signers'][items('Build_Recipient_Values')]"
+                },
+                "Append_Recipient_Name": {
+                  "type": "AppendToArrayVariable",
+                  "runAfter": {
+                    "Compose_Recipient_Signer": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": {
+                    "name": "ValuesArray",
+                    "value": {
+                      "name": "@{replace(replace(outputs('Compose_Recipient_Signer')?['name'],'[',''),']','')}",
+                      "value": "@{outputs('Compose_Recipient')?['name']}"
+                    }
+                  }
+                },
+                "Append_Recipient_Email": {
+                  "type": "AppendToArrayVariable",
+                  "runAfter": {
+                    "Append_Recipient_Name": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": {
+                    "name": "ValuesArray",
+                    "value": {
+                      "name": "@{replace(replace(outputs('Compose_Recipient_Signer')?['email'],'[',''),']','')}",
+                      "value": "@{outputs('Compose_Recipient')?['email']}"
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -486,16 +558,41 @@
               "entityName": "cs_envelopes",
               "recordId": "@triggerOutputs()?['body/cs_envelopeid']",
               "item/statuscode": 717640005,
-              "item/cs_responsebody": "@{substring(string(result('Try_Scope')), 0, min(length(string(result('Try_Scope'))), 8000))}"
+              "item/cs_responsebody": "@{substring(outputs('Compose_Error'), 0, min(length(outputs('Compose_Error')), 7500))}"
             },
             "authentication": "@parameters('$authentication')"
           },
+          "runAfter": {
+            "Compose_Error": [
+              "Succeeded",
+              "Failed",
+              "Skipped"
+            ]
+          }
+        },
+        "Filter_Failed": {
+          "type": "Query",
           "runAfter": {
             "Try_Scope": [
               "Failed",
               "TimedOut"
             ]
+          },
+          "inputs": {
+            "from": "@result('Try_Scope')",
+            "where": "@equals(item()?['status'], 'Failed')"
           }
+        },
+        "Compose_Error": {
+          "type": "Compose",
+          "runAfter": {
+            "Filter_Failed": [
+              "Succeeded",
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "inputs": "@concat(coalesce(first(body('Filter_Failed'))?['name'],'unknown'), ' -> ', string(coalesce(first(body('Filter_Failed'))?['outputs']?['body'], first(body('Filter_Failed'))?['error'], 'no detail')))"
         }
       }
     },
