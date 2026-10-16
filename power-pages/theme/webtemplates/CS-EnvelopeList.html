@@ -4,6 +4,19 @@
   (default sort: createdon desc) + full-screen + page-size + windowed pager +
   ellipsis row menu. Keep a single source of truth for the envelope list.
 {% endcomment %}
+
+<!-- Delete confirmation (cancelled envelopes only) -->
+<div id="ecDelModal" class="ews-modal" style="display:none"><div class="box">
+  <div class="hd"><strong>{{ snippets['ESIGN/ENV/DELETE_TITLE'] | default: 'Delete envelope' }}</strong><button type="button" class="ec-del-close" aria-label="Close">&times;</button></div>
+  <div class="ews-delbody">
+    <p id="ecDelMsg"></p>
+    <p class="ews-delwarn">{{ snippets['ESIGN/ENV/DELETE_WARN'] | default: 'This cannot be undone. Only cancelled envelopes can be deleted.' }}</p>
+    <div class="ews-delacts">
+      <button type="button" class="ews-btn ec-del-cancel">{{ snippets['ESIGN/ENV/CANCEL'] | default: 'Cancel' }}</button>
+      <button type="button" class="ews-btn ews-danger" id="ecDelConfirm">{{ snippets['ESIGN/ENV/DELETE_CONFIRM'] | default: 'Delete envelope' }}</button>
+    </div>
+  </div>
+</div></div>
 <div class="ews-stats">
   <button class="ews-stat active" data-f="all"><div class="lab" style="--dot:var(--ews-navy)">{{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}</div><div class="num" id="k-all">0</div></button>
   <button class="ews-stat" data-f="proc"><div class="lab" style="--dot:#c9862d">{{ snippets['ESIGN/KPI/PROC'] | default: 'In process' }}</div><div class="num" id="k-proc">0</div></button>
@@ -34,7 +47,7 @@
 
 <script>
 (function(){
-  var STAT={1:['Draft','draft','other'],717640001:['Preparing','proc','proc'],717640002:['Ready to Send','proc','proc'],717640003:['In Process','proc','proc'],717640004:['Completed','done','done'],717640005:['Error','err','err'],717640006:['Cancelled','off','other'],717640007:['Cancel Error','err','err']};
+  var STAT={1:['Draft','draft','other'],717640001:['Preparing','proc','proc'],717640002:['Ready to Send','proc','proc'],717640003:['In Process','proc','proc'],717640004:['Completed','done','done'],717640005:['Error','err','err'],717640006:['Cancelled','off','other'],717640007:['Cancel Error','err','err'],8:['Cancelled','off','other'],2:['Inactive','off','other'],5:['Completed','done','done'],10:['Declined','err','other'],11:['Expired','off','other']};
   var API_ENV='/_api/cs_envelopes',EDITOR='/envelopes/edit-envelope/';
   var DATA=[],filter='all',page=1,PAGE=5,USERPAGE=5,sortCol='crt',sortDir='desc';
   function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -62,6 +75,7 @@
       if(!r.editable||r.isError)menu+='<a href="/envelopes/details/?id='+esc(r.id)+'">👁 View details</a>';
       if(r.tplId)menu+='<a href="'+EDITOR+'?templateId='+esc(r.tplId)+'">✉ Use template</a>';
       menu+='<div class="sep"></div>'+(r.cancellable?'<button type="button" class="danger ec-cancel" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">⊘ Cancel envelope</button>':'<button type="button" disabled style="opacity:.45;cursor:not-allowed">⊘ Cancel envelope</button>');
+      if(r.deletable)menu+='<div class="sep"></div><button type="button" class="danger ec-del" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">🗑 Delete envelope…</button>';
       return '<tr><td class="s" data-label="Envelope">'+esc(r.name)+'</td><td data-label="Subject">'+esc(r.subj)+'</td><td data-label="Status"><span class="ews-pill '+r.cls+'">'+esc(r.stl)+'</span></td><td data-label="Created">'+esc(r.created)+'</td><td data-label="Modified">'+esc(r.mod)+'</td>'+
         '<td class="ews-actcell"><div class="ews-rowacts"><div class="ews-rowwrap"><button type="button" class="ews-rowact ec-menu" title="Actions">&#8942;</button><div class="ews-rowmenu">'+menu+'</div></div></div></td></tr>';
     }).join(''):'<tr><td colspan="6" class="ews-empty">'+((document.getElementById('ecQ').value)?'No envelopes match this filter.':'No envelopes yet. <a href="'+EDITOR+'">Create your first envelope</a>.')+'</td></tr>';
@@ -80,6 +94,35 @@
   function kpis(){var t=DATA.length,p=0,d=0,e=0;DATA.forEach(function(r){if(r.g==='proc')p++;else if(r.g==='done')d++;else if(r.g==='err')e++;});
     document.getElementById('k-all').textContent=t;document.getElementById('k-proc').textContent=p;document.getElementById('k-done').textContent=d;document.getElementById('k-err').textContent=e;
     var ec=document.getElementById('svc-env-cnt');if(ec)ec.textContent=t+' total · '+p+' in process';var dc=document.getElementById('svc-doc-cnt');if(dc)dc.textContent=d+' completed';}
+  /* ── Delete a cancelled envelope ────────────────────────────────────────
+     Gated in the UI to cancelled envelopes; the Contact-scoped cs_envelope
+     permission (cs_contact_csenvelope_ownercontact) still decides whether this
+     caller owns the record, so the service refuses anything else. */
+  var ecDelId=null, ecDelBusy=false;
+  function ecOpenDelete(id,name){
+    ecDelId=id;
+    document.getElementById('ecDelMsg').innerHTML='Delete <strong>'+esc(name||'this envelope')+'</strong>?';
+    document.getElementById('ecDelModal').style.display='flex';
+  }
+  function ecCloseDelete(){ if(ecDelBusy)return; ecDelId=null; document.getElementById('ecDelModal').style.display='none'; }
+  function ecDoDelete(){
+    if(!ecDelId||ecDelBusy)return;
+    ecDelBusy=true;
+    var btn=document.getElementById('ecDelConfirm'), was=btn.textContent;
+    btn.disabled=true; btn.textContent='Deleting…';
+    safeAjax({type:'DELETE',url:API_ENV+'('+ecDelId+')',headers:{'If-Match':'*'}})
+      .done(function(){
+        ecDelBusy=false; btn.disabled=false; btn.textContent=was;
+        document.getElementById('ecDelModal').style.display='none'; ecDelId=null;
+        load();
+      })
+      .fail(function(x){
+        ecDelBusy=false; btn.disabled=false; btn.textContent=was;
+        var m=(x&&x.status===403)?'You can only delete envelopes you created.':'Could not delete the envelope (HTTP '+(x&&x.status)+').';
+        document.getElementById('ecDelMsg').innerHTML='<span style="color:var(--ews-danger)">'+esc(m)+'</span>';
+      });
+  }
+
   window.ecCancel=function(id,name){if(!confirm('Cancel envelope "'+name+'"? This cannot be undone.'))return;safeAjax({type:'PATCH',url:API_ENV+'('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2}),headers:{'If-Match':'*'}}).done(load).fail(function(x){alert('Cancel failed: HTTP '+(x&&x.status));});};
   function fdate(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'});}catch(e){return '';}}
   function defSubj(tplName,id,sent){ // fallback when no subject: template name · envelope id · date sent
@@ -94,8 +137,12 @@
       DATA=(j.value||[]).map(function(v){var st=STAT[v.statuscode]||['Unknown','draft','other'];
         var editable=(v.statecode===0&&st[2]==='other')||(v.statecode===0&&v.statuscode===717640005);
         var cancellable=v.statecode===0&&st[2]!=='done'&&v.statuscode!==717640006;
+        /* Delete is offered only once an envelope is cancelled. The schema carries two
+           Cancelled codes (717640006 active, 8 inactive), and the portal's own Cancel
+           action currently writes 2/Inactive, so all three count as cancelled here. */
+        var deletable=v.statuscode===717640006||v.statuscode===8||(v.statecode===1&&v.statuscode===2);
         var subj=v.cs_subject||defSubj(TPL[v.cs_templateid],v.cs_envelopeid,v.cs_sentdate);
-        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:subj,stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],created:fmt(v.createdon),crtRaw:v.createdon||'',mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable,isError:(v.statuscode===717640005||v.statuscode===717640007)};});
+        return {id:v.cs_envelopeid,name:v.cs_name||('EN-'+(v.cs_envelopeid||'').slice(0,8)),subj:subj,stl:(v['statuscode@OData.Community.Display.V1.FormattedValue']||st[0]),cls:st[1],g:st[2],created:fmt(v.createdon),crtRaw:v.createdon||'',mod:fmt(v.modifiedon),modRaw:v.modifiedon||'',tplId:v.cs_templateid||'',editable:editable,cancellable:cancellable,deletable:deletable,isError:(v.statuscode===717640005||v.statuscode===717640007)};});
       document.getElementById('ecFilterLabel').textContent='Showing: {{ snippets['ESIGN/KPI/TOTAL'] | default: 'Total envelopes' }}';ecRender();
     }).fail(function(x){document.getElementById('ecRows').innerHTML='<tr><td colspan="6" class="ews-empty">Unable to load envelopes'+(x&&x.status?(' (HTTP '+x.status+')'):'')+'.</td></tr>';});
     });
@@ -112,9 +159,17 @@
       var mb=e.target.closest('.ec-menu');
       if(mb){e.stopPropagation();var wrap=mb.closest('.ews-rowwrap');var open=wrap.classList.contains('open');document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});if(!open){wrap.classList.add('open');var m=wrap.querySelector('.ews-rowmenu');m.classList.remove('flip-up');if(m.getBoundingClientRect().bottom>window.innerHeight-10)m.classList.add('flip-up');}return;}
       var cb=e.target.closest('.ec-cancel');if(cb){e.preventDefault();ecCancel(cb.dataset.id,cb.dataset.name);return;}
+      var db=e.target.closest('.ec-del');if(db){e.preventDefault();ecOpenDelete(db.dataset.id,db.dataset.name);return;}
     });
+    var dm=document.getElementById('ecDelModal');
+    if(dm){
+      dm.addEventListener('click',function(e){
+        if(e.target===dm||e.target.closest('.ec-del-close,.ec-del-cancel')){e.preventDefault();ecCloseDelete();return;}
+        if(e.target.closest('#ecDelConfirm')){e.preventDefault();ecDoDelete();}
+      });
+    }
     document.addEventListener('click',function(){document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});});
-    document.addEventListener('keydown',function(e){if(e.key==='Escape'){ecToggleFs(true);document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});}});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){ecCloseDelete();ecToggleFs(true);document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});}});
     load();
   });
 })();
