@@ -123,7 +123,12 @@
       });
   }
 
-  window.ecCancel=function(id,name){if(!confirm('Cancel envelope "'+name+'"? This cannot be undone.'))return;safeAjax({type:'PATCH',url:API_ENV+'('+id+')',contentType:'application/json',data:JSON.stringify({statecode:1,statuscode:2}),headers:{'If-Match':'*'}}).done(load).fail(function(x){alert('Cancel failed: HTTP '+(x&&x.status));});};
+  /* Cancelling sets cs_iscancelled, which is what the broker's "ESign - Cancel
+     Envelope" flow triggers on: it calls the e-signature service to actually
+     cancel, then writes Cancelled (8) on success or Cancel Error (717640007) on
+     failure. Writing a status here instead would only relabel the record
+     locally and leave the envelope live and signable at the service. */
+  window.ecCancel=function(id,name){if(!confirm('Cancel envelope "'+name+'"? This cannot be undone.'))return;safeAjax({type:'PATCH',url:API_ENV+'('+id+')',contentType:'application/json',data:JSON.stringify({cs_iscancelled:true}),headers:{'If-Match':'*'}}).done(function(){setTimeout(load,1500);}).fail(function(x){alert('Cancel failed: HTTP '+(x&&x.status));});};
   function fdate(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'});}catch(e){return '';}}
   function defSubj(tplName,id,sent){ // fallback when no subject: template name · envelope id · date sent
     var parts=[tplName||'{{ snippets['ESIGN/ENV/UNTITLED_TPL'] | default: 'Untitled template' }}', (id||'').slice(0,8)];
