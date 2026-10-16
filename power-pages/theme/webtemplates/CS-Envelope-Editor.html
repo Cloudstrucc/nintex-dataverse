@@ -159,6 +159,39 @@ input.te-title-input[type="text"],
 .env-recipient-row input:focus { border-color: #26374A; outline: none; box-shadow: 0 0 0 2px rgba(38,55,74,0.15); }
 .env-recipient-row input:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
 
+/* Document fields the sender fills in before sending */
+.env-docfield-row {
+  padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 4px;
+  margin-bottom: 8px; background: #fff;
+}
+.env-docfield-label {
+  display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 6px;
+}
+.env-docfield-row input {
+  width: 100%; border: 1px solid #ccc; border-radius: 3px;
+  padding: 4px 8px; font-size: 0.82rem;
+}
+.env-docfield-row input:focus { border-color: #26374A; outline: none; box-shadow: 0 0 0 2px rgba(38,55,74,0.15); }
+.env-docfield-row input:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+
+/* Pre-send validation issues */
+.env-vissue {
+  border-left: 3px solid #AF3C43; background: #fff; border-radius: 3px;
+  padding: 8px 10px; margin-bottom: 8px;
+}
+.env-vissue:last-child { margin-bottom: 0; }
+.env-vissue-msg { font-size: 0.82rem; font-weight: 600; color: #6b4a00; }
+.env-vissue-fix { font-size: 0.78rem; color: #666; margin-top: 3px; line-height: 1.4; }
+.env-vissue-link {
+  display: inline-block; margin-top: 5px; font-size: 0.78rem;
+  color: #26374A; font-weight: 600; text-decoration: underline;
+}
+/* Touch targets on phones (see the mobile responsiveness rule) */
+@media (max-width: 768px) {
+  .env-docfield-row input { padding: 10px 8px; font-size: 1rem; }
+  .env-vissue-link { padding: 8px 0; }
+}
+
 /* Meta fields */
 .te-meta-row { margin-bottom: 10px; }
 .te-meta-row label { font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 3px; display: block; }
@@ -432,11 +465,25 @@ input.te-title-input[type="text"],
         </div>
       </div>
 
+      <!-- Document fields the sender must supply before sending -->
+      <div class="te-panel-section" id="docFieldsSection" style="display:none;">
+        <div class="te-panel-header" id="docFieldsHeader">
+          <span><i class="fa fa-keyboard-o me-2"></i>{{ snippets['ESIGN/ENV_EDITOR/DOCFIELDS'] | default: 'Document fields' }}</span>
+          <i class="fa fa-chevron-down te-chevron"></i>
+        </div>
+        <div class="te-panel-body">
+          <p class="small text-muted" style="margin-bottom:10px;">
+            {{ snippets['ESIGN/ENV_EDITOR/DOCFIELDS_HELP'] | default: 'These values are filled in on the document before it is sent. Fields marked * must be completed.' }}
+          </p>
+          <div id="docFieldsList"></div>
+        </div>
+      </div>
+
       <!-- Validation summary (shown on Send attempt) -->
       <div class="te-panel-section" id="validationSection" style="display:none;">
-        <div class="te-panel-header" style="background:#fff3cd;">
+        <div class="te-panel-header" id="validationHeader" style="background:#fff3cd;">
           <span><i class="fa fa-exclamation-triangle me-2" style="color:#856404;"></i>
-            <span style="color:#856404;">{{ snippets['ESIGN/ENV_EDITOR/VALIDATION_TITLE'] | default: 'Required fields missing' }}</span>
+            <span style="color:#856404;" id="validationTitle">{{ snippets['ESIGN/ENV_EDITOR/VALIDATION_TITLE'] | default: 'This envelope is not ready to send' }}</span>
           </span>
         </div>
         <div class="te-panel-body" id="validationBody"></div>
@@ -460,6 +507,10 @@ input.te-title-input[type="text"],
       <i class="fa fa-users"></i>
       <span>Recipients <span class="mtp-vbadge incomplete" id="mtpBadgeRecipients"><i class="fa fa-times-circle"></i></span></span>
     </div>
+    <div class="mtp-tab" data-tab="docfields" id="mtpTabDocFields" style="display:none;">
+      <i class="fa fa-keyboard-o"></i>
+      <span>Fields</span>
+    </div>
   </div>
   <!-- Content panels -->
   <div class="mtp-scroll">
@@ -468,6 +519,9 @@ input.te-title-input[type="text"],
     </div>
     <div class="mtp-sec" data-mtp-src="recipientsSection" data-panel="recipients">
       <div class="mtp-sec-body" id="mtpBodyRecipients"></div>
+    </div>
+    <div class="mtp-sec" data-mtp-src="docFieldsSection" data-panel="docfields">
+      <div class="mtp-sec-body" id="mtpBodyDocFields"></div>
     </div>
   </div>
 </div>
@@ -705,21 +759,179 @@ input.te-title-input[type="text"],
     return result;
   }
 
-  /* ── Validate recipients ─────────────────────────────────────────────── */
-  function validateRecipients() {
-    var errors = [];
-    document.querySelectorAll('.env-recipient-row').forEach(function (row) {
-      var idx  = parseInt(row.getAttribute('data-role-idx'));
-      var signers = state.templateData ? JSON.parse(state.templateData.cs_templatejson || '{}').signers || [] : [];
-      var role = (signers[idx] && signers[idx].label) ? signers[idx].label : ('Signer ' + (idx + 1));
-      var name  = (row.querySelector('.rec-name')  || {}).value || '';
-      var email = (row.querySelector('.rec-email') || {}).value || '';
-      if (!name.trim())  errors.push(role + ': Full Name is required.');
-      if (!email.trim()) errors.push(role + ': Email Address is required.');
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-        errors.push(role + ': "' + email.trim() + '" is not a valid email address.');
+  /* ── Template JSON helper ────────────────────────────────────────────── */
+  function tplJson() {
+    try { return JSON.parse((state.templateData && state.templateData.cs_templatejson) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function roleLabel(signers, i) {
+    return (signers[i] && signers[i].label) ? signers[i].label : ('Signer ' + (i + 1));
+  }
+
+  /* ── Pre-send validation ──────────────────────────────────────────────
+     The e-signature service rejects a submit outright for template problems
+     (a signer role with nothing to sign, a template never published). Those
+     rejections arrive long after the user has left the page, so everything we
+     can check is checked here, with a plain-language fix for each item. Each
+     issue is {msg, fix, href}. */
+  function validateForSend() {
+    var issues = [];
+    var json    = tplJson();
+    var signers = json.signers || [];
+    var fields  = json.fields  || [];
+    var tplId   = TEMPLATE_ID || (state.envelope && state.envelope.cs_templateid) || '';
+    var tplHref = tplId ? ('/edit-template/?id=' + encodeURIComponent(tplId)) : null;
+
+    /* 1. Envelope name */
+    if (!(document.getElementById('envNameInput').value || '').trim())
+      issues.push({ msg: 'This envelope needs a name.', fix: 'Enter a name in the title bar above.' });
+
+    /* 2. Template present and published to the e-signature service */
+    if (!state.templateData) {
+      issues.push({ msg: 'No template is attached to this envelope.', fix: 'Choose a template under Details.' });
+      return issues; /* nothing else is checkable */
+    }
+    if (!json.nintexTemplateId)
+      issues.push({ msg: 'The template "' + esc(state.templateData.cs_name || '') + '" has not been published to the e-signature service yet.',
+                    fix: 'Open the template and save it to publish it, then try again.', href: tplHref });
+    if (!json.pdfFilename)
+      issues.push({ msg: 'The template has no PDF document attached.',
+                    fix: 'Open the template and upload the document to be signed.', href: tplHref });
+
+    /* 3. Every signer role must have at least one field to sign. The service
+          rejects the whole envelope if any role has nothing assigned. */
+    if (!signers.length) {
+      issues.push({ msg: 'The template does not define any signer roles.',
+                    fix: 'Open the template and add at least one signer.', href: tplHref });
+    } else {
+      signers.forEach(function (s, i) {
+        var mine = fields.filter(function (f) { return f.signerIndex === i; });
+        if (!mine.length)
+          issues.push({ msg: 'The signer role "' + esc(roleLabel(signers, i)) + '" has no fields on the document.',
+                        fix: 'Every signer needs at least one signature or input field. Open the template and add a field for this role, or remove the role.',
+                        href: tplHref });
+      });
+    }
+
+    /* 4. Fields must point at a role that still exists */
+    fields.forEach(function (f) {
+      if (typeof f.signerIndex !== 'number' || f.signerIndex < 0 || f.signerIndex >= signers.length)
+        issues.push({ msg: 'The field "' + esc(f.label || 'Untitled') + '" is not assigned to a valid signer role.',
+                      fix: 'Open the template and assign this field to a signer.', href: tplHref });
     });
-    return errors;
+
+    /* 5. Recipients */
+    document.querySelectorAll('.env-recipient-row').forEach(function (row) {
+      var idx   = parseInt(row.getAttribute('data-role-idx'), 10);
+      var role  = roleLabel(signers, idx);
+      var name  = ((row.querySelector('.rec-name')  || {}).value || '').trim();
+      var email = ((row.querySelector('.rec-email') || {}).value || '').trim();
+      if (!name)  issues.push({ msg: role + ': full name is required.', fix: 'Enter the signer’s name under Recipients.' });
+      if (!email) issues.push({ msg: role + ': email address is required.', fix: 'Enter the signer’s email under Recipients.' });
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        issues.push({ msg: role + ': "' + esc(email) + '" is not a valid email address.', fix: 'Check for typos under Recipients.' });
+    });
+
+    /* 6. Required document fields the sender fills in */
+    document.querySelectorAll('.env-docfield-row').forEach(function (row) {
+      var req = row.getAttribute('data-required') === '1';
+      var lbl = row.getAttribute('data-label') || 'Field';
+      var val = ((row.querySelector('.docfield-input') || {}).value || '').trim();
+      if (req && !val)
+        issues.push({ msg: 'The document field "' + esc(lbl) + '" is required.', fix: 'Fill it in under Document fields.' });
+    });
+
+    return issues;
+  }
+
+  /* ── Document fields the sender supplies (prefill variables) ───────────
+     Signer-typed fields are completed by the signer while signing, so they are
+     listed for context but not editable here. */
+  function renderDocFields(isReadOnly) {
+    var sec  = document.getElementById('docFieldsSection');
+    var host = document.getElementById('docFieldsList');
+    if (!sec || !host) return;
+    var json    = tplJson();
+    var signers = json.signers || [];
+    var fields  = json.fields  || [];
+    var saved   = {};
+    try {
+      var ej = JSON.parse((state.envelope && state.envelope.cs_envelopejson) || '{}');
+      (ej.values || []).forEach(function (v) { saved[v.name] = v.value; });
+    } catch (e) { /* no saved values */ }
+
+    var vars  = fields.filter(function (f) { return f.type === 'variable'; });
+    var typed = fields.filter(function (f) { return f.type === 'text' || f.type === 'date_signed'; });
+    if (!vars.length && !typed.length) { sec.style.display = 'none'; return; }
+    sec.style.display = '';
+    host.innerHTML = '';
+
+    vars.forEach(function (f) {
+      var fieldName = f.variableName || f.label || 'Variable';
+      var row = document.createElement('div');
+      row.className = 'env-docfield-row';
+      row.setAttribute('data-field-name', fieldName);
+      row.setAttribute('data-label', f.label || fieldName);
+      row.setAttribute('data-required', f.required ? '1' : '0');
+      row.innerHTML =
+        '<label class="env-docfield-label">' + esc(f.label || fieldName) +
+          (f.required ? ' <span style="color:#AF3C43;">*</span>' : '') +
+          ' <span class="text-muted small">(page ' + (f.page || 1) + ')</span></label>' +
+        '<input type="text" class="docfield-input" placeholder="' + esc(f.label || fieldName) + '"' +
+               (isReadOnly ? ' disabled' : '') +
+               ' value="' + esc(saved[fieldName] || f.defaultValue || '') + '">';
+      host.appendChild(row);
+    });
+
+    if (typed.length) {
+      var note = document.createElement('p');
+      note.className = 'small text-muted';
+      note.style.marginTop = vars.length ? '12px' : '0';
+      note.innerHTML = '<i class="fa fa-info-circle me-1"></i>' +
+        esc(typed.length === 1 ? '1 field is' : typed.length + ' fields are') +
+        ' completed by the signer while signing: ' +
+        typed.map(function (f) {
+          return esc((f.label || 'Field') + ' – ' + roleLabel(signers, f.signerIndex));
+        }).join(', ') + '.';
+      host.appendChild(note);
+    }
+
+    if (!isReadOnly)
+      host.querySelectorAll('input').forEach(function (i) { i.addEventListener('input', markDirty); });
+
+    /* The desktop side panel does not exist on phones, so reveal the matching
+       mobile tab whenever there is something to fill in. */
+    var mtab = document.getElementById('mtpTabDocFields');
+    if (mtab) mtab.style.display = vars.length ? '' : 'none';
+  }
+
+  /* ── Render the validation summary ───────────────────────────────────── */
+  function showValidation(issues) {
+    var vs = document.getElementById('validationSection');
+    var vb = document.getElementById('validationBody');
+    var vt = document.getElementById('validationTitle');
+    if (vt) vt.textContent = issues.length === 1
+      ? '1 item needs attention before sending'
+      : issues.length + ' items need attention before sending';
+    vb.innerHTML = issues.map(function (it) {
+      return '<div class="env-vissue">' +
+        '<div class="env-vissue-msg">' + it.msg + '</div>' +
+        (it.fix ? '<div class="env-vissue-fix">' + it.fix + '</div>' : '') +
+        (it.href ? '<a class="env-vissue-link" href="' + esc(it.href) + '">Open the template →</a>' : '') +
+      '</div>';
+    }).join('');
+    vs.style.display = '';
+    vs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ── Collect sender-supplied field values ────────────────────────────── */
+  function collectValues() {
+    var out = [];
+    document.querySelectorAll('.env-docfield-row').forEach(function (row) {
+      var v = ((row.querySelector('.docfield-input') || {}).value || '').trim();
+      if (v) out.push({ name: row.getAttribute('data-field-name'), value: v });
+    });
+    return out;
   }
 
   /* ── Build payload ───────────────────────────────────────────────────── */
@@ -730,7 +942,10 @@ input.te-title-input[type="text"],
       cs_envelopejson: JSON.stringify({
         templateId:   TEMPLATE_ID || (state.envelope && state.envelope.cs_templateid) || '',
         templateName: document.getElementById('tplNameDisplay').textContent || '',
-        recipients:   collectRecipients()
+        recipients:   collectRecipients(),
+        /* Sender-supplied prefill values; the Prepare Envelope flow seeds its
+           submit payload from this array. */
+        values:       collectValues()
       })
     };
     if (statuscode !== undefined && statuscode !== null) {
@@ -789,16 +1004,15 @@ input.te-title-input[type="text"],
     }
 
     if (sendMode) {
-      /* Validate all recipients before sending */
-      var errors = validateRecipients();
-      if (errors.length > 0) {
-        var vs = document.getElementById('validationSection');
-        var vb = document.getElementById('validationBody');
-        vb.innerHTML = '<ul class="small mrgn-bttm-0">' +
-          errors.map(function (e) { return '<li style="color:#856404;">' + esc(e) + '</li>'; }).join('') +
-          '</ul>';
-        vs.style.display = '';
-        vs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      /* Everything checkable is checked before the envelope leaves Draft, so a
+         template problem surfaces here rather than as a service rejection the
+         user only discovers later on the details page. */
+      var issues = validateForSend();
+      if (issues.length > 0) {
+        showValidation(issues);
+        setSaveStatus('error', issues.length === 1
+          ? '1 item needs attention before sending'
+          : issues.length + ' items need attention before sending', 'fa-exclamation-triangle');
         return;
       }
       document.getElementById('validationSection').style.display = 'none';
@@ -868,6 +1082,7 @@ input.te-title-input[type="text"],
             ? JSON.parse(state.envelope.cs_envelopejson || '{}').recipients || []
             : [];
           renderRecipients(signers, saved, state.isReadOnly);
+          renderDocFields(state.isReadOnly);
           /* Load PDF from annotation (Note) attachment — preferred.
              Falls back to legacy pdfBase64 in JSON for old records. */
           var tplId = data.cs_templateid;
@@ -922,6 +1137,7 @@ input.te-title-input[type="text"],
           var signers = json.signers || [];
           var saved = state.envelope ? JSON.parse(state.envelope.cs_envelopejson || '{}').recipients || [] : [];
           renderRecipients(signers, saved, state.isReadOnly);
+          renderDocFields(state.isReadOnly);
           /* PDF preview: recipients have Global read on annotation, so the source PDF still loads. */
           $.ajax({ type: 'GET', url: '/_api/annotations?$filter=_objectid_value eq ' + templateId + ' and subject eq \'TemplateSourcePDF\'&$select=documentbody&$top=1', headers: { 'Accept': 'application/json' } })
             .done(function (nd) {
@@ -1199,7 +1415,8 @@ input.te-title-input[type="text"],
 
       var bodyMap = [
         { src: 'detailsSection',    dst: 'mtpBodyDetails' },
-        { src: 'recipientsSection', dst: 'mtpBodyRecipients' }
+        { src: 'recipientsSection', dst: 'mtpBodyRecipients' },
+        { src: 'docFieldsSection',  dst: 'mtpBodyDocFields'  }
       ];
       var movedToMobile = false;
 

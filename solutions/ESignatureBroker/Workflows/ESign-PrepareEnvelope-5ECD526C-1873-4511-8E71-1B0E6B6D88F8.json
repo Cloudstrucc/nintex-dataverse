@@ -481,7 +481,7 @@
               },
               "inputs": {
                 "name": "ValuesArray",
-                "value": "@if(empty(coalesce(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['request']?['templates'], json('[]'))), json('[]'), coalesce(first(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['request']?['templates'])?['values'], json('[]')))"
+                "value": "@if(not(empty(coalesce(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['values'], json('[]')))), json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['values'], if(empty(coalesce(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['request']?['templates'], json('[]'))), json('[]'), coalesce(first(json(coalesce(outputs('Get_Envelope_Record')?['body/cs_envelopejson'],'{}'))?['request']?['templates'])?['values'], json('[]'))))"
               }
             },
             "Build_Recipient_Values": {
