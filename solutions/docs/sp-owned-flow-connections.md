@@ -105,3 +105,62 @@ Flow  /scopes/admin/.../flows      -> 403 EnvironmentAccessDenied
 That registration is a one-time tenant-admin step (`pac admin create-service-principal`, or
 `New-PowerAppManagementApp`). It is **not required** for the connection rework above — that path
 goes through Dataverse and `pac connection`, both of which work app-only today.
+
+
+---
+
+## Rollout procedure — order matters
+
+Patching `clientdata` on a flow that is **currently activated** does not rebind it. The record
+updates, the flow still reports Activated, but the runtime keeps the previous connection and the
+Dataverse webhook trigger stays registered against it. Observed both failure modes in dev:
+
+- repoint while Activated, then PATCH `statecode:1` (a no-op, since it was already 1) →
+  **the trigger stopped firing entirely**; envelopes sat at Preparing with no run and no error.
+- an off/on cycle after that made it fire again, but the run still executed as the **old**
+  connection's owner.
+
+The procedure that works, per flow:
+
+1. `PATCH { statecode: 0, statuscode: 1 }`  — deactivate
+2. `PATCH { clientdata }` with `connectionReferences["shared_commondataserviceforapps"]
+   .connection.connectionReferenceLogicalName = "cs_spdataverse"` — rebind **while Draft**
+3. `PATCH { statecode: 1, statuscode: 2 }`  — activate, registering the trigger against the new connection
+
+Then allow ~a minute before testing: the webhook registration is not instant, and a record changed
+in that window will not fire the trigger.
+
+Verify by the executing identity, not by the flow's own status: read `modifiedon`/`modifiedby` on a
+record the flow writes. It must come back as the application user.
+
+## Dev rollout result (2026-10-16)
+
+All **13** ESign flows now run on `cs_spdataverse` and are Activated. No flow that was previously
+off was switched on, with one intended exception: `ESign - Cancel Envelope`, which had been stuck
+in Draft because automation could not activate it.
+
+End-to-end send verified after the rebind — envelope reached **In Process** with an AssureSign
+envelope id, and the record came back **modified by `# Nintex - E-Sign - PEPP - Dev`**.
+
+## Connection references left orphaned (dev) — review before purging
+
+Nothing in the environment's 139 cloud flows references these any more:
+
+| Connection reference | Display name | Owner |
+|---|---|---|
+| `cs_sharecommondataserviceforapps` | Dataverse (Current Environment) | CloudAdmin Pearson Fredrick |
+| `cs_sharedcommondataserviceforapps_17ab1` | Microsoft Dataverse ESignatureBroker-17ab1 | CloudAdmin Pearson Fredrick |
+| `cs_sharedcommondataserviceforapps_efa00` | Microsoft Dataverse ESignatureBroker-efa00 | CloudAdmin Pearson Fredrick |
+| `cs_sharedcommondataserviceforapps_69ae5` | Microsoft Dataverse ESignatureBroker-69ae5 | CloudAdmin Pearson Fredrick |
+| `cs_sharedcommondataserviceforapps_575e5` | Microsoft Dataverse ESignatureClient-575e5 | Fredrick Pearson |
+| `cs_sharedcommondataserviceforapps_2bce1` | Microsoft Dataverse ESignatureClient-2bce1 | CloudAdmin Wang Don |
+| `new_sharednew5f…_e820f` | Election Canada E-Sign ESign-e820f | CloudAdmin Pearson Fredrick |
+| `new_sharednew5f…_3338e` | Election Canada E-Sign ESign-3338e | CloudAdmin Pearson Fredrick |
+
+**Do not delete `cs_sharecommondataserviceforapps` on the strength of this list alone.** It ships
+as part of the ESignatureBroker/ESignatureClient solutions, so removing it changes the solution's
+connection-reference contract and will affect imports into **test** and **fp-01**, which still run
+on it. Retire it there first, or keep it until those environments are migrated.
+
+The `_17ab1 / _efa00 / _69ae5 / _575e5 / _2bce1` entries look like duplicates accumulated from
+repeated solution imports and are the safest candidates to remove first.
