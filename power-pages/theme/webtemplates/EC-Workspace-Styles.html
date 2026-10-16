@@ -73,7 +73,7 @@
 .ews-modal{position:fixed;inset:0;z-index:10000;background:rgba(13,37,54,.5);align-items:center;justify-content:center;display:none;padding:16px}
 .ews-modal .box{background:#fff;border-radius:16px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden}
 .ews-modal .hd{background:var(--ews-navy);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
-.ews-modal .hd .esign-modal-close,.ews-modal .hd .esign-share-close{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0 4px;opacity:.85}
+.ews-modal .hd .esign-modal-close,.ews-modal .hd .esign-share-close,.ews-modal .hd .esign-del-close{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0 4px;opacity:.85}
 .ews-modal .hd .esign-modal-close:hover,.ews-modal .hd .esign-share-close:hover{opacity:1}
 .ews-modal .ft{padding:14px 18px;border-top:1px solid var(--ews-line-soft);text-align:right;display:flex;gap:8px;justify-content:flex-end}
 .ews-kv{width:100%;border-collapse:collapse}
@@ -407,4 +407,20 @@ body.ews-fson .ews-fsback{display:block}
 .ews-accessrow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--ews-line-soft);font-size:13.5px}
 .ews-accessrow:last-child{border-bottom:0}
 .ews-accesson{margin-left:auto;font-size:12px;color:var(--ews-muted);white-space:nowrap}
+</style>
+<style>
+/* Delete-template confirmation (Templates list, "My templates" only).
+   Uses the EC danger token; never a native confirm() dialog. */
+.ews-delbody{padding:16px}
+.ews-delbody p{margin:0 0 10px;font-size:14px;color:var(--ews-ink)}
+.ews-delbody .ews-delwarn{font-size:13px;color:var(--ews-muted)}
+.ews-delacts{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
+.ews-btn.ews-danger{background:var(--ews-danger);border-color:var(--ews-danger);color:#fff}
+.ews-btn.ews-danger:hover{filter:brightness(.92)}
+.ews-btn.ews-danger:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:768px){
+  /* Bottom-sheet style + full-width targets on phones */
+  .ews-delacts{flex-direction:column-reverse}
+  .ews-delacts .ews-btn{width:100%;padding:12px;font-size:16px}
+}
 </style>

@@ -71,6 +71,19 @@
   <div class="hd"><strong id="esignTplModalTitle">Template</strong><button type="button" class="esign-modal-close" aria-label="Close">&times;</button></div>
   <div id="esignTplModalBody"></div></div></div>
 
+<!-- Delete confirmation -->
+<div id="esignDelModal" class="ews-modal" style="display:none"><div class="box">
+  <div class="hd"><strong>{{ snippets['ESIGN/TPL/DELETE_TITLE'] | default: 'Delete template' }}</strong><button type="button" class="esign-del-close" aria-label="Close">&times;</button></div>
+  <div class="ews-delbody">
+    <p id="esignDelMsg"></p>
+    <p class="ews-delwarn">{{ snippets['ESIGN/TPL/DELETE_WARN'] | default: 'This cannot be undone. Envelopes already sent from this template are not affected.' }}</p>
+    <div class="ews-delacts">
+      <button type="button" class="ews-btn esign-del-cancel">{{ snippets['ESIGN/TPL/CANCEL'] | default: 'Cancel' }}</button>
+      <button type="button" class="ews-btn ews-danger" id="esignDelConfirm">{{ snippets['ESIGN/TPL/DELETE_CONFIRM'] | default: 'Delete template' }}</button>
+    </div>
+  </div>
+</div></div>
+
 <!-- Share dialog -->
 <div id="esignShareModal" class="ews-modal" style="display:none"><div class="box">
   <div class="hd"><strong id="shareTitle">Share template</strong><button type="button" class="esign-share-close" aria-label="Close">&times;</button></div>
@@ -173,6 +186,10 @@
       m+='<a href="'+EDITOR+'?id='+esc(r.id)+'">✎ Edit</a>';
       m+='<button type="button" class="tpl-open" data-id="'+esc(r.id)+'">ⓘ View details</button>';
       m+='<div class="sep"></div>'+dlBtn(r);
+      /* Delete is offered only in "My templates". A template shared with you is
+         reached through cs_templateshare, not ownership, so it never appears
+         here — and the Contact-scoped table permission would refuse it anyway. */
+      m+='<div class="sep"></div><button type="button" class="tpl-del" data-id="'+esc(r.id)+'" data-name="'+esc(r.name)+'">🗑 Delete…</button>';
       return m;
     }
     // global
@@ -322,6 +339,40 @@
     }).fail(function(){btn.disabled=false;btn.textContent='Share';alert('Could not check existing shares. Please try again.');});
     }
   }
+  /* ── Delete a template you own ──────────────────────────────────────────
+     Only reachable from the "My templates" view. The Contact-scoped table
+     permission (cs_contact_cstemplate_ownercontact) is what actually enforces
+     this: a template shared with you is not owned by you, so the service
+     refuses the delete even if the call were forged. */
+  var delId=null, delBusy=false;
+  function openDelete(id,name){
+    delId=id;
+    document.getElementById('esignDelMsg').innerHTML='Delete <strong>'+esc(name||'this template')+'</strong>?';
+    document.getElementById('esignDelModal').style.display='flex';
+  }
+  function closeDelete(){ if(delBusy)return; delId=null; document.getElementById('esignDelModal').style.display='none'; }
+  function doDelete(){
+    if(!delId||delBusy)return;
+    delBusy=true;
+    var btn=document.getElementById('esignDelConfirm'), was=btn.textContent;
+    btn.disabled=true; btn.textContent='Deleting…';
+    var id=delId;
+    tokenFn().then(function(tkn){
+      var hdr={'Accept':'application/json'};if(tkn)hdr['__RequestVerificationToken']=tkn;
+      return $.ajax({type:'DELETE',url:API+'('+id+')',headers:hdr});
+    }).then(function(){
+      delBusy=false; btn.disabled=false; btn.textContent=was;
+      document.getElementById('esignDelModal').style.display='none'; delId=null;
+      toast('Template deleted.');
+      load();
+    },function(xhr){
+      delBusy=false; btn.disabled=false; btn.textContent=was;
+      toast(xhr&&xhr.status===403
+        ? 'You can only delete templates you created.'
+        : 'Could not delete the template. Please try again.');
+    });
+  }
+
   function toast(t){var d=document.createElement('div');d.className='ews-toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.classList.add('show');},10);setTimeout(function(){d.classList.remove('show');setTimeout(function(){d.remove();},300);},3200);}
 
   // ---- load ----
@@ -376,6 +427,9 @@
     document.addEventListener('keydown',function(e){if(e.key==='Escape'){var c=document.getElementById('tplCard');if(c.classList.contains('fs')){c.classList.remove('fs');document.body.classList.remove('ews-fson');PAGE=USERPAGE;render();}document.getElementById('esignTplModal').style.display='none';document.getElementById('esignShareModal').style.display='none';document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});}});
     document.getElementById('esignTplModal').addEventListener('click',function(e){if(e.target.id==='esignTplModal'||e.target.classList.contains('esign-modal-close'))this.style.display='none';});
     document.getElementById('esignShareModal').addEventListener('click',function(e){if(e.target.id==='esignShareModal'||e.target.classList.contains('esign-share-close'))this.style.display='none';});
+    document.getElementById('esignDelModal').addEventListener('click',function(e){if(e.target.id==='esignDelModal'||e.target.classList.contains('esign-del-close')||e.target.classList.contains('esign-del-cancel'))closeDelete();});
+    document.getElementById('esignDelConfirm').addEventListener('click',doDelete);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('esignDelModal').style.display!=='none')closeDelete();});
     document.getElementById('shareQ').addEventListener('input',renderPeople);
     document.getElementById('shareDo').addEventListener('click',doShare);
     document.getElementById('sharePeople').addEventListener('click',function(e){var row=e.target.closest('.ews-prow');if(!row)return;var id=row.dataset.id;
@@ -389,6 +443,7 @@
       var op=e.target.closest('.tpl-open');if(op){e.preventDefault();tplModal(op.dataset.id);return;}
       var sh=e.target.closest('.tpl-share');if(sh){e.preventDefault();openShare(sh.dataset.id,sh.dataset.name,sh.dataset.cat);return;}
       var dl=e.target.closest('.tpl-dl');if(dl){e.preventDefault();download(dl.dataset.id,dl.dataset.name);return;}
+      var dx=e.target.closest('.tpl-del');if(dx){e.preventDefault();openDelete(dx.dataset.id,dx.dataset.name);return;}
       var gg=e.target.closest('.ews-gotoglobal');if(gg){e.preventDefault();switchView('global');return;}
     });
     document.addEventListener('click',function(){document.querySelectorAll('.ews-rowwrap.open').forEach(function(w){w.classList.remove('open');});});
