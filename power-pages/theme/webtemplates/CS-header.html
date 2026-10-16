@@ -6,7 +6,14 @@
 {% comment %} Tool-mode fallback: Liquid request.path/url is unreliable on the enhanced
    data model for these pages, so also detect the canvas tool pages client-side from the
    browser URL and suppress the nav before paint (no flash). {% endcomment %}
-<style>html.ews-toolmode .ews-nav{display:none!important}</style>
+<style>html.ews-toolmode .ews-nav{display:none!important}
+/* Tool pages are full-bleed, so the brand row goes edge to edge too: logo hard
+   left, language hard right. The gutter matches the canvas top bar (.te-topbar,
+   8px 12px / 8px on phones) so the logo lines up with the canvas controls under
+   it. This has to key off the client-side html.ews-toolmode class as well as the
+   Liquid .tool class, because request.path does not resolve on these pages. */
+html.ews-toolmode .ews-brandrow .ews-in{max-width:100%;padding-left:12px;padding-right:12px}
+@media(max-width:768px){html.ews-toolmode .ews-brandrow .ews-in{padding-left:8px;padding-right:8px}}</style>
 <script>(function(){try{if(/edit-envelope|edit-template/i.test(location.pathname+location.search))document.documentElement.classList.add('ews-toolmode');}catch(e){}})();</script>
 
 {% assign _p = request.path | downcase %}
