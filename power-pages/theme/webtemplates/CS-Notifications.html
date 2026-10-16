@@ -74,10 +74,19 @@
      message and offers the matching service list rather than pretending to deep-link. */
   var SVC_LINKS={envelopes:'/envelopes/',templates:'/templates/',documents:'/envelopes/',signed:'/envelopes/'};
   function svcHref(svc){var k=String(svc||'').toLowerCase();for(var n in SVC_LINKS){if(k.indexOf(n)>=0)return SVC_LINKS[n];}return null;}
+  /* Deep link to the record the notification is about when the message carries a
+     lookup. Messages created before those columns existed have neither, so they
+     fall back to the relevant service list rather than losing their action. */
+  function ntTarget(r){
+    if(r.envId) return {href:'/envelopes/details/?id='+encodeURIComponent(r.envId), label:'Open this envelope'};
+    if(r.tplId) return {href:'/edit-template/?id='+encodeURIComponent(r.tplId), label:'Open this template'};
+    var h=svcHref(r.svc);
+    return h?{href:h,label:'Go to '+(r.svc||'service')}:null;
+  }
   window.ntView=function(id){
     var r=DATA.find(function(x){return x.id===id;}); if(!r)return;
     document.getElementById('ntModalTitle').textContent=r.subj||'Notification';
-    var href=svcHref(r.svc);
+    var tgt=ntTarget(r);
     document.getElementById('ntModalBody').innerHTML=
       '<table class="ews-kv">'+
         '<tr><td>Service</td><td>'+esc(r.svc||'—')+'</td></tr>'+
@@ -86,7 +95,7 @@
         '<tr><td>Received</td><td>'+esc(fmt(r.when))+'</td></tr>'+
       '</table>'+
       '<div class="nt-msgbody">'+esc(r.body||'(No further detail was provided.)')+'</div>'+
-      (href?'<p style="margin-top:14px"><a class="ews-btn ews-primary" href="'+esc(href)+'">Go to '+esc(r.svc)+'</a></p>':'');
+      (tgt?'<p style="margin-top:14px"><a class="ews-btn ews-primary" href="'+esc(tgt.href)+'">'+esc(tgt.label)+'</a></p>':'');
     document.getElementById('ntModal').style.display='flex';
     document.getElementById('ntModalArchive').setAttribute('data-id',id);
     if(!r.read)ntRead(id);
@@ -110,9 +119,20 @@
     });
     document.addEventListener('keydown',function(e){if(e.key==='Escape')ntCloseModal();});
     var thd=document.querySelector('.ews-card thead');if(thd)thd.addEventListener('click',function(e){var th=e.target.closest('th.ews-sortable');if(th)ntSort(th.dataset.sort, th.dataset.date==='1');});
-    var url='/_api/cs_portalmessages?$select=cs_portalmessageid,cs_subject,cs_content,cs_service,cs_prioritytype,cs_readon,createdon&$filter=statecode eq 0'+(CID?" and _cs_recipientcontactid_value eq "+CID:"")+'&$orderby=createdon desc';
-    $.ajax({type:'GET',url:url,headers:{Accept:'application/json'}}).done(function(j){
-      DATA=(j.value||[]).map(function(v){return {id:v.cs_portalmessageid,subj:v.cs_subject,body:v.cs_content,svc:v.cs_service,pri:v.cs_prioritytype,read:!!v.cs_readon,when:v.createdon};});
+    /* The deep-link lookups are selected opportunistically. The portal caches its
+       EDM metadata, so a newly added column can 400 for a while after it exists in
+       Dataverse; losing the whole notification centre over that is not acceptable,
+       so drop the optional columns and retry rather than failing. */
+    var BASE='/_api/cs_portalmessages?$select=cs_portalmessageid,cs_subject,cs_content,cs_service,cs_prioritytype,cs_readon,createdon',
+        TAIL='&$filter=statecode eq 0'+(CID?" and _cs_recipientcontactid_value eq "+CID:"")+'&$orderby=createdon desc',
+        OPT=[',_cs_envelopelink_value,_cs_templatelink_value', ',_cs_envelopelink_value', ''];
+    function load(i){
+      i=i||0;
+      return $.ajax({type:'GET',url:BASE+OPT[i]+TAIL,headers:{Accept:'application/json'}})
+        .then(null,function(x){ return (i<OPT.length-1) ? load(i+1) : $.Deferred().reject(x).promise(); });
+    }
+    load().done(function(j){
+      DATA=(j.value||[]).map(function(v){return {id:v.cs_portalmessageid,subj:v.cs_subject,body:v.cs_content,svc:v.cs_service,pri:v.cs_prioritytype,read:!!v.cs_readon,when:v.createdon,envId:v._cs_envelopelink_value||null,tplId:v._cs_templatelink_value||null};});
       render();
     }).fail(function(){document.getElementById('ntRows').innerHTML='<tr><td colspan="5" class="ews-empty">Unable to load notifications.</td></tr>';});
   });
